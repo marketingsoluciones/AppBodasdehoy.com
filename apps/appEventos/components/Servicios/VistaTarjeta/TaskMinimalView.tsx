@@ -61,6 +61,10 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
   const endStr = endD ? `${pad(endD.getUTCHours())}:${pad(endD.getUTCMinutes())}` : null;
   const durStr = durMin ? [Math.floor(durMin / 60) ? `${Math.floor(durMin / 60)}h` : "", durMin % 60 ? `${durMin % 60}m` : ""].filter(Boolean).join(" ") : null;
   const horarioResumen = hasTime ? `${startStr}${endStr ? ` – ${endStr}` : ""}${durStr ? ` · ${durStr}` : ""}` : null;
+  // Formato 12h AM/PM para los chips móviles (fiel al HTML: "12:00 PM").
+  const to12 = (d: Date | null) => { if (!d) return ""; let h = d.getUTCHours(); const m = pad(d.getUTCMinutes()); const ap = h >= 12 ? "PM" : "AM"; h = h % 12 || 12; return `${pad(h)}:${m} ${ap}`; };
+  const startStr12 = hasTime ? to12(startD) : "";
+  const endStr12 = to12(endD);
   const resolveUserInfo = (resp: string) =>
     GruposResponsablesArry.find((el) => el.title?.toLowerCase() === resp?.toLowerCase())
     || [user, event?.detalles_usuario_id, ...(event?.detalles_compartidos_array || [])].find((el) => {
@@ -118,9 +122,9 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
               subtitle={resumenText || null}
             />
           </div>
-          {/* grupo de acciones: cerrada = solo flecha limpia (fiel al HTML); abierta = acciones */}
-          <div className={`flex items-center rounded-[10px] overflow-hidden flex-none ${isExpanded ? "bg-white border-[1.5px] border-[#E7E7EA]" : ""}`}>
-            {isExpanded && <>
+          {/* grupo de acciones: cerrada = solo flecha limpia; en móvil las acciones van al pie */}
+          <div className={`flex items-center rounded-[10px] overflow-hidden flex-none ${isExpanded ? "md:bg-white md:border-[1.5px] md:border-[#E7E7EA]" : ""}`}>
+            {isExpanded && <span className="hidden md:flex items-center">
             {optOjo && (
               <button onClick={() => runHeaderOption(optOjo)} title={t("Visible para invitados · clic para ocultar")} className={tBtn("border-r border-[#f0f0f2] text-[#8a8a90]")}>
                 <span className="flex" style={{ transform: "scale(0.85)" }}>{optOjo.getIcon ? optOjo.getIcon(task.spectatorView) : optOjo.icon}</span>
@@ -141,7 +145,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
                 <span className="flex" style={{ transform: "scale(0.85)" }}>{optCandado.getIcon ? optCandado.getIcon(task.estatus) : optCandado.icon}</span>
               </button>
             )}
-            </>}
+            </span>}
             <button onClick={onToggleExpand} title={isExpanded ? t("Contraer tarea") : t("Expandir tarea")} className={tBtn("text-[#EF5B94]")}>
               {isExpanded
                 ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M18 15l-6-6-6 6" /></svg>
@@ -153,20 +157,40 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
         {/* DETALLE (solo expandido) */}
         {isExpanded && (
           <div className="mt-4 flex flex-col gap-3.5">
-            {/* Orden fiel al HTML: chips inicio/fin/duración → responsables → descripción → etiqueta */}
-            <TimeDurationContainer task={task} canEdit={canEdit} handleUpdate={handleUpdate} owner={owner} />
+            {/* MÓVIL: chips de horario de SOLO LECTURA (fiel al HTML) — inicio(verde)·fin(rosa)·duración */}
+            {hasTime && (
+              <div className="md:hidden flex items-center gap-2 flex-wrap">
+                <span className="inline-flex items-center gap-1.5 bg-[#fafafa] border border-[#ececef] rounded-[9px] px-2.5 py-1.5 text-[11px] font-semibold text-[#3A3A42]"><i className="w-[7px] h-[7px] rounded-full bg-[#2FB37E]" />{startStr12}</span>
+                {endStr12 && <span className="inline-flex items-center gap-1.5 bg-[#fafafa] border border-[#ececef] rounded-[9px] px-2.5 py-1.5 text-[11px] font-semibold text-[#3A3A42]"><i className="w-[7px] h-[7px] rounded-full bg-[#D83E7C]" />{endStr12}</span>}
+                {durStr && <span className="inline-flex items-center bg-[#fafafa] border border-[#ececef] rounded-[9px] px-2.5 py-1.5 text-[11px] font-semibold text-[#3A3A42]">{durStr}</span>}
+              </div>
+            )}
+            {/* ESCRITORIO: editor completo de fecha/hora/duración */}
+            <div className="hidden md:block"><TimeDurationContainer task={task} canEdit={canEdit} handleUpdate={handleUpdate} owner={owner} /></div>
             <AssignedTask canEdit={canEdit} task={task} handleUpdate={handleUpdate} owner={owner} />
             <DescriptionTask canEdit={canEdit} task={task} handleUpdate={handleUpdate} owner={owner} />
-            <TagsTask canEdit={canEdit} task={task} handleUpdate={handleUpdate} owner={owner} suggestions={tagSuggestions} />
-            <NewAttachmentsEditor
-              handleUpdate={(files) => handleUpdate('attachments', files)}
-              task={task}
-              itinerarioId={itinerario._id}
-              canEdit={canEdit}
-              owner={owner}
-              showAttachments={showAttachments}
-              setShowAttachments={setShowAttachments}
-            />
+            {/* ESCRITORIO: etiquetas + adjuntos completos */}
+            <div className="hidden md:flex md:flex-col md:gap-3.5">
+              <TagsTask canEdit={canEdit} task={task} handleUpdate={handleUpdate} owner={owner} suggestions={tagSuggestions} />
+              <NewAttachmentsEditor
+                handleUpdate={(files) => handleUpdate('attachments', files)}
+                task={task}
+                itinerarioId={itinerario._id}
+                canEdit={canEdit}
+                owner={owner}
+                showAttachments={showAttachments}
+                setShowAttachments={setShowAttachments}
+              />
+            </div>
+            {/* MÓVIL: pie con etiqueta + acciones (ojo·duplicar·borrar), fiel al HTML */}
+            <div className="md:hidden flex items-center justify-between gap-2">
+              <div className="min-w-0 flex-1"><TagsTask canEdit={canEdit} task={task} handleUpdate={handleUpdate} owner={owner} suggestions={tagSuggestions} /></div>
+              <div className="flex items-center bg-white border-[1.5px] border-[#E7E7EA] rounded-[10px] overflow-hidden flex-none">
+                {optOjo && <button onClick={() => runHeaderOption(optOjo)} title={t("Visible para invitados · clic para ocultar")} className={tBtn("border-r border-[#f0f0f2] text-[#8a8a90]")}><span className="flex" style={{ transform: "scale(0.85)" }}>{optOjo.getIcon ? optOjo.getIcon(task.spectatorView) : optOjo.icon}</span></button>}
+                {onDuplicate && <button onClick={() => { if (owner || task.estatus || task.estatus == null) onDuplicate(); }} title={t("Duplicar tarea")} className={tBtn("border-r border-[#f0f0f2] text-[#8a8a90]")}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></svg></button>}
+                {optBorrar && <button onClick={() => runHeaderOption(optBorrar)} title={t("Eliminar tarea (pide confirmación)")} className={tBtn("text-[#D83E7C]")}><span className="flex" style={{ transform: "scale(0.85)" }}>{optBorrar.icon}</span></button>}
+              </div>
+            </div>
           </div>
         )}
       </div>
