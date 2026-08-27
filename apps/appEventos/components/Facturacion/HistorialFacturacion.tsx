@@ -2,7 +2,7 @@ import ClickAwayListener from "react-click-away-listener"
 import { DotsOpcionesIcon } from "../icons"
 import { useEffect, useState } from "react";
 import { AuthContextProvider } from "../../context";
-import { fetchApiBodas, queries } from "../../utils/Fetching";
+import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { PiNewspaperClippingThin } from "react-icons/pi";
 import { useRouter } from "next/navigation";
 import { useTranslation } from 'react-i18next';
@@ -29,12 +29,16 @@ export const HistorialFacturacion = () => {
     }, [])
 
     useEffect(() => {
-        fetchApiBodas({
+        // Ver nota en HistorialFacturacionStudio: getInvoices necesita el adaptador
+        // (→ getStripeInvoices). Con fetchApiBodas se consultaba la query del monedero.
+        fetchApiEventos({
             query: queries.getInvoices,
             variables: {},
             development: config?.name
         }).then(result => {
             setDataFactura(result)
+        }).catch((err) => {
+            console.error("[HistorialFacturacion] no se pudo cargar el historial:", err)
         })
     }, [])
 

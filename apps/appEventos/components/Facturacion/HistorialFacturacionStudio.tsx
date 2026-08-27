@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from "react";
 import { AuthContextProvider } from "../../context";
-import { fetchApiBodas, queries } from "../../utils/Fetching";
+import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { getCurrency } from "../../utils/Funciones";
 
 const MONTHS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
@@ -23,9 +23,14 @@ const HistorialFacturacionStudio: FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchApiBodas({ query: queries.getInvoices, variables: {}, development: config?.development })
+    // getInvoices EXIGE el adaptador de api-mcp: lo traduce a getStripeInvoices. Con
+    // fetchApiBodas se enviaba el campo literal `getInvoices`, que en api-mcp EXISTE pero es
+    // otra query — la del monedero (WalletInvoicesResponse: success/invoices/pagination) —
+    // y no tiene ni `total` ni `results`, así que fallaba la validación GraphQL. Como el
+    // catch dejaba la lista vacía, el usuario veía "no tienes facturas" en vez de un error.
+    fetchApiEventos({ query: queries.getInvoices, variables: {}, development: config?.development })
       .then((result: any) => setInvoices(result?.results || []))
-      .catch(() => setInvoices([]))
+      .catch((err) => { console.error("[HistorialFacturacion] no se pudo cargar el historial:", err); setInvoices([]) })
       .finally(() => setLoading(false));
   }, []);
 
