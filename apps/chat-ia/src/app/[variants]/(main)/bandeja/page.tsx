@@ -79,14 +79,17 @@ export default function MessagesPage() {
       appliedChannelRef.current = true;
     }
   }, [searchParams]);
-  // FASE 2 Agentes — filtro por agente. CORRECCIÓN 27-ago: el comentario anterior decía
-  // que el backend no exponía `assignedAgentId`. SÍ lo expone: api-ia lo devuelve en
-  // GET /api/messages/conversations. Lo que ocurre es que llega SIEMPRE en null, porque
-  // el responsable se ESCRIBE contra api-mcp (mutation setConversationAgent) y se LEE de
-  // api-ia, y no está confirmado que api-ia espeje ese valor (escalado a backend 27-ago).
-  // Consecuencia: agentDataAvailable es false y el filtro queda inerte, así que la ficha
-  // del agente enlaza a la bandeja SIN filtrar → "agentes sin conversaciones".
-  // El código de abajo es correcto y se activa solo en cuanto llegue un valor no nulo.
+  // FASE 2 Agentes — filtro por agente. ESTADO REAL (verificado end-to-end el 27-ago 19:55):
+  // el circuito COMPLETO funciona. Se escribe con setConversationAgent (api-mcp) y api-ia lo
+  // espeja en GET /api/messages/conversations. Probado: asignar → leer → llega el valor.
+  //
+  // OJO con el retardo: api-ia cachea el mapa de api-mcp en Redis con TTL de 120 s
+  // (_enrich_names_from_mcp). Asignar un responsable puede tardar hasta 2 minutos en
+  // aparecer en la lista. Si eso molesta en la interfaz, la solución es un refresco
+  // optimista aquí, NO tocar el TTL del backend.
+  //
+  // Que hoy no se vea ningún agente asignado no es un fallo: es que nadie ha asignado
+  // ninguno todavía (0 de 21 conversaciones). En cuanto se asigne uno, esto se enciende solo.
   const appliedAgentRef = useRef(false);
   const [agentFilter, setAgentFilter] = useState<string | null>(null);
   useEffect(() => {
@@ -152,8 +155,8 @@ export default function MessagesPage() {
     web: 'web',
   };
   // FASE 2 Agentes: ¿hay datos de agente en la lista? Solo entonces se activan el filtro
-  // ?agent= y el banner. Hoy false porque todas las conversaciones llegan con
-  // assignedAgentId en null — el campo SÍ existe en api-ia (ver nota de arriba).
+  // ?agent= y el banner. Hoy false porque nadie ha asignado responsable a ninguna
+  // conversación todavía — el circuito funciona (ver nota de arriba).
   // El contador y la lista TIENEN que mirar el mismo conjunto. Antes la lista
   // ocultaba difusiones/canales (filtro de abajo) pero `convUnreadCount` contaba
   // sobre `items` sin filtrar → el badge enseñaba pendientes que no aparecían al
@@ -223,8 +226,7 @@ export default function MessagesPage() {
       );
     }
     // FASE 2 Agentes: filtro por AGENTE EXACTO. Solo se aplica si agentDataAvailable
-    // (algún item con assignedAgentId no nulo). Mientras el espejo api-mcp→api-ia no esté
-    // confirmado, es un no-op y la Bandeja se comporta igual que hoy.
+    // (algún item con assignedAgentId no nulo), así que sin asignaciones es un no-op.
     if (agentFilter && agentDataAvailable) {
       arr = arr.filter(
         (i) => i.kind !== 'conversation' || i.assignedAgentId === agentFilter,

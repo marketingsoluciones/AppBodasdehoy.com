@@ -64,12 +64,19 @@ export function EmailSetup({ development, onConnected }: EmailSetupProps) {
       const values = await smtpForm.validateFields();
       setStatus('connecting');
       setError(null);
+      // CONTRATO api-ia (EmailConnectBody, verificado en su código el 27-ago): campos PLANOS
+      // smtpHost/smtpPort/imapHost/imapPort/username/password. Antes se enviaban anidados
+      // (smtp:{...}, imap:{...}) → 422 "Field required: smtpHost". api-ia valida el login SMTP
+      // de verdad antes de guardar, así que un fallo aquí es de credenciales, no de forma.
       const res = await fetch('/api/messages/email/connect', {
         body: JSON.stringify({
           development,
-          imap: { host: values.imapHost || values.smtpHost.replace('smtp', 'imap'), port: Number(values.imapPort || 993) },
-          provider: 'smtp',
-          smtp: { host: values.smtpHost, pass: values.smtpPass, port: Number(values.smtpPort || 587), user: values.smtpUser },
+          imapHost: values.imapHost || values.smtpHost.replace('smtp', 'imap'),
+          imapPort: Number(values.imapPort || 993),
+          password: values.smtpPass,
+          smtpHost: values.smtpHost,
+          smtpPort: Number(values.smtpPort || 587),
+          username: values.smtpUser,
         }),
         headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
         method: 'POST',

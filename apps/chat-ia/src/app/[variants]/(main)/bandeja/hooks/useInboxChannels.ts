@@ -13,12 +13,15 @@ import { buildHeaders } from '../utils/auth';
 /**
  * Canales de tipo "placeholder" que SÍ se muestran en la lista.
  *
- * Telegram, Email y Chat Web están fuera porque api-ia todavía no los sirve
- * (501 / 404, verificado el 27-ago). Su pantalla de configuración era alcanzable y el
- * usuario podía rellenarla entera para nada. Añadir aquí el id los devuelve a la lista
- * en cuanto backend los implemente — los componentes de configuración siguen en el repo.
+ * Historia corta: el 27-ago a mediodía estos tres devolvían 501/404 y se ocultaron para no
+ * enseñar formularios que no llevaban a ninguna parte. Esa misma tarde api-ia los implementó
+ * (commit d297164, 18:01 UTC) y se re-verificaron a las 19:49 UTC:
+ *   telegram/connect  → 422 pidiendo botToken (ruta viva)   · telegram/disconnect → 200
+ *   email/connect     → 422 pidiendo smtpHost (ruta viva)
+ *   web/config        → 200 devolviendo configuración
+ * Vuelven a la lista. Se conserva la constante: es el interruptor si algún canal se cae otra vez.
  */
-const SHOWN_PLACEHOLDER_CHANNELS: string[] = [];
+const SHOWN_PLACEHOLDER_CHANNELS: string[] = ['telegram', 'email', 'web'];
 
 export type ChannelKind =
   | 'whatsapp'
@@ -205,16 +208,8 @@ export function useInboxChannels(options?: { enableUnread?: boolean }) {
         unread: 0,
       };
     })(),
-    // Canales OCULTOS hasta que api-ia los implemente (verificado 27-ago contra
-    // api-ia.eventosorganizador.com):
-    //   telegram/connect  → 501 "Este canal no está disponible aún"
-    //   email/connect     → 501 not_implemented   · email/oauth-url → 404
-    //   messages/web/config → 404
-    // Se mostraban como placeholder y su pantalla de configuración era ALCANZABLE: el
-    // usuario rellenaba SMTP/IMAP o el token del bot y no había nada al otro lado.
-    // Un canal que no aparece no decepciona; uno que aparece y falla, sí.
-    // Para reactivarlos: añadir su id a SHOWN_PLACEHOLDER_CHANNELS. Los componentes
-    // TelegramSetup/EmailSetup/WebChatSetup siguen intactos (REGLA 0: no se pierde nada).
+    // Placeholders visibles según SHOWN_PLACEHOLDER_CHANNELS (ver nota arriba del fichero).
+    // Quitar un id de esa lista lo saca de la barra sin borrar su componente de configuración.
     ...([
       { id: 'telegram', kind: 'telegram' as const, label: 'Telegram' },
       { id: 'email', kind: 'email' as const, label: 'Email' },
