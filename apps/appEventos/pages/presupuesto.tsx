@@ -101,7 +101,7 @@ const Presupuesto = () => {
     if (!event) return <EventLoadingOrError skeleton={<SkeletonBudget categories={5} />} />
     if (studio) {
       return (
-        <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4" : "w-full h-full"} style={{ background: "#faf9fb" }}>
+        <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4" : "w-full h-full"} style={{ background: "#F2F2F2" }}>
           {showInitModal && isAllowed() && (
             <PresupuestoInitModal onClose={() => setShowInitModal(false)} onDuplicate={() => setShowModalDuplicate(true)} />
           )}

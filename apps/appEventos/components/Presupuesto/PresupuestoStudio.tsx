@@ -292,7 +292,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col" style={{ background: "#faf9fb", fontFamily: "'Poppins',sans-serif" }}>
+    <div className="w-full h-full flex flex-col" style={{ background: "#F2F2F2", fontFamily: "'Poppins',sans-serif" }}>
       <style dangerouslySetInnerHTML={{ __html: CATSTYLE }} />
 
       {showCreateCat && mounted && typeof document !== "undefined" && createPortal(

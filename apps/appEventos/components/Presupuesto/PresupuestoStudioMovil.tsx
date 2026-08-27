@@ -158,7 +158,7 @@ const PresupuestoStudioMovil: FC = () => {
   const inputStyle: React.CSSProperties = { width: "100%", boxSizing: "border-box", padding: "11px 13px", borderRadius: 11, border: "1.5px solid #E7E7EA", background: "#fff", font: "500 13px Poppins", color: "#3A3A42", outline: "none" };
 
   return (
-    <div className="md:hidden flex flex-col psm-hs" style={{ maxWidth: 420, margin: "0 auto", background: "#f1f1f4", minHeight: "100%", paddingBottom: 40, fontFamily: "'Poppins',sans-serif" }}>
+    <div className="md:hidden flex flex-col psm-hs" style={{ maxWidth: 420, margin: "0 auto", background: "#F2F2F2", minHeight: "100%", paddingBottom: 40, fontFamily: "'Poppins',sans-serif" }}>
       <style dangerouslySetInnerHTML={{ __html: "@keyframes psm-fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes psm-up{from{transform:translate(-50%,100%)}to{transform:translate(-50%,0)}}.psm-hs{scrollbar-width:none}.psm-hs::-webkit-scrollbar{display:none}" }} />
 
       {/* TITLE BAR */}
