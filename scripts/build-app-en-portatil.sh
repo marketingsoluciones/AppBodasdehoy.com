@@ -94,7 +94,10 @@ step_restart() {
   pm2 delete app-dev 2>/dev/null || true
   pkill -9 -f "next start -p 3220" 2>/dev/null || true
   pkill -9 -f "apps/appEventos/.bin/next" 2>/dev/null || true
-  lsof -ti:3220 2>/dev/null | xargs kill -9 2>/dev/null || true
+  # -sTCP:LISTEN OBLIGATORIO: cloudflared mantiene conexiones ABIERTAS contra :3220, así que
+  # un `lsof -ti:3220` a secas lo incluye y el kill -9 tumba el túnel entero.
+  # Memoria: project_dev_servers_orphan_next_cloudflared_port.md
+  lsof -ti:3220 -sTCP:LISTEN 2>/dev/null | xargs kill -9 2>/dev/null || true
   sleep 3
   if lsof -ti:3220 >/dev/null 2>&1; then
     echo "⚠️ puerto 3220 AÚN ocupado tras kill"
