@@ -81,6 +81,16 @@ const TYPE_LABEL: Record<string, { icon: string; label: string }> = {
 };
 
 function computeNotificationUrl(n: AppNotification): string | null {
+  // B12 · el deep-link REAL manda sobre todo lo demas.
+  // api-ia lo escribe al emitir (notifications_internal.py:101) y api-mcp lo persiste
+  // en metadata desde su commit 907cb24. Antes esto no se leia y el clic caia al
+  // generico de abajo (whatsapp_message -> /bandeja), es decir a la LISTA en vez de a
+  // la conversacion — que es justo el sintoma de B12.
+  // El campo focused NO sirve para esto: lo fabricamos nosotros con resourceId
+  // (mcpApi/notifications.ts:81) y un resourceId no es una ruta.
+  const deeplink = (n.metadata as { deeplink?: unknown } | undefined)?.deeplink;
+  if (typeof deeplink === 'string' && deeplink.startsWith('/')) return deeplink;
+
   const focused = n.focused ?? '';
   if (
     focused.startsWith('/bandeja') ||

@@ -46,6 +46,12 @@ const GET_NOTIFICATIONS = `
         readAt
         development
         createdAt
+        # B12: el deep-link viaja en metadata.deeplink ("/bandeja/{canal}/{conv}").
+        # api-ia lo escribe al emitir (notifications_internal.py:101) y api-mcp lo
+        # persiste desde su commit 907cb24. Sin pedirlo aquí, el clic caía al
+        # genérico whatsapp_message → /bandeja, o sea a la LISTA en vez de a la
+        # conversación. metadata es JSON en su esquema.
+        metadata
       }
     }
   }
