@@ -80,7 +80,13 @@ export default async function globalSetup() {
   console.log(`\n[E2E] Health check (${E2E_ENV})`);
   const results = await Promise.all(checks.map(async (c) => ({ ...c, ...(await fetchStatus(c.url, c.timeoutMs)) })));
   const isAllowed = (label: string, status: number) => {
-    if (label === 'chat' || label === 'tunnel_chat_localhost_3210') return status === 200 || status === 307;
+    // chat-ia sirve /chat como redirección a /asistente (renombrado de la ruta). Next emite
+    // 308 (permanente), no 307, así que sin aceptarlo el health-check tumbaba las 103 specs
+    // aunque chat-dev estuviera perfectamente sano. Verificado 28-ago-2026: /chat -> 308 ->
+    // /asistente -> 200. Se aceptan ambas redirecciones para no volver a romper si cambia.
+    if (label === 'chat' || label === 'tunnel_chat_localhost_3210') {
+      return status === 200 || status === 307 || status === 308;
+    }
     return status === 200;
   };
   const failed = results.filter((r) => !isAllowed(r.label, r.status));
