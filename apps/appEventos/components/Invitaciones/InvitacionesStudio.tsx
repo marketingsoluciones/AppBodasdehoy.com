@@ -241,8 +241,12 @@ export const InvitacionesStudio: FC = () => {
           .inv-header-mob{display:block !important;}
           /* Filtros del paso Enviar: una sola línea con scroll horizontal (fiel al HTML) */
           .inv-envio-controls{flex-direction:column !important;align-items:stretch !important;}
-          .inv-filters{flex-wrap:nowrap !important;overflow-x:auto !important;-webkit-overflow-scrolling:touch;}
-          .inv-filters::-webkit-scrollbar{display:none;}
+          .inv-filters{flex-wrap:nowrap !important;overflow-x:auto !important;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;max-width:100% !important;}
+          .inv-filters::-webkit-scrollbar{display:none;height:0;width:0;}
+          /* Aviso de onboarding: con nowrap y 13px el texto no cabe en una linea y estiraba
+             el ancho de TODA la pantalla (scroll horizontal). Letra menor y que fluya. */
+          .inv-onb{white-space:normal !important;max-width:100% !important;padding:8px 13px !important;border-radius:14px !important;align-items:flex-start !important;}
+          .inv-onb-txt{font-size:10.5px !important;line-height:1.35 !important;}
           .inv-selall{width:100% !important;}
           /* Toolbar del paso Enviar: sin buscador y con la fila "Invitación:" a todo el ancho (fiel al HTML) */
           .inv-search{display:none !important;}
@@ -280,9 +284,9 @@ export const InvitacionesStudio: FC = () => {
         {/* Onboarding */}
         {showOnb && (
           <div style={{ display: "flex", marginBottom: 16 }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#FCE7F0", borderRadius: 999, padding: "10px 18px", whiteSpace: "nowrap" }}>
+            <div className="inv-onb" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#FCE7F0", borderRadius: 999, padding: "10px 18px", whiteSpace: "nowrap", maxWidth: "100%" }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B23A6B" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ flex: "none" }}><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></svg>
-              <span style={{ font: "600 13px Poppins", color: "#B23A6B" }}>Diseña tu invitación y envíala por email, WhatsApp o SMS.</span>
+              <span className="inv-onb-txt" style={{ font: "600 13px Poppins", color: "#B23A6B" }}>Diseña tu invitación y envíala por email, WhatsApp o SMS.</span>
               <div onClick={() => setShowOnb(false)} style={{ cursor: "pointer", color: "#B23A6B", display: "flex", marginLeft: 4 }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M6 6l12 12M18 6L6 18" /></svg>
               </div>

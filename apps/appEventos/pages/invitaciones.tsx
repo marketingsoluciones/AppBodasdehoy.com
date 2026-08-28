@@ -194,7 +194,7 @@ const Invitaciones = () => {
     if (router.query.studio !== "legacy") return <InvitacionesStudio />
     return (
       <DataTableGroupProvider>
-        <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-full top-0 left-4" : "bg-base. w-full pt-2 md:py-0"}>
+        <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-full top-0 left-4" : "bg-base w-full pt-2 md:py-0"}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
