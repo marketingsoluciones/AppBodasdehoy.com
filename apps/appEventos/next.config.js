@@ -97,11 +97,15 @@ const nextConfig = {
     optimizePackageImports: ['react-icons', 'lucide-react', 'framer-motion', '@lobehub/ui', 'antd', '@ant-design/icons', 'date-fns', 'swiper'],
   },
 
-  // PERF 2026-06-04: NO retener páginas compiladas inactivas en memoria (la Mac de 16GB satura
+  // PERF 2026-06-04: no retener páginas compiladas inactivas en memoria (la Mac de 16GB satura
   // swap al compilar /login = 15922 módulos). Solo afecta a dev.
+  // 2026-08-28: maxInactiveAge sube de 25s a 30min. Con app-dev sirviendo `next dev` detrás del
+  // túnel, compilar una página tarda aquí 40-160s: a los 25s Next ya la había descartado, así
+  // que recompilaba en CADA petición y Cloudflare cortaba con 502 antes de recibir nada.
+  // El buffer sigue corto (5) para no reventar el swap: acota la memoria sin la espiral.
   ...(process.env.NODE_ENV === 'production'
     ? {}
-    : { onDemandEntries: { maxInactiveAge: 25 * 1000, pagesBufferLength: 3 } }),
+    : { onDemandEntries: { maxInactiveAge: 30 * 60 * 1000, pagesBufferLength: 5 } }),
 
   // Turbopack: equivalentes de los aliases webpack críticos
   // Evita instancias duplicadas de React (resolveDispatcher is null)
