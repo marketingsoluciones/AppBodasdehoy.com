@@ -453,13 +453,31 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         filteredTasks.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
       }
       setTasks(filteredTasks);
-      // O(n) con Map keyed por timestamp de fecha (UTC día)
+      // O(n) con Map keyed por el DÍA EN EL HUSO DEL EVENTO.
+      // Antes la clave salía de componentes UTC (getUTCFullYear/Month/Date) mientras que
+      // la hora de cada tarjeta se pinta con timeFormated(task.fecha, event.timeZone) y el
+      // chip se pintaba en hora local del navegador: tres husos distintos. Con eso, un mismo
+      // día del evento podía repartirse en DOS grupos y la fecha aparecía repetida
+      // (p.ej. una tarea a las 00:00 en Madrid cae en el día UTC anterior).
+      // La clave se guarda como Date.UTC(...) y el chip se pinta con timeZone:"UTC",
+      // así el ida y vuelta es exacto y la etiqueta no vuelve a desplazarse.
+      const eventTz = event?.timeZone && typeof event.timeZone === 'string' ? event.timeZone : 'UTC';
+      const dayKeyInEventTz = (value: string | number | Date): number | null => {
+        const d = new Date(value);
+        if (isNaN(d.getTime())) return null;
+        try {
+          const parts = new Intl.DateTimeFormat('en-CA', {
+            timeZone: eventTz, year: 'numeric', month: '2-digit', day: '2-digit',
+          }).formatToParts(d).reduce<Record<string, string>>((acc, x) => { acc[x.type] = x.value; return acc; }, {});
+          return Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day));
+        } catch {
+          // Huso inválido guardado en el evento: no romper la vista, caer a UTC.
+          return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+        }
+      };
       const dateMap = new Map<number | null, Task[]>();
       for (const item of filteredTasks) {
-        const f = new Date(item.fecha);
-        const date: number | null = item.fecha
-          ? new Date(f.getUTCFullYear(), f.getUTCMonth(), f.getUTCDate()).getTime()
-          : null;
+        const date: number | null = item.fecha ? dayKeyInEventTz(item.fecha) : null;
         const bucket = dateMap.get(date);
         if (bucket) bucket.push(item);
         else dateMap.set(date, [item]);
@@ -475,7 +493,9 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     }
     // canViewTask NO va en deps: se recrea cada render (useAllowed / viewers ?? [])
     // y provoca Maximum update depth. view sí, para refiltrar al cambiar esquema/cards.
-  }, [currentItinerario, itinerario, view]);
+    // event?.timeZone SÍ va en deps: el selector de huso lo cambia en caliente y los
+    // grupos por día deben recalcularse, o quedarían partidos según el huso anterior.
+  }, [currentItinerario, itinerario, view, event?.timeZone]);
 
   const handleAddSpectatorView = async (values: Task) => {
     try {
@@ -943,10 +963,10 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                             {isStudioIti && view !== "schema"
                               ? <span style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", border: "1.5px solid #E7E7EA", borderRadius: 20, padding: "6px 16px", font: "600 12.5px Poppins", color: "#3A3A42" }}>
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={1.8} strokeLinecap="round"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 9h18M8 3v4M16 3v4" /></svg>
-                                {new Date(el?.fecha).toLocaleString(navigator.language, { year: "numeric", month: "long", day: "2-digit" })}
+                                {new Date(el?.fecha).toLocaleString(navigator.language, { year: "numeric", month: "long", day: "2-digit", timeZone: "UTC" })}
                               </span>
                               : <span className={`${view === "schema" ? "border-primary border-dotted mb-1" : "border-gray-300"} border-[1px] px-5 py-[1px] rounded-full text-[12px] font-semibold`}>
-                                {new Date(el?.fecha).toLocaleString(navigator.language, { year: "numeric", month: "long", day: "2-digit" })}
+                                {new Date(el?.fecha).toLocaleString(navigator.language, { year: "numeric", month: "long", day: "2-digit", timeZone: "UTC" })}
                               </span>}
                           </div>}
                           {el?.tasks?.map((elem, idx) => {

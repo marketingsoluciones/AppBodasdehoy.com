@@ -94,7 +94,9 @@ export const ItinerarioPDF = (props) => {
           <div key={i} className="w-full mt-4">
             <div className={`w-full flex justify-start`}>
               <span className={`border-primary border-dotted mb-1 border-[1px] px-5 py-[1px] rounded-full text-[12px] font-semibold`}>
-                {new Date(el?.fecha).toLocaleString(navigator.language, { year: "numeric", month: "long", day: "2-digit" })}
+                {/* el.fecha es la clave de grupo (Date.UTC del día en el huso del evento):
+                    se pinta en UTC para que la etiqueta no se desplace un día. */}
+                {new Date(el?.fecha).toLocaleString(navigator.language, { year: "numeric", month: "long", day: "2-digit", timeZone: "UTC" })}
               </span>
             </div>
             {el?.tasks?.map((elem, idx) => {
