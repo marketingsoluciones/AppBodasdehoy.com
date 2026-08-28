@@ -85,3 +85,120 @@ export async function disconnectSocialAccount(id: string): Promise<boolean> {
     return false;
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Bandeja unificada SMM + mejores franjas para publicar.
+//
+// ⚠️ Los nombres llevan prefijo SMM_. En la coordinación de api-mcp aparecen como
+// "getUnifiedInbox" y "getBestTimes" SIN prefijo, y así no existen: GraphQL responde
+// "Cannot query field". Verificado contra su esquema el 28-ago:
+//   SMM_getUnifiedInbox  · smm/inbox.graphql:125
+//   SMM_getBestTimes     · smm/analytics.graphql:179
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type SMMUnifiedMessageSource = string;
+
+export interface SMMUnifiedMessage {
+  _id: string;
+  content: string;
+  development: string;
+  message_type?: string | null;
+  platform: string;
+  received_at: string;
+  sender_avatar?: string | null;
+  sender_id: string;
+  sender_name: string;
+  source: SMMUnifiedMessageSource;
+  status: string;
+  thread_id?: string | null;
+}
+
+export interface SMMUnifiedInbox {
+  limit: number;
+  messages: SMMUnifiedMessage[];
+  page: number;
+  total: number;
+  totalPages: number;
+}
+
+/** `day_of_week`: 0 = domingo … 6 = sábado. `hour`: 0-23. */
+export interface SMMBestTime {
+  day_of_week: number;
+  hour: number;
+  label?: string | null;
+  score: number;
+}
+
+export interface SMMBestTimes {
+  /** 'grid' = rejilla curada por plataforma · 'data' = calculado de engagement (futuro). */
+  platform?: string | null;
+  slots: SMMBestTime[];
+  source: string;
+}
+
+const GET_UNIFIED_INBOX = `
+  query GetUnifiedInbox($development: String!, $page: Int, $limit: Int) {
+    SMM_getUnifiedInbox(development: $development, page: $page, limit: $limit) {
+      messages {
+        _id
+        source
+        platform
+        development
+        sender_id
+        sender_name
+        sender_avatar
+        content
+        status
+        message_type
+        received_at
+        thread_id
+      }
+      total
+      page
+      limit
+      totalPages
+    }
+  }
+`;
+
+const GET_BEST_TIMES = `
+  query GetBestTimes($development: String!, $platform: SMM_SocialPlatform) {
+    SMM_getBestTimes(development: $development, platform: $platform) {
+      platform
+      source
+      slots { day_of_week hour score label }
+    }
+  }
+`;
+
+/**
+ * Bandeja unificada (SMM + WhatsApp) paginada.
+ *
+ * NO se traga el error: si la query falla hay que verlo. El patrón `catch { return [] }`
+ * de este fichero ha escondido fallos reales en otras pantallas (auditoría 27-ago).
+ */
+export async function getUnifiedInbox(
+  development: string,
+  page = 1,
+  limit = 20,
+): Promise<SMMUnifiedInbox> {
+  const data = await mcpClient.query<{ SMM_getUnifiedInbox: SMMUnifiedInbox }>(
+    GET_UNIFIED_INBOX,
+    { development, limit, page },
+  );
+  return (
+    data.SMM_getUnifiedInbox ?? { limit, messages: [], page, total: 0, totalPages: 0 }
+  );
+}
+
+/** Mejores franjas para publicar. Hoy rejilla curada por plataforma (source='grid'). */
+export async function getBestTimes(
+  development: string,
+  platform?: string,
+): Promise<SMMBestTimes> {
+  const data = await mcpClient.query<{ SMM_getBestTimes: SMMBestTimes }>(GET_BEST_TIMES, {
+    development,
+    platform,
+  });
+  return data.SMM_getBestTimes ?? { platform: platform ?? null, slots: [], source: 'grid' };
+}
