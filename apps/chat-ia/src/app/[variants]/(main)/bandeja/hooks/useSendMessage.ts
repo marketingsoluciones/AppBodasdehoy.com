@@ -18,6 +18,21 @@ export interface WhatsAppTemplateSend {
   parameters: string[];
 }
 
+/**
+ * Emisor elegido en el selector "Enviar desde".
+ *
+ * api-ia lo acepta desde el 28-ago (commit 21112de) con campos OPCIONALES: sin emisor sale por
+ * el número por defecto del whitelabel, que es el comportamiento de siempre.
+ *   · Meta → `from_phone_number_id` (phoneNumberId del número)
+ *   · QR   → `session_key` (sesión de WhatsApp-web; esas sesiones viven en api-mcp)
+ * Se manda solo el campo que corresponde: enviar los dos a la vez no está definido.
+ */
+export interface WhatsAppSender {
+  kind: 'meta' | 'qr';
+  /** phoneNumberId (Meta) o sessionKey (QR), según kind. */
+  value: string;
+}
+
 // Construye URL + body para enviar. 🐛 FIX (informe 2026-06-12): la ruta WhatsApp anterior
 // (/api/messages/whatsapp/conversations/{dev}/{to}/send) daba 404 — NO existe en api-ia.
 // El endpoint REAL es POST /api/whatsapp/messages/send?development= con body {phone_number, content}
@@ -28,6 +43,7 @@ function buildSendRequest(
   conversationId: string,
   text: string,
   template?: WhatsAppTemplateSend,
+  sender?: WhatsAppSender,
 ): { body: string; url: string } | null {
   if (channel === 'whatsapp') {
     const parsed = parseWhatsAppConversationId(conversationId);
@@ -35,9 +51,16 @@ function buildSendRequest(
     const { dev, jid } = parsed;
     const phone = jidToPhone(jid);
     // Ventana 24h cerrada + template seleccionada → endpoint HSM.
+    // Emisor elegido (si lo hay). Omitirlo = número por defecto del whitelabel.
+    const senderFields = sender
+      ? sender.kind === 'qr'
+        ? { session_key: sender.value }
+        : { from_phone_number_id: sender.value }
+      : {};
     if (template) {
       return {
         body: JSON.stringify({
+          ...senderFields,
           language_code: template.languageCode,
           parameters: template.parameters,
           phone_number: phone,
@@ -50,7 +73,7 @@ function buildSendRequest(
     // (quita "whatsapp/" y antepone el origin MCP). Así se aplican auth/headers del proxy.
     // El endpoint real es /api/whatsapp/messages/send con body {phone_number, content}.
     return {
-      body: JSON.stringify({ content: text, phone_number: phone }),
+      body: JSON.stringify({ ...senderFields, content: text, phone_number: phone }),
       url: `/api/messages/whatsapp/messages/send?development=${encodeURIComponent(dev)}`,
     };
   }
@@ -72,6 +95,7 @@ export function useSendMessage() {
     conversationId: string,
     text: string,
     template?: WhatsAppTemplateSend,
+    sender?: WhatsAppSender,
   ): Promise<{ message: Message; success: boolean }> => {
     const optimisticMsg: Message = {
       fromUser: false, // false = mensaje enviado por ti (outbound)
@@ -81,7 +105,7 @@ export function useSendMessage() {
       timestamp: new Date().toISOString(),
     };
 
-    const req = buildSendRequest(channel, conversationId, text, template);
+    const req = buildSendRequest(channel, conversationId, text, template, sender);
     if (!req) {
       return { message: optimisticMsg, success: false };
     }
