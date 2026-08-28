@@ -11,6 +11,7 @@ import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import FormGuardarRegalos from "../components/Forms/FormGuardarRegalos"
 import { useRouter } from "next/router";
 import { ListaRegalosStudio } from "../components/ListaDeRegalos/ListaRegalosStudio";
+import ListaRegalosStudioMovil from "../components/ListaDeRegalos/ListaRegalosStudioMovil";
 import { useMounted } from "../hooks/useMounted"
 import { useEventSyncWithUrl } from "../hooks/useEventSyncWithUrl"
 import { useAllowed } from "../hooks/useAllowed"
@@ -50,7 +51,14 @@ const ListaRegalos = () => {
     if (!event) return <EventLoadingOrError skeletonRows={4} />
     // Rediseño de Lista de regalos (fiel al HTML) = vista POR DEFECTO (aprobado por owner).
     // Rollback a la vista clásica con ?studio=legacy. Datos de regalos pendientes de backend.
-    if (router.query.studio !== "legacy") return <ListaRegalosStudio />
+    if (router.query.studio !== "legacy") return (
+      <>
+        {/* MÓVIL (fiel a Lista_regalos_movil.dc.html) */}
+        <ListaRegalosStudioMovil />
+        {/* ESCRITORIO (intacto) */}
+        <div className="hidden md:block"><ListaRegalosStudio /></div>
+      </>
+    )
     return (
       <>
         {showForm ? (
