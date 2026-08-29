@@ -23,6 +23,7 @@ import { cleanResponsables } from "../../Servicios/VistaTarjeta/TaskNewUtils";
 import { DateTask } from "../../Servicios/VistaTarjeta/DateTask";
 import { TimeTask } from "../../Servicios/VistaTarjeta/TimeTask";
 import { DurationTask } from "../../Servicios/VistaTarjeta/DurationTask";
+import { isStudioPathname } from "../../../utils/studioPaths";
 
 
 interface props {
@@ -54,7 +55,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
   const storage = getStorage();
   const toast = useToast()
   const isStudio = typeof window !== "undefined"
-    && window.location.pathname === "/itinerario"
+    && isStudioPathname(window.location.pathname)
     && new URLSearchParams(window.location.search).get("studio") !== "legacy"
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
 

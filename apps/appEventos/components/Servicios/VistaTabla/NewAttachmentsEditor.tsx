@@ -10,6 +10,7 @@ import { AuthContextProvider, EventContextProvider } from "../../../context";
 import { downloadFile } from "../../Utils/storages";
 import { useToast } from "../../../hooks/useToast";
 import { validateFiles, ALL_FILES_ACCEPT, filesFromDataTransfer, filterDropFiles } from '@bodasdehoy/shared/upload';
+import { isStudioPathname } from "../../../utils/studioPaths";
 
 const getFileIcon = (fileName: string) => {
   const ext = fileName.split('.').pop()?.toLowerCase();
@@ -89,7 +90,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
   const ruta = usePathname();
   const isItinerarioRoute = ["/itinerario"].includes(ruta);
   const isStudio = typeof window !== "undefined"
-    && window.location.pathname === "/itinerario"
+    && isStudioPathname(window.location.pathname)
     && new URLSearchParams(window.location.search).get("studio") !== "legacy";
 
   const handleFileSelect = async (files: FileList | null) => {

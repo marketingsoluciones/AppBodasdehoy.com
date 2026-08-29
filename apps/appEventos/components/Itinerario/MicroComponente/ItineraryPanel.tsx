@@ -40,6 +40,7 @@ import { PermissionTaskActionWrapper } from "../../Servicios/Utils/PermissionTas
 import useSWR from 'swr';
 import { handleCopyLink, cleanResponsables } from "../../Servicios/VistaTarjeta/TaskNewUtils";
 import { IconArray } from "../../Servicios/VistaTabla/NewSelectIcon";
+import { isStudioPathname } from "../../../utils/studioPaths";
 
 interface props {
   itinerario: Itinerary
@@ -111,7 +112,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   // huecos temporales entre tareas (fiel a itinerariovistatarjeta.html .gap).
   // Servicios (BoddyIter compartido) queda excluido por el path. Mismo backend.
   const isStudioIti = searchParams.get("studio") !== "legacy"
-    && (typeof window !== "undefined" && window.location.pathname === "/itinerario")
+    && (typeof window !== "undefined" && isStudioPathname(window.location.pathname))
 
   // Hueco temporal entre dos tareas consecutivas (mismo día): "+X libres" o,
   // si se solapan, aviso ámbar. Null cuando no aplica (sin hora activa / 0 min).

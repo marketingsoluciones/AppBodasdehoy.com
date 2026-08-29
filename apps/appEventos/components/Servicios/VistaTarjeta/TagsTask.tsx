@@ -4,6 +4,7 @@ import { FC, useState } from "react";
 import { useTranslation } from "react-i18next";
 import ClickAwayListener from "react-click-away-listener";
 import { useAllowed } from "../../../hooks/useAllowed";
+import { isStudioPathname } from "../../../utils/studioPaths";
 
 interface Props {
   canEdit: boolean;
@@ -19,7 +20,7 @@ export const TagsTask: FC<Props> = ({ canEdit, task, handleUpdate, owner, sugges
   // Rediseño studio (gate ?studio, default ON): solo /itinerario. Fiel a
   // tarjetatareaitinerario.html (.fila-tags / .caja-tags / .tag / .tag-input).
   const isStudio = typeof window !== "undefined"
-    && window.location.pathname === "/itinerario"
+    && isStudioPathname(window.location.pathname)
     && new URLSearchParams(window.location.search).get("studio") !== "legacy";
 
   // Lógica de validación extraída fuera del return

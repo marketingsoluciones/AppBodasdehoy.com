@@ -14,6 +14,7 @@ import { useSearchParams } from "next/navigation";
 import { ImageAvatar } from "../../Utils/ImageAvatar";
 import { GruposResponsablesArry } from "../Utils/ResponsableSelector";
 import { cleanResponsables } from "./TaskNewUtils";
+import { isStudioPathname } from "../../../utils/studioPaths";
 
 interface TaskMinimalViewProps {
   task: Task;
@@ -77,7 +78,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
   // ya usan `primary` (rosa) y layout en caja. Rollback ?studio=legacy.
   const searchParams = useSearchParams()
   const isStudio = searchParams.get("studio") !== "legacy"
-    && (typeof window !== "undefined" && window.location.pathname === "/itinerario")
+    && (typeof window !== "undefined" && isStudioPathname(window.location.pathname))
 
   // Acciones visibles en la cabecera (ojo · borrar · candado): mismo filtro que
   // legacy. Precalculado para poder marcar la última (sin borde derecho).

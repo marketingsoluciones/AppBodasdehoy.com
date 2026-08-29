@@ -15,6 +15,7 @@ import { TimeZone } from "../../icons"
 import { getTimeZoneCity, eventDateAtHourZ } from "../../../utils/FormatTime"
 import { useSearchParams } from "next/navigation"
 import ClickAwayListener from "react-click-away-listener"
+import { isStudioPathname } from "../../../utils/studioPaths";
 
 // Zonas horarias: principales ciudades de Europa, Latinoamérica, EE. UU. y Canadá.
 const TIME_ZONES: string[] = [
@@ -77,7 +78,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
     // compartido con Servicios → excluido por el path). Rollback ?studio=legacy.
     const searchParams = useSearchParams()
     const isStudio = searchParams.get("studio") !== "legacy"
-        && (typeof window !== "undefined" && window.location.pathname === "/itinerario")
+        && (typeof window !== "undefined" && isStudioPathname(window.location.pathname))
     const [verOpen, setVerOpen] = useState<boolean>(false)
     const [tzOpen, setTzOpen] = useState<boolean>(false)
 

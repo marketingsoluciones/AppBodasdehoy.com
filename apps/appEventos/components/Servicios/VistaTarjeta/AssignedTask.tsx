@@ -8,6 +8,7 @@ import { AuthContextProvider } from "../../../context/AuthContext";
 import { EventContextProvider } from "../../../context/EventContext";
 import { ImageAvatar } from "../../Utils/ImageAvatar";
 import { cleanResponsables } from "./TaskNewUtils";
+import { isStudioPathname } from "../../../utils/studioPaths";
 
 interface Props {
   canEdit: boolean;
@@ -25,7 +26,7 @@ export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate, owner }) 
   // Rediseño studio (gate ?studio, default ON): solo /itinerario. Fiel a
   // tarjetatareaitinerario.html (.fila-grid / .caja / .chip-persona / .btn-asignar).
   const isStudio = typeof window !== "undefined"
-    && window.location.pathname === "/itinerario"
+    && isStudioPathname(window.location.pathname)
     && new URLSearchParams(window.location.search).get("studio") !== "legacy";
   const canShowAsignar = canEdit && (["/itinerario"].includes(ruta) ? (owner || task.estatus || task.estatus === null) : true);
 

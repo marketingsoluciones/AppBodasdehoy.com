@@ -3,6 +3,7 @@ import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { SelectIconNew } from "../Utils/SelectIconNew";
 import { Task } from "../../../utils/Interfaces";
+import { isStudioPathname } from "../../../utils/studioPaths";
 
 interface TitleTaskProps {
   canEdit: boolean;
@@ -21,7 +22,7 @@ export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task, own
   // Rediseño studio (gate ?studio, default ON): solo /itinerario. Fiel a
   // tarjetatareaitinerario.html (.t-ico círculo punteado rosa). Rollback ?studio=legacy.
   const isStudio = typeof window !== "undefined"
-    && window.location.pathname === "/itinerario"
+    && isStudioPathname(window.location.pathname)
     && new URLSearchParams(window.location.search).get("studio") !== "legacy";
 
   useEffect(() => {

@@ -21,6 +21,7 @@ import { useSearchParams } from "next/navigation";
 
 import axios from "axios";
 import { buildSchemaPdfHtml } from "../../../utils/buildSchemaPdfHtml";
+import { isStudioPathname } from "../../../utils/studioPaths";
 
 interface props {
     itinerario: Itinerary
@@ -62,7 +63,7 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
     // SubHeaderServicios. Rollback ?studio=legacy. Mismo backend/handlers.
     const searchParams = useSearchParams()
     const isStudio = searchParams.get("studio") !== "legacy"
-        && (typeof window !== "undefined" && window.location.pathname === "/itinerario")
+        && (typeof window !== "undefined" && isStudioPathname(window.location.pathname))
 
     const downloadPdf = async () => {
         try {

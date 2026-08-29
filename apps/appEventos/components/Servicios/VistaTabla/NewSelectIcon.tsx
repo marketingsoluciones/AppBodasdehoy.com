@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Search, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Anillos, FuegosArtificiales, Baile, Baile2, Brindis, Carro, Cena, Cocteles, Comida, Fotografo, Iglesia, Maquillaje, Merienda, Novios, Salida, SesionFotos, Sol, Torta, Vestido, Dress } from "../../icons";
+import { isStudioPathname } from "../../../utils/studioPaths";
 
 interface Props {
   value: string;
@@ -161,7 +162,7 @@ export const NewSelectIcon: React.FC<Props> = ({ value, onChange, onClose }) => 
   // Rediseño studio (gate ?studio, default ON): modal fiel a modalselectoriconos.html.
   // Reutiliza IconArray/categories del backend. Solo /itinerario. Rollback ?studio=legacy.
   const isStudio = typeof window !== "undefined"
-    && window.location.pathname === "/itinerario"
+    && isStudioPathname(window.location.pathname)
     && new URLSearchParams(window.location.search).get("studio") !== "legacy";
 
   useEffect(() => {

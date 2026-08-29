@@ -4,6 +4,7 @@ import { IoTrashOutline } from 'react-icons/io5';
 import { ModalInterface } from '../../utils/Interfaces';
 import ButtonPrimary from '../Invitaciones/ButtonPrimary';
 import ButtonSecondary from '../Invitaciones/ButtonSecondary';
+import { isStudioPathname } from "../../utils/studioPaths";
 
 interface props {
     setModal: Dispatch<SetStateAction<ModalInterface>>
@@ -37,7 +38,7 @@ export const DeleteConfirmation = ({ modal, setModal }: props) => {
     }
 
     const isStudio = typeof window !== "undefined"
-        && window.location.pathname === "/itinerario"
+        && isStudioPathname(window.location.pathname)
         && new URLSearchParams(window.location.search).get("studio") !== "legacy"
 
     if (isStudio) {

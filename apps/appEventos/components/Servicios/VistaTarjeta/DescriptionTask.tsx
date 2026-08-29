@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { ComponentType, FC, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import 'react-quill/dist/quill.snow.css';
+import { isStudioPathname } from "../../../utils/studioPaths";
 
 const replacesLink: ComponentType<UrlProps> = (props) => {
   return (
@@ -48,7 +49,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
   // Rediseño studio (gate ?studio, default ON): solo /itinerario. Fiel a
   // tarjetatareaitinerario.html (.desc-head / .desc-area).
   const isStudio = typeof window !== "undefined"
-    && window.location.pathname === "/itinerario"
+    && isStudioPathname(window.location.pathname)
     && new URLSearchParams(window.location.search).get("studio") !== "legacy";
 
   useEffect(() => {

@@ -8,6 +8,7 @@ import { ArrowDownBodasIcon } from "../icons";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from "react-i18next";
 import { Direction, Order, SelectModeSortType } from "../../utils/Interfaces";
+import { isStudioPathname } from "../../utils/studioPaths";
 
 
 
@@ -30,7 +31,7 @@ export const SelectModeSort: FC<props> = ({ value, setValue }) => {
   // Rediseño studio (gate ?studio, default ON): solo /itinerario. Fiel a
   // dropdownordenar.html (.ord-btn / .ord-menu, 2 grupos, no cierra al elegir).
   const isStudio = typeof window !== "undefined"
-    && window.location.pathname === "/itinerario"
+    && isStudioPathname(window.location.pathname)
     && new URLSearchParams(window.location.search).get("studio") !== "legacy"
 
   let orderOptions: orderOptions[] = [

@@ -3,6 +3,7 @@ import { FC, useState } from "react";
 import { useAllowed } from "../../../hooks/useAllowed";
 import { Task } from "../../../utils/Interfaces";
 import { IconArray, NewSelectIcon } from "../VistaTabla/NewSelectIcon";
+import { isStudioPathname } from "../../../utils/studioPaths";
 
 
 interface SelectIconNewProps {
@@ -15,7 +16,7 @@ export const SelectIconNew: FC<SelectIconNewProps> = ({ handleChange, owner, tas
   const [openIcon, setOpenIcon] = useState(false)
   const [isAllowed, ht] = useAllowed()
   const isStudio = typeof window !== "undefined"
-    && window.location.pathname === "/itinerario"
+    && isStudioPathname(window.location.pathname)
     && new URLSearchParams(window.location.search).get("studio") !== "legacy"
 
   return (

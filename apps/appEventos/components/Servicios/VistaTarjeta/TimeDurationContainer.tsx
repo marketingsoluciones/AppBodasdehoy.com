@@ -9,6 +9,7 @@ import { TimeTask } from './TimeTask';
 import { DateTask } from './DateTask';
 import { useDateTime } from '../../../hooks/useDateTime';
 import { EventContextProvider } from '../../../context';
+import { isStudioPathname } from "../../../utils/studioPaths";
 
 interface TimeDurationContainerProps {
   task: Task;
@@ -28,7 +29,7 @@ export const TimeDurationContainer: FC<TimeDurationContainerProps> = ({ task, ca
   // Rediseño studio (gate ?studio, default ON): solo /itinerario. Fiel a
   // tarjetatareaitinerario.html (.horario: fecha-linea + grilla Inicio/Final/Duración con dots).
   const isStudio = typeof window !== "undefined"
-    && window.location.pathname === "/itinerario"
+    && isStudioPathname(window.location.pathname)
     && new URLSearchParams(window.location.search).get("studio") !== "legacy";
 
   const ValidationEdit = useMemo(() => {

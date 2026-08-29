@@ -5,6 +5,7 @@ import { ModalInterface } from '../../utils/Interfaces';
 import ButtonPrimary from '../Invitaciones/ButtonPrimary';
 import ButtonSecondary from '../Invitaciones/ButtonSecondary';
 import { Modal } from './Modal';
+import { isStudioPathname } from "../../utils/studioPaths";
 
 interface props {
   setModal: Dispatch<SetStateAction<ModalInterface>>
@@ -27,7 +28,7 @@ export const SimpleDeleteConfirmation: FC<props> = ({
 }) => {
   const { t } = useTranslation();
   const isStudio = typeof window !== "undefined"
-    && window.location.pathname === "/itinerario"
+    && isStudioPathname(window.location.pathname)
     && new URLSearchParams(window.location.search).get("studio") !== "legacy";
 
   if (isStudio) {
