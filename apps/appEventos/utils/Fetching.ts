@@ -596,10 +596,10 @@ export const queries = {
     }
   }`,
 
-  getAllBusiness: `query ($criteria :searchCriteriaBusiness, $sort : sortCriteriaBusiness, $skip :Int, $limit : Int, $development: String!) {
+  getAllBusiness: `query ($criteria: DIR_BusinessSearchCriteria, $sort: DIR_SortInput, $skip: Int, $limit: Int, $development: String!) {
     getAllBusinesses(searchCriteria:$criteria, sort: $sort, skip: $skip, limit: $limit, development: $development){
       total
-      results{
+      results: businesses{
          _id
          city
         businessName
@@ -1735,7 +1735,7 @@ export const queries = {
       success
       errors{ field message code }
       evento{ _id }
-      itinerario{ _id tasks }
+      itinerario{ _id tasks { _id } }
     }
   }`,
 

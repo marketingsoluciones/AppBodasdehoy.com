@@ -222,7 +222,14 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
   },
 
   // guardarListaRegalos: el front usaba editEvento(variable_reemplazar). → updateEvento(input:{listaRegalos}).
-  guardarListaRegalos: {
+  // API-01 otra vez (detectado 30-ago auditando las 104 queries): la clave del adapter
+  // debe ser el CAMPO GraphQL, no el nombre del wrapper en `queries`.
+  // queries.guardarListaRegalos tiene como campo raiz `editEvento`, asi que con la clave
+  // vieja el adapter NUNCA se activaba y la mutation literal llegaba a api-mcp:
+  //   Unknown argument "evento_id" on field "Mutation.editEvento"
+  // Es el mismo fallo que ya se corrigio para queryenEvento. editEvento SI existe en
+  // api-mcp, pero con otra firma: editEvento(id: ID!, input: EventoUpdateInput!).
+  editEvento: {
     canonicalQuery: `mutation($idEvento:ID!,$input:EventoUpdateInput!){ updateEvento(id:$idEvento, input:$input){ success errors{ field message code } evento{ _id listaRegalos } } }`,
     mapVariables: (v) => ({ idEvento: v.evento_id, input: { [v.variable_reemplazar ?? 'listaRegalos']: v.valor_reemplazar } }),
     mapResponse: (p) => ({ _id: p?.evento?._id, listaRegalos: p?.evento?.listaRegalos, success: p?.success, errors: p?.errors }),
