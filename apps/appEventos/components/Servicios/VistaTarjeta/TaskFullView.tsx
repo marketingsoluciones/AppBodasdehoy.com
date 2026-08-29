@@ -21,6 +21,7 @@ import { AuthContextProvider } from '../../../context';
 import { InputCommentsOld } from '../Utils/InputCommentsOld';
 import { useDateTime } from '../../../hooks/useDateTime';
 import { IoIosArrowRoundBack } from "react-icons/io";
+import { isStudioPathname } from "../../../utils/studioPaths";
 
 interface TaskFullViewProps {
   task: Task;
@@ -110,6 +111,12 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
     setPreviousCountComments(task.comments.length);
   }, [task.comments.length, previousCountComments, task._id]);
 
+  // Rediseño studio (fiel a tareasvistatarjeta.html): Estado, Prioridad y Responsables
+  // comparten fila, y Fecha/Hora/Duración van dentro de una caja gris.
+  const isStudio = typeof window !== "undefined"
+    && isStudioPathname(window.location.pathname)
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
+
   return (
     <div {...props} className={`w-full bg-white rounded-lg shadow-lg cursor-default  ${isMobile ? "scale-90" : ""}`}>
       <div id="task-container" className={`flex h-[553px] rounded-xl outline ${selectTask === task._id ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
@@ -159,25 +166,31 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   </div>}
               </div>
             </div>
-            <div className="flex flex-col flex-1 px-6 py-2 space-y-2  ">
-              <StatusPriorityTask
-                isMobile={isMobile}
-                task={task}
-                canEdit={canEdit}
-                handleUpdate={handleUpdate}
-                ht={ht}
-              />
-              <AssignedTask
-                canEdit={canEdit}
-                task={task}
-                handleUpdate={handleUpdate}
-                owner={owner}
-              />
-              <div className="flex items-center space-x-4 group relative">
-                <div className="flex items-center space-x-2">
+            <div className={isStudio ? "flex flex-col flex-1 px-7 py-4 gap-4" : "flex flex-col flex-1 px-6 py-2 space-y-2  "}>
+              <div style={isStudio ? { display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap" } : undefined}>
+                <StatusPriorityTask
+                  isMobile={isMobile}
+                  task={task}
+                  canEdit={canEdit}
+                  handleUpdate={handleUpdate}
+                  ht={ht}
+                />
+                <AssignedTask
+                  canEdit={canEdit}
+                  task={task}
+                  handleUpdate={handleUpdate}
+                  owner={owner}
+                  inline={isStudio}
+                />
+              </div>
+              <div
+                className={isStudio ? "" : "flex items-center space-x-4 group relative"}
+                style={isStudio ? { background: "#fafafa", borderRadius: 12, padding: "8px 10px", display: "flex", alignItems: "center", gap: 8, overflowX: "auto" } : undefined}
+              >
+                {!isStudio && <div className="flex items-center space-x-2">
                   <Calendar className="w-4 h-4 text-gray-500" />
-                </div>
-                <div className="h-5 flex items-center space-x-4">
+                </div>}
+                <div className={isStudio ? "flex items-center gap-2 flex-wrap" : "h-5 flex items-center space-x-4"}>
                   <DateTask
                     handleUpdate={handleUpdate}
                     canEdit={canEdit}

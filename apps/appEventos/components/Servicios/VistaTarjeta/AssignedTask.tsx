@@ -15,8 +15,12 @@ interface Props {
   task: any;
   handleUpdate: (field: string, value: any) => Promise<void>;
   owner: boolean;
+  /** Variante en línea de tareasvistatarjeta.html: "Responsables" junto a Estado y
+   *  Prioridad, sin rejilla de 120px ni caja con borde. La usa TaskFullView (Tareas);
+   *  Itinerario sigue con la variante apilada por defecto. */
+  inline?: boolean;
 }
-export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate, owner }) => {
+export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate, owner, inline = false }) => {
   const { t } = useTranslation();
   const { user } = AuthContextProvider();
   const { event } = EventContextProvider();
@@ -48,12 +52,19 @@ export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate, owner }) 
     // Se desactiva mientras se edita para no recortar el selector superpuesto.
     const isSlider = respList.length > 2 && !(editing && canEdit);
     return (
-      <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 14, alignItems: "center" }} className="w-full">
-        <div style={{ display: "flex", alignItems: "center", gap: 7, font: "600 12.5px Poppins", color: "#a0a0a8" }}>
-          <User className="w-[14px] h-[14px]" />
-          {t('Asignados')}
+      <div
+        style={inline
+          ? { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", minWidth: 0 }
+          : { display: "grid", gridTemplateColumns: "120px 1fr", gap: 14, alignItems: "center" }}
+        className={inline ? "" : "w-full"}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 6, font: inline ? "500 12px Poppins" : "600 12.5px Poppins", color: "#8a8a90", flex: "none" }}>
+          <User className="w-[13px] h-[13px]" />
+          {inline ? t('Responsables', { defaultValue: 'Responsables' }) : t('Asignados')}
         </div>
-        <div className={`relative${isSlider ? " asig-slider" : ""}`} style={{ minHeight: 44, border: "1.5px solid #E7E7EA", borderRadius: 12, padding: "7px 12px", display: "flex", alignItems: "center", gap: 8, flexWrap: isSlider ? "nowrap" : "wrap", overflowX: isSlider ? "auto" : "visible" }}>
+        <div className={`relative${isSlider ? " asig-slider" : ""}`} style={inline
+          ? { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", minWidth: 0 }
+          : { minHeight: 44, border: "1.5px solid #E7E7EA", borderRadius: 12, padding: "7px 12px", display: "flex", alignItems: "center", gap: 8, flexWrap: isSlider ? "nowrap" : "wrap", overflowX: isSlider ? "auto" : "visible" }}>
           {(editing && canEdit) && <div className="absolute z-10 top-0 md:left-0 right-0">
             <ClickUpResponsableSelector
               value={tempResponsable}
