@@ -80,7 +80,10 @@ const TYPE_LABEL: Record<string, { icon: string; label: string }> = {
   comment_added: { icon: '💭', label: 'Nuevo comentario' },
 };
 
-function computeNotificationUrl(n: AppNotification): string | null {
+function computeNotificationUrl(
+  n: AppNotification,
+  convById?: Map<string, string>,
+): string | null {
   // B12 · el deep-link REAL manda sobre todo lo demas.
   // api-ia lo escribe al emitir (notifications_internal.py:101) y api-mcp lo persiste
   // en metadata desde su commit 907cb24. Antes esto no se leia y el clic caia al
@@ -90,6 +93,17 @@ function computeNotificationUrl(n: AppNotification): string | null {
   // (mcpApi/notifications.ts:81) y un resourceId no es una ruta.
   const deeplink = (n.metadata as { deeplink?: unknown } | undefined)?.deeplink;
   if (typeof deeplink === 'string' && deeplink.startsWith('/')) return deeplink;
+
+  // Segundo camino, sin depender del backend: la notificacion SI trae el id de la
+  // conversacion en resourceId (verificado 29-ago: 100 de 100 lo tienen, mientras
+  // que 0 de 100 traen metadata). Lo que le falta es el canal — y ese lo tenemos ya
+  // cargado en la lista de conversaciones del propio feed. Con los dos se arma la
+  // misma ruta que daria el deeplink.
+  const convId = n.resourceId;
+  if (convId && convById) {
+    const canal = convById.get(convId);
+    if (canal) return `/bandeja/${canal}/${encodeURIComponent(convId)}`;
+  }
 
   const focused = n.focused ?? '';
   if (
@@ -131,6 +145,10 @@ export function useUnifiedFeed(maxItems = 60): {
   const isGuestUser = isGuest || userType === 'guest' || userType === 'visitor';
 
   const { conversations, loading: convLoading } = useRecentConversations(50, refreshTick);
+  // conversationId -> channelParam, para resolver el destino de las notificaciones.
+  const convByIdRef = new Map<string, string>(
+    conversations.map((c) => [c.conversationId, c.channelParam]),
+  );
   const resolveAgent = useAgentAssignmentOverrides((s) => s.resolve);
 
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -271,7 +289,7 @@ export function useUnifiedFeed(maxItems = 60): {
       isRead: n.read,
       kind: 'notification' as const,
       name: typeInfo ? `${typeInfo.icon} ${typeInfo.label}` : (n.type ?? 'Notificación'),
-      navigationUrl: computeNotificationUrl(n) ?? undefined,
+      navigationUrl: computeNotificationUrl(n, convByIdRef) ?? undefined,
       notifType: n.type ?? undefined,
       notificationId: n.id,
       preview: n.message,
