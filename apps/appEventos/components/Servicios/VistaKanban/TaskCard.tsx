@@ -7,6 +7,7 @@ import { Task, Itinerary } from '../../../utils/Interfaces';
 import { PriorityBadge, Priority } from '../Utils/PriorityBadge'
 import { BoardColumn } from '../types';
 import { GruposResponsablesArry } from '../Utils/ResponsableSelector';
+import { isStudioPathname } from '../../../utils/studioPaths';
 
 interface TaskCardProps {
   task: Task;
@@ -37,6 +38,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
   // Determinar el estado de completado
   const isCompleted = column?.id === 'completed';
   const isBlocked = column?.id === 'blocked';
+
+  // Rediseño studio (fiel a tareasvistatablero.html): tarjeta blanca compacta con borde
+  // fino y esquinas de 12px. Solo estilo del contenedor — el contenido y el menú de
+  // acciones siguen siendo los mismos, para no perder funcionalidad.
+  const isStudio = typeof window !== "undefined"
+    && isStudioPathname(window.location.pathname)
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
 
 
   // Modificar el handleEdit
@@ -144,8 +152,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
         {...attributes}
         {...listeners}
         className={`
-        relative group bg-white cursor-grab active:cursor-grabbing rounded-lg border transition-all duration-200 
-       border-gray-200 hover:border-gray-300 hover:shadow-sm
+        relative group bg-white cursor-grab active:cursor-grabbing border transition-all duration-200
+        ${isStudio ? 'rounded-xl border-[#ececef]' : 'rounded-lg border-gray-200 hover:border-gray-300 hover:shadow-sm'}
         ${isDragging || isSortableDragging ? 'rotate-2 shadow-lg' : ''}
       `}
         onClick={() => onTaskClick(task._id)}

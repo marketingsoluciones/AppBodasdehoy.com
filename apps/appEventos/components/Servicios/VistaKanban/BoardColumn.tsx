@@ -23,6 +23,7 @@ import { BoardColumn as IBoardColumn } from '../types';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { useServicePermissions } from '../../../hooks/useServicePermissions';
+import { isStudioPathname } from "../../../utils/studioPaths";
 
 interface BoardColumnProps {
   column: IBoardColumn;
@@ -169,12 +170,30 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
     }
   };
 
+  // Rediseño studio (fiel a tareasvistatablero.html): columna blanca con borde superior de
+  // color por estado. Los ids de columna ya coincidían con las 4 del HTML, así que el color
+  // sale del id y no hace falta tocar la configuración existente.
+  const isStudio = typeof window !== "undefined"
+    && isStudioPathname(window.location.pathname)
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
+  const STUDIO_COL: Record<string, string> = {
+    pending: "#3A3A42", in_progress: "#EF5B94", completed: "#2FB37E", blocked: "#D83E7C",
+  };
+  const studioColor = STUDIO_COL[column.id] ?? "#8a8a90";
+
   const filteredTasks = column.tasks.filter(task => canViewTask(task));
 
   return (
     <div
       ref={setDroppableNodeRef}
-      className={`
+      style={isStudio ? {
+        background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16,
+        borderTop: `3px solid ${studioColor}`, padding: 14, display: "flex",
+        flexDirection: "column", gap: 10, minHeight: 220,
+        fontFamily: "'Poppins',sans-serif",
+        boxShadow: isOver ? `0 0 0 2px ${studioColor}55` : undefined,
+      } : undefined}
+      className={isStudio ? "" : `
         flex flex-col bg-white rounded-lg shadow-sm border-2 transition-all duration-200 h-[calc(100%-10px)].
         ${columnColors.border} ${columnColors.bg}
         ${isCompact ? 'w-64' : 'w-80'}
@@ -184,7 +203,23 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
       `}
     >
 
-      {/* Header de la columna */}
+      {/* Header de la columna — studio: punto de color + título + contador (fiel al HTML) */}
+      {isStudio ? (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }} className="cursor-grab active:cursor-grabbing">
+          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+            <span style={{ width: 9, height: 9, borderRadius: "50%", background: studioColor, flex: "none" }} />
+            <span style={{ font: "600 13px Poppins", color: "#3A3A42", whiteSpace: "nowrap" }}>{column.title}</span>
+            <span style={{ font: "600 11px Poppins", color: "#8a8a90", background: "#f5f5f7", borderRadius: 10, padding: "2px 9px" }}>{filteredTasks.length}</span>
+          </div>
+          <span
+            onClick={handleAddTaskClick}
+            title={t("Agregar tarea")}
+            style={{ width: 26, height: 26, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#8a8a90", cursor: "pointer", flex: "none" }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+          </span>
+        </div>
+      ) : (
       <div
         className={`
           flex items-center justify-between p-3 border-b cursor-grab active:cursor-grabbing 
@@ -258,6 +293,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
           </div>
         </div>
       </div>
+      )}
 
       {/* Contenido de la columna */}
       {!column.isCollapsed && (
