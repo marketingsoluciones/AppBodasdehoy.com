@@ -750,11 +750,13 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 {/* FILA 2 (fiel a tareasvistatarjeta.html): a la izquierda el nombre de la lista
                     con su menú de opciones; a la derecha zona horaria y selector de vista. */}
                 <div className="flex items-center" style={{ gap: 10, justifyContent: "space-between", flexWrap: "wrap" }}>
+                {/* Solo Tareas: Itinerario ya muestra el nombre de la lista abajo, en SubHeader,
+                    y aquí salía duplicado. */}
                 <div className="flex items-center" style={{ gap: 10, minWidth: 0 }}>
-                    <div style={{ font: "700 17px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 340 }}>
+                    {isTareas && <div style={{ font: "700 17px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 340 }}>
                         {itinerario?.title}
-                    </div>
-                    {isAllowed() && !!itinerario && (
+                    </div>}
+                    {isTareas && isAllowed() && !!itinerario && (
                         <ItineraryTabsMenu
                             item={itinerario}
                             itinerario={itinerario}
