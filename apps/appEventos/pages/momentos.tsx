@@ -12,6 +12,8 @@ import { useEffect, useState } from 'react';
 import { LiaLinkSolid } from 'react-icons/lia';
 import { FiCheck, FiLoader, FiZap, FiCopy, FiGrid } from 'react-icons/fi';
 import { resolveApiIaOrigin } from '../utils/apiEndpoints';
+import { useSearchParams } from 'next/navigation';
+import MomentosStudio from '../components/Momentos/MomentosStudio';
 
 const MOMENTOS_API_BASE =
   typeof window !== 'undefined'
@@ -93,6 +95,8 @@ function AlbumQRButton({ albumId, eventId }: { albumId: string; eventId: string 
 
 function MomentosContent() {
   useEventSyncWithUrl()  // BUG-12: sincronizar event activo con ?event= de URL
+  const searchParams = useSearchParams();
+  const studio = searchParams?.get('studio') !== 'legacy';
   const { albums, albumsLoading, fetchAlbums, createEventAlbumStructure } = useMemoriesStore();
   const { event } = EventContextProvider();
   const [creatingStructure, setCreatingStructure] = useState(false);
@@ -137,7 +141,11 @@ function MomentosContent() {
       : (process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com');
 
   return (
-    <section className="bg-base w-full min-h-[60vh] md:py-10 px-4 md:px-0">
+    <>
+    {/* ESCRITORIO (rediseño fiel a Momentos.dc.html). Rollback: ?studio=legacy */}
+    {studio && <MomentosStudio chatBase={chatBase} />}
+    {/* Vista anterior: móvil siempre, y escritorio solo con ?studio=legacy */}
+    <section className={`bg-base w-full min-h-[60vh] md:py-10 px-4 md:px-0${studio ? " md:hidden" : ""}`}>
       <div className="md:max-w-screen-lg mx-auto">
         <h1 className="text-2xl font-semibold text-gray-800 mb-2">Momentos</h1>
         <p className="text-gray-600 mb-6">
@@ -250,6 +258,7 @@ function MomentosContent() {
         </a>
       </div>
     </section>
+    </>
   );
 }
 
