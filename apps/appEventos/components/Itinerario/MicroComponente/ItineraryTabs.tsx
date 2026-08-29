@@ -744,14 +744,34 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                     </button>
                 </div>
 
-                {/* FILA 2: acciones justificadas a la derecha */}
+                {/* FILA 2 (fiel a tareasvistatarjeta.html): a la izquierda el nombre de la lista
+                    con su menú de opciones; a la derecha zona horaria y selector de vista. */}
+                <div className="flex items-center" style={{ gap: 10, justifyContent: "space-between", flexWrap: "wrap" }}>
+                <div className="flex items-center" style={{ gap: 10, minWidth: 0 }}>
+                    <div style={{ font: "700 17px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 340 }}>
+                        {itinerario?.title}
+                    </div>
+                    {isAllowed() && !!itinerario && (
+                        <ItineraryTabsMenu
+                            item={itinerario}
+                            itinerario={itinerario}
+                            handleDeleteItinerario={handleDeleteItinerario}
+                            setEditTitle={setEditTitle}
+                            setTitle={setTitle}
+                            setModalDuplicate={setModalDuplicate}
+                            selectTask={selectTask}
+                            setSelectTask={setSelectTask}
+                            className="w-8 h-8 rounded-[9px] border-[1.5px] border-[#E7E7EA] flex items-center justify-center text-[#8a8a90] bg-white cursor-pointer flex-none"
+                        />
+                    )}
+                </div>
                 {isAllowed() && <div className="flex items-center" style={{ gap: 12, justifyContent: "flex-end", flexWrap: "wrap" }}>
                     {/* zona horaria (dropdown con lista + check verde) */}
                     <ClickAwayListener onClickAway={() => setTzOpen(false)}>
                         <div style={{ position: "relative", flex: "none" }}>
                             <div onClick={() => setTzOpen(v => !v)} title={t("timeZone")} style={{ display: "flex", alignItems: "center", gap: 6, font: "600 12px Poppins", color: "#3A3A42", padding: "7px 10px", borderRadius: 9, cursor: "pointer" }}>
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={1.8} strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" /></svg>
-                                {getTimeZoneCity(event?.timeZone)}
+                                {t("Zona horaria", { defaultValue: "Zona horaria" })} · {getTimeZoneCity(event?.timeZone)}
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={2} strokeLinecap="round"><path d="M6 9l6 6 6-6" /></svg>
                             </div>
                             {tzOpen && <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 6, width: 260, maxHeight: 300, overflowY: "auto", background: "#fff", borderRadius: 12, border: "1px solid #f0f0f2", boxShadow: "0 14px 40px rgba(0,0,0,.14)", zIndex: 50, padding: 6 }}>
@@ -805,6 +825,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                         </div>
                     </ClickAwayListener>
                 </div>}
+                </div>
             </div>
         )
     }
