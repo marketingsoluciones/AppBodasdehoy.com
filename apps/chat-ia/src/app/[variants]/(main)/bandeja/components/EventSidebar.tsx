@@ -31,6 +31,8 @@ import { useAuthCheck } from '@/hooks/useAuthCheck';
 
 import { ConversationNotesSidebar } from './ConversationNotesSidebar';
 
+import { ProximoPanel } from './ProximoPanel';
+
 export type RsvpStatus = 'confirmed' | 'pending' | 'declined';
 
 interface EventSidebarProps {
@@ -253,6 +255,11 @@ export function EventSidebar({
           </div>
         )}
       </div>
+
+      {/* 1.b · Lo que viene despues. Va ARRIBA a proposito: es lo que hay que ver antes de
+          contestar, no algo que se busca al final. Lee el itinerario del evento vinculado
+          (misma fuente que InternalChannelView, sin duplicar el dato). */}
+      <ProximoPanel eventId={linkedEventId ?? null} />
 
       {/* Scrollable body */}
       <div className="flex-1 overflow-y-auto">
