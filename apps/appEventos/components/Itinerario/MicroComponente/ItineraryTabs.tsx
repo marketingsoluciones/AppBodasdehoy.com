@@ -79,6 +79,9 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
     const searchParams = useSearchParams()
     const isStudio = searchParams.get("studio") !== "legacy"
         && (typeof window !== "undefined" && isStudioPathname(window.location.pathname))
+    // En Tareas, "Añadir tarea" y "Ordenar" viven en la fila del buscador (fiel al HTML), no aquí.
+    // Itinerario NO tiene esa fila —usa SubHeader—, así que allí se quedan en la toolbar.
+    const isTareas = typeof window !== "undefined" && window.location.pathname === "/servicios"
     const [verOpen, setVerOpen] = useState<boolean>(false)
     const [tzOpen, setTzOpen] = useState<boolean>(false)
 
@@ -787,7 +790,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                             </div>}
                         </div>
                     </ClickAwayListener>
-                    {["cards", "table"].includes(view) && (
+                    {!isTareas && ["cards", "table"].includes(view) && (
                         <PermissionAddButton
                             onClick={addTask}
                             className="flex items-center gap-[7px] bg-[#EF5B94] text-white rounded-[10px] px-4 py-[9px] text-[12.5px] font-semibold shadow-[0_6px_16px_rgba(239,91,148,0.3)] flex-none"
@@ -796,7 +799,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                             {t("Añadir tarea", { defaultValue: "Añadir tarea" })}
                         </PermissionAddButton>
                     )}
-                    {["cards", "table", "schema"].includes(view) && (
+                    {!isTareas && ["cards", "table", "schema"].includes(view) && (
                         <div style={{ flex: "none" }}>
                             <SelectModeSort value={orderAndDirection} setValue={setOrderAndDirection} />
                         </div>

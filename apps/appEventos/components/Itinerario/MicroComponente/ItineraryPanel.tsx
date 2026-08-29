@@ -41,6 +41,7 @@ import useSWR from 'swr';
 import { handleCopyLink, cleanResponsables } from "../../Servicios/VistaTarjeta/TaskNewUtils";
 import { IconArray } from "../../Servicios/VistaTabla/NewSelectIcon";
 import { isStudioPathname } from "../../../utils/studioPaths";
+import SelectModeSort from "../../Utils/SelectModeSort";
 
 interface props {
   itinerario: Itinerary
@@ -111,6 +112,11 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   // Rediseño studio (gate ?studio, default ON): solo /itinerario. Añade los
   // huecos temporales entre tareas (fiel a itinerariovistatarjeta.html .gap).
   // Servicios (BoddyIter compartido) queda excluido por el path. Mismo backend.
+  // Fila de buscador + acciones: solo en Tareas (fiel a tareasvistatarjeta.html).
+  // Itinerario tiene su propia cabecera (SubHeader) y no lleva esta fila.
+  const isTareas = typeof window !== "undefined" && window.location.pathname === "/servicios"
+  const [q, setQ] = useState<string>("")
+
   const isStudioIti = searchParams.get("studio") !== "legacy"
     && (typeof window !== "undefined" && isStudioPathname(window.location.pathname))
 
@@ -443,12 +449,18 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   useEffect(() => {
     if (currentItinerario?.tasks?.length > 0) {
       const array = view === "kanban" ? currentItinerario : itinerario
+      const term = q.trim().toLowerCase();
       const filteredTasks = array?.tasks?.filter(elem =>
         elem && (
           view === "schema"
           || ["/itinerario"].includes(window?.location?.pathname)
           || canViewTask(elem)
         )
+        // Buscador de Tareas: filtra por título y descripción. Sin término no filtra nada,
+        // así que el resto de vistas y de rutas se comportan exactamente igual que antes.
+        && (!term
+          || String(elem?.descripcion ?? "").toLowerCase().includes(term)
+          || String(elem?.tips ?? "").toLowerCase().includes(term))
       );
       if (view === "schema") {
         filteredTasks.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
@@ -496,7 +508,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     // y provoca Maximum update depth. view sí, para refiltrar al cambiar esquema/cards.
     // event?.timeZone SÍ va en deps: el selector de huso lo cambia en caliente y los
     // grupos por día deben recalcularse, o quedarían partidos según el huso anterior.
-  }, [currentItinerario, itinerario, view, event?.timeZone]);
+  }, [currentItinerario, itinerario, view, event?.timeZone, q]);
 
   const handleAddSpectatorView = async (values: Task) => {
     try {
@@ -871,6 +883,42 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         {...(view === "schema" ? { "data-pdf-root": "itinerario-schema" } : {})}
         className="w-full flex-1 flex flex-col"
       >
+      {isStudioIti && isTareas && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap", padding: "14px 20px 4px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "8px 14px", minWidth: 200, background: "#fff", flex: "0 1 320px" }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={2} strokeLinecap="round" style={{ flex: "none" }}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+            <input
+              type="text"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder={t("Buscar tareas…", { defaultValue: "Buscar tareas…" })}
+              style={{ border: "none", outline: "none", font: "400 12.5px Poppins", color: "#3A3A42", width: "100%", background: "transparent" }}
+            />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <button
+              onClick={() => !isAllowed() ? ht() : handleTaskCreate({})}
+              style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 18px", borderRadius: 12, background: "#EF5B94", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 5px 14px rgba(239,91,148,.28)", whiteSpace: "nowrap" }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+              {t("Añadir tarea", { defaultValue: "Añadir tarea" })}
+            </button>
+            <SelectModeSort value={orderAndDirection} setValue={setOrderAndDirection} />
+            {onToggleExpandAll && (
+              <div
+                onClick={() => onToggleExpandAll()}
+                title={allExpanded ? t("collapseAll", { defaultValue: "Contraer todo" }) : t("expandAll", { defaultValue: "Expandir todo" })}
+                style={{ width: 36, height: 36, borderRadius: 10, border: "1.5px solid #E7E7EA", display: "flex", alignItems: "center", justifyContent: "center", color: "#8a8a90", cursor: "pointer", background: "#fff", flex: "none" }}
+              >
+                {allExpanded
+                  ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M7 4l5 5 5-5" /><path d="M7 20l5-5 5 5" /></svg>
+                  : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M7 9l5-5 5 5" /><path d="M7 15l5 5 5-5" /></svg>}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {["/itinerario"].includes(window?.location?.pathname) &&
         <SubHeader
           view={view}
