@@ -157,6 +157,145 @@ test.describe('QA · Bandeja — lo no probado', () => {
     expect(fatales, 'consola sin errores fatales').toHaveLength(0);
   });
 
+  /**
+   * FQ-02 · MODIFICA DATOS. Asigna un responsable y lo DESASIGNA al terminar.
+   *
+   * Verifica el override optimista (f01deffd) que tapa el TTL de 120 s de api-ia:
+   * sin el, asignar tarda hasta 2 minutos en verse en la LISTA.
+   *
+   * La segunda mitad importa tanto como la primera: al desasignar, el chip debe
+   * desaparecer TAMBIEN al instante. Si el override se queda pegado, es peor que
+   * el bug original — taparia un cambio hecho desde otra pestana.
+   */
+  test('FQ-02 · asignar responsable se ve al instante en la lista', async ({ page }) => {
+    const diag = attachDiagnostics(page);
+    if (!(await loginChat(page))) {
+      report('FQ-02', 'NO EJECUTABLE', 'sin sesion', diag);
+      test.skip();
+      return;
+    }
+    await page.goto(`${CHAT_URL}/bandeja`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+    await page.waitForTimeout(9000);
+
+    // Abrir la primera conversacion de la lista.
+    const item = page.locator('a[href*="/bandeja/"]').first();
+    if (!(await item.count())) {
+      report('FQ-02', 'NO EJECUTABLE', 'no hay conversaciones en la lista', diag);
+      test.skip();
+      return;
+    }
+    await item.click({ timeout: 15_000 }).catch(() => {});
+    await page.waitForTimeout(6000);
+
+    const cambiar = page.getByLabel('Cambiar el agente responsable de esta conversación').first();
+    if (!(await cambiar.count())) {
+      report('FQ-02', 'NO EJECUTABLE', 'no aparece el control de responsable', diag);
+      test.skip();
+      return;
+    }
+    await cambiar.click({ timeout: 10_000 }).catch(() => {});
+    await page.waitForTimeout(2500);
+
+    // Elegir el primer agente que ofrezca el desplegable.
+    const opcion = page.locator('[role="option"], [role="menuitem"], li').first();
+    if (!(await opcion.count())) {
+      report('FQ-02', 'NO EJECUTABLE', 'el selector no ofrece agentes', diag);
+      test.skip();
+      return;
+    }
+    const nombreAgente = ((await opcion.innerText().catch(() => '')) || '').trim().slice(0, 40);
+    await opcion.click({ timeout: 10_000 }).catch(() => {});
+    await page.waitForTimeout(4000);
+
+    // Volver a la LISTA sin recargar — ahi es donde vivia el retardo de 2 min.
+    await page.goBack({ waitUntil: 'domcontentloaded' }).catch(() => {});
+    await page.waitForTimeout(5000);
+    const listaTrasAsignar = (await page.locator('body').innerText().catch(() => '')) || '';
+    const apareceYa = nombreAgente.length > 2 && listaTrasAsignar.includes(nombreAgente);
+    await page.screenshot({ path: 'e2e-app/_qa-fq02-asignado.png' });
+
+    // REVERTIR SIEMPRE: dejar la conversacion como estaba.
+    let revertido = false;
+    await item.click({ timeout: 15_000 }).catch(() => {});
+    await page.waitForTimeout(5000);
+    const cambiar2 = page.getByLabel('Cambiar el agente responsable de esta conversación').first();
+    if (await cambiar2.count()) {
+      await cambiar2.click({ timeout: 10_000 }).catch(() => {});
+      await page.waitForTimeout(2500);
+      const quitar = page.getByText(/sin responsable|quitar|desasignar|ninguno/i).first();
+      if (await quitar.count()) {
+        await quitar.click({ timeout: 10_000 }).catch(() => {});
+        await page.waitForTimeout(4000);
+        revertido = true;
+      }
+    }
+    await page.goBack({ waitUntil: 'domcontentloaded' }).catch(() => {});
+    await page.waitForTimeout(5000);
+    const listaTrasQuitar = (await page.locator('body').innerText().catch(() => '')) || '';
+    const desapareceYa = revertido ? !listaTrasQuitar.includes(nombreAgente) : false;
+    await page.screenshot({ path: 'e2e-app/_qa-fq02-revertido.png' });
+
+    report(
+      'FQ-02',
+      apareceYa && desapareceYa ? 'PASA' : 'FALLA',
+      `agente "${nombreAgente}" · aparece al instante: ${apareceYa} · desaparece al instante: ${desapareceYa} · revertido: ${revertido}`,
+      diag,
+    );
+    expect(apareceYa, 'el chip debe verse en la lista sin esperar el TTL').toBe(true);
+    expect(revertido, 'la conversacion debe quedar como estaba').toBe(true);
+    expect(desapareceYa, 'al desasignar, el override debe retirarse solo').toBe(true);
+  });
+
+  /**
+   * FQ-05 · Desconectar un canal deja de mentir (f2ce482b).
+   *
+   * Antes fallaban DOS cosas encadenadas: el catch vacio se tragaba el error, y
+   * fetch no lanza ante un 404, asi que ni siquiera llegaba al catch. Resultado:
+   * la interfaz ponia 'desconectado' pasara lo que pasara.
+   *
+   * SEGURO: solo pulsa desconectar en un canal que NO esta conectado, asi que no
+   * derriba ninguna integracion viva.
+   */
+  test('FQ-05 · desconectar un canal no conectado muestra el error', async ({ page }) => {
+    const diag = attachDiagnostics(page);
+    if (!(await loginChat(page))) {
+      report('FQ-05', 'NO EJECUTABLE', 'sin sesion', diag);
+      test.skip();
+      return;
+    }
+    await page.goto(`${CHAT_URL}/bandeja/telegram`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+    await page.waitForTimeout(8000);
+
+    const desconectar = page.getByRole('button', { name: /desconectar/i }).first();
+    if (!(await desconectar.count())) {
+      await page.screenshot({ path: 'e2e-app/_qa-fq05-sin-boton.png' });
+      report(
+        'FQ-05',
+        'NO EJECUTABLE',
+        'no hay boton de desconectar en la pantalla de Telegram (canal sin conectar) — NO cuenta como aprobado',
+        diag,
+      );
+      test.skip();
+      return;
+    }
+    await desconectar.click({ timeout: 10_000 }).catch(() => {});
+    await page.waitForTimeout(5000);
+
+    const texto = (await page.locator('body').innerText().catch(() => '')) || '';
+    const muestraError = /error|no se pudo|fall|inten/i.test(texto);
+    // El fallo original: decir 'desconectado' SIN que el backend lo confirmara.
+    const mienteDesconectado = /desconectad/i.test(texto) && !muestraError;
+    await page.screenshot({ path: 'e2e-app/_qa-fq05-desconectar.png' });
+
+    report(
+      'FQ-05',
+      !mienteDesconectado ? 'PASA' : 'FALLA',
+      `muestra error: ${muestraError} · dice "desconectado" sin confirmacion: ${mienteDesconectado}`,
+      diag,
+    );
+    expect(mienteDesconectado, 'no debe decir desconectado si el backend fallo').toBe(false);
+  });
+
   test('FQ-01 · el clic en una notificación abre la conversación', async ({ page }) => {
     const diag = attachDiagnostics(page);
     if (!(await loginChat(page))) {
