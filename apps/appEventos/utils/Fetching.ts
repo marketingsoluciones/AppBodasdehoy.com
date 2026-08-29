@@ -724,16 +724,10 @@ export const queries = {
           unit_amount
           recurring{
             interval
-            trial_period_days
+            interval_count
           }
         }
-        metadata{
-          grupo
-          includes
-          segmento
-          tipo
-          caracteristica
-        }
+        metadata
       }
     }
   }`,
