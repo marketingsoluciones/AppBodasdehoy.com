@@ -29,6 +29,16 @@ export interface NotificationsResponse {
   unreadCount: number;
 }
 
+/*
+ * B12: `metadata` trae el deep-link (metadata.deeplink = "/bandeja/{canal}/{conv}").
+ * api-ia lo escribe al emitir (notifications_internal.py:101) y api-mcp lo persiste
+ * desde su commit 907cb24. Sin pedirlo, el clic caía al genérico whatsapp_message
+ * → /bandeja, es decir a la LISTA en vez de a la conversación.
+ *
+ * ⚠️ NUNCA comentarios `#` DENTRO del template: el proxy GraphQL no los soporta y
+ * devuelve 400 GRAPHQL_PARSE_FAILED ("Expected Name, found <EOF>"). Eso dejó la
+ * pestaña de Notificaciones vacía — detectado en el QA del 29-ago (FQ-01).
+ */
 const GET_NOTIFICATIONS = `
   query GetNotifications($filters: NotificationFilters, $pagination: CRM_PaginationInput) {
     getNotifications(filters: $filters, pagination: $pagination) {
@@ -46,11 +56,6 @@ const GET_NOTIFICATIONS = `
         readAt
         development
         createdAt
-        # B12: el deep-link viaja en metadata.deeplink ("/bandeja/{canal}/{conv}").
-        # api-ia lo escribe al emitir (notifications_internal.py:101) y api-mcp lo
-        # persiste desde su commit 907cb24. Sin pedirlo aquí, el clic caía al
-        # genérico whatsapp_message → /bandeja, o sea a la LISTA en vez de a la
-        # conversación. metadata es JSON en su esquema.
         metadata
       }
     }
