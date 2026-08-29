@@ -44,8 +44,9 @@ const btnGhost: React.CSSProperties = {
   font: "600 12px Poppins", cursor: "pointer", whiteSpace: "nowrap",
 };
 
-/** Menú ⋮ de cada álbum: conserva Compartir y QR, que antes eran botones sueltos. */
-const AlbumMenu: FC<{ albumId: string; eventId?: string }> = ({ albumId, eventId }) => {
+/** Menú ⋮ de cada álbum: conserva Compartir y QR, que antes eran botones sueltos.
+ *  Se exporta para que la vista móvil use EXACTAMENTE el mismo menú (una sola fuente). */
+export const AlbumMenu: FC<{ albumId: string; eventId?: string }> = ({ albumId, eventId }) => {
   const { generateShareLink } = useMemoriesStore();
   const [open, setOpen] = useState(false);
   const [qr, setQr] = useState(false);
