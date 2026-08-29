@@ -194,6 +194,9 @@ export default function ConversationPage({ params }: ConversationPageProps) {
                 linkedContactId={conv.linkedContactId}
                 linkedEventId={conv.linkedEventId}
                 rsvpStatus={conv.guestStatus ?? undefined}
+                assignedAgentName={conv.assignedAgentName}
+                assignedAt={conv.assignedAt}
+                assignmentSource={conv.assignmentSource}
               />
             ) : (
               <ConversationNotesSidebar

@@ -32,6 +32,7 @@ import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { ConversationNotesSidebar } from './ConversationNotesSidebar';
 
 import { ProximoPanel } from './ProximoPanel';
+import { ResponsablePanel } from './ResponsablePanel';
 
 export type RsvpStatus = 'confirmed' | 'pending' | 'declined';
 
@@ -49,6 +50,11 @@ interface EventSidebarProps {
   /** Canal de la conversación para que NotesPanel use entityType correcto.
    *  WA → CONVERSATION; otros canales → ENTITY (evita HTTP 400 resolver). */
   channel?: string;
+  /** Responsable actual y CÓMO llegó a serlo. Los 3 campos ya viajan en la conversación
+   *  desde api-ia; antes no se pintaban en ninguna parte. */
+  assignedAgentName?: string | null;
+  assignedAt?: string | null;
+  assignmentSource?: string | null;
 }
 
 const RSVP_BUTTONS: Array<{
@@ -95,6 +101,9 @@ export function EventSidebar({
   rsvpStatus: initialRsvp,
   assignedTo,
   channel,
+  assignedAgentName,
+  assignedAt,
+  assignmentSource,
 }: EventSidebarProps) {
   // Cambio optimista cableado a api-mcp commit 926b5df (25-jun):
   //   updateGuestRsvpByConversation(conversationId, status) → GuestRsvpResponse
@@ -260,6 +269,14 @@ export function EventSidebar({
           contestar, no algo que se busca al final. Lee el itinerario del evento vinculado
           (misma fuente que InternalChannelView, sin duplicar el dato). */}
       <ProximoPanel eventId={linkedEventId ?? null} />
+
+      {/* 1.c · Quién atiende esto y por qué. Va junto a "Próximo" porque las dos responden
+          a lo mismo: en qué estado está esta conversación antes de que yo escriba. */}
+      <ResponsablePanel
+        assignedAgentName={assignedAgentName}
+        assignedAt={assignedAt}
+        assignmentSource={assignmentSource}
+      />
 
       {/* Scrollable body */}
       <div className="flex-1 overflow-y-auto">

@@ -13,6 +13,12 @@ export interface Conversation {
    *  Null-safe hasta que backend lo expone; ya LIVE en api-ia (17-ago). */
   assignedAgentId?: string | null;
   assignedAgentName?: string | null;
+  /** ISO de cuando se asigno el responsable. Lo manda api-ia y no se tipaba. */
+  assignedAt?: string | null;
+  /** Como llego a ser responsable: MANUAL | HANDOFF | AUTO
+   *  (api-ia, messages_with_whitelabel_storage.py:78). Necesario para auditar que hace
+   *  la IA en nombre del usuario. */
+  assignmentSource?: string | null;
   assignedToUserId?: string | null;
   channel: 'whatsapp' | 'instagram' | 'telegram' | 'email' | 'web' | 'facebook';
   contact: {
@@ -109,6 +115,8 @@ export function useConversations(channel: string | null) {
             // FASE 2 Agentes: responsable = agente IA (null-safe). Ya LIVE en api-ia.
             assignedAgentId: c.assignedAgentId ?? c.assigned_agent_id ?? null,
             assignedAgentName: c.assignedAgentName ?? c.assigned_agent_name ?? null,
+            assignedAt: c.assignedAt ?? c.assigned_at ?? null,
+            assignmentSource: c.assignmentSource ?? c.assignment_source ?? null,
             assignedToUserId: c.assignedUserId ?? c.assigned_to ?? c.assignedTo ?? null,
             channel: kind as Conversation['channel'],
             contact: {
