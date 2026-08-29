@@ -41,7 +41,7 @@ import useSWR from 'swr';
 import { handleCopyLink, cleanResponsables } from "../../Servicios/VistaTarjeta/TaskNewUtils";
 import { IconArray } from "../../Servicios/VistaTabla/NewSelectIcon";
 import { isStudioPathname } from "../../../utils/studioPaths";
-import SelectModeSort from "../../Utils/SelectModeSort";
+import { SelectModeSort } from "../../Utils/SelectModeSort";
 
 interface props {
   itinerario: Itinerary
