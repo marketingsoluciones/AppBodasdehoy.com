@@ -166,8 +166,38 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
 
 
 
+        {/* Contenido studio (fiel a tareasvistatablero.html): título + prioridad + fecha.
+            El diseño no lleva menú en la tarjeta; sus acciones siguen disponibles abriendo
+            la tarea (clic), que es donde el HTML las coloca. */}
+        {isStudio && (
+          <div style={{ padding: "13px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ font: "600 13px Poppins", color: "#3A3A42" }}>
+              {task.descripcion || 'Sin título'}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+              {(() => {
+                const pr = getValidPriority(task.prioridad);
+                const PAL: Record<string, [string, string]> = {
+                  alta: ["#D83E7C", "#FBE3ED"], media: ["#8F6E14", "#FDF6DE"], baja: ["#2FB37E", "#E4F5EE"],
+                };
+                const [color, bg] = PAL[pr] ?? PAL.media;
+                const label = pr.charAt(0).toUpperCase() + pr.slice(1);
+                return (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 5, font: "600 10.5px Poppins", color, background: bg, padding: "3px 10px", borderRadius: 11, whiteSpace: "nowrap" }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><path d="M5 21V4M5 4h12l-2.5 4L17 12H5" /></svg>
+                    {label}
+                  </span>
+                );
+              })()}
+              <span style={{ font: "600 10.5px Poppins", color: "#a0a0a8", padding: "3px 8px", borderRadius: 10, whiteSpace: "nowrap" }}>
+                {task.fecha ? new Date(task.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Sin fecha'}
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Contenido principal de la tarjeta */}
-        <div className="p-3">
+        <div className="p-3" style={isStudio ? { display: 'none' } : undefined}>
           {/* Título de la tarea */}
           <div className="flex  justify-between">
             <h4 className={` font-medium text-sm mb-2 pr-8 ${isBlocked ? 'line-through text-gray-500' : 'text-gray-800'}`}>

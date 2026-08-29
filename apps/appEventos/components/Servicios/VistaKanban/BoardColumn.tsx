@@ -367,10 +367,18 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
             <div className="flex items-center justify-center h-auto">
               <button
                 onClick={() => setIsCreatingTask(true)}
-                className="flex w-full h-full min-h-[150px] flex-col items-center justify-center space-y-2 border-2 border-dashed border-gray-300 rounded-md text-gray-500 hover:text-gray-700 hover:border-gray-400 transition-colors group"
+                style={isStudio ? {
+                  width: "100%", border: "1.5px dashed #E0E0E4", borderRadius: 12,
+                  padding: "26px 14px", display: "flex", flexDirection: "column",
+                  alignItems: "center", gap: 7, color: "#b3b3ba", background: "transparent",
+                  cursor: "pointer", font: "500 12px Poppins",
+                } : undefined}
+                className={isStudio ? "" : "flex w-full h-full min-h-[150px] flex-col items-center justify-center space-y-2 border-2 border-dashed border-gray-300 rounded-md text-gray-500 hover:text-gray-700 hover:border-gray-400 transition-colors group"}
               >
-                <Plus className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                <span className="text-sm">{t("Agregar una tarea")}</span>
+                {isStudio
+                  ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+                  : <Plus className="w-6 h-6 group-hover:scale-110 transition-transform" />}
+                <span className={isStudio ? "" : "text-sm"}>{t("Agregar una tarea")}</span>
               </button>
             </div>
           )}
@@ -378,7 +386,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
       )}
 
       {/* Pie de columna con botón de agregar cuando hay tareas */}
-      {!column.isCollapsed && column.tasks.length > 0 && !isCreatingTask && (
+      {!isStudio && !column.isCollapsed && column.tasks.length > 0 && !isCreatingTask && (
         <div className={`p-3 border-t ${columnColors.border}`}>
           <button
             onClick={() => setIsCreatingTask(true)}
