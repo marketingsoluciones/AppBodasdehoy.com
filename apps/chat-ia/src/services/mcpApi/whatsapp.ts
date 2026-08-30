@@ -477,3 +477,52 @@ export async function getWhatsAppMessagesGQL(
     return [];
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Vincular una conversación a un evento (boda)
+//
+// POR QUÉ IMPORTA
+// Los paneles Próximo / Agendar / Responsable solo aparecen cuando la conversación
+// tiene linkedEventId. Medido el 30-ago: 0 de 100 conversaciones lo tienen. El backend
+// SÍ sabe vincular (linkConversationToEvent, resolver whatsapp.ts:1379), pero el front
+// no lo llamaba desde ningún sitio — así que ese campo nunca se rellenaba a mano y todo
+// el "puesto de trabajo" quedaba invisible.
+//
+// No todas las conversaciones deben vincularse: un lead pidiendo info aún no es una boda.
+// Por eso es una ACCIÓN del usuario (asociar), no algo automático que se imponga aquí.
+// Un contacto puede tener varias bodas → se vincula la conversación al evento que toque,
+// y se puede desvincular o cambiar.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const LINK_CONV_TO_EVENT = `
+  mutation LinkConversationToEvent($conversationId: ID!, $eventId: ID!) {
+    linkConversationToEvent(conversationId: $conversationId, eventId: $eventId)
+  }
+`;
+
+const UNLINK_CONV_FROM_EVENT = `
+  mutation UnlinkConversationFromEvent($conversationId: ID!) {
+    unlinkConversationFromEvent(conversationId: $conversationId)
+  }
+`;
+
+/** Asocia la conversación a un evento. Devuelve true si el backend confirmó. */
+export async function linkConversationToEvent(
+  conversationId: string,
+  eventId: string,
+): Promise<boolean> {
+  const data = await mcpClient.query<{ linkConversationToEvent: boolean }>(LINK_CONV_TO_EVENT, {
+    conversationId,
+    eventId,
+  });
+  return data?.linkConversationToEvent === true;
+}
+
+/** Quita el vínculo con el evento (p. ej. si se asoció al equivocado). */
+export async function unlinkConversationFromEvent(conversationId: string): Promise<boolean> {
+  const data = await mcpClient.query<{ unlinkConversationFromEvent: boolean }>(
+    UNLINK_CONV_FROM_EVENT,
+    { conversationId },
+  );
+  return data?.unlinkConversationFromEvent === true;
+}

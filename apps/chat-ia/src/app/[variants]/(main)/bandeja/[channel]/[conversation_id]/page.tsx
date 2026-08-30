@@ -12,6 +12,8 @@ import { ConversationNotesSidebar } from '../../components/ConversationNotesSide
 import { EventSidebar } from '../../components/EventSidebar';
 import { TaskDetailWorkspace } from '../../components/TaskDetailWorkspace';
 import { BottomSheet } from '../../components/BottomSheet';
+import { AsociarEventoPanel } from '../../components/AsociarEventoPanel';
+import { getUserContext } from '../../utils/auth';
 import { useConversations } from '../../hooks/useConversations';
 import { useConversationCapabilities } from '../../hooks/useConversationCapabilities';
 import { buildHeaders } from '../../utils/auth';
@@ -83,7 +85,7 @@ export default function ConversationPage({ params }: ConversationPageProps) {
 
   // Datos extra de la conversación para el sidebar de notas (linked_contact_id,
   // linked_event_id, nombre del contacto). useConversations ya carga la lista.
-  const { conversations, loading } = useConversations(channel);
+  const { conversations, loading, refetch } = useConversations(channel);
   const conv = conversations.find((c) => c.id === conversation_id);
   // TICKET P1: canal no activo — la conv cargó (historial accesible) pero NO está en la
   // lista del canal activo (conexión WA anterior, channelId huérfano) → compositor
@@ -199,13 +201,22 @@ export default function ConversationPage({ params }: ConversationPageProps) {
                 assignmentSource={conv.assignmentSource}
               />
             ) : (
-              <ConversationNotesSidebar
-                channel={conv?.channel ?? channel}
-                contactName={conv?.contact?.name}
-                conversationId={conversation_id}
-                linkedContactId={conv?.linkedContactId}
-                linkedEventId={conv?.linkedEventId}
-              />
+              <>
+                {/* Sin evento: ofrecer asociarlo. Es lo que rellena linkedEventId y hace
+                    aparecer los paneles Próximo/Agendar/Responsable. */}
+                <AsociarEventoPanel
+                  conversationId={conversation_id}
+                  development={getUserContext().development ?? 'bodasdehoy'}
+                  onLinked={refetch}
+                />
+                <ConversationNotesSidebar
+                  channel={conv?.channel ?? channel}
+                  contactName={conv?.contact?.name}
+                  conversationId={conversation_id}
+                  linkedContactId={conv?.linkedContactId}
+                  linkedEventId={conv?.linkedEventId}
+                />
+              </>
             )}
           </div>
           {/* R2 (23-jul): conversaciones cross-canal/cross-evento del contacto. */}
