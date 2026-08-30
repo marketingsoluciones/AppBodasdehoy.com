@@ -100,9 +100,7 @@ export const ConversacionesEvento: FC<Props> = ({ eventId, development = 'bodasd
                       </span>
                     )}
                   </span>
-                  {c.lastMessage && (
-                    <span className="block truncate text-xs text-gray-400">{c.lastMessage}</span>
-                  )}
+
                 </span>
                 <span className="flex-none text-[11px] text-gray-400">
                   {cuando(c.lastMessageAt)}

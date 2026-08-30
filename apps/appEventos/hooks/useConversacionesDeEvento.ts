@@ -1,30 +1,42 @@
 import { useEffect, useState } from 'react';
-import Cookies from 'js-cookie';
 
-import { resolveApiIaOrigin } from '../utils/apiEndpoints';
+import { fetchApiBodas } from '../utils/Fetching';
 
 /**
- * Conversaciones (WhatsApp / multicanal) vinculadas a UNA boda.
+ * Conversaciones (WhatsApp) vinculadas a UNA boda.
  *
- * LA OTRA MITAD DEL PUENTE. En chat-ia construí "de la conversación al evento" (asociar una
- * boda a una conversación y ver su contexto). Esto es el reflejo, en el sitio correcto:
- * desde la ficha de la boda en appEventos, ver las conversaciones de esa pareja y saltar a
- * ellas en chat-dev.
+ * LA OTRA MITAD DEL PUENTE. En chat-ia se construyó "de la conversación al evento"; esto es
+ * el reflejo: desde la ficha de la boda, ver las conversaciones de esa pareja.
  *
- * El vínculo lo lleva la propia conversación (linkedEventId, que api-ia devuelve). Aquí solo
- * se filtran las que apuntan a este evento. Hoy puede salir vacío: solo aparecen las que
- * alguien haya asociado con el botón "Asociar a un evento". Vacío legítimo, no error.
+ * CÓMO SE LEE (corregido 30-ago tras QA headless):
+ * El vínculo NO es un campo `linkedEventId` por conversación — vive en un array `linkedEvents[]`
+ * (N:M: un contacto puede tener varias bodas) y se lee con el FILTRO server-side
+ * `getWhatsAppConversations(filters: { linked_event_id })`. La versión anterior leía api-ia y
+ * filtraba por un `linkedEventId` que api-ia no rellena → salía SIEMPRE vacío. Verificado en vivo:
+ * con este filtro, una conversación recién asociada aparece; la versión vieja daba 0.
  *
- * NO reimplementa la bandeja. appEventos es la casa del cliente; enlaza a chat-ia, no la copia.
+ * Va contra api-mcp (fetchApiBodas), que es el dueño del dato del vínculo.
  */
 
+// Sin comentarios `#` dentro del template: el proxy GraphQL no los soporta (400 GRAPHQL_PARSE_FAILED).
+const GET_CONVS_BY_EVENTO = `
+  query GetConvsByEvento($developerId: String!, $filters: WhatsAppConversationFilters) {
+    getWhatsAppConversations(developerId: $developerId, filters: $filters) {
+      conversations {
+        id
+        phoneNumber
+        contactInfo { name }
+        lastMessageAt
+        unread_count_for_agent
+      }
+    }
+  }
+`;
+
 export interface ConversacionEvento {
-  assignedAgentName?: string | null;
   canalParam: string;
-  channel: string;
   contactName: string;
   id: string;
-  lastMessage: string;
   lastMessageAt?: string;
   unreadCount: number;
 }
@@ -37,15 +49,12 @@ interface Estado {
 
 function mapear(c: any): ConversacionEvento {
   return {
-    assignedAgentName: c.assignedAgentName ?? c.assigned_agent_name ?? null,
-    // chat-dev espera wa-{id} para WhatsApp; para otros canales, el propio channel.
-    canalParam: c.channel === 'whatsapp' ? `wa-${c.id}` : c.channel || 'whatsapp',
-    channel: c.channel || 'whatsapp',
-    contactName: c.contact?.name || c.contactName || c.phoneNumber || 'Contacto',
+    // chat-dev espera wa-{id} para WhatsApp.
+    canalParam: `wa-${c.id}`,
+    contactName: c.contactInfo?.name || c.phoneNumber || 'Contacto',
     id: c.id,
-    lastMessage: typeof c.lastMessage === 'string' ? c.lastMessage : c.lastMessage?.text || '',
     lastMessageAt: c.lastMessageAt,
-    unreadCount: c.unreadCount ?? 0,
+    unreadCount: c.unread_count_for_agent ?? 0,
   };
 }
 
@@ -63,29 +72,23 @@ export function useConversacionesDeEvento(
     setLoading(true);
     setError(null);
 
-    const base = resolveApiIaOrigin().replace(/\/$/, '');
-    const url = `${base}/api/messages/conversations?development=${encodeURIComponent(development)}&limit=100`;
-    const idToken = Cookies.get('idTokenV0.1.0');
-    const headers: Record<string, string> = { 'X-Development': development };
-    if (idToken) headers.Authorization = `Bearer ${idToken}`;
-
-    fetch(url, { headers })
-      .then(async (r) => {
-        if (!r.ok) throw new Error(`api-ia ${r.status}`);
-        return r.json();
-      })
-      .then((data) => {
+    fetchApiBodas({
+      query: GET_CONVS_BY_EVENTO,
+      variables: { developerId: development, filters: { linked_event_id: eventId } },
+      development,
+    })
+      .then((res: any) => {
         if (cancelado) return;
-        const todas = Array.isArray(data?.conversations) ? data.conversations : [];
-        // El vínculo puede venir en cualquiera de las dos formas (api-ia mezcla camel/snake).
-        const delEvento = todas.filter(
-          (c: any) => c.linkedEventId === eventId || c.linked_event_id === eventId,
-        );
-        setConversaciones(delEvento.map(mapear));
+        // fetchApiBodas devuelve null ante error GraphQL (no lanza) → tratarlo como error,
+        // no como "0 conversaciones" (un vacío mentiroso haría creer que la pareja no escribió).
+        if (!res) {
+          setError('No se pudieron cargar las conversaciones.');
+          return;
+        }
+        const cs = Array.isArray(res?.conversations) ? res.conversations : [];
+        setConversaciones(cs.map(mapear));
       })
-      .catch((e) => {
-        // El error se dice: un panel vacío haría creer que la pareja no ha escrito, cuando en
-        // realidad no se pudo consultar.
+      .catch((e: any) => {
         if (!cancelado) setError(e?.message || 'No se pudieron cargar las conversaciones.');
       })
       .finally(() => {
