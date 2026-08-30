@@ -17,6 +17,7 @@ import { Task } from '../../../utils/Interfaces';
 import { DescriptionModal } from './NewDescriptionModal';
 import { AttachmentsModal } from './NewAttachmentsModal';
 import { NewCommentsModal } from './NewCommentsModal';
+import { isStudioPathname } from "../../../utils/studioPaths";
 
 // Función auxiliar para descargar archivos sin file-saver
 const downloadFile = (data: Blob, filename: string) => {
@@ -787,8 +788,17 @@ export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTas
     return <div>Cargando...</div>;
   }
 
+  // Rediseño studio (fiel a tareasvistatabla.html): cabecera gris redondeada con
+  // etiquetas en mayúsculas, filas separadas por una línea muy suave y scroll
+  // horizontal sin barra. Solo estilo — react-table, filtros, orden y configuración
+  // de columnas siguen intactos.
+  const isStudio = typeof window !== "undefined"
+    && isStudioPathname(window.location.pathname)
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
+
   return (
-    <div className="h-full flex flex-col bg-gray-50 relative text-xs">
+    <div className={isStudio ? "h-full flex flex-col bg-white relative text-xs" : "h-full flex flex-col bg-gray-50 relative text-xs"}>
+      {isStudio && <style dangerouslySetInnerHTML={{ __html: ".tv-studio-scroll::-webkit-scrollbar{display:none;height:0}.tv-studio-scroll{scrollbar-width:none}" }} />}
       {/* Header principal - fixed para evitar solapamiento */}
       <div className="sticky top-0 z-20 bg-white shadow-sm">
         <TableHeader
@@ -823,27 +833,30 @@ export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTas
         </div>
       )}
       {/* Tabla principal con contenedor de scroll */}
-      <div ref={tableContainerRef} className="flex-1 overflow-auto relative">
+      <div ref={tableContainerRef} className={`flex-1 overflow-auto relative${isStudio ? " tv-studio-scroll" : ""}`}>
         <div className="min-w-full">
           <table {...getTableProps()} className="w-full bg-white relative">
             {/* Header de la tabla */}
-            <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
+            <thead
+              style={isStudio ? { background: "#fafafa" } : undefined}
+              className={isStudio ? "sticky top-0 z-10" : "bg-gray-50 border-b border-gray-200 sticky top-0 z-10"}>
               {headerGroups.map((headerGroup, headerGroupIndex) => (
                 <tr
                   key={`header-group-${headerGroupIndex}`}
                   {...headerGroup.getHeaderGroupProps()}
-                  className="divide-x divide-gray-200"
+                  className={isStudio ? "" : "divide-x divide-gray-200"}
                 >
                   {headerGroup.headers.map((column, columnIndex) => {
                     return (
                       <th
                         key={`header-${column.id || columnIndex}`}
                         {...column.getHeaderProps()}
-                        className="group relative px-4 py-3 text-left  font-medium text-gray-500 uppercase tracking-wider"
+                        className={isStudio ? "group relative text-left" : "group relative px-4 py-3 text-left  font-medium text-gray-500 uppercase tracking-wider"}
                         style={{
                           width: column.width,
                           minWidth: column.minWidth,
-                          maxWidth: column.maxWidth
+                          maxWidth: column.maxWidth,
+                          ...(isStudio ? { padding: "12px 10px", font: "600 10.5px Poppins", color: "#8a8a90", letterSpacing: ".5px", textTransform: "uppercase" as const } : {}),
                         }}
                       >
                         <div className="flex items-center justify-between">
@@ -888,7 +901,10 @@ export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTas
                   <tr
                     key={row.original._id || `row-${rowIndex}`}
                     {...row.getRowProps()}
-                    className={`
+                    style={isStudio ? { borderBottom: "1px solid #f7f7f9", cursor: "pointer" } : undefined}
+                    className={isStudio
+                      ? `relative transition-colors ${isSelected ? 'bg-[#FCE7F0]' : 'hover:bg-[#fafafa]'}`
+                      : `
                       relative hover:bg-gray-50 transition-colors divide-x divide-gray-200
                       ${isSelected ? 'bg-primary/5 border-l-4 border-primary' : ''}
                     `}
