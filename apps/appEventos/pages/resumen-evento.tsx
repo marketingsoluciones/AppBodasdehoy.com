@@ -15,6 +15,7 @@ import { useEventSyncWithUrl } from "../hooks/useEventSyncWithUrl"
 import { BlockItinerario } from "../components/Resumen/BlockItinerario";
 import { BlockLugarEvento } from "../components/Resumen/BlockLugarEvento";
 import { BlockMomentos } from "../components/Resumen/BlockMomentos";
+import { ConversacionesEvento } from '../components/Resumen/ConversacionesEvento';
 import { ModuleErrorBoundary } from "../components/ErrorBoundary";
 import CopilotFilterBar from "../components/Utils/CopilotFilterBar";
 import { EntityNotesSection } from "../components/Notes/EntityNotesSection";
@@ -69,6 +70,9 @@ const Resumen = () => {
               entityId={event._id}
               entityName={event.nombre || 'Evento'}
             />
+          </ModuleErrorBoundary>
+          <ModuleErrorBoundary label="Conversaciones de la boda">
+            <ConversacionesEvento eventId={event._id} />
           </ModuleErrorBoundary>
         </motion.div>
       </section>
