@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import type { MouseEvent as ReactMouseEvent } from 'react';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { useTypingInConv } from '@/store/bandeja/selectors';
+import { useAgentAssignmentOverrides } from '../hooks/useAgentAssignmentOverrides';
 import { Conversation } from '../hooks/useConversations';
 import { useBandejaBrand } from '../utils/brand';
 import { useConversationActions } from '../hooks/useConversationActions';
@@ -141,6 +142,13 @@ export function ConversationItem({
   };
 
   const channelDot = CHANNEL_DOT[conversation.channel] ?? '#84848F';
+  // Responsable (agente IA) visible EN LA FILA — hallazgo QA 31-ago: "no se ve quién lleva
+  // cada conversación". El dato ya llega (api-ia lo espeja); el override optimista cubre los
+  // ~120s de caché tras asignar. Suscripción por id → re-render al asignar desde la cabecera.
+  const agentOverride = useAgentAssignmentOverrides((st) => st.overrides[conversation.id]);
+  const agentName = agentOverride !== undefined
+    ? agentOverride.name
+    : (conversation.assignedAgentName ?? null);
   // Señal ✦: si esta conversación tiene IA activa (copilot o autopilot).
   // Preservamos la señal cromática de los mensajes (teal/cyan/morado) — este ✦
   // es solo un marcador de "hay IA operando aquí" en la lista. Cast defensivo:
@@ -289,6 +297,17 @@ export function ConversationItem({
                   style={{ backgroundColor: '#EDE9FE', color: '#6B4EFF' }}
                 >
                   Asignada a ti
+                </span>
+              )}
+              {agentName && (
+                <span
+                  aria-label={`Responsable: ${agentName}`}
+                  className="inline-flex max-w-[45%] items-center gap-1 truncate rounded-full px-1.5 py-0.5 font-medium"
+                  style={{ backgroundColor: '#EDE9FE', color: '#6B4EFF' }}
+                  title={`Responsable: ${agentName}`}
+                >
+                  <span aria-hidden>🤖</span>
+                  <span className="truncate">{agentName}</span>
                 </span>
               )}
               {(conversation.contact.phone || conversation.contact.username) && (
