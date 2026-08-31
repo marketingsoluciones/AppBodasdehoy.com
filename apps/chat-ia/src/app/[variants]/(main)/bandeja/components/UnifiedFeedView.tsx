@@ -298,6 +298,10 @@ export function UnifiedFeedView({ items, loading, onItemClick, groupBy, groups }
             >
               Conectar canal
             </button>
+            {/* QA 31-ago: el CTA no decía QUÉ se puede conectar → contexto en una línea. */}
+            <p className="text-xs text-gray-400">
+              WhatsApp, Instagram, Facebook, Telegram, correo o chat web
+            </p>
           </div>
         ) : groupBy && groups ? (
           // Vista "Esperan respuesta" agrupada por dominio (no virtualizado: los no-leídos

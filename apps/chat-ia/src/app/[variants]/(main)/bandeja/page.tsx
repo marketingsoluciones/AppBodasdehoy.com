@@ -421,9 +421,10 @@ export default function MessagesPage() {
                       onClick={() => router.push('/settings/integrations')}
                       // A4 (QA 6-ago): color inline evita texto invisible en tema oscuro.
                       style={{ color: '#374151' }}
+                      title="Instagram, Facebook, Telegram, correo o chat web"
                       type="button"
                     >
-                      Conectar canal
+                      Conectar otro canal
                     </button>
                   </div>
                 </>

@@ -516,15 +516,22 @@ export default function AgentesPage() {
             <p className="mt-2 text-sm" style={{ color: '#84848F' }}>
               {isGuest
                 ? 'Tus agentes atienden conversaciones por WhatsApp, Instagram, Facebook y otros canales. Inicia sesión para gestionarlos.'
-                : 'Crea tu primer agente en Copilot para atender conversaciones por WhatsApp, Instagram, Facebook y otros canales de forma automática.'}
+                : 'Los agentes atienden conversaciones por WhatsApp, Instagram, Facebook y otros canales de forma automática. Se crean desde el Asistente: pídeselo con tus palabras (por ejemplo, «crea un agente que atienda WhatsApp») y te lo deja listo.'}
             </p>
             <a
               className="mt-4 inline-block rounded-md px-4 py-2 text-sm font-semibold text-white transition-colors"
               href={isGuest ? '/login?redirect=/agentes' : '/asistente'}
               style={{ backgroundColor: '#1C1C22' }}
             >
-              {isGuest ? 'Iniciar sesión' : 'Ir a Copilot'}
+              {isGuest ? 'Iniciar sesión' : 'Crear mi primer agente en el Asistente'}
             </a>
+            {/* QA 31-ago: el salto Agentes→/asistente se percibía como "cambio de herramienta".
+                Se anticipa a dónde va y qué hacer al llegar (continuación, no cambio). */}
+            {!isGuest && (
+              <p className="mt-2 text-xs" style={{ color: '#A8A3B5' }}>
+                Se abrirá el Asistente (Copilot), el mismo chat de siempre.
+              </p>
+            )}
           </div>
         </div>
       </div>
