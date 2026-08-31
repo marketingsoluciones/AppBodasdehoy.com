@@ -115,30 +115,28 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
                             setLoading(true)
                             updateActivity("logoutd")
                             updateActivityLink("logoutd")
-                            // BUG-CW-N03 (informe QA 22-jun noche): Sidebar logout NO llamaba
-                            // authBridge.clearAuth() → jwt_token/mcp_jwt_token/user_* persistían
-                            // en localStorage → /login redirigía a / por "sesión zombie".
-                            authBridge.clearAuth()
-                            Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
-                            Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
-                            // BUG-01 (informe QA 22-jun): el logout no limpiaba el fallback.
-                            if (typeof window !== "undefined") {
-                                localStorage.removeItem('sessionBodas_fallback')
-                                localStorage.removeItem('appEventos_activeEventId')
-                            }
-                            signOut(getAuth()).then(() => {
-                                // BUG-CW-N03: re-limpiar después de signOut por si el iframe del
-                                // Copilot (CopilotIframe:397-398) volvió a setear los tokens
-                                // durante la transición. Belt-and-suspenders.
-                                authBridge.clearAuth()
-                                if (["vivetuboda"].includes(config?.development)) {
-                                    setUser()
-                                    router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/login")
-                                    return
-                                }
-                                toast("success", t("loggedoutsuccessfully"))
-                                router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/")
+                            await authBridge.signOutEverywhere({
+                                beforeCleanup: () => {
+                                    Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
+                                    Cookies.remove(config?.cookie);
+                                },
+                                firebaseSignOut: async () => {
+                                    await signOut(getAuth())
+                                },
+                                afterCleanup: () => {
+                                    if (typeof window !== "undefined") {
+                                        localStorage.removeItem('sessionBodas_fallback')
+                                        localStorage.removeItem('appEventos_activeEventId')
+                                    }
+                                },
                             })
+                            if (["vivetuboda"].includes(config?.development)) {
+                                setUser()
+                                router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/login")
+                                return
+                            }
+                            toast("success", t("loggedoutsuccessfully"))
+                            router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/")
                         }}
                         className="flex text-primary py-2 font-display text-md items-center justify-center w-full cursor-pointer hover:text-gray-300 transition">
                         <button className="flex gap-3" >

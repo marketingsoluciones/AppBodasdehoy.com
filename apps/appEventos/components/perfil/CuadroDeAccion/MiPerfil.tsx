@@ -7,8 +7,7 @@ import { useToast } from '../../../hooks/useToast';
 import InputField from "../../Forms/InputField";
 import { Eye, EyeSlash } from "../../icons";
 import * as yup from "yup";
-import { parseJwt, safeJwtExpiry } from "../../../utils/Authentication";
-import Cookies from "js-cookie";
+import { setCrossAppIdToken } from "@bodasdehoy/shared/auth";
 import { useTranslation } from 'react-i18next';
 
 export const MiPerfil = () => {
@@ -74,15 +73,9 @@ export const MiPerfil = () => {
         )
         await updatePassword(auth.currentUser, values.password);
         const idToken = await getAuth().currentUser?.getIdToken(true)
-        // BUG-1 (informe QA 21-jun): safeJwtExpiry undefined → session cookie.
-        const dateExpire = safeJwtExpiry(idToken)
-        Cookies.set("idTokenV0.1.0", idToken ?? "", {
-          domain: process.env.NEXT_PUBLIC_DOMINIO ?? "",
-          expires: dateExpire,
-          path: "/",
-          secure: typeof window !== "undefined" && window.location.protocol === "https:",
-          sameSite: "lax",
-        })
+        if (idToken) {
+          setCrossAppIdToken(idToken)
+        }
         setCanChangePassword(false)
         setPasswordView(false)
         setValues({ ...values, currentPassword: "", password: "" })

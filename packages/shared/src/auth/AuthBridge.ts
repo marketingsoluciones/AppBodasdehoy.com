@@ -10,7 +10,11 @@ declare var process: { env: Record<string, string | undefined> };
 import Cookies from 'js-cookie';
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from 'jose';
 import { developments, DevelopmentConfig } from '../types/developments';
-import { clearCrossAppSession } from './SessionBridge';
+import {
+  beginLogoutTransition,
+  clearCrossAppSession,
+  isLogoutTransitionActive,
+} from './SessionBridge';
 
 export interface SharedAuthUser {
   uid: string;
@@ -182,8 +186,29 @@ class AuthBridge {
   private static instance: AuthBridge;
   private listeners: Set<(state: SharedAuthState) => void> = new Set();
   private currentState: SharedAuthState | null = null;
+  private readonly storageKeysAffectingAuth = new Set([
+    'dev-user-config',
+    'jwt_token',
+    'mcp_jwt_token',
+    'user_email',
+    'user_uid',
+    'user_display_name',
+    'user_photo_url',
+    'memories_user_id',
+    'sessionBodas_fallback',
+    'appEventos_activeEventId',
+    'dev_bypass',
+    'dev_bypass_email',
+    'dev_bypass_uid',
+    'dev_bypass_role',
+    'dev_bypass_eventos',
+  ]);
 
-  private constructor() {}
+  private constructor() {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', this.handleStorageEvent);
+    }
+  }
 
   static getInstance(): AuthBridge {
     if (!AuthBridge.instance) {
@@ -246,6 +271,10 @@ class AuthBridge {
    */
   getSharedAuthState(): SharedAuthState {
     if (typeof window === 'undefined') {
+      return this.getEmptyState();
+    }
+
+    if (isLogoutTransitionActive()) {
       return this.getEmptyState();
     }
 
@@ -401,8 +430,12 @@ class AuthBridge {
   /**
    * Limpiar estado de autenticacion (logout)
    */
-  clearAuth(): void {
+  clearAuth(options: { preserveLogoutTransition?: boolean } = {}): void {
     if (typeof window === 'undefined') return;
+
+    if (!options.preserveLogoutTransition) {
+      beginLogoutTransition();
+    }
 
     // Clean all auth-related localStorage entries
     localStorage.removeItem('dev-user-config');
@@ -413,12 +446,56 @@ class AuthBridge {
     localStorage.removeItem('user_display_name');
     localStorage.removeItem('user_photo_url');
     localStorage.removeItem('memories_user_id');
+    localStorage.removeItem('sessionBodas_fallback');
+    localStorage.removeItem('appEventos_activeEventId');
+    localStorage.removeItem('dev_bypass');
+    localStorage.removeItem('dev_bypass_email');
+    localStorage.removeItem('dev_bypass_uid');
+    localStorage.removeItem('dev_bypass_role');
+    localStorage.removeItem('dev_bypass_eventos');
 
     // Clear cross-subdomain SSO cookies
     clearCrossAppSession();
 
     this.notifyStateChange(this.getEmptyState());
   }
+
+  async signOutEverywhere(options: {
+    firebaseSignOut?: (() => Promise<void>) | (() => void);
+    beforeCleanup?: (() => Promise<void>) | (() => void);
+    afterCleanup?: (() => Promise<void>) | (() => void);
+  } = {}): Promise<void> {
+    beginLogoutTransition();
+
+    try {
+      await options.beforeCleanup?.();
+    } catch (error) {
+      console.warn('[AuthBridge] beforeCleanup:', error);
+    }
+
+    this.clearAuth({ preserveLogoutTransition: true });
+
+    try {
+      await options.firebaseSignOut?.();
+    } catch (error) {
+      console.warn('[AuthBridge] firebaseSignOut:', error);
+    }
+
+    this.clearAuth({ preserveLogoutTransition: true });
+
+    try {
+      await options.afterCleanup?.();
+    } catch (error) {
+      console.warn('[AuthBridge] afterCleanup:', error);
+    }
+  }
+
+  private handleStorageEvent = (event: StorageEvent): void => {
+    if (!event.key) return;
+    if (event.key === 'bdh:auth:logging-out-until' || this.storageKeysAffectingAuth.has(event.key)) {
+      this.notifyStateChange(this.getSharedAuthState());
+    }
+  };
 }
 
 export const authBridge = AuthBridge.getInstance();

@@ -11,5 +11,11 @@ export {
   setCrossAppIdToken,
   setCrossAppDevelopment,
   clearCrossAppSession,
+  getFreshIdToken,
+  beginLogoutTransition,
+  clearLogoutTransition,
+  isLogoutTransitionActive,
+  isTokenExpiringSoon,
+  CROSS_APP_ID_TOKEN_COOKIE,
   CROSS_APP_DEVELOPMENT_COOKIE,
 } from './SessionBridge';

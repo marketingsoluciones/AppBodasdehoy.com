@@ -9,7 +9,7 @@ import { useToast } from "../hooks/useToast";
 import { PhoneNumberUtil } from 'google-libphonenumber';
 import { useActivity } from "../hooks/useActivity";
 import { useTranslation } from "react-i18next";
-import { authBridge, parseJwt } from '@bodasdehoy/shared/auth';
+import { authBridge, parseJwt, setCrossAppIdToken } from '@bodasdehoy/shared/auth';
 
 export { parseJwt }; // re-exportar para compatibilidad con imports existentes
 
@@ -323,23 +323,16 @@ export const useAuthentication = () => {
         if (res) {
           setLoading(true)
           const idToken = await res?.user?.getIdToken()
-          // BUG-1 (informe QA 21-jun): safeJwtExpiry undefined → session cookie.
           const dateExpire = safeJwtExpiry(idToken)
-          
-          const idTokenDomain = getCookieDomain(config?.domain)
-          
+
           console.log("[Auth] Estableciendo cookie idTokenV0.1.0 (popup):", {
-            domain: idTokenDomain,
-            expires: dateExpire.toISOString()
+            domain: getCookieDomain(config?.domain),
+            expires: dateExpire?.toISOString?.() ?? 'session',
           })
-          
-          Cookies.set("idTokenV0.1.0", idToken, { 
-            domain: idTokenDomain, 
-            expires: dateExpire,
-            path: "/",
-            secure: window.location.protocol === "https:",
-            sameSite: "lax"
-          })
+
+          if (idToken) {
+            setCrossAppIdToken(idToken)
+          }
           
           // Verificar que la cookie se estableció
           const idTokenVerificado = Cookies.get("idTokenV0.1.0")
@@ -513,20 +506,26 @@ export const useAuthentication = () => {
   );
 
   const _signOut = useCallback(async () => {
-    Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
-    Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
-    authBridge.clearAuth();
-    if (typeof window !== 'undefined') {
-      ['dev_bypass', 'dev_bypass_email', 'dev_bypass_uid', 'dev_bypass_role', 'dev_bypass_eventos'].forEach(k => {
-        localStorage.removeItem(k); sessionStorage.removeItem(k)
-      })
-      localStorage.removeItem('appEventos_activeEventId')
-      // BUG-11 (informe QA 21-jun): limpiar fallback sessionBodas si se usó.
-      localStorage.removeItem('sessionBodas_fallback')
-    }
-    signOut(getAuth());
+    await authBridge.signOutEverywhere({
+      beforeCleanup: () => {
+        Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
+        Cookies.remove(config?.cookie);
+      },
+      firebaseSignOut: async () => {
+        await signOut(getAuth());
+      },
+      afterCleanup: () => {
+        if (typeof window !== 'undefined') {
+          ['dev_bypass', 'dev_bypass_email', 'dev_bypass_uid', 'dev_bypass_role', 'dev_bypass_eventos'].forEach(k => {
+            localStorage.removeItem(k); sessionStorage.removeItem(k)
+          })
+          localStorage.removeItem('appEventos_activeEventId')
+          localStorage.removeItem('sessionBodas_fallback')
+        }
+      },
+    });
     router.push(config?.pathDirectory ? `${config?.pathDirectory}/signout?end=true` : "/")
-  }, [router])
+  }, [config?.cookie, config?.domain, config?.pathDirectory, router])
 
   const resetPassword = async (values: any, setStage: any) => {// funcion para conectar con con firebase para enviar el correo 
     if (values?.identifier !== "") {
@@ -546,4 +545,3 @@ export const useAuthentication = () => {
   return { signIn, _signOut, getSessionCookie, isPhoneValid, resetPassword };
 
 };
-

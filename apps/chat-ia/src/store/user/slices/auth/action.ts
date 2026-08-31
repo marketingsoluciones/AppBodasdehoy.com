@@ -1,7 +1,7 @@
 import { StateCreator } from 'zustand/vanilla';
 
 import { enableAuth, enableClerk, enableNextAuth } from '@/const/auth';
-import { developments } from '@bodasdehoy/shared/types';
+import { authBridge } from '@bodasdehoy/shared/auth';
 
 import type { UserStore } from '../../store';
 
@@ -42,16 +42,18 @@ export const createAuthSlice: StateCreator<
     // ✅ CUSTOM LOGOUT: Limpiar TODOS los datos del usuario y redirigir
     console.log('🚪 Cerrando sesión personalizada - limpieza completa...');
 
-    // 0. Cerrar sesión de Firebase (crítico — si no, onAuthStateChanged sigue activo
-    //    y useTokenRefresh restaura dev-user-config desde la sesión Firebase activa)
-    try {
-      const { getAuth, signOut: firebaseSignOut } = await import('firebase/auth');
-      const auth = getAuth();
-      await firebaseSignOut(auth);
-      console.log('✅ Firebase signOut completado');
-    } catch (error) {
-      console.warn('⚠️ Error cerrando sesión Firebase:', error);
-    }
+    await authBridge.signOutEverywhere({
+      firebaseSignOut: async () => {
+        try {
+          const { getAuth, signOut: firebaseSignOut } = await import('firebase/auth');
+          const auth = getAuth();
+          await firebaseSignOut(auth);
+          console.log('✅ Firebase signOut completado');
+        } catch (error) {
+          console.warn('⚠️ Error cerrando sesión Firebase:', error);
+        }
+      },
+    });
 
     // 1. Limpiar todas las sesiones/conversaciones del usuario anterior
     try {
@@ -171,7 +173,7 @@ export const createAuthSlice: StateCreator<
       console.warn('⚠️ Error limpiando cookies:', error);
     }
 
-    // 10. Limpiar dev-user-config DESPUÉS de setExternalChatConfig (paso 8 lo re-escribe)
+    // 10. Limpiar restos locales DESPUÉS de setExternalChatConfig (paso 8 lo re-escribe)
     try {
       localStorage.removeItem('dev-user-config');
       localStorage.removeItem('mcp_jwt_token');
@@ -181,21 +183,7 @@ export const createAuthSlice: StateCreator<
       localStorage.removeItem('user_display_name');
       localStorage.removeItem('user_photo_url');
       document.cookie = 'dev-user-config=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax';
-      document.cookie = 'idTokenV0.1.0=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.bodasdehoy.com; SameSite=Lax';
-
-      // SSO03: limpiar también las cookies de sesión de appEventos (cross-subdomain)
-      // sessionBodas, guestbodas, etc. son httpOnly:false con domain=.bodasdehoy.com → accesibles desde chat-ia
-      for (const dev of developments) {
-        const expiry = 'expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax';
-        if (dev.cookie) {
-          document.cookie = `${dev.cookie}=; ${expiry}; domain=${dev.domain}`;
-        }
-        if (dev.cookieGuest) {
-          document.cookie = `${dev.cookieGuest}=; ${expiry}; domain=${dev.domain}`;
-        }
-      }
-
-      console.log('✅ dev-user-config, tokens y cookies de sesión cross-app eliminados');
+      console.log('✅ dev-user-config y restos locales eliminados');
     } catch (error) {
       console.warn('⚠️ Error en limpieza final:', error);
     }

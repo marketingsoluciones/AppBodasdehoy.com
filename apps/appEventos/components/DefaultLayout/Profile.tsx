@@ -206,27 +206,25 @@ const Profile = ({ user, state, set, ...rest }) => {
         setLoading(true)
         updateActivity("logoutd")
         updateActivityLink("logoutd")
-        authBridge.clearAuth()
-        Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
-        Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
-        clearDevBypass()
-        // BUG-01 (informe QA 22-jun): el logout del menú de Profile no limpiaba
-        // sessionBodas_fallback ni appEventos_activeEventId. Riesgo de fuga de
-        // datos de sesión anterior en dispositivos compartidos.
-        if (typeof window !== "undefined") {
-          localStorage.removeItem('sessionBodas_fallback')
-          localStorage.removeItem('appEventos_activeEventId')
-        }
-        signOut(getAuth()).then(() => {
-          // BUG-CW-N03 (informe QA 22-jun noche): el CopilotIframe puede volver a setear
-          // jwt_token/mcp_jwt_token durante la transición de logout (race condition con el
-          // bridge SSO). Re-limpiar tras signOut garantiza que /login no detecte sesión
-          // zombie y rediriga a /.
-          authBridge.clearAuth()
-          setUser(null)
-          toast("success", t("loggedoutsuccessfully"))
-          router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/")
+        await authBridge.signOutEverywhere({
+          beforeCleanup: () => {
+            Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
+            Cookies.remove(config?.cookie);
+            clearDevBypass()
+          },
+          firebaseSignOut: async () => {
+            await signOut(getAuth())
+          },
+          afterCleanup: () => {
+            if (typeof window !== "undefined") {
+              localStorage.removeItem('sessionBodas_fallback')
+              localStorage.removeItem('appEventos_activeEventId')
+            }
+          },
         })
+        setUser(null)
+        toast("success", t("loggedoutsuccessfully"))
+        router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/")
       },
       development: ["bodasdehoy", "all"],
       rol: ["novio", "novia", "otro", "empresa"],

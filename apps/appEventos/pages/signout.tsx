@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { getAuth, signOut } from "firebase/auth";
+import { authBridge } from "@bodasdehoy/shared/auth";
 
 export default function SignoutPage() {
   const router = useRouter();
@@ -9,21 +10,19 @@ export default function SignoutPage() {
     if (!router.isReady) return;
 
     const cleanup = async () => {
-      try {
-        await signOut(getAuth());
-      } catch (e) {
-        console.warn("[signout] Firebase signOut:", e);
-      }
-      try {
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("appEventos_activeEventId");
-          localStorage.removeItem("dev_bypass");
-          localStorage.removeItem("dev_bypass_email");
-          localStorage.removeItem("dev_bypass_uid");
-        }
-      } catch (e) {
-        console.warn("[signout] localStorage cleanup:", e);
-      }
+      await authBridge.signOutEverywhere({
+        firebaseSignOut: async () => {
+          await signOut(getAuth());
+        },
+        afterCleanup: () => {
+          if (typeof window !== "undefined") {
+            localStorage.removeItem("appEventos_activeEventId");
+            localStorage.removeItem("dev_bypass");
+            localStorage.removeItem("dev_bypass_email");
+            localStorage.removeItem("dev_bypass_uid");
+          }
+        },
+      });
       router.replace("/?signedOut=true");
     };
 
