@@ -1,6 +1,7 @@
 'use client';
 
-import { Alert, Button, Input, Segmented, Space, Spin, Typography } from 'antd';
+import { Alert, Button, Input, Segmented, Space, Spin, theme, Typography } from 'antd';
+import { useRouter } from 'next/navigation';
 import { useState, type CSSProperties } from 'react';
 
 import { useWhatsAppSession } from '../hooks/useWhatsAppSession';
@@ -25,6 +26,9 @@ export function WhatsAppSetup({ development }: WhatsAppSetupProps) {
     startSession,
     status,
   } = useWhatsAppSession(development);
+
+  const router = useRouter();
+  const { token } = theme.useToken();
 
   const [mode, setMode] = useState<LinkMode>('qr');
   const [phone, setPhone] = useState('');
@@ -70,19 +74,86 @@ export function WhatsAppSetup({ development }: WhatsAppSetupProps) {
   if (status === 'connected') {
     return (
       <div style={CENTER}>
-        <Space direction="vertical" size="middle" style={{ maxWidth: 360, textAlign: 'center', width: '100%' }}>
-          <div style={{ fontSize: 48 }}>✅</div>
-          <Title level={4} style={{ margin: 0 }}>WhatsApp Conectado</Title>
+        <div
+          style={{
+            background: token.colorBgContainer,
+            border: `1px solid ${token.colorBorderSecondary}`,
+            borderRadius: token.borderRadiusLG,
+            boxShadow: token.boxShadowTertiary,
+            maxWidth: 380,
+            padding: '32px 28px',
+            textAlign: 'center',
+            width: '100%',
+          }}
+        >
+          {/* Insignia verde: círculo de fondo suave con el check, en vez del emoji suelto */}
+          <div
+            style={{
+              alignItems: 'center',
+              background: 'rgba(37, 211, 102, 0.12)',
+              borderRadius: '50%',
+              display: 'inline-flex',
+              height: 64,
+              justifyContent: 'center',
+              marginBottom: 12,
+              width: 64,
+            }}
+          >
+            <span style={{ fontSize: 32, lineHeight: 1 }}>✅</span>
+          </div>
+
+          {/* color explícito desde el token → legible en claro Y oscuro (antes heredaba blanco) */}
+          <Title level={4} style={{ color: token.colorTextHeading, margin: '0 0 6px' }}>
+            WhatsApp Conectado
+          </Title>
+
+          {/* pill de estado "En línea" */}
+          <div
+            style={{
+              alignItems: 'center',
+              background: 'rgba(37, 211, 102, 0.14)',
+              borderRadius: 999,
+              color: '#1a7f45',
+              display: 'inline-flex',
+              fontSize: 12,
+              fontWeight: 600,
+              gap: 6,
+              marginBottom: 18,
+              padding: '3px 11px',
+            }}
+          >
+            <span
+              style={{ background: '#25D366', borderRadius: '50%', height: 7, width: 7 }}
+            />
+            En línea
+          </div>
+
           {phoneNumber && (
-            <Text type="secondary">Número: <Text strong>+{phoneNumber}</Text></Text>
+            <div style={{ color: token.colorText, fontSize: 15, marginBottom: 4 }}>
+              <span style={{ color: token.colorTextSecondary }}>Número: </span>
+              <strong style={{ fontVariantNumeric: 'tabular-nums' }}>+{phoneNumber}</strong>
+            </div>
           )}
           {connectedAt && (
-            <Text style={{ fontSize: 12 }} type="secondary">
+            <div style={{ color: token.colorTextTertiary, fontSize: 12, marginBottom: 22 }}>
               Conectado desde {new Date(connectedAt).toLocaleString('es-ES')}
-            </Text>
+            </div>
           )}
-          <Button danger onClick={disconnectSession} size="small">Desconectar</Button>
-        </Space>
+
+          <Space direction="vertical" size={8} style={{ width: '100%' }}>
+            <Button
+              block
+              onClick={() => router.push('/bandeja')}
+              style={{ background: '#25D366', borderColor: '#25D366' }}
+              type="primary"
+            >
+              Ir a la bandeja
+            </Button>
+            <Button block danger onClick={disconnectSession} size="small" type="text">
+              Desconectar
+            </Button>
+          </Space>
+        </div>
       </div>
     );
   }
