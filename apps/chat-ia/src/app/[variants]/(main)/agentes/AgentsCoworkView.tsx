@@ -35,8 +35,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
 import { useSwitchSession } from '@/hooks/useSwitchSession';
+import { getEventosByUsuario, type Evento } from '@/services/mcpApi/eventos';
 import { useAgentStore } from '@/store/agent';
 import { useSessionStore } from '@/store/session';
+import { useUserStore } from '@/store/user';
 import { sessionSelectors } from '@/store/session/selectors';
 import { LobeSessionType, type LobeAgentSession } from '@/types/session';
 
@@ -81,9 +83,57 @@ interface AgentActivity {
 // Estado local persistido en localStorage — sólo los 4 mocks pendientes
 // de backend (disabled + channels). Métricas/actividad viven en memoria
 // mientras no lleguen del server (no tiene sentido cachearlos vacíos).
+// F1 Agentes con Ámbito (31-ago): eventId/eventName = ámbito del agente
+// (mismo patrón local-hasta-backend que channels; se espeja a api-ia en F3).
 interface LocalAgentState {
   channels?: string[];
   disabled?: boolean;
+  eventId?: string | null;
+  eventName?: string | null;
+}
+
+// F1 Agentes con Ámbito — presets de PERMISOS (herramientas por agente).
+// config.plugins ES la lista de tools que viaja al modelo en cada llamada
+// (services/chat/index.ts:585 `tools: params.plugins`): acotar = real, no cosmético.
+// Menos herramientas → prompt más corto (rápido/barato), menos confusión de tool
+// y mínimo privilegio. El enforcement de SERVIDOR (api-ia) llega en F3.
+const PERMISSION_PRESETS: Record<
+  string,
+  { desc: string; label: string; plugins: string[] }
+> = {
+  recepcionista: {
+    desc: 'Solo lee y responde conversaciones. Sin herramientas.',
+    label: '🛎️ Recepcionista',
+    plugins: [],
+  },
+  // eslint-disable-next-line sort-keys-fix/sort-keys-fix -- orden = menor→mayor privilegio, no alfabético
+  coordinador: {
+    desc: 'Además consulta el evento y filtra invitados, mesas o presupuesto.',
+    label: '📋 Coordinador',
+    plugins: ['lobe-filter-app-view'],
+  },
+  completo: {
+    desc: 'Todas las herramientas del asistente (web, imágenes, planos, código…).',
+    label: '🧰 Completo',
+    plugins: [
+      'lobe-filter-app-view',
+      'lobe-web-browsing',
+      'lobe-image-designer',
+      'lobe-code-interpreter',
+      'lobe-venue-visualizer',
+      'lobe-floor-plan-editor',
+      'lobe-artifacts',
+    ],
+  },
+};
+
+// ¿Qué preset representa la lista de plugins actual del agente? (null = personalizado)
+function presetOfPlugins(plugins: string[] | undefined): string | null {
+  const current = [...(plugins ?? [])].sort().join(',');
+  for (const [key, p] of Object.entries(PERMISSION_PRESETS)) {
+    if ([...p.plugins].sort().join(',') === current) return key;
+  }
+  return null;
 }
 
 const AGENT_STATE_KEY_PREFIX = 'cowork_agent_state_';
@@ -409,6 +459,45 @@ export default function AgentesPage() {
       await updateAgentConfig({ systemRole });
     },
     [selected, activeId, switchSession, updateAgentConfig],
+  );
+
+  // F1 Permisos: persistir la lista de herramientas del agente (mismo patrón
+  // switchSession→updateAgentConfig que persistPrompt; config.plugins = tools reales).
+  const persistPlugins = useCallback(
+    async (plugins: string[]) => {
+      if (!selected) return;
+      if (activeId !== selected.id) {
+        switchSession(selected.id);
+        await new Promise<void>((r) => {
+          setTimeout(r, 0);
+        });
+      }
+      await updateAgentConfig({ plugins });
+    },
+    [selected, activeId, switchSession, updateAgentConfig],
+  );
+
+  // F1 Ámbito: eventos del usuario para el selector (lazy: solo al entrar en Config).
+  // usuario_id en api-mcp = email (mismo patrón que AsociarEventoPanel).
+  const userEmail = useUserStore((s) => s.user?.email ?? null);
+  const [eventosAmbito, setEventosAmbito] = useState<Evento[] | null>(null);
+  useEffect(() => {
+    if (fichaTab !== 'config' || eventosAmbito !== null || !userEmail) return;
+    const { development } = getUserContext();
+    getEventosByUsuario(development || 'bodasdehoy', String(userEmail), { limit: 100 })
+      .then(setEventosAmbito)
+      .catch(() => setEventosAmbito([]));
+  }, [fichaTab, eventosAmbito, userEmail]);
+
+  const setAgentEvento = useCallback(
+    (agentId: string, eventId: string | null, eventName: string | null) => {
+      saveLocalAgentState(agentId, { eventId, eventName });
+      setLocalStates((prev) => ({
+        ...prev,
+        [agentId]: { ...prev[agentId], eventId, eventName },
+      }));
+    },
+    [],
   );
 
   // Debounce 800ms — al parar de escribir persiste. Coherente con el patrón
@@ -866,6 +955,139 @@ export default function AgentesPage() {
                 >
                   Ver sus conversaciones de cliente →
                 </Link>
+              </div>
+
+              {/* F1 · PERMISOS — herramientas por agente (config.plugins = tools reales
+                  que viajan al modelo). Presets de menor a mayor privilegio. */}
+              <div
+                className="rounded-lg p-4"
+                style={{ backgroundColor: '#FFFFFF', border: '1px solid #EDEDF0' }}
+              >
+                <div className="mb-2 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold" style={{ color: '#1C1C22' }}>
+                    Permisos
+                  </h3>
+                  <span
+                    className="rounded px-1.5 py-0.5 text-[10px] font-semibold"
+                    style={{ backgroundColor: '#DCFCE7', color: '#166534' }}
+                    title="La lista de herramientas se guarda en el backend"
+                  >
+                    GUARDADO EN LA NUBE
+                  </span>
+                </div>
+                <p className="mb-3 text-xs" style={{ color: '#84848F' }}>
+                  Qué herramientas puede usar este agente. Menos herramientas = respuestas más
+                  rápidas, más precisas y menos riesgo si se equivoca.
+                </p>
+                {(() => {
+                  const activePreset = presetOfPlugins(selected.config?.plugins);
+                  return (
+                    <div className="flex flex-col gap-2">
+                      {Object.entries(PERMISSION_PRESETS).map(([key, p]) => {
+                        const isActive = activePreset === key;
+                        return (
+                          <button
+                            aria-pressed={isActive}
+                            className="rounded-lg px-3 py-2 text-left transition-colors"
+                            key={key}
+                            onClick={() => void persistPlugins(p.plugins)}
+                            style={{
+                              backgroundColor: isActive ? '#EDE9FE' : '#F9F9FB',
+                              border: `1px solid ${isActive ? '#6B4EFF' : '#EDEDF0'}`,
+                            }}
+                            type="button"
+                          >
+                            <span
+                              className="block text-xs font-semibold"
+                              style={{ color: isActive ? '#6B4EFF' : '#1C1C22' }}
+                            >
+                              {p.label}
+                              {isActive && ' · activo'}
+                            </span>
+                            <span className="block text-[11px]" style={{ color: '#84848F' }}>
+                              {p.desc}
+                            </span>
+                          </button>
+                        );
+                      })}
+                      {activePreset === null && (
+                        <p className="text-[11px]" style={{ color: '#9A5B00' }}>
+                          Este agente tiene una lista de herramientas personalizada. Elegir un
+                          preset la sustituye.
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* F1 · ÁMBITO — agente especializado en UN evento. Local-hasta-backend
+                  (patrón channels); en F3 se espeja a api-ia para enforcement server. */}
+              <div
+                className="rounded-lg p-4"
+                style={{ backgroundColor: '#FFFFFF', border: '1px solid #EDEDF0' }}
+              >
+                <div className="mb-2 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold" style={{ color: '#1C1C22' }}>
+                    Ámbito
+                  </h3>
+                </div>
+                <p className="mb-3 text-xs" style={{ color: '#84848F' }}>
+                  Especializa este agente en un solo evento: atenderá únicamente esa boda y no
+                  mezclará datos con otras.
+                </p>
+                <select
+                  aria-label="Evento al que se dedica este agente"
+                  className="w-full rounded-md px-3 py-2 text-sm focus:outline-none"
+                  onChange={(e) => {
+                    const id = e.target.value || null;
+                    const nombre = id
+                      ? (eventosAmbito?.find((ev) => ev._id === id)?.nombre ?? null)
+                      : null;
+                    setAgentEvento(selected.id, id, nombre);
+                  }}
+                  style={{
+                    backgroundColor: '#F2F1F6',
+                    border: '1px solid transparent',
+                    color: '#1C1C22',
+                  }}
+                  value={localStates[selected.id]?.eventId ?? ''}
+                >
+                  <option value="">Todos los eventos (sin ámbito)</option>
+                  {(eventosAmbito ?? []).map((ev) => (
+                    <option key={ev._id} value={ev._id}>
+                      {ev.nombre || ev._id}
+                    </option>
+                  ))}
+                </select>
+                {localStates[selected.id]?.eventId && (
+                  <div className="mt-3">
+                    {(() => {
+                      const evName =
+                        localStates[selected.id]?.eventName || 'este evento';
+                      const guardrail = `\n\nÁMBITO: Solo atiendes asuntos del evento «${evName}». Si te preguntan por otro evento u otro tema, responde amablemente que lo pasas con el equipo y no des datos de otros eventos.`;
+                      const yaTiene = (promptDraft || '').includes('ÁMBITO: Solo atiendes asuntos');
+                      return yaTiene ? (
+                        <p className="text-[11px]" style={{ color: '#166534' }}>
+                          ✓ Las instrucciones ya incluyen la barandilla de ámbito.
+                        </p>
+                      ) : (
+                        <button
+                          className="rounded-md px-3 py-1.5 text-xs font-semibold transition-colors"
+                          onClick={() => {
+                            const next = `${promptDraft || ''}${guardrail}`;
+                            setPromptDraft(next);
+                            void persistPrompt(next);
+                          }}
+                          style={{ backgroundColor: '#EDE9FE', color: '#6B4EFF' }}
+                          type="button"
+                        >
+                          Añadir barandilla de ámbito a las instrucciones
+                        </button>
+                      );
+                    })()}
+                  </div>
+                )}
               </div>
 
               {/* Instrucciones del agente — cableado a updateAgentConfig */}
