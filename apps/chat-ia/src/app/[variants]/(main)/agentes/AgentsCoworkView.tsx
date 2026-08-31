@@ -97,6 +97,7 @@ interface LocalAgentState {
 // (services/chat/index.ts:585 `tools: params.plugins`): acotar = real, no cosmético.
 // Menos herramientas → prompt más corto (rápido/barato), menos confusión de tool
 // y mínimo privilegio. El enforcement de SERVIDOR (api-ia) llega en F3.
+/* eslint-disable sort-keys-fix/sort-keys-fix -- orden = menor→mayor privilegio, no alfabético */
 const PERMISSION_PRESETS: Record<
   string,
   { desc: string; label: string; plugins: string[] }
@@ -106,7 +107,6 @@ const PERMISSION_PRESETS: Record<
     label: '🛎️ Recepcionista',
     plugins: [],
   },
-  // eslint-disable-next-line sort-keys-fix/sort-keys-fix -- orden = menor→mayor privilegio, no alfabético
   coordinador: {
     desc: 'Además consulta el evento y filtra invitados, mesas o presupuesto.',
     label: '📋 Coordinador',
@@ -126,6 +126,7 @@ const PERMISSION_PRESETS: Record<
     ],
   },
 };
+/* eslint-enable sort-keys-fix/sort-keys-fix */
 
 // ¿Qué preset representa la lista de plugins actual del agente? (null = personalizado)
 function presetOfPlugins(plugins: string[] | undefined): string | null {
@@ -499,6 +500,32 @@ export default function AgentesPage() {
     },
     [],
   );
+
+  // F2 Sala de control — "Intervenir": pone ESA conversación en nivel manual con el
+  // override por conversación de api-ia (PUT ia-level {level:'manual'}; null=workspace).
+  // El agente deja de actuar solo ahí; el humano toma el mando sin tocar el workspace.
+  const [intervened, setIntervened] = useState<Record<string, boolean>>({});
+  const [intervening, setIntervening] = useState<string | null>(null);
+  const intervenirConversacion = useCallback(async (conversationId: string) => {
+    setIntervening(conversationId);
+    try {
+      const res = await fetch(
+        `/api/messages/conversations/${encodeURIComponent(conversationId)}/ia-level`,
+        {
+          body: JSON.stringify({ level: 'manual' }),
+          headers: { 'Content-Type': 'application/json', ...buildHeaders() },
+          method: 'PUT',
+        },
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setIntervened((prev) => ({ ...prev, [conversationId]: true }));
+    } catch {
+      // eslint-disable-next-line no-alert
+      alert('No se pudo intervenir la conversación. Vuelve a intentarlo en un momento.');
+    } finally {
+      setIntervening(null);
+    }
+  }, []);
 
   // Debounce 800ms — al parar de escribir persiste. Coherente con el patrón
   // de otros settings del propio LobeChat (AgentSetting).
@@ -1136,7 +1163,10 @@ export default function AgentesPage() {
               </>
               )}
 
-              {/* Actividad reciente — feed en vivo por SSE (api-ia /api/messages/stream). */}
+              {/* F2 · SALA DE CONTROL — la "Actividad reciente" crece a sala de control:
+                  timeline SSE + contadores de sesión + botón Intervenir (ia-level manual
+                  POR conversación, endpoint api-ia ya existente). El usuario ve trabajar
+                  al agente y puede frenarlo en un clic, sin terminal. */}
               {fichaTab === 'resumen' && (
               <div
                 className="rounded-lg p-4"
@@ -1144,7 +1174,7 @@ export default function AgentesPage() {
               >
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="text-sm font-semibold" style={{ color: '#1C1C22' }}>
-                    Actividad reciente
+                    Sala de control
                   </h3>
                   <span
                     className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold"
@@ -1158,9 +1188,29 @@ export default function AgentesPage() {
                     EN VIVO
                   </span>
                 </div>
+                {activityEvents.length > 0 && (
+                  <div className="mb-3 flex gap-2 text-[11px]">
+                    <span
+                      className="rounded-full px-2 py-0.5 font-medium"
+                      style={{ backgroundColor: '#E3F3EA', color: '#166534' }}
+                    >
+                      {activityEvents.filter((e) => e.type === 'activity').length} actividades
+                    </span>
+                    <span
+                      className="rounded-full px-2 py-0.5 font-medium"
+                      style={{ backgroundColor: '#FEF2F2', color: '#DC2626' }}
+                    >
+                      {activityEvents.filter((e) => e.type === 'handoff').length} escaladas
+                    </span>
+                    <span className="py-0.5" style={{ color: '#9A9AA6' }}>
+                      desde que abriste esta pantalla
+                    </span>
+                  </div>
+                )}
                 {activityEvents.length === 0 ? (
                   <p className="text-xs" style={{ color: '#9A9AA6' }}>
-                    Cuando el agente responda o se produzca un handoff aparecerá aquí en tiempo real.
+                    Cuando el agente responda o se produzca un handoff aparecerá aquí en tiempo
+                    real, con el botón para intervenir la conversación.
                   </p>
                 ) : (
                   <ul className="flex flex-col gap-2">
@@ -1175,6 +1225,10 @@ export default function AgentesPage() {
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-xs" style={{ color: '#1C1C22' }}>
                             {evt.text}
+                            {/* Regla permisos-heredados: en nombre de quién actuó, si llega. */}
+                            {evt.actor && (
+                              <span style={{ color: '#9A9AA6' }}> · en nombre de {evt.actor}</span>
+                            )}
                           </p>
                           {evt.timestamp ? (
                             <p className="text-[10px]" style={{ color: '#9A9AA6' }}>
@@ -1182,6 +1236,28 @@ export default function AgentesPage() {
                             </p>
                           ) : null}
                         </div>
+                        {evt.conversationId && (
+                          intervened[evt.conversationId] ? (
+                            <span
+                              className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                              style={{ backgroundColor: '#F2F1F6', color: '#166534' }}
+                              title="La conversación está en manual: el agente ya no actúa solo ahí"
+                            >
+                              ✓ en manual
+                            </span>
+                          ) : (
+                            <button
+                              className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold transition-colors disabled:opacity-60"
+                              disabled={intervening === evt.conversationId}
+                              onClick={() => void intervenirConversacion(evt.conversationId!)}
+                              style={{ backgroundColor: '#EDE9FE', color: '#6B4EFF' }}
+                              title="Pone esta conversación en manual: el agente deja de actuar solo y tú tomas el mando"
+                              type="button"
+                            >
+                              {intervening === evt.conversationId ? '…' : 'Intervenir'}
+                            </button>
+                          )
+                        )}
                       </li>
                     ))}
                   </ul>

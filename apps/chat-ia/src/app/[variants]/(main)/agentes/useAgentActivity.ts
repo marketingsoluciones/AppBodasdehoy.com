@@ -15,7 +15,13 @@ import { buildHeaders } from '../bandeja/utils/auth';
  * no está documentado aún.
  */
 export interface AgentActivityEvent {
+  /** F2 Sala de control: en nombre de quién actuó (regla permisos-heredados). */
+  actor?: string;
   agentId?: string;
+  /** Canal de la conversación (whatsapp/web/…) si el payload lo trae → deep-link. */
+  channel?: string;
+  /** Conversación afectada, si el payload la trae → habilita "Intervenir". */
+  conversationId?: string;
   id: string;
   text: string;
   timestamp: string;
@@ -74,7 +80,11 @@ export function useAgentActivity(development: string): AgentActivityEvent[] {
             }
             seq.current += 1;
             const evt: AgentActivityEvent = {
+              actor: parsed.actor ?? parsed.onBehalfOf ?? parsed.on_behalf_of ?? parsed.userId ?? undefined,
               agentId: parsed.agentId ?? parsed.agent_id ?? parsed.sessionId,
+              channel: parsed.channel ?? parsed.canal ?? undefined,
+              conversationId:
+                parsed.conversationId ?? parsed.conversation_id ?? parsed.convId ?? undefined,
               id: `${eventType}-${parsed.id ?? parsed.timestamp ?? seq.current}`,
               text: toText(parsed, eventType),
               timestamp: parsed.timestamp ?? parsed.createdAt ?? '',
