@@ -55,6 +55,18 @@ const CHANNEL_DOT: Record<string, string> = {
   sms: '#84848F',
 };
 
+// Nombre legible del canal para el chip de la fila (antes solo había un punto de 12px,
+// indistinguible de un vistazo — sobre todo WhatsApp vs el punto verde de "en línea").
+const CHANNEL_NAME: Record<string, string> = {
+  whatsapp: 'WhatsApp',
+  instagram: 'Instagram',
+  facebook: 'Facebook',
+  telegram: 'Telegram',
+  web: 'Web',
+  email: 'Email',
+  sms: 'SMS',
+};
+
 export function ConversationItem({
   conversation,
   isSelected,
@@ -242,8 +254,19 @@ export function ConversationItem({
               )}
             </div>
 
-            {/* Fila 3: chips secundarios (status + asignada + phone) */}
+            {/* Fila 3: chips secundarios (canal + status + asignada + phone) */}
             <div className="mt-1 flex items-center gap-1.5 text-[11px]" style={{ color: '#9A9AA6' }}>
+              {/* Chip de canal con color + nombre → distinguir WhatsApp de otros de un vistazo. */}
+              <span
+                className="inline-flex flex-none items-center gap-1 rounded-full px-1.5 py-0.5 font-medium"
+                style={{ backgroundColor: `${channelDot}1A`, color: channelDot }}
+              >
+                <span
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ backgroundColor: channelDot }}
+                />
+                {CHANNEL_NAME[conversation.channel] ?? conversation.channel}
+              </span>
               {status === 'pending' && (
                 <span
                   className="rounded-full px-1.5 py-0.5 font-medium"

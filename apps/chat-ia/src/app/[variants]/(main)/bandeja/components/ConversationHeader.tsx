@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { setConversationAgent } from '@/services/mcpApi/whatsapp';
@@ -35,6 +36,7 @@ export function ConversationHeader({
   onToggleDetails,
 }: ConversationHeaderProps) {
   const brand = useBandejaBrand();
+  const router = useRouter();
   const { conversations, loading: convListLoading } = useConversations(channel ?? null);
   const conversation = conversations.find((c) => c.id === conversationId);
 
@@ -254,6 +256,26 @@ export function ConversationHeader({
     return (
       <div className="flex items-center justify-between border-b border-gray-200 bg-white p-4">
         <div className="flex min-w-0 items-center gap-3">
+          <button
+            aria-label="Volver a la bandeja"
+            className="flex h-9 w-9 flex-none items-center justify-center rounded-md text-gray-700 transition-colors hover:bg-gray-100 md:hidden"
+            onClick={() => router.push('/bandeja')}
+            title="Volver a la bandeja"
+            type="button"
+          >
+            <svg
+              fill="none"
+              height="20"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.8"
+              viewBox="0 0 24 24"
+              width="20"
+            >
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+          </button>
           <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-gray-200 text-sm font-semibold text-gray-500">
             ⚠
           </div>
@@ -278,6 +300,31 @@ export function ConversationHeader({
       <div className="flex items-center justify-between gap-3 px-4 py-3">
         {/* Left: Contact Info */}
         <div className="flex min-w-0 items-center gap-3">
+          {/* Volver a la bandeja (móvil): la conversación ocupa toda la pantalla y antes no
+              había salida. En desktop la lista está al lado → se oculta (md:hidden). */}
+          <button
+            aria-label="Volver a la bandeja"
+            className="flex h-9 w-9 flex-none items-center justify-center rounded-md transition-colors md:hidden"
+            onClick={() => router.push('/bandeja')}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F2F1F6')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+            style={{ color: '#1C1C22' }}
+            title="Volver a la bandeja"
+            type="button"
+          >
+            <svg
+              fill="none"
+              height="20"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.8"
+              viewBox="0 0 24 24"
+              width="20"
+            >
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+          </button>
           {/* Avatar 40x40 con presence + punto canal */}
           <div className="relative flex-shrink-0">
             <div
