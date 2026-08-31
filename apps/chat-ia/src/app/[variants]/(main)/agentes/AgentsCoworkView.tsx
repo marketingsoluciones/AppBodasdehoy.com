@@ -1034,7 +1034,8 @@ export default function AgentesPage() {
                 </div>
                 <p className="mb-3 text-xs" style={{ color: '#84848F' }}>
                   Especializa este agente en un solo evento: atenderá únicamente esa boda y no
-                  mezclará datos con otras.
+                  mezclará datos con otras. El agente hereda TUS permisos — solo ve y hace lo que
+                  tú puedes ver y hacer en cada evento, nunca más.
                 </p>
                 <select
                   aria-label="Evento al que se dedica este agente"
