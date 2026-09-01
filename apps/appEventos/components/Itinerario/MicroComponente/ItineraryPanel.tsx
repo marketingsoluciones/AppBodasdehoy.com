@@ -862,7 +862,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
 
   return (
     <div
-      style={isStudioIti && isTareas ? { background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16 } : undefined}
+      style={isStudioIti && isTareas ? { background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, padding: "14px 18px 18px", gap: 10 } : undefined}
       className={`w-full flex-1 flex flex-col ${isStudioIti && view === "table" ? "overflow-visible" : `overflow-auto ${isStudioIti ? "iti-hidescroll" : ""}`}`}>
       {isStudioIti && <style dangerouslySetInnerHTML={{ __html: ".iti-hidescroll{scrollbar-width:none;-ms-overflow-style:none;}.iti-hidescroll::-webkit-scrollbar{display:none;width:0;height:0;}" }} />}
       <InfoLateral ubication="left" infoOptions={infoLeftOptions} />
@@ -886,7 +886,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         className="w-full flex-1 flex flex-col"
       >
       {isStudioIti && isTareas && (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap", padding: "14px 20px 4px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap", padding: "4px 2px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "8px 14px", minWidth: 200, background: "#fff", flex: "0 1 320px" }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={2} strokeLinecap="round" style={{ flex: "none" }}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
             <input
@@ -905,7 +905,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
               {t("Añadir tarea", { defaultValue: "Añadir tarea" })}
             </button>
-            <SelectModeSort value={orderAndDirection} setValue={setOrderAndDirection} />
+            <SelectModeSort value={orderAndDirection} setValue={setOrderAndDirection} iconOnly />
             {onToggleExpandAll && (
               <div
                 onClick={() => onToggleExpandAll()}
