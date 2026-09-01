@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 
 import { getWhatsAppMessagesGQL } from '@/services/mcpApi/whatsapp';
-import { buildHeaders, parseWhatsAppConversationId } from '../utils/auth';
+import { buildHeaders } from '../utils/auth';
 import { dedupeFetch } from '../utils/dedupeFetch';
 import { useMessageStream } from './useMessageStream';
 import type { StreamMessage } from './useMessageStream';
@@ -39,10 +39,11 @@ function buildFetchUrl(channel: string, conversationId: string): string | null {
   // proxy /api/messages propaga). Verificado 15-jun: el header BASTA (antes exigía ?development=
   // en query, era una muleta). Endpoint canónico: /api/messages/conversations/{id}/messages
   // (conversationId completo; para WhatsApp "${dev}:${jid}").
-  if (channel === 'whatsapp') {
-    const parsed = parseWhatsAppConversationId(conversationId);
-    if (!parsed) return null;
-  }
+  // BUG 1-sep: api-ia devuelve IDs `conv_<ts>_<rand>` (sin ':'), pero el guard viejo exigía
+  // formato `dev:jid` y devolvía null → las conversaciones WhatsApp NO cargaban mensajes.
+  // El endpoint acepta el ID crudo (verificado en vivo: GET .../conv_.../messages → 200), así
+  // que solo validamos que el id exista; sirve para ambos formatos.
+  if (!conversationId) return null;
   return `/api/messages/conversations/${encodeURIComponent(conversationId)}/messages`;
 }
 

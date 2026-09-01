@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { buildHeaders, jidToPhone, parseWhatsAppConversationId } from '../utils/auth';
+import { buildHeaders, getUserContext, jidToPhone, parseWhatsAppConversationId } from '../utils/auth';
 import type { Message } from './useMessages';
 
 /**
@@ -44,12 +44,16 @@ function buildSendRequest(
   text: string,
   template?: WhatsAppTemplateSend,
   sender?: WhatsAppSender,
+  recipientPhone?: string,
 ): { body: string; url: string } | null {
   if (channel === 'whatsapp') {
+    // BUG 1-sep: con IDs `conv_<ts>_<rand>` (sin ':') el parse fallaba y el envío se abortaba.
+    // Ahora: si el ID trae `dev:jid` (formato viejo) lo usamos; si no, sacamos el teléfono de la
+    // conversación (recipientPhone) y el `dev` del contexto. Sin teléfono no se puede enviar.
     const parsed = parseWhatsAppConversationId(conversationId);
-    if (!parsed) return null;
-    const { dev, jid } = parsed;
-    const phone = jidToPhone(jid);
+    const dev = parsed?.dev ?? getUserContext().development ?? 'bodasdehoy';
+    const phone = parsed ? jidToPhone(parsed.jid) : (recipientPhone ?? '').replace(/\D/g, '');
+    if (!phone) return null;
     // Ventana 24h cerrada + template seleccionada → endpoint HSM.
     // Emisor elegido (si lo hay). Omitirlo = número por defecto del whitelabel.
     const senderFields = sender
@@ -96,6 +100,7 @@ export function useSendMessage() {
     text: string,
     template?: WhatsAppTemplateSend,
     sender?: WhatsAppSender,
+    recipientPhone?: string,
   ): Promise<{ message: Message; success: boolean }> => {
     const optimisticMsg: Message = {
       fromUser: false, // false = mensaje enviado por ti (outbound)
@@ -105,7 +110,7 @@ export function useSendMessage() {
       timestamp: new Date().toISOString(),
     };
 
-    const req = buildSendRequest(channel, conversationId, text, template, sender);
+    const req = buildSendRequest(channel, conversationId, text, template, sender, recipientPhone);
     if (!req) {
       return { message: optimisticMsg, success: false };
     }

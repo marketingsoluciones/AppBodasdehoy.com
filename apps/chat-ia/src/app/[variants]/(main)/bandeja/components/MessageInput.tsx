@@ -351,11 +351,16 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
 
     setSendError(null);
     try {
+      // BUG 1-sep: con IDs conv_<ts> el envío no sabía el teléfono destino (lo sacaba del jid del
+      // ID, que no existe) → no se podía enviar. Pasamos el teléfono de la conversación actual.
+      const currentConv = convList.find((c) => c.id === conversationId);
       const result = await sendMessage(
         channel,
         conversationId,
         messageText,
         pendingTemplate ?? undefined,
+        undefined,
+        currentConv?.contact?.phone,
       );
 
       if (result.success) {
