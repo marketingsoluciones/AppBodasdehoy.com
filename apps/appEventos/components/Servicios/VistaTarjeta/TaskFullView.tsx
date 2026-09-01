@@ -173,11 +173,13 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
 
   return (
     <div {...props} className={`w-full bg-white rounded-lg shadow-lg cursor-default  ${isMobile ? "scale-90" : ""}`}>
-      <div id="task-container" className={`flex h-[553px] rounded-xl outline ${selectTask === task._id ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
+      <div id="task-container" className={`flex ${isStudio ? "rounded-2xl" : "h-[553px] rounded-xl outline"} ${isStudio ? "" : (selectTask === task._id ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200")}`}>
         {/* Panel principal */}
         {(!isMobile || !showChat) &&
           <div id='container-left' className="flex-1 flex flex-col h-full relative">
-            <div className="w-full flex items-center justify-between py-0.5 border-b border-gray-200">
+            <div className={isStudio
+              ? "w-full flex items-center justify-between gap-3 px-7 pt-6"
+              : "w-full flex items-center justify-between py-0.5 border-b border-gray-200"}>
               <TitleTask
                 canEdit={canEdit}
                 handleUpdate={handleUpdate}
@@ -223,7 +225,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   </div>}
               </div>
             </div>
-            <div className={isStudio ? "flex flex-col flex-1 px-7 py-4 gap-4" : "flex flex-col flex-1 px-6 py-2 space-y-2  "}>
+            <div className={isStudio ? "flex flex-col flex-1 px-7 pt-4 pb-6 gap-4" : "flex flex-col flex-1 px-6 py-2 space-y-2  "}>
               <div style={isStudio ? { display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap" } : undefined}>
                 <StatusPriorityTask
                   isMobile={isMobile}
@@ -306,7 +308,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
         }
         {/* Panel lateral - Chat/Comentarios */}
         {(!isMobile || showChat) && (
-          <div id="container-right" className={`${isMobile && showChat ? "w-full" : (isStudio ? "w-[300px]" : "w-[350px]")} flex flex-col ${isStudio ? "bg-white border-l-[1px] border-[#f0f0f2]" : "bg-gray-50 border-l-[1px] border-gray-200"} h-full max-h-[554px] pb-2`}>
+          <div id="container-right" className={`${isMobile && showChat ? "w-full" : (isStudio ? "w-[300px]" : "w-[350px]")} flex flex-col ${isStudio ? "bg-white border-l-[1px] border-[#f0f0f2]" : "bg-gray-50 border-l-[1px] border-gray-200"} ${isStudio ? "" : "h-full max-h-[554px]"} pb-2`}>
             <div className="h-[49px] px-2 border-b border-gray-200 bg-white flex items-center">
               <div className="w-full flex items-center justify-between">
                 <div className="flex items-center space-x-2">
@@ -315,10 +317,10 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   >
                     <IoIosArrowRoundBack className="w-9 h-9 " />
                   </button>}
-                  <div className="text-xl font-semibold">{t('Actividad')}</div>
+                  <div className={isStudio ? "" : "text-xl font-semibold"} style={isStudio ? { font: "700 15px Poppins", color: "#3A3A42" } : undefined}>{t('Actividad')}</div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-500">{task.comments.length} {t('comentarios')}</span>
+                  <span className={isStudio ? "" : "text-sm text-gray-500"} style={isStudio ? { font: "400 11.5px Poppins", color: "#a0a0a8" } : undefined}>{task.comments.length} {t('comentarios')}</span>
                   <Bell className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
                 </div>
               </div>
@@ -327,8 +329,8 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               {task.comments.length === 0
                 ? <div className="h-full flex items-center justify-center">
                   <div className="text-center">
-                    <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">{t('No hay comentarios')}</p>
+                    <MessageSquare className={isStudio ? "w-10 h-10 mx-auto mb-2.5" : "w-12 h-12 text-gray-300 mx-auto mb-2"} style={isStudio ? { color: "#c4c4cc", strokeWidth: 1.5 } : undefined} />
+                    <p className={isStudio ? "" : "text-sm text-gray-500"} style={isStudio ? { font: "400 12px Poppins", color: "#a0a0a8" } : undefined}>{t('No hay comentarios')}</p>
                   </div>
                 </div>
                 : <div className="flex flex-col h-full">
