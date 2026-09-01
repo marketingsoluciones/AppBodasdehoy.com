@@ -157,14 +157,17 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           />
         </Link>
       )}
-      {/* 5) Biblioteca (Archivos + Conocimiento en tabs). Ruta /files intacta. */}
+      {/* 5) Documentos (Archivos + Conocimiento/RAG en tabs). Ruta /files intacta.
+          Renombrado de "Biblioteca"→"Documentos" (1-sep): el rediseño 14-ago escondió
+          "Conocimiento" del rail (SHOW_LOBECHAT_EXTRAS=false) y "Biblioteca" no se reconocía
+          como el sitio de subir documentos + RAG → el usuario creía que se había perdido. */}
       {isServerMode && isLoggedIn && (
-        <Link aria-label="Biblioteca" href={'/files'} suppressHydrationWarning>
+        <Link aria-label="Documentos" href={'/files'} suppressHydrationWarning>
           <ActionIcon
             active={tab === SidebarTabKey.Files}
             icon={FolderOpen}
             size={ICON_SIZE}
-            title="Biblioteca"
+            title="Documentos"
             tooltipProps={{ placement: 'right' }}
           />
         </Link>
