@@ -723,7 +723,9 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             if (item?._id !== itinerario?._id) { setItinerario(item); setEditTitle(false) }
         }
         return (
-            <div className="w-full" style={{ background: "#fff", borderRadius: "18px 18px 0 0", display: "flex", flexDirection: "column", gap: 10, padding: "12px 24px", borderBottom: "1px solid #f0f0f2" }}>
+            <div className="w-full" style={isTareas
+                ? { background: "#fff", borderRadius: 16, display: "flex", flexDirection: "column", gap: 10, padding: "12px 24px", boxShadow: "0 4px 14px rgba(0,0,0,.05)" }
+                : { background: "#fff", borderRadius: "18px 18px 0 0", display: "flex", flexDirection: "column", gap: 10, padding: "12px 24px", borderBottom: "1px solid #f0f0f2" }}>
                 <style dangerouslySetInnerHTML={{ __html: ".iti-tabs-rail::-webkit-scrollbar{display:none;}" }} />
 
                 {/* FILA 1: pestañas (carril con scroll invisible) + Nuevo */}

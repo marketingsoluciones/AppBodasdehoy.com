@@ -35,6 +35,11 @@ export const BoddyIter = () => {
     const isOwner = Boolean(user?.uid && event?.usuario_id && user.uid === event.usuario_id)
     const { copilotFilter } = EventsGroupContextProvider()
     const [itinerario, setItinerario] = useState<Itinerary>()
+    // Tareas (fiel a tareasvistatarjeta.html): la toolbar y el contenido son DOS tarjetas
+    // separadas, no una. Itinerario conserva su composición, que ya estaba aprobada.
+    const isTareasStudio = typeof window !== "undefined"
+        && window.location.pathname === "/servicios"
+        && new URLSearchParams(window.location.search).get("studio") !== "legacy"
     const [editTitle, setEditTitle] = useState<boolean>(false)
     const { canAccessList } = useServicePermissions(itinerario?.viewers ?? [])
     const [view, setView] = useState<ViewItinerary>()
@@ -413,8 +418,8 @@ export const BoddyIter = () => {
     return (
         <PermissionWrapper>
             <div
-                className={`bg-white ${view === "cards" ? "max-w-[1050px] mx-auto" : "w-auto"
-                    } ${(studioIter && view === "table" && pathSliceIter === "itinerario") ? "md:min-h-[calc(100vh-244px)]" : "md:h-[calc(100vh-244px)] overflow-hidden"} flex flex-col items-center rounded-t-lg mt-3 relative`}
+                className={`${isTareasStudio ? "bg-transparent gap-3.5" : "bg-white rounded-t-lg"} ${view === "cards" ? "max-w-[1050px] mx-auto" : "w-auto"
+                    } ${(studioIter && view === "table" && pathSliceIter === "itinerario") ? "md:min-h-[calc(100vh-244px)]" : "md:h-[calc(100vh-244px)] overflow-hidden"} flex flex-col items-center mt-3 relative`}
             >
                 {
                     modal.state &&

@@ -861,7 +861,9 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   }, [selectTask, currentItinerario])
 
   return (
-    <div className={`w-full flex-1 flex flex-col ${isStudioIti && view === "table" ? "overflow-visible" : `overflow-auto ${isStudioIti ? "iti-hidescroll" : ""}`}`}>
+    <div
+      style={isStudioIti && isTareas ? { background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16 } : undefined}
+      className={`w-full flex-1 flex flex-col ${isStudioIti && view === "table" ? "overflow-visible" : `overflow-auto ${isStudioIti ? "iti-hidescroll" : ""}`}`}>
       {isStudioIti && <style dangerouslySetInnerHTML={{ __html: ".iti-hidescroll{scrollbar-width:none;-ms-overflow-style:none;}.iti-hidescroll::-webkit-scrollbar{display:none;width:0;height:0;}" }} />}
       <InfoLateral ubication="left" infoOptions={infoLeftOptions} />
       <InfoLateral ubication="right" infoOptions={[]} />
