@@ -203,7 +203,10 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   </button>
                 )}
                 {canEdit &&
-                  <div className="flex items-center">
+                  <div
+                    className="flex items-center"
+                    style={isStudio ? { background: "#fff", border: "1.5px solid #E7E7EA", borderRadius: 10, overflow: "hidden", flex: "none", marginRight: 0 } : undefined}
+                  >
                     <IntegrateButtonsBox
                       task={task}
                       handleUpdate={handleUpdate}
