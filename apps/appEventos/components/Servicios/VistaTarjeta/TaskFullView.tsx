@@ -220,12 +220,14 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   <span className='text-gray-100'>{dateTimeFormated(task.fecha, Intl.DateTimeFormat().resolvedOptions().timeZone)} {`(${t("hora local")})`}</span>
                 </div>}
               </div>
-              <TagsTask
+              {/* Etiquetas: tareasvistatarjeta.html no las contempla. Se ocultan en studio
+                  (no se borran: ?studio=legacy las devuelve, y los datos siguen intactos). */}
+              {!isStudio && <TagsTask
                 canEdit={canEdit}
                 task={task}
                 handleUpdate={handleUpdate}
                 owner={owner}
-              />
+              />}
               <DescriptionTask
                 canEdit={canEdit}
                 task={task}
@@ -247,7 +249,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
         }
         {/* Panel lateral - Chat/Comentarios */}
         {(!isMobile || showChat) && (
-          <div id="container-right" className={`${isMobile && showChat ? "w-full" : "w-[350px]"} flex flex-col bg-gray-50 h-full max-h-[554px] border-l-[1px] border-gray-200 pb-2`}>
+          <div id="container-right" className={`${isMobile && showChat ? "w-full" : (isStudio ? "w-[300px]" : "w-[350px]")} flex flex-col ${isStudio ? "bg-white border-l-[1px] border-[#f0f0f2]" : "bg-gray-50 border-l-[1px] border-gray-200"} h-full max-h-[554px] pb-2`}>
             <div className="h-[49px] px-2 border-b border-gray-200 bg-white flex items-center">
               <div className="w-full flex items-center justify-between">
                 <div className="flex items-center space-x-2">

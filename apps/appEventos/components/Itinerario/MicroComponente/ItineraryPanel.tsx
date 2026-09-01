@@ -41,7 +41,6 @@ import useSWR from 'swr';
 import { handleCopyLink, cleanResponsables } from "../../Servicios/VistaTarjeta/TaskNewUtils";
 import { IconArray } from "../../Servicios/VistaTabla/NewSelectIcon";
 import { isStudioPathname } from "../../../utils/studioPaths";
-import { SelectModeSort } from "../../Utils/SelectModeSort";
 
 interface props {
   itinerario: Itinerary
@@ -905,7 +904,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
               {t("Añadir tarea", { defaultValue: "Añadir tarea" })}
             </button>
-            <SelectModeSort value={orderAndDirection} setValue={setOrderAndDirection} iconOnly />
             {onToggleExpandAll && (
               <div
                 onClick={() => onToggleExpandAll()}
