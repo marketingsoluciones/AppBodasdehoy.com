@@ -172,7 +172,10 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   }
 
   return (
-    <div {...props} className={`w-full bg-white rounded-lg shadow-lg cursor-default  ${isMobile ? "scale-90" : ""}`}>
+    <div
+      {...props}
+      style={isStudio ? { background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, fontFamily: "'Poppins',sans-serif" } : undefined}
+      className={`w-full cursor-default ${isStudio ? "" : "bg-white rounded-lg shadow-lg"}  ${isMobile ? "scale-90" : ""}`}>
       <div id="task-container" className={`flex ${isStudio ? "rounded-2xl" : "h-[553px] rounded-xl outline"} ${isStudio ? "" : (selectTask === task._id ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200")}`}>
         {/* Panel principal */}
         {(!isMobile || !showChat) &&

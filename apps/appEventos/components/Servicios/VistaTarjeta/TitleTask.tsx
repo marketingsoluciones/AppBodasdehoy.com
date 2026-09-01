@@ -53,7 +53,7 @@ export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task, own
   return (
     <div className={`flex items-center flex-1 min-w-0 ${isStudio ? "gap-3" : "h-[44px] space-x-2"}`}>
       <div className="flex items-center justify-center">
-        <div className={`flex items-center justify-center rounded-full transition-colors ${isStudio ? "w-10 h-10 bg-[#f5f5f7] border-[1.5px] border-solid border-[#ececef] text-[#6b6b72] hover:bg-[#ececef]" : "w-11 h-11"}`}
+        <div className={`flex items-center justify-center rounded-full transition-colors ${isStudio ? "w-10 h-10 bg-[#f7f7f9] border-[1px] border-solid border-[#E7E7EA] text-[#4a4a52] hover:bg-[#ececef]" : "w-11 h-11"}`}
           title={canEdit && "Cambiar ícono"} >
           <SelectIconNew
             handleChange={handleIconChange}
