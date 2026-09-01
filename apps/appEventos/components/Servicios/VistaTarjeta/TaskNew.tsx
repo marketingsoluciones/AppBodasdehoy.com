@@ -339,6 +339,8 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
             tempPastedAndDropFiles={tempPastedAndDropFiles}
             setTempPastedAndDropFiles={setTempPastedAndDropFiles}
             selectTask={selectTask}
+            isExpanded={isExpanded}
+            onToggleExpand={onToggleExpand}
           />
           : null
   )
