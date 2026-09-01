@@ -68,6 +68,14 @@ const CHANNEL_NAME: Record<string, string> = {
   sms: 'SMS',
 };
 
+// Tipo de línea WhatsApp (api-ia channelType): distinguir de un vistazo QR vs Meta API,
+// el nº1 de la auditoría 1-sep. WEB_QR = número personal vinculado por QR (sin ventana 24h);
+// WAB = Meta Business API (ventana 24h + plantillas). Otros canales no aplican.
+const CHANNEL_TYPE_LABEL: Record<string, string> = {
+  WAB: 'Meta API',
+  WEB_QR: 'QR',
+};
+
 export function ConversationItem({
   conversation,
   isSelected,
@@ -264,16 +272,27 @@ export function ConversationItem({
 
             {/* Fila 3: chips secundarios (canal + status + asignada + phone) */}
             <div className="mt-1 flex items-center gap-1.5 text-[11px]" style={{ color: '#9A9AA6' }}>
-              {/* Chip de canal con color + nombre → distinguir WhatsApp de otros de un vistazo. */}
+              {/* Chip de canal con color + nombre → distinguir WhatsApp de otros de un vistazo.
+                  En WhatsApp añade el tipo de línea (QR / Meta API) — nº1 de la auditoría 1-sep. */}
               <span
                 className="inline-flex flex-none items-center gap-1 rounded-full px-1.5 py-0.5 font-medium"
                 style={{ backgroundColor: `${channelDot}1A`, color: channelDot }}
+                title={
+                  conversation.channel === 'whatsapp' && conversation.channelType
+                    ? `WhatsApp ${CHANNEL_TYPE_LABEL[conversation.channelType] ?? conversation.channelType}`
+                    : undefined
+                }
               >
                 <span
                   className="h-1.5 w-1.5 rounded-full"
                   style={{ backgroundColor: channelDot }}
                 />
                 {CHANNEL_NAME[conversation.channel] ?? conversation.channel}
+                {conversation.channel === 'whatsapp' && conversation.channelType && (
+                  <span style={{ opacity: 0.75 }}>
+                    · {CHANNEL_TYPE_LABEL[conversation.channelType] ?? conversation.channelType}
+                  </span>
+                )}
               </span>
               {status === 'pending' && (
                 <span

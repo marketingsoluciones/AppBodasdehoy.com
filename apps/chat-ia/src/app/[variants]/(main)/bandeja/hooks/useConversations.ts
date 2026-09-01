@@ -21,6 +21,10 @@ export interface Conversation {
   assignmentSource?: string | null;
   assignedToUserId?: string | null;
   channel: 'whatsapp' | 'instagram' | 'telegram' | 'email' | 'web' | 'facebook';
+  /** Multicanal (api-ia b6d1823): id de la línea receptora + su tipo.
+   *  channelType: 'WAB' = Meta Business API · 'WEB_QR' = WhatsApp QR (vinculado). */
+  channelId?: string | null;
+  channelType?: 'WAB' | 'WEB_QR' | string | null;
   contact: {
     avatar?: string;
     name: string;
@@ -119,6 +123,9 @@ export function useConversations(channel: string | null) {
             assignmentSource: c.assignmentSource ?? c.assignment_source ?? null,
             assignedToUserId: c.assignedUserId ?? c.assigned_to ?? c.assignedTo ?? null,
             channel: kind as Conversation['channel'],
+            // Multicanal (api-ia b6d1823): qué línea/tipo recibió el mensaje (QR vs Meta API).
+            channelId: c.channelId ?? c.channel_id ?? null,
+            channelType: c.channelType ?? c.channel_type ?? null,
             contact: {
               name: friendlyContactName(rawName, rawPhone, jidType),
               phone: safePhoneOrEmpty(rawPhone, jidType),
