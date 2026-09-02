@@ -24,6 +24,10 @@ export interface FeedItem {
   channelKind: ChannelKind | 'notification';
   /** Short label for multi-channel disambiguation (e.g. "Sv", "IG") */
   channelLabel?: string;
+  /** Tipo de línea WhatsApp (WAB=Meta API · WEB_QR=QR). Unifica la estética WhatsApp
+   *  (Meta+QR bajo un mismo verde) y a la vez muestra por qué línea entró. undefined
+   *  para canales no-WhatsApp. */
+  channelType?: 'WAB' | 'WEB_QR' | string | null;
   /** First URL segment: /messages/{channelParam}/... (null for notifications) */
   channelParam: string | null;
   /** Second URL segment: /messages/{channelParam}/{conversationId} (null for notifications) */
@@ -261,6 +265,7 @@ export function useUnifiedFeed(maxItems = 60): {
       channelKind: conv.kind,
       channelLabel: conv.channelLabel,
       channelParam: conv.channelParam,
+      channelType: conv.channelType ?? null,
       conversationId: conv.conversationId,
       id: `conv-${conv.channelParam}-${conv.conversationId}`,
       isRead: conv.unreadCount === 0,

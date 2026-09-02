@@ -30,6 +30,11 @@ export interface RecentConversation {
   assignedAgentName?: string | null;
   assignedToUserId?: string | null;
   kind: ChannelKind;
+  /** Multicanal (api-ia b6d1823): tipo de línea WhatsApp — 'WAB' (Meta Business API) o
+   *  'WEB_QR' (número personal vinculado por QR). Permite unificar la estética WhatsApp
+   *  (Meta+QR bajo un mismo verde) y a la vez decir de un vistazo por qué línea entró. */
+  channelType?: 'WAB' | 'WEB_QR' | string | null;
+  channelId?: string | null;
   lastMessage: string;
   lastMessageAt: string;
   lastInboundAt?: string;
@@ -189,7 +194,14 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
                 assignedAgentId: c.assignedAgentId ?? c.assigned_agent_id ?? null,
                 assignedAgentName: c.assignedAgentName ?? c.assigned_agent_name ?? null,
                 assignedToUserId: c.assignedUserId ?? c.assigned_to ?? c.assignedTo ?? null,
-                channelParam: ch,
+                // navegación: WhatsApp usa `wa-{channelId}`; el resto, el propio kind.
+                channelParam:
+                  ch === 'whatsapp' && (c.channelId ?? c.channel_id)
+                    ? `wa-${c.channelId ?? c.channel_id}`
+                    : ch,
+                // Tipo/linea de WhatsApp (api-ia ya lo manda en este endpoint: WEB_QR/WAB).
+                channelType: c.channelType ?? c.channel_type ?? null,
+                channelId: c.channelId ?? c.channel_id ?? null,
                 conversationId: c.conversationId || c.id || '',
                 kind: ch,
                 lastMessage: c.lastMessage || '',
@@ -211,8 +223,35 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
 
         const [waConvs, otherConvs] = await Promise.all([waPromise, othersPromise]);
 
-        const all = [...waConvs, ...otherConvs]
-          .filter((c) => c.conversationId)
+        // DEDUP por conversationId (BUG 2-sep): la MISMA conversación WhatsApp-QR llega por
+        // el endpoint WA y por el de "otros" → antes salían DOS filas del mismo teléfono (una
+        // "W" verde y otra "Web" naranja). Fusionamos por id conservando el registro más rico:
+        // el que trae `channelType` (WEB_QR/WAB) y/o un nombre real (el de "otros" para QR).
+        const byId = new Map<string, RecentConversation>();
+        for (const c of [...waConvs, ...otherConvs]) {
+          if (!c.conversationId) continue;
+          const prev = byId.get(c.conversationId);
+          if (!prev) {
+            byId.set(c.conversationId, c);
+            continue;
+          }
+          // Preferimos el que aporta channelType; si empatan, el que tenga nombre no-vacío.
+          const cScore = (c.channelType ? 2 : 0) + (c.name ? 1 : 0);
+          const pScore = (prev.channelType ? 2 : 0) + (prev.name ? 1 : 0);
+          const winner = cScore > pScore ? c : prev;
+          const loser = winner === c ? prev : c;
+          // Merge suave: el ganador manda, pero rellenamos huecos con el perdedor (p.ej. el
+          // WA endpoint aporta jidType/labels y el de "otros" aporta channelType/nombre).
+          byId.set(c.conversationId, {
+            ...loser,
+            ...winner,
+            channelType: winner.channelType ?? loser.channelType ?? null,
+            channelId: winner.channelId ?? loser.channelId ?? null,
+            jidType: winner.jidType ?? loser.jidType ?? null,
+          });
+        }
+
+        const all = [...byId.values()]
           .sort((a, b) => {
             const ta = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
             const tb = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;

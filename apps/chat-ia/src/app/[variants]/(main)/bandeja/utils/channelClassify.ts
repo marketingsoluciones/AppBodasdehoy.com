@@ -19,7 +19,13 @@ export const KNOWN_OTHER_CHANNELS: readonly ChannelKind[] = [
   'facebook',
 ];
 
-const OTHER_SET = new Set<string>(KNOWN_OTHER_CHANNELS);
+// Canales que el endpoint "otros" (`/api/messages/conversations`) SÍ puede devolver ya
+// clasificados y que debemos honrar tal cual — 'whatsapp' incluido. BUG 2-sep: api-ia
+// devuelve WhatsApp-QR como `{channel:'whatsapp', channelType:'WEB_QR'}` (correcto), pero
+// 'whatsapp' NO estaba en el set reconocido → caía al cajón 'web' (naranja) e ignoraba el
+// channelType. Resultado: conversaciones QR reales pintadas como "Web", separadas de las de
+// Meta, y sin salir al filtrar "WA". El dato del backend es correcto; solo faltaba honrarlo.
+const CLASSIFIABLE_SET = new Set<string>([...KNOWN_OTHER_CHANNELS, 'whatsapp']);
 
 /**
  * ¿La vista corresponde a WhatsApp? Llega como kind `'whatsapp'`, como channelParam
@@ -36,5 +42,5 @@ export function isWhatsAppView(channel: string | null | undefined): boolean {
  */
 export function classifyOtherChannel(rawChannel?: unknown, rawPlatform?: unknown): ChannelKind {
   const raw = String(rawChannel || rawPlatform || 'web');
-  return (OTHER_SET.has(raw) ? raw : 'web') as ChannelKind;
+  return (CLASSIFIABLE_SET.has(raw) ? raw : 'web') as ChannelKind;
 }

@@ -19,6 +19,15 @@ const FEED_CHANNEL_CONFIG: Record<string, { bg: string; icon: string; label: str
   whatsapp: { bg: 'bg-green-500', icon: '📱', label: 'W' },
 };
 
+// Tipo de línea WhatsApp (api-ia channelType). Unificamos TODO WhatsApp bajo el mismo verde
+// (Meta+QR se ven igual, como pidió el owner 2-sep) y añadimos una etiqueta discreta para
+// saber por qué línea entró. WEB_QR = número personal vinculado por QR (sin ventana 24h);
+// WAB = Meta Business API (ventana 24h + plantillas).
+const WA_TYPE_LABEL: Record<string, string> = {
+  WAB: 'Meta API',
+  WEB_QR: 'QR',
+};
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function timeAgo(timestamp: string): string {
@@ -57,6 +66,11 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
   // Tag "Informativo" en la fila para saberlo ANTES de abrir. (Solo se ven si el usuario
   // activa "Ver newsletters/estados"; por defecto están filtrados.)
   const isOneWay = item.jidType === 'newsletter' || item.jidType === 'broadcast';
+  // Etiqueta de línea WhatsApp (QR / Meta API) — solo en WhatsApp y solo si el dato llega.
+  const waType =
+    item.channelKind === 'whatsapp' && item.channelType
+      ? (WA_TYPE_LABEL[item.channelType] ?? item.channelType)
+      : null;
 
   let rowBg = 'bg-white hover:bg-gray-50';
   if (!item.isRead && item.kind === 'notification') rowBg = 'bg-pink-50/60 hover:bg-pink-50';
@@ -122,6 +136,14 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
           >
             {item.name}
           </span>
+          {waType && (
+            <span
+              className="shrink-0 rounded-full bg-green-50 px-1.5 py-0.5 text-[9px] font-semibold text-green-700"
+              title={`WhatsApp · ${waType === 'QR' ? 'número vinculado por QR' : 'Meta Business API'}`}
+            >
+              {waType}
+            </span>
+          )}
           {isOneWay && (
             <span
               className="shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-gray-500"
