@@ -1,7 +1,7 @@
 'use client';
 
 import { ActionIcon, ActionIconProps, Hotkey } from '@lobehub/ui';
-import { BookOpen, Compass, FolderOpen, Heart, Images, Inbox, MessageSquare, ShieldCheck } from 'lucide-react';
+import { Bot, BookOpen, Compass, FolderOpen, Heart, Images, Inbox, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { memo, useEffect, useState } from 'react';
@@ -77,7 +77,7 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
       >
         <ActionIcon
           active={isChatActive || isAgentsActive}
-          icon={MessageSquare}
+          icon={Bot}
           size={ICON_SIZE}
           title={
             <Flexbox align={'center'} gap={8} horizontal justify={'space-between'}>
