@@ -63,7 +63,9 @@ export const StatusPriorityTask: FC<StatusPriorityTaskProps> = ({
   });
 
   return (
-    <div className="flex items-center justify-between md:justify-start space-x-4 ">
+    <div
+      style={isStudio ? { display: "flex", alignItems: "center", gap: 18, flex: "none" } : undefined}
+      className={isStudio ? "" : "flex items-center justify-between md:justify-start space-x-4 "}>
       {/* Estado */}
       <div className="flex items-center space-x-2">
         <span className="text-xs text-gray-600" style={isStudio ? labelStudio : undefined}>{t('Estado')}</span>

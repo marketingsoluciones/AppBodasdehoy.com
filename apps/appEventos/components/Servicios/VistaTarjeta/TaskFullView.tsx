@@ -44,6 +44,19 @@ interface TaskFullViewProps {
   onToggleExpand?: () => void;
 }
 
+/** Pastilla blanca con icono y etiqueta (fiel al HTML). Con on=false no envuelve nada,
+ *  así la vista anterior queda exactamente igual. */
+const PillCampo: FC<{ on: boolean; icono: React.ReactNode; etiqueta: string; children: React.ReactNode }> = ({ on, icono, etiqueta, children }) => {
+  if (!on) return <>{children}</>;
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 7, background: "#fff", border: "1px solid #ececef", borderRadius: 9, padding: "5px 10px", flex: "none" }}>
+      {icono}
+      <span style={{ font: "500 12px Poppins", color: "#8a8a90", whiteSpace: "nowrap" }}>{etiqueta}</span>
+      {children}
+    </div>
+  );
+};
+
 export const TaskFullView: FC<TaskFullViewProps> = ({
   task,
   itinerario,
@@ -262,28 +275,49 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   <Calendar className="w-4 h-4 text-gray-500" />
                 </div>}
                 <div className={isStudio ? "flex items-center gap-2 flex-wrap" : "h-5 flex items-center space-x-4"}>
-                  <DateTask
-                    handleUpdate={handleUpdate}
-                    canEdit={canEdit}
-                    task={task}
-                    setEditing={setEditingDate}
-                    editing={editingDate}
-                    ValidationEdit={ValidationEdit}
-                  />
-                  <TimeTask
-                    handleUpdate={handleUpdate}
-                    canEdit={canEdit}
-                    task={task}
-                    setEditing={setEditingTime}
-                    editing={editingTime}
-                    ValidationEdit={ValidationEdit}
-                  />
-                  <DurationTask
-                    handleUpdate={handleUpdate}
-                    canEdit={canEdit}
-                    task={task}
-                    ValidationEdit={ValidationEdit}
-                  />
+                  {/* Pastillas de tareastarjetacerradaabierta.html: cada campo en su caja blanca
+                      con etiqueta. Se ENVUELVEN los componentes existentes en vez de
+                      reescribirlos, para no tocar su edición ni sus selectores. */}
+                  <PillCampo
+                    on={isStudio}
+                    icono={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={1.8} strokeLinecap="round"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 9h18M8 3v4M16 3v4" /></svg>}
+                    etiqueta={t('Fecha', { defaultValue: 'Fecha' })}
+                  >
+                    <DateTask
+                      handleUpdate={handleUpdate}
+                      canEdit={canEdit}
+                      task={task}
+                      setEditing={setEditingDate}
+                      editing={editingDate}
+                      ValidationEdit={ValidationEdit}
+                    />
+                  </PillCampo>
+                  <PillCampo
+                    on={isStudio}
+                    icono={<span style={{ width: 8, height: 8, borderRadius: "50%", background: "#2FB37E", flex: "none" }} />}
+                    etiqueta={t('Hora', { defaultValue: 'Hora' })}
+                  >
+                    <TimeTask
+                      handleUpdate={handleUpdate}
+                      canEdit={canEdit}
+                      task={task}
+                      setEditing={setEditingTime}
+                      editing={editingTime}
+                      ValidationEdit={ValidationEdit}
+                    />
+                  </PillCampo>
+                  <PillCampo
+                    on={isStudio}
+                    icono={<span style={{ width: 8, height: 8, borderRadius: "50%", background: "#8a8a90", flex: "none" }} />}
+                    etiqueta={t('Duración', { defaultValue: 'Duración' })}
+                  >
+                    <DurationTask
+                      handleUpdate={handleUpdate}
+                      canEdit={canEdit}
+                      task={task}
+                      ValidationEdit={ValidationEdit}
+                    />
+                  </PillCampo>
                 </div>
                 {task.fecha && <div className={`hidden absolute bottom-full left-6 transform -translate-y-1/4 mb-2 px-2 py-1 bg-gray-900 text-white text-[11px] rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-hover:delay-300 whitespace-nowrap z-10 md:flex flex-col ${editingDate || editingTime ? "hidden" : ""}`}>
                   <span className='font-bold text-yellow-500'>{dateTimeFormated(task.fecha, event?.timeZone)}</span>
