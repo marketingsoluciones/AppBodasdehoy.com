@@ -55,19 +55,21 @@ export const StatusPriorityTask: FC<StatusPriorityTaskProps> = ({
     position: "absolute", marginTop: 8, zIndex: 50, background: "#fff", borderRadius: 14,
     border: "1px solid #f0f0f2", boxShadow: "0 14px 40px rgba(0,0,0,.14)", padding: 6, minWidth: 176,
   };
-  const labelStudio: React.CSSProperties = { font: "500 12px Poppins", color: "#8a8a90" };
+  // Compactado respecto al HTML (12px / padding 6-14) para que Estado + Prioridad +
+  // Responsables entren en UNA línea con contenido real, sin recortes.
+  const labelStudio: React.CSSProperties = { font: "500 11.5px Poppins", color: "#8a8a90", whiteSpace: "nowrap" };
   const pillStudio = (bg: string, fg: string): React.CSSProperties => ({
-    display: "flex", alignItems: "center", gap: 7, padding: "6px 14px", borderRadius: 9,
-    cursor: canEdit ? "pointer" : "default", background: bg, color: fg, font: "600 12px Poppins",
-    border: "none",
+    display: "flex", alignItems: "center", gap: 5, padding: "5px 11px", borderRadius: 9,
+    cursor: canEdit ? "pointer" : "default", background: bg, color: fg, font: "600 11.5px Poppins",
+    border: "none", whiteSpace: "nowrap", flex: "none",
   });
 
   return (
     <div
-      style={isStudio ? { display: "flex", alignItems: "center", gap: 18, flex: "none" } : undefined}
+      style={isStudio ? { display: "flex", alignItems: "center", gap: 14, flex: "none" } : undefined}
       className={isStudio ? "" : "flex items-center justify-between md:justify-start space-x-4 "}>
       {/* Estado */}
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center" style={isStudio ? { gap: 7, flex: "none" } : undefined}>
         <span className="text-xs text-gray-600" style={isStudio ? labelStudio : undefined}>{t('Estado')}</span>
         <div className="relative">
           <button
@@ -113,7 +115,7 @@ export const StatusPriorityTask: FC<StatusPriorityTaskProps> = ({
       </div>
 
       {/* Prioridad */}
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center" style={isStudio ? { gap: 7, flex: "none" } : undefined}>
         <span className="text-xs text-gray-600" style={isStudio ? labelStudio : undefined}>{t('Prioridad')}</span>
         <div className="relative">
           <button

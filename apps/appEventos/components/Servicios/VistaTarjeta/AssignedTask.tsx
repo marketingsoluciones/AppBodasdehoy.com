@@ -58,7 +58,7 @@ export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate, owner, in
           : { display: "grid", gridTemplateColumns: "120px 1fr", gap: 14, alignItems: "center" }}
         className={inline ? "" : "w-full"}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 6, font: inline ? "500 12px Poppins" : "600 12.5px Poppins", color: "#8a8a90", flex: "none" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 5, font: inline ? "500 11.5px Poppins" : "600 12.5px Poppins", color: "#8a8a90", flex: "none", whiteSpace: "nowrap" }}>
           <User className="w-[13px] h-[13px]" />
           {inline ? t('Responsables', { defaultValue: 'Responsables' }) : t('Asignados')}
         </div>
@@ -73,7 +73,7 @@ export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate, owner, in
             />
           </div>}
           {respList.map((resp, idx) => (
-            <span key={idx} style={{ display: "flex", alignItems: "center", gap: 7, background: "#f5f5f7", borderRadius: 16, padding: "5px 12px 5px 5px", font: "500 12px Poppins", color: "#3A3A42", flex: "none", whiteSpace: "nowrap" }}>
+            <span key={idx} style={{ display: "flex", alignItems: "center", gap: 6, background: "#f5f5f7", borderRadius: 16, padding: "4px 10px 4px 4px", font: "500 11.5px Poppins", color: "#3A3A42", flex: "none", whiteSpace: "nowrap" }}>
               <span style={{ width: 22, height: 22, borderRadius: "50%", overflow: "hidden", display: "inline-block", flex: "none" }}>
                 <ImageAvatar user={resolveUserInfo(resp)} size="md" />
               </span>
@@ -83,7 +83,7 @@ export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate, owner, in
           {canShowAsignar && (
             <button
               onClick={() => { setEditing(true); setTempResponsable(task.responsable || []); }}
-              style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 13px", borderRadius: 16, background: "#FCE7F0", color: "#D83E7C", font: "600 11.5px Poppins", border: "none", cursor: "pointer", flex: "none", whiteSpace: "nowrap" }}
+              style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 11px", borderRadius: 16, background: "#FCE7F0", color: "#D83E7C", font: "600 11px Poppins", border: "none", cursor: "pointer", flex: "none", whiteSpace: "nowrap" }}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
               {task.responsable?.length > 0 ? t('Editar') : t('Asignar')}
