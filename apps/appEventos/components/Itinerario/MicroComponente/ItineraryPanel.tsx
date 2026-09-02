@@ -886,7 +886,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       >
       {isStudioIti && isTareas && (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap", padding: "4px 2px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "8px 14px", minWidth: 200, background: "#fff", flex: "0 1 320px" }}>
+          {/* Mismas medidas que el HTML: min-width 200 y SIN crecer (no lleva flex-basis). */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "8px 14px", minWidth: 200, background: "#fff" }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={2} strokeLinecap="round" style={{ flex: "none" }}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
             <input
               type="text"
