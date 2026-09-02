@@ -289,6 +289,27 @@ function WeddingCreatorContent() {
   const [mobileTab, setMobileTab] = useState<MobileTabType>('chat');
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [publishedSubdomain, setPublishedSubdomain] = useState<string | undefined>(undefined);
+  // P0 constructor de webs (2-sep): copiar el enlace de la web publicada DIRECTO desde la barra,
+  // sin abrir el modal ("no tenía proceso de copiar el subdominio").
+  const [copiedLink, setCopiedLink] = useState(false);
+  const copyPublicLink = useCallback(async () => {
+    if (!publishedSubdomain) return;
+    const url = `https://${publishedSubdomain}.bodasdehoy.com`;
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.append(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch { /* sin fallback disponible */ }
+      ta.remove();
+    }
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 1800);
+  }, [publishedSubdomain]);
 
   const [messages, setMessages] = useState<Message[]>([{
     content: '¡Hola! 👋 Soy tu asistente para crear webs de eventos y bodas.\n\n' +
@@ -833,6 +854,26 @@ function WeddingCreatorContent() {
                     {publishedSubdomain ? 'Publicada' : 'Publicar'}
                   </span>
                 </button>
+
+                {publishedSubdomain && (
+                  <button
+                    className={`flex items-center gap-1 rounded border px-3 py-1 text-sm transition-colors ${
+                      copiedLink
+                        ? 'border-green-600 bg-green-50 text-green-700'
+                        : 'border-green-600 text-green-700 hover:bg-green-50'
+                    }`}
+                    onClick={copyPublicLink}
+                    title={`Copiar https://${publishedSubdomain}.bodasdehoy.com`}
+                    type="button"
+                  >
+                    {copiedLink ? (
+                      <svg fill="none" height="16" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" width="16"><path d="M20 6L9 17l-5-5" /></svg>
+                    ) : (
+                      <svg fill="none" height="16" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" width="16"><rect height="13" rx="2" ry="2" width="13" x="9" y="9" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" /></svg>
+                    )}
+                    <span className="hidden sm:inline">{copiedLink ? '¡Copiado!' : 'Copiar enlace'}</span>
+                  </button>
+                )}
 
                 <button
                   className="flex items-center gap-1 rounded bg-gray-600 px-3 py-1 text-sm text-white hover:bg-gray-700"

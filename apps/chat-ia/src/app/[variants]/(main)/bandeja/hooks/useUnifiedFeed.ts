@@ -131,7 +131,7 @@ function computeNotificationUrl(
 
 // ─── Hook ────────────────────────────────────────────────────────────────────
 
-export function useUnifiedFeed(maxItems = 60): {
+export function useUnifiedFeed(maxItems = 200): {
   items: FeedItem[];
   loading: boolean;
   markAllNotificationsRead: () => Promise<void>;
@@ -148,7 +148,11 @@ export function useUnifiedFeed(maxItems = 60): {
   const userType = useChatStore((s) => s.userType);
   const isGuestUser = isGuest || userType === 'guest' || userType === 'visitor';
 
-  const { conversations, loading: convLoading } = useRecentConversations(50, refreshTick);
+  // Tope subido 50→200 (2-sep): tras juntar las 2 fuentes (WA + "otros") y DEDUP, trocear a 50
+  // ocultaba conversaciones reales ("parecían ocultas"). El feed va virtualizado (Virtuoso), así
+  // que 200 no penaliza el render. Recuperar conversaciones MÁS antiguas que las que devuelven
+  // los endpoints requiere paginación en backend (ask aparte).
+  const { conversations, loading: convLoading } = useRecentConversations(200, refreshTick);
   // conversationId -> channelParam, para resolver el destino de las notificaciones.
   const convByIdRef = new Map<string, string>(
     conversations.map((c) => [c.conversationId, c.channelParam]),
