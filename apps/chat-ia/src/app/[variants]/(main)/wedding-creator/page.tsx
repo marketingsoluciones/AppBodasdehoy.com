@@ -269,6 +269,9 @@ function WeddingCreatorContent() {
   const updatePalette = graphQLHook?.updatePalette || legacyHook.updatePalette;
   const updateHero = graphQLHook?.updateHero || legacyHook.updateHero;
   const toggleSection = graphQLHook?.toggleSection || legacyHook.toggleSection;
+  // Actualizador genérico de data de sección (paquete useWeddingWeb) — para editar Ubicación
+  // (venues) directamente desde el panel. P1 2-sep.
+  const updateSection = legacyHook.updateSection;
   const _applyAIChanges = graphQLHook?.applyAIChanges || legacyHook.applyAIChanges;
   const _saveWedding = legacyHook.saveWedding;
 
@@ -1041,6 +1044,46 @@ function WeddingCreatorContent() {
                             </button>
                           </div>
                         ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+                {/* Editor de UBICACIÓN (solo si la sección está activa): lugar + dirección. */}
+                {wedding.sections?.find((x) => x.type === 'location')?.enabled && (() => {
+                  const loc = wedding.sections?.find((x) => x.type === 'location')?.data as
+                    | { venues?: Array<{ address?: string; id: string; name?: string }> }
+                    | undefined;
+                  const venues = loc?.venues ?? [];
+                  const primary = venues[0];
+                  const setVenue = (patch: { address?: string; name?: string }) => {
+                    const base = primary ?? { address: '', id: `v-${Date.now()}`, name: '', type: 'both' };
+                    const next = [{ ...base, ...patch }, ...venues.slice(1)];
+                    updateSection?.('location', { venues: next } as any);
+                  };
+                  return (
+                    <div className="mx-auto mt-3 max-w-3xl border-t border-gray-100 pt-3">
+                      <div className="mb-2 text-xs font-semibold text-gray-600">📍 Ubicación</div>
+                      <div className="flex flex-wrap items-end gap-3">
+                        <label className="flex flex-1 flex-col gap-1 text-xs font-medium text-gray-600" style={{ minWidth: 160 }}>
+                          Nombre del lugar
+                          <input
+                            className="rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-800"
+                            onChange={(e) => setVenue({ name: e.target.value })}
+                            placeholder="Ej. Finca La Rosaleda"
+                            type="text"
+                            value={primary?.name ?? ''}
+                          />
+                        </label>
+                        <label className="flex flex-col gap-1 text-xs font-medium text-gray-600" style={{ flex: 2, minWidth: 200 }}>
+                          Dirección
+                          <input
+                            className="rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-800"
+                            onChange={(e) => setVenue({ address: e.target.value })}
+                            placeholder="Ej. Calle Mayor 1, Madrid"
+                            type="text"
+                            value={primary?.address ?? ''}
+                          />
+                        </label>
                       </div>
                     </div>
                   );
