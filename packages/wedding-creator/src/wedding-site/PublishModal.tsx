@@ -30,6 +30,9 @@ export function PublishModal({
   const [error, setError] = useState<string | null>(null);
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
   const [isPublished, setIsPublished] = useState(!!currentSubdomain);
+  // Feedback del copiar (P0 plan constructor de webs 2-sep): antes copiaba en silencio
+  // → el owner no sabía si había funcionado ("no tiene proceso de copiar el subdominio").
+  const [copied, setCopied] = useState(false);
 
   // Generate suggested subdomain from couple name
   useEffect(() => {
@@ -105,10 +108,25 @@ export function PublishModal({
     }
   };
 
-  const copyToClipboard = () => {
-    if (publishedUrl) {
-      navigator.clipboard.writeText(publishedUrl);
+  const liveUrl = publishedUrl || (subdomain ? `https://${subdomain}.bodasdehoy.com` : '');
+
+  const copyToClipboard = async () => {
+    if (!liveUrl) return;
+    try {
+      await navigator.clipboard.writeText(liveUrl);
+    } catch {
+      // Fallback para navegadores/entornos sin permiso de clipboard.
+      const ta = document.createElement('textarea');
+      ta.value = liveUrl;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.append(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch { /* nada más que hacer */ }
+      ta.remove();
     }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
   };
 
   if (!isOpen) return null;
@@ -245,16 +263,44 @@ export function PublishModal({
           text-decoration: underline;
         }
 
-        .copy-button {
-          background: none;
-          border: none;
-          cursor: pointer;
-          color: #6b7280;
-          padding: 0.25rem;
+        .published-actions {
+          display: flex;
+          gap: 0.5rem;
+          margin-top: 0.75rem;
         }
 
-        .copy-button:hover {
-          color: #374151;
+        .link-action {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          padding: 0.5rem 0.85rem;
+          border-radius: 8px;
+          font-size: 0.8125rem;
+          font-weight: 600;
+          cursor: pointer;
+          text-decoration: none;
+          transition: background-color 0.15s, border-color 0.15s;
+        }
+
+        .link-action.copy {
+          background: #059669;
+          border: 1px solid #059669;
+          color: #ffffff;
+        }
+
+        .link-action.copy:hover {
+          background: #047857;
+          border-color: #047857;
+        }
+
+        .link-action.open {
+          background: #ffffff;
+          border: 1px solid #a7f3d0;
+          color: #059669;
+        }
+
+        .link-action.open:hover {
+          background: #ecfdf5;
         }
 
         .modal-footer {
@@ -346,19 +392,28 @@ export function PublishModal({
             <div className="published-url">
               <span className="published-label">URL de tu web</span>
               <div className="published-link">
-                <a
-                  href={publishedUrl || `https://${subdomain}.bodasdehoy.com`}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >
-                  {publishedUrl || `https://${subdomain}.bodasdehoy.com`}
+                <a href={liveUrl} rel="noopener noreferrer" target="_blank">
+                  {liveUrl}
                 </a>
-                <button className="copy-button" onClick={copyToClipboard} title="Copiar URL">
-                  <svg fill="none" height="16" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" width="16">
-                    <rect height="13" rx="2" ry="2" width="13" x="9" y="9" />
-                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                  </svg>
+              </div>
+              <div className="published-actions">
+                <button className="link-action copy" onClick={copyToClipboard} type="button">
+                  {copied ? (
+                    <>
+                      <svg fill="none" height="15" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" width="15"><path d="M20 6L9 17l-5-5" /></svg>
+                      ¡Copiado!
+                    </>
+                  ) : (
+                    <>
+                      <svg fill="none" height="15" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" width="15"><rect height="13" rx="2" ry="2" width="13" x="9" y="9" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" /></svg>
+                      Copiar enlace
+                    </>
+                  )}
                 </button>
+                <a className="link-action open" href={liveUrl} rel="noopener noreferrer" target="_blank">
+                  <svg fill="none" height="15" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" width="15"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" /><path d="M15 3h6v6" /><path d="M10 14L21 3" /></svg>
+                  Abrir
+                </a>
               </div>
             </div>
           )}
