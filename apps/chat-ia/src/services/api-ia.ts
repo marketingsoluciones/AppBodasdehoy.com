@@ -16,10 +16,16 @@
  */
 
 // URL base correcta de api-ia (NUNCA api3-ia.eventosorganizador.com = NXDOMAIN).
-// En navegador: same-origin ('') para evitar CORS (proxy local reenvía a api-ia).
-// En server: NEXT_PUBLIC_API_IA_URL (api-ia.bodasdehoy.com).
+// En navegador: el PROXY `/api/backend` (catch-all → api-ia, ver app/(backend)/api/backend/[...path]).
+// BUG 2-sep: aquí ponía '' (same-origin), así que `${''}/chat/sessions` pegaba a la RUTA DE
+// PÁGINA `/chat/sessions` (308 → HTML), no al backend → con USE_API_IA_ENDPOINTS=true la lista
+// de sesiones (agentes) NUNCA cargaba y /agentes salía "vacío" pese a tener 14 sesiones. El
+// resto de servicios (sessionService) ya usaban `/api/backend`; esto lo alinea.
+// En server: NEXT_PUBLIC_API_IA_URL (api-ia.bodasdehoy.com), directo (sin proxy).
 const API_IA_BASE =
-  typeof window !== 'undefined' ? '' : process.env.NEXT_PUBLIC_API_IA_URL || 'http://127.0.0.1:8030';
+  typeof window !== 'undefined'
+    ? '/api/backend'
+    : process.env.NEXT_PUBLIC_API_IA_URL || 'http://127.0.0.1:8030';
 
 // Feature flag: NO activar hasta que api-ia tenga los endpoints desplegados y probados.
 export const USE_API_IA_ENDPOINTS = process.env.NEXT_PUBLIC_USE_API_IA_ENDPOINTS === 'true';
