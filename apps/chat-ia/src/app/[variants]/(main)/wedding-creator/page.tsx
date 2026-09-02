@@ -943,6 +943,24 @@ function WeddingCreatorContent() {
                       value={String(wedding.date?.date ?? '').slice(0, 10)}
                     />
                   </label>
+                  <label className="flex flex-1 flex-col gap-1 text-xs font-medium text-gray-600" style={{ minWidth: 160 }}>
+                    Mensaje de portada
+                    <input
+                      className="rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-800"
+                      onChange={(e) => updateHero({ ...wedding.hero, subtitle: e.target.value })}
+                      placeholder="Ej. ¡Nos casamos!"
+                      type="text"
+                      value={wedding.hero?.subtitle ?? ''}
+                    />
+                  </label>
+                  <label className="flex items-center gap-2 pb-2 text-xs font-medium text-gray-600">
+                    <input
+                      checked={!!wedding.hero?.showCountdown}
+                      onChange={(e) => updateHero({ ...wedding.hero, showCountdown: e.target.checked })}
+                      type="checkbox"
+                    />
+                    Cuenta atrás
+                  </label>
                   <span className="pb-1.5 text-xs text-gray-400">
                     Se guarda solo · también puedes pedírselo al asistente
                   </span>
