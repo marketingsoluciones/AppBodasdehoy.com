@@ -965,6 +965,34 @@ function WeddingCreatorContent() {
                     Se guarda solo · también puedes pedírselo al asistente
                   </span>
                 </div>
+                {/* Fila 2: activar/desactivar secciones directamente (toggleSection). */}
+                <div className="mx-auto mt-3 flex max-w-3xl flex-wrap items-center gap-2">
+                  <span className="text-xs font-medium text-gray-500">Secciones:</span>
+                  {([
+                    { label: 'Agenda', type: 'schedule' },
+                    { label: 'Ubicación', type: 'location' },
+                    { label: 'Galería', type: 'gallery' },
+                    { label: 'Confirmación', type: 'rsvp' },
+                    { label: 'Regalos', type: 'registry' },
+                    { label: 'Info', type: 'info' },
+                  ] as Array<{ label: string; type: SectionType }>).map((s) => {
+                    const on = wedding.sections?.find((x) => x.type === s.type)?.enabled ?? false;
+                    return (
+                      <button
+                        className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                          on
+                            ? 'border-blue-600 bg-blue-50 text-blue-700'
+                            : 'border-gray-300 text-gray-500 hover:bg-gray-50'
+                        }`}
+                        key={s.type}
+                        onClick={() => toggleSection(s.type, !on)}
+                        type="button"
+                      >
+                        {on ? '✓ ' : ''}{s.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
 
