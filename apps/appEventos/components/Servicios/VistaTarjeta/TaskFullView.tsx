@@ -132,7 +132,14 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
     const DOT: Record<string, string> = {
       pending: "#3A3A42", in_progress: "#EF5B94", completed: "#2FB37E", blocked: "#D83E7C",
     };
+    // El chip toma el color de SU estado; antes iba siempre en rosa, así que una tarea
+    // completada mostraba un chip "Completado" rosa en vez de verde.
+    const CHIP: Record<string, [string, string]> = {
+      pending: ["#f0f0f2", "#3A3A42"], in_progress: ["#FCE7F0", "#D83E7C"],
+      completed: ["#E4F5EE", "#2FB37E"], blocked: ["#FBE3ED", "#D83E7C"],
+    };
     const dot = DOT[st.value] ?? "#8a8a90";
+    const [chipBg, chipFg] = CHIP[st.value] ?? CHIP.pending;
     const done = st.value === "completed";
     const tz = (event as any)?.timeZone;
     const meta = [
@@ -151,16 +158,18 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
             <span
               title={t("Marcar completada", { defaultValue: "Marcar completada" })}
               onClick={(e) => { e.stopPropagation(); if (!canEdit) { ht(); return; } handleUpdate("estado", done ? "pending" : "completed"); }}
-              style={{ width: 20, height: 20, borderRadius: "50%", border: `1.5px solid ${done ? "#2FB37E" : "#d8d8dd"}`, background: done ? "#2FB37E" : "#fff", display: "block", flex: "none", cursor: "pointer" }}
-            />
+              style={{ width: 20, height: 20, borderRadius: "50%", border: `1.5px solid ${done ? "#2FB37E" : "#d8d8dd"}`, background: done ? "#2FB37E" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", cursor: "pointer" }}
+            >
+              {done && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3.4} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>}
+            </span>
             <span style={{ width: 9, height: 9, borderRadius: "50%", background: dot, flex: "none" }} />
-            <span style={{ font: "600 14px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <span style={{ font: "600 14px Poppins", color: done ? "#a0a0a8" : "#3A3A42", textDecoration: done ? "line-through" : "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {task.descripcion || t("Sin título", { defaultValue: "Sin título" })}
             </span>
             {!!meta && <span style={{ font: "400 12px Poppins", color: "#a0a0a8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{meta}</span>}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: "none" }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 11px", borderRadius: 12, background: "#FCE7F0", color: "#D83E7C", font: "600 11px Poppins", whiteSpace: "nowrap" }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 11px", borderRadius: 12, background: chipBg, color: chipFg, font: "600 11px Poppins", whiteSpace: "nowrap" }}>
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: "currentColor" }} />
               {t(st.label)}
             </span>
