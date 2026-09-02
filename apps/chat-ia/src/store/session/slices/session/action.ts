@@ -368,6 +368,11 @@ export const createSessionSlice: StateCreator<
     );
   },
   refreshSessions: async () => {
-    await mutate([FETCH_SESSIONS_KEY, true]);
+    // BUG 2-sep: `mutate([FETCH_SESSIONS_KEY, true])` hardcodeaba `true`, pero la SWR key real
+    // es `[FETCH_SESSIONS_KEY, isLogin]` (ver useFetchSessions). Si isLogin no es exactamente
+    // `true` (p.ej. SSO Bodas donde isLoginWithAuth difiere), el mutate apuntaba a otra key y NO
+    // revalidaba → tras crear/borrar un agente la lista no se refrescaba. Revalidamos TODAS las
+    // keys de fetchSessions con un filtro, sea cual sea el sufijo.
+    await mutate((key) => Array.isArray(key) && key[0] === FETCH_SESSIONS_KEY);
   },
 });
