@@ -34,6 +34,9 @@ interface TableHeaderProps {
   onToggleColumn: (columnId: string) => void;
   onFiltersToggle: () => void;
   filtersActive: boolean;
+  /** "Expandir tabla" del HTML: la lleva a ancho completo para verla de lado a lado. */
+  expanded?: boolean;
+  onExpandToggle?: () => void;
 }
 
 export const TableHeader: React.FC<TableHeaderProps> = ({
@@ -51,7 +54,9 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
   hiddenColumns,
   onToggleColumn,
   onFiltersToggle,
-  filtersActive
+  filtersActive,
+  expanded = false,
+  onExpandToggle,
 }) => {
   const [showColumnConfig, setShowColumnConfig] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
@@ -116,6 +121,17 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
             <button onClick={onExport} title={t('Exportar', { defaultValue: 'Exportar' })} style={btnIco}>
               <Download className="w-[15px] h-[15px]" />
             </button>
+            {onExpandToggle && (
+              <button
+                onClick={onExpandToggle}
+                title={expanded ? t('Contraer tabla', { defaultValue: 'Contraer tabla' }) : t('Expandir tabla', { defaultValue: 'Expandir tabla' })}
+                style={{ ...btnIco, borderColor: expanded ? "#EF5B94" : "#E7E7EA", color: expanded ? "#EF5B94" : "#8a8a90" }}
+              >
+                {expanded
+                  ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M3 8h5V3M21 8h-5V3M3 16h5v5M21 16h-5v5" /></svg>
+                  : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" /></svg>}
+              </button>
+            )}
           </div>
         </div>
       </>

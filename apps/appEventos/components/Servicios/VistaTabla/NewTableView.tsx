@@ -215,6 +215,9 @@ export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTas
   }));
   const [editingCell, setEditingCell] = useState<{ row: number; column: string } | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  // "Expandir tabla" del HTML: dentro del contenedor la tabla scrollea en horizontal
+  // (min-width 1060). Expandida ocupa la ventana entera para verla de lado a lado.
+  const [expandida, setExpandida] = useState(false);
   const [viewMode, setViewMode] = useState<'table' | 'board'>('table');
   const [savedViews, setSavedViews] = useState<ViewConfig[]>([]);
   const [showEditModal, setShowEditModal] = useState<{ show: boolean; task?: any }>({ show: false });
@@ -797,7 +800,9 @@ export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTas
     && new URLSearchParams(window.location.search).get("studio") !== "legacy";
 
   return (
-    <div className={isStudio ? "h-full flex flex-col bg-white relative text-xs" : "h-full flex flex-col bg-gray-50 relative text-xs"}>
+    <div
+      style={isStudio && expandida ? { position: "fixed", inset: 0, zIndex: 60, background: "#fff", padding: "18px 22px", overflow: "auto" } : undefined}
+      className={isStudio ? "h-full flex flex-col bg-white relative text-xs" : "h-full flex flex-col bg-gray-50 relative text-xs"}>
       {isStudio && <style dangerouslySetInnerHTML={{ __html: ".tv-studio-scroll::-webkit-scrollbar{display:none;height:0}.tv-studio-scroll{scrollbar-width:none}" }} />}
       {/* Header principal - fixed para evitar solapamiento */}
       <div className="sticky top-0 z-20 bg-white shadow-sm">
@@ -817,6 +822,8 @@ export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTas
           onToggleColumn={handleToggleColumn}
           onFiltersToggle={() => setShowFilters(!showFilters)}
           filtersActive={activeFiltersCount > 0}
+          expanded={expandida}
+          onExpandToggle={() => setExpandida((v) => !v)}
         />
       </div>
       {/* Panel de filtros */}
@@ -834,7 +841,7 @@ export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTas
       )}
       {/* Tabla principal con contenedor de scroll */}
       <div ref={tableContainerRef} className={`flex-1 overflow-auto relative${isStudio ? " tv-studio-scroll" : ""}`}>
-        <div className="min-w-full">
+        <div className="min-w-full" style={isStudio && !expandida ? { minWidth: 1060 } : undefined}>
           <table {...getTableProps()} className="w-full bg-white relative">
             {/* Header de la tabla */}
             <thead
