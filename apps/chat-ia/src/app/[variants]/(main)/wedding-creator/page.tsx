@@ -993,6 +993,58 @@ function WeddingCreatorContent() {
                     );
                   })}
                 </div>
+                {/* Editor de AGENDA (solo si la sección está activa): eventos con hora + título. */}
+                {wedding.sections?.find((x) => x.type === 'schedule')?.enabled && (() => {
+                  const events =
+                    ((wedding.sections?.find((x) => x.type === 'schedule')?.data as
+                      | { events?: Array<{ id: string; time?: string; title?: string }> }
+                      | undefined)?.events) ?? [];
+                  return (
+                    <div className="mx-auto mt-3 max-w-3xl border-t border-gray-100 pt-3">
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-xs font-semibold text-gray-600">📅 Agenda del evento</span>
+                        <button
+                          className="rounded border border-blue-600 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50"
+                          onClick={() => addScheduleEvent({ time: '12:00', title: 'Nuevo momento', type: 'other' })}
+                          type="button"
+                        >
+                          + Añadir
+                        </button>
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        {events.length === 0 && (
+                          <span className="text-xs text-gray-400">Sin eventos aún · pulsa «+ Añadir»</span>
+                        )}
+                        {events.map((ev) => (
+                          <div className="flex items-center gap-2" key={ev.id}>
+                            <input
+                              className="w-20 rounded border border-gray-300 px-2 py-1 text-xs"
+                              onChange={(e) => updateScheduleEvent(ev.id, { time: e.target.value })}
+                              placeholder="12:00"
+                              type="text"
+                              value={ev.time ?? ''}
+                            />
+                            <input
+                              className="flex-1 rounded border border-gray-300 px-2 py-1 text-xs"
+                              onChange={(e) => updateScheduleEvent(ev.id, { title: e.target.value })}
+                              placeholder="Ej. Ceremonia"
+                              type="text"
+                              value={ev.title ?? ''}
+                            />
+                            <button
+                              aria-label="Eliminar evento"
+                              className="rounded px-2 py-1 text-xs text-red-500 hover:bg-red-50"
+                              onClick={() => deleteScheduleEvent(ev.id)}
+                              type="button"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
 
