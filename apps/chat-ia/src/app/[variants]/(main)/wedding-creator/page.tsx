@@ -292,6 +292,10 @@ function WeddingCreatorContent() {
   // P0 constructor de webs (2-sep): copiar el enlace de la web publicada DIRECTO desde la barra,
   // sin abrir el modal ("no tenía proceso de copiar el subdominio").
   const [copiedLink, setCopiedLink] = useState(false);
+  // P1 constructor de webs (2-sep): edición DIRECTA de los campos base (nombres + fecha) sin
+  // tener que chatear con la IA ("el editor es difícil/básico"). Usa los MISMOS métodos que ya
+  // llama la IA (updateCouple/updateDate) → misma persistencia, 0 backend nuevo.
+  const [showEditPanel, setShowEditPanel] = useState(false);
   const copyPublicLink = useCallback(async () => {
     if (!publishedSubdomain) return;
     const url = `https://${publishedSubdomain}.bodasdehoy.com`;
@@ -824,6 +828,22 @@ function WeddingCreatorContent() {
               </div>
 
               <div className="flex items-center gap-2">
+                <button
+                  className={`flex items-center gap-1 rounded border px-3 py-1 text-sm transition-colors ${
+                    showEditPanel
+                      ? 'border-blue-600 bg-blue-50 text-blue-700'
+                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                  onClick={() => setShowEditPanel((v) => !v)}
+                  title="Editar nombres y fecha directamente"
+                  type="button"
+                >
+                  <svg fill="none" height="16" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" width="16">
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                  <span className="hidden sm:inline">Editar</span>
+                </button>
                 <select
                   className="rounded border border-gray-300 px-2 py-1 text-sm"
                   onChange={(e) => updatePalette(e.target.value as PaletteType)}
@@ -889,6 +909,46 @@ function WeddingCreatorContent() {
                 </button>
               </div>
             </div>
+
+            {/* Panel de edición DIRECTA (P1): nombres + fecha sin chatear. */}
+            {showEditPanel && (
+              <div className="border-b border-gray-300 bg-white px-4 py-3">
+                <div className="mx-auto flex max-w-3xl flex-wrap items-end gap-3">
+                  <label className="flex flex-1 flex-col gap-1 text-xs font-medium text-gray-600" style={{ minWidth: 140 }}>
+                    Nombre 1
+                    <input
+                      className="rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-800"
+                      onChange={(e) => updateCouple('partner1', e.target.value)}
+                      placeholder="Ej. María"
+                      type="text"
+                      value={wedding.couple?.partner1?.name ?? ''}
+                    />
+                  </label>
+                  <label className="flex flex-1 flex-col gap-1 text-xs font-medium text-gray-600" style={{ minWidth: 140 }}>
+                    Nombre 2
+                    <input
+                      className="rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-800"
+                      onChange={(e) => updateCouple('partner2', e.target.value)}
+                      placeholder="Ej. Juan"
+                      type="text"
+                      value={wedding.couple?.partner2?.name ?? ''}
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1 text-xs font-medium text-gray-600">
+                    Fecha del evento
+                    <input
+                      className="rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-800"
+                      onChange={(e) => updateDate(e.target.value)}
+                      type="date"
+                      value={String(wedding.date?.date ?? '').slice(0, 10)}
+                    />
+                  </label>
+                  <span className="pb-1.5 text-xs text-gray-400">
+                    Se guarda solo · también puedes pedírselo al asistente
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Preview Content */}
             <div className="flex flex-1 items-start justify-center overflow-auto p-4">
