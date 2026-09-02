@@ -1,7 +1,7 @@
 'use client';
 
 import { ActionIcon, ActionIconProps, Hotkey } from '@lobehub/ui';
-import { BookOpen, Bot, Compass, FolderOpen, Heart, Images, Inbox, MessageSquare, ShieldCheck } from 'lucide-react';
+import { BookOpen, Compass, FolderOpen, Heart, Images, Inbox, MessageSquare, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { memo, useEffect, useState } from 'react';
@@ -10,9 +10,7 @@ import { Flexbox } from 'react-layout-kit';
 import { useInboxUnreadCount } from '@/hooks/useInboxUnreadCount';
 import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
 import { useChatStore } from '@/store/chat';
-import { useGlobalStore } from '@/store/global';
 import { SidebarTabKey } from '@/store/global/initialState';
-import { useSessionStore } from '@/store/session';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useUserStore } from '@/store/user';
 import { settingsSelectors } from '@/store/user/selectors';
@@ -39,7 +37,6 @@ export interface TopActionProps {
 
 //  TODO Change icons
 const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
-  const switchBackToChat = useGlobalStore((s) => s.switchBackToChat);
   const hotkey = useUserStore(settingsSelectors.getHotkeyById(HotkeyEnum.NavigateToChat));
 
   const isServerMode = process.env.NEXT_PUBLIC_SERVICE_MODE === 'server';
@@ -68,28 +65,22 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
 
   return (
     <Flexbox gap={8}>
+      {/* UNIFICACIÓN Asistente↔Agentes (2-sep, owner): una sola entrada de IA. /agentes ES el
+          superconjunto (lista de agentes + chat COMPLETO embebido + Permisos/Ámbito/Sala de control),
+          estilo Claude. Logueado → /agentes; invitado → /asistente (el chat, que /agentes requiere
+          login). El chat general/inbox sigue alcanzable desde /agentes ("Abrir chat" → /asistente full).
+          Antes había DOS entradas (Asistente + Agentes) para la misma entidad → se sentían separadas. */}
       <Link
         aria-label="Asistente"
-        href={'/asistente'}
-        onClick={(e) => {
-          // If Cmd key is pressed, let the default link behavior happen (open in new tab)
-          if (e.metaKey || e.ctrlKey) {
-            return;
-          }
-
-          // Otherwise, prevent default and switch session within the current tab
-          e.preventDefault();
-          switchBackToChat(useSessionStore.getState().activeId);
-        }}
+        href={isLoggedIn ? '/agentes' : '/asistente'}
         suppressHydrationWarning
       >
         <ActionIcon
-          active={isChatActive}
+          active={isChatActive || isAgentsActive}
           icon={MessageSquare}
           size={ICON_SIZE}
           title={
             <Flexbox align={'center'} gap={8} horizontal justify={'space-between'}>
-              {/* R1 nomenclatura: "Chat IA" → "Asistente". */}
               <span>Asistente</span>
               <Hotkey inverseTheme keys={hotkey} />
             </Flexbox>
@@ -144,19 +135,11 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           Bandeja (arriba); "Esperan respuesta" sigue accesible desde dentro de la Bandeja y
           por /bandeja?view=esperan (la ruta /pendientes sigue redirigiendo ahí). REGLA 0: no
           se pierde nada (el badge de no-leídos ya estaba en Bandeja). */}
-      {/* 4) Agentes IA (equipo coworker) — DISTINTO del Asistente (chats IA). Icono Bot.
-          Gateado a logueados (requiere sesión api-ia). */}
-      {isLoggedIn && (
-        <Link aria-label="Agentes" href={'/agentes'} suppressHydrationWarning>
-          <ActionIcon
-            active={isAgentsActive}
-            icon={Bot}
-            size={ICON_SIZE}
-            title="Agentes"
-            tooltipProps={{ placement: 'right' }}
-          />
-        </Link>
-      )}
+      {/* 4) Agentes IA — FUSIONADO con "Asistente" (2-sep): eran la MISMA entidad (sesiones
+          type='agent'). La entrada "Asistente" de arriba ya lleva a /agentes cuando estás
+          logueado (superconjunto: lista + chat + gestión). Se retira esta entrada duplicada.
+          /agentes sigue como ruta (deep-links ?agent= y "Gestionar agente" intactos). REGLA 0:
+          no se pierde nada — todo alcanzable desde la entrada unificada. */}
       {/* 5) Documentos (Archivos + Conocimiento/RAG en tabs). Ruta /files intacta.
           Renombrado de "Biblioteca"→"Documentos" (1-sep): el rediseño 14-ago escondió
           "Conocimiento" del rail (SHOW_LOBECHAT_EXTRAS=false) y "Biblioteca" no se reconocía
