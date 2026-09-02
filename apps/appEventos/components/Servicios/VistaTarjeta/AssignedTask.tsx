@@ -54,7 +54,7 @@ export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate, owner, in
     return (
       <div
         style={inline
-          ? { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", minWidth: 0 }
+          ? { display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap", minWidth: 0, overflow: "hidden" }
           : { display: "grid", gridTemplateColumns: "120px 1fr", gap: 14, alignItems: "center" }}
         className={inline ? "" : "w-full"}
       >

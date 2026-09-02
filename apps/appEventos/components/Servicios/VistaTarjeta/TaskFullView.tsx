@@ -251,7 +251,10 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               </div>
             </div>
             <div className={isStudio ? "flex flex-col flex-1 px-7 pt-4 pb-6 gap-4" : "flex flex-col flex-1 px-6 py-2 space-y-2  "}>
-              <div style={isStudio ? { display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap" } : undefined}>
+              {/* El HTML usa flex-wrap:wrap, pero con contenido real ("En Curso" + "Media" +
+                  nombre largo) la suma supera el ancho y Responsables caía a otra línea.
+                  Se fuerza una sola línea y se deja que Responsables encoja. */}
+              <div style={isStudio ? { display: "flex", alignItems: "center", gap: 18, flexWrap: "nowrap", minWidth: 0 } : undefined}>
                 <StatusPriorityTask
                   isMobile={isMobile}
                   task={task}
