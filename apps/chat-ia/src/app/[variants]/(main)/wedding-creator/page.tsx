@@ -1088,6 +1088,53 @@ function WeddingCreatorContent() {
                     </div>
                   );
                 })()}
+                {/* Editor de CONFIRMACIÓN (RSVP): mensaje + qué se pregunta en el formulario. */}
+                {wedding.sections?.find((x) => x.type === 'rsvp')?.enabled && (() => {
+                  const data = (wedding.sections?.find((x) => x.type === 'rsvp')?.data ?? {}) as {
+                    config?: { allowPlusOne?: boolean; askDietaryRestrictions?: boolean; askMessage?: boolean; askSongRequest?: boolean };
+                    message?: string;
+                  };
+                  const cfg = data.config ?? {};
+                  const toggles: Array<{ key: keyof typeof cfg; label: string }> = [
+                    { key: 'allowPlusOne', label: 'Acompañante (+1)' },
+                    { key: 'askDietaryRestrictions', label: 'Alergias/dieta' },
+                    { key: 'askSongRequest', label: 'Petición de canción' },
+                    { key: 'askMessage', label: 'Mensaje del invitado' },
+                  ];
+                  return (
+                    <div className="mx-auto mt-3 max-w-3xl border-t border-gray-100 pt-3">
+                      <div className="mb-2 text-xs font-semibold text-gray-600">✅ Confirmación de asistencia (RSVP)</div>
+                      <label className="flex flex-col gap-1 text-xs font-medium text-gray-600">
+                        Mensaje del formulario
+                        <input
+                          className="rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-800"
+                          onChange={(e) => updateSection?.('rsvp', { message: e.target.value } as any)}
+                          placeholder="Ej. Confírmanos tu asistencia antes del 1 de junio"
+                          type="text"
+                          value={data.message ?? ''}
+                        />
+                      </label>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <span className="text-xs font-medium text-gray-500">Preguntar:</span>
+                        {toggles.map((t) => {
+                          const on = !!cfg[t.key];
+                          return (
+                            <button
+                              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                                on ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-300 text-gray-500 hover:bg-gray-50'
+                              }`}
+                              key={t.key}
+                              onClick={() => updateSection?.('rsvp', { config: { ...cfg, [t.key]: !on } } as any)}
+                              type="button"
+                            >
+                              {on ? '✓ ' : ''}{t.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
 
