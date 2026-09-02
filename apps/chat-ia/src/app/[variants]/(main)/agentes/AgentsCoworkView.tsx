@@ -241,6 +241,11 @@ export default function AgentesPage() {
   });
   const switchSession = useSessionStore((s) => s.switchSession);
   const activeId = useSessionStore((s) => s.activeId);
+  // Crear agente DIRECTO (2-sep): antes el CTA mandaba a /asistente y el chat declinaba
+  // ("no dispongo de la funcionalidad para crear agentes"). createSession del store crea la
+  // sesión type='agent' vía api-ia (POST /chat/session) y refresca — verificado: aparece al
+  // leer por uid. El usuario configura canales/ámbito/permisos en la ficha ya existente.
+  const createSession = useSessionStore((s) => s.createSession);
   const isSessionListInit = useSessionStore(sessionSelectors.isSessionListInit);
 
   // "Abrir chat" = hilos propios del agente (tú↔agente). useSwitchSession
@@ -260,6 +265,19 @@ export default function AgentesPage() {
   // Selección visual local (no cambia el activo hasta que el usuario
   // interactúa con la ficha → evita side-effect al montar).
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const handleCreateAgent = useCallback(async () => {
+    if (creating) return;
+    setCreating(true);
+    try {
+      const id = await createSession({ meta: { title: 'Nuevo agente' } } as any, false);
+      if (id) setSelectedId(id);
+    } catch (e) {
+      console.error('[agentes] crear agente falló', e);
+    } finally {
+      setCreating(false);
+    }
+  }, [createSession, creating]);
 
   // Deep-link ?agent=<id> — round-trip desde el chat ("Gestionar agente" en /asistente
   // → /agentes?agent=id): preselecciona ESE agente para que las dos vistas se sientan
@@ -632,21 +650,26 @@ export default function AgentesPage() {
             <p className="mt-2 text-sm" style={{ color: '#84848F' }}>
               {isGuest
                 ? 'Tus agentes atienden conversaciones por WhatsApp, Instagram, Facebook y otros canales. Inicia sesión para gestionarlos.'
-                : 'Los agentes atienden conversaciones por WhatsApp, Instagram, Facebook y otros canales de forma automática. Se crean desde el Asistente: pídeselo con tus palabras (por ejemplo, «crea un agente que atienda WhatsApp») y te lo deja listo.'}
+                : 'Los agentes atienden conversaciones por WhatsApp, Instagram, Facebook y otros canales de forma automática. Crea uno y luego eliges sus canales, permisos y a qué evento atiende.'}
             </p>
-            <a
-              className="mt-4 inline-block rounded-md px-4 py-2 text-sm font-semibold text-white transition-colors"
-              href={isGuest ? '/login?redirect=/agentes' : '/asistente'}
-              style={{ backgroundColor: '#1C1C22' }}
-            >
-              {isGuest ? 'Iniciar sesión' : 'Crear mi primer agente en el Asistente'}
-            </a>
-            {/* QA 31-ago: el salto Agentes→/asistente se percibía como "cambio de herramienta".
-                Se anticipa a dónde va y qué hacer al llegar (continuación, no cambio). */}
-            {!isGuest && (
-              <p className="mt-2 text-xs" style={{ color: '#A8A3B5' }}>
-                Se abrirá el Asistente (Copilot), el mismo chat de siempre.
-              </p>
+            {isGuest ? (
+              <a
+                className="mt-4 inline-block rounded-md px-4 py-2 text-sm font-semibold text-white transition-colors"
+                href="/login?redirect=/agentes"
+                style={{ backgroundColor: '#1C1C22' }}
+              >
+                Iniciar sesión
+              </a>
+            ) : (
+              <button
+                className="mt-4 inline-block rounded-md px-4 py-2 text-sm font-semibold text-white transition-colors disabled:opacity-60"
+                disabled={creating}
+                onClick={handleCreateAgent}
+                style={{ backgroundColor: '#1C1C22' }}
+                type="button"
+              >
+                {creating ? 'Creando agente…' : 'Crear mi primer agente'}
+              </button>
             )}
           </div>
         </div>
@@ -751,12 +774,14 @@ export default function AgentesPage() {
           })}
         </div>
         <div style={{ borderTop: '1px solid #EDEDF0' }}>
-          <a
-            className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium transition-colors"
-            href="/asistente"
+          <button
+            className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium transition-colors disabled:opacity-60"
+            disabled={creating}
+            onClick={handleCreateAgent}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F2F1F6')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
             style={{ color: '#6B4EFF' }}
+            type="button"
           >
             <svg
               fill="none"
@@ -770,8 +795,8 @@ export default function AgentesPage() {
             >
               <path d="M12 5v14M5 12h14" />
             </svg>
-            Crear agente en Copilot
-          </a>
+            {creating ? 'Creando agente…' : 'Crear agente'}
+          </button>
         </div>
       </aside>
 
