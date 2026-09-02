@@ -38,6 +38,13 @@ const getJWT = (): string =>
 const getTenant = (): string =>
   (typeof window !== 'undefined' && localStorage.getItem('current_development')) || 'bodasdehoy';
 
+// api-ia indexa las sesiones (y demás recursos de chat) por firebase_uid, que el AuthBridge
+// persiste en localStorage.user_uid. BUG 2-sep: el store llamaba a getChatSessions con
+// userProfileSelectors.userId() que en este tenant es el EMAIL → api-ia devolvía 1 sesión en
+// vez de las 14 reales. El firebase_uid es la clave correcta y canónica.
+const firebaseUid = (): string =>
+  (typeof window !== 'undefined' && localStorage.getItem('user_uid')) || '';
+
 function ensureEnabled(fn: string): void {
   if (!USE_API_IA_ENDPOINTS) {
     throw new Error(
@@ -219,12 +226,16 @@ export async function getChatMessages(
 // Ruta DEFINITIVA: GET /chat/sessions?userId=X&development=Y&limit=N
 export async function getChatSessions(userId: string, opts?: { limit?: number }): Promise<any[]> {
   ensureEnabled('getChatSessions');
-  // Guard: sin userId (p.ej. visitante sin login) no lanzar request con ?userId= vacío.
-  if (!userId) return [];
+  // api-ia indexa por firebase_uid, NO por email. El caller (store) pasa el email en `userId`
+  // → api-ia devolvía 1 sesión en vez de las reales. Preferimos SIEMPRE el firebase_uid de
+  // localStorage; el `userId` recibido queda como último recurso (SSR/sin window).
+  const realUid = firebaseUid() || userId;
+  // Guard: sin uid (p.ej. visitante sin login) no lanzar request con ?userId= vacío.
+  if (!realUid) return [];
   // BUG-MSG-01 (QA1 informe 23-jun): defensa duplicada — jsonHeaders ya añade
   // X-Development, pero algunos proxies lo dropean. Pasar también en query string
   // para que ?development= esté SIEMPRE presente.
-  const qs = new URLSearchParams({ userId, development: getTenant() });
+  const qs = new URLSearchParams({ userId: realUid, development: getTenant() });
   if (opts?.limit !== undefined) qs.set('limit', String(opts.limit));
   const r = await fetch(`${API_IA_BASE}/chat/sessions?${qs.toString()}`, {
     headers: jsonHeaders(),
