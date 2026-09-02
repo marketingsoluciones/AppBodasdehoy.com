@@ -884,7 +884,9 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         {...(view === "schema" ? { "data-pdf-root": "itinerario-schema" } : {})}
         className="w-full flex-1 flex flex-col"
       >
-      {isStudioIti && isTareas && (
+      {/* Solo en vista Tarjeta: la tabla y el tablero traen su propia barra (TableHeader /
+          BoardHeader), y montar ésta encima duplicaba buscador y "Añadir tarea". */}
+      {isStudioIti && isTareas && view === "cards" && (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap", padding: "4px 2px" }}>
           {/* Ancho del HTML (min-width 200, sin crecer) y MISMA ALTURA que "Añadir tarea":
               36px medidos en el HTML de referencia. Fijar el ancho a 136 recortaba el texto. */}

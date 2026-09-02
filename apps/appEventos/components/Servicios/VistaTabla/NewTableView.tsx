@@ -987,6 +987,12 @@ export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTas
               })}
             </tbody>
           </table>
+          {/* Pie de tareasvistatabla.html: recuento y pista de que la fila es clicable. */}
+          {isStudio && filteredData.length > 0 && (
+            <div style={{ font: "400 11.5px Poppins", color: "#a0a0a8", padding: "12px 10px 0" }}>
+              {t('Mostrando')} {filteredData.length} {t('de')} {data.length} {t('tareas')} · {t('haz clic en una fila para abrir su detalle')}
+            </div>
+          )}
           {/* Mensaje cuando no hay datos */}
           {filteredData.length === 0 && (
             <div className="text-center py-12">
