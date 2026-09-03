@@ -38,6 +38,13 @@ const SessionHydration = memo(() => {
     const unsubscribe = useSessionStore.subscribe(
       (s) => s.activeId,
       (state) => {
+        // FIX #185 (3-sep): esta doble atadura URL↔store hacía ECO — setSession re-escribía la
+        // URL aunque ya coincidiera, y useStoreUpdater('activeId', session) la volvía a leer →
+        // ping-pong → "Maximum update depth exceeded" que CRASHEA el panel @session (error
+        // boundary) → se rompe el estado de topic → el Asistente pierde el contexto (#9 QA).
+        // Guard: solo tocar URL/topic cuando el activeId cambió de VERDAD respecto a la URL viva.
+        const currentUrlSession = new URLSearchParams(window.location.search).get('session');
+        if (state === currentUrlSession) return;
         switchTopic();
         setSession(state);
         if (state && state !== 'inbox') window.localStorage.setItem(storageKey, state);
