@@ -35,6 +35,8 @@ export interface RecentConversation {
    *  (Meta+QR bajo un mismo verde) y a la vez decir de un vistazo por qué línea entró. */
   channelType?: 'WAB' | 'WEB_QR' | string | null;
   channelId?: string | null;
+  /** #8: teléfono/nombre de la LÍNEA receptora (para distinguir 910 vs Meta por hilo). */
+  lineLabel?: string | null;
   lastMessage: string;
   lastMessageAt: string;
   lastInboundAt?: string;
@@ -94,6 +96,14 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
         const firstWaChannel = waChannels.find((ch) => ch.status === 'ACTIVE') ?? waChannels[0];
         const defaultWaParam = firstWaChannel ? `wa-${firstWaChannel.id}` : 'whatsapp';
 
+        // #8 informe QA: mostrar de QUÉ LÍNEA/número viene cada hilo (910 vs Meta) para que el
+        // usuario lo distinga. Mapa channelId → teléfono de la línea receptora.
+        const channelPhoneMap = new Map<string, string>();
+        waChannels.forEach((ch) => {
+          const p = ch.phoneNumber || ch.name;
+          if (ch.id && p) channelPhoneMap.set(ch.id, p);
+        });
+
         // Build a short label per channel so multiple WA/IG channels are distinguishable
         const channelLabelMap = new Map<string, string>();
         if (waChannels.length > 1) {
@@ -130,6 +140,7 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
                 channelParam,
                 conversationId: c.conversationId || c.id || '',
                 kind: 'whatsapp' as const,
+                lineLabel: matchedChannel?.phoneNumber ?? matchedChannel?.name ?? undefined,
                 lastMessage: c.lastMessage || '',
                 lastMessageAt: c.lastMessageAt || c.updatedAt || '',
                 lastInboundAt: c.lastInboundAt ?? c.last_inbound_at ?? undefined,
@@ -202,6 +213,7 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
                 // Tipo/linea de WhatsApp (api-ia ya lo manda en este endpoint: WEB_QR/WAB).
                 channelType: c.channelType ?? c.channel_type ?? null,
                 channelId: c.channelId ?? c.channel_id ?? null,
+                lineLabel: channelPhoneMap.get(String(c.channelId ?? c.channel_id ?? '')) ?? null,
                 conversationId: c.conversationId || c.id || '',
                 kind: ch,
                 lastMessage: c.lastMessage || '',
@@ -247,6 +259,7 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
             ...winner,
             channelType: winner.channelType ?? loser.channelType ?? null,
             channelId: winner.channelId ?? loser.channelId ?? null,
+            lineLabel: winner.lineLabel ?? loser.lineLabel ?? null,
             jidType: winner.jidType ?? loser.jidType ?? null,
           });
         }

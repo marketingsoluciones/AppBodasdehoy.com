@@ -28,6 +28,8 @@ export interface FeedItem {
    *  (Meta+QR bajo un mismo verde) y a la vez muestra por qué línea entró. undefined
    *  para canales no-WhatsApp. */
   channelType?: 'WAB' | 'WEB_QR' | string | null;
+  /** #8: línea/número receptor (para distinguir de qué WhatsApp viene el hilo). */
+  lineLabel?: string | null;
   /** First URL segment: /messages/{channelParam}/... (null for notifications) */
   channelParam: string | null;
   /** Second URL segment: /messages/{channelParam}/{conversationId} (null for notifications) */
@@ -270,6 +272,7 @@ export function useUnifiedFeed(maxItems = 200): {
       channelLabel: conv.channelLabel,
       channelParam: conv.channelParam,
       channelType: conv.channelType ?? null,
+      lineLabel: conv.lineLabel ?? null,
       conversationId: conv.conversationId,
       id: `conv-${conv.channelParam}-${conv.conversationId}`,
       isRead: conv.unreadCount === 0,

@@ -71,6 +71,11 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
     item.channelKind === 'whatsapp' && item.channelType
       ? (WA_TYPE_LABEL[item.channelType] ?? item.channelType)
       : null;
+  // #8: últimos dígitos de la LÍNEA receptora (distinguir 910 vs Meta por hilo).
+  const waLine =
+    item.channelKind === 'whatsapp' && item.lineLabel
+      ? String(item.lineLabel).replace(/\D/g, '').slice(-4) || String(item.lineLabel)
+      : '';
 
   let rowBg = 'bg-white hover:bg-gray-50';
   if (!item.isRead && item.kind === 'notification') rowBg = 'bg-pink-50/60 hover:bg-pink-50';
@@ -139,9 +144,9 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
           {waType && (
             <span
               className="shrink-0 rounded-full bg-green-50 px-1.5 py-0.5 text-[9px] font-semibold text-green-700"
-              title={`WhatsApp · ${waType === 'QR' ? 'número vinculado por QR' : 'Meta Business API'}`}
+              title={`WhatsApp · ${waType === 'QR' ? 'número vinculado por QR' : 'Meta Business API'}${item.lineLabel ? ` · línea ${item.lineLabel}` : ''}`}
             >
-              {waType}
+              {waType}{waLine ? ` ·${waLine}` : ''}
             </span>
           )}
           {isOneWay && (
