@@ -801,7 +801,10 @@ export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTas
 
   return (
     <div
-      style={isStudio && expandida ? { position: "fixed", inset: 0, zIndex: 60, background: "#fff", padding: "18px 22px", overflow: "auto" } : undefined}
+      // Expandir NO es pantalla completa: con position:fixed la tabla salía del flujo y
+      // tapaba la cabecera y los dos primeros rectángulos. Ahora rompe el ancho del
+      // contenedor centrado y ocupa la ventana de lado a lado, pero sigue en su sitio.
+      style={isStudio && expandida ? { width: "100vw", marginLeft: "calc(50% - 50vw)", maxWidth: "100vw" } : undefined}
       className={isStudio ? "h-full flex flex-col bg-white relative text-xs" : "h-full flex flex-col bg-gray-50 relative text-xs"}>
       {isStudio && <style dangerouslySetInnerHTML={{ __html: ".tv-studio-scroll::-webkit-scrollbar{display:none;height:0}.tv-studio-scroll{scrollbar-width:none}" }} />}
       {/* Header principal - fixed para evitar solapamiento */}
