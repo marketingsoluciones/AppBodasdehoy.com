@@ -255,8 +255,10 @@ export const ColumnConfigModal: React.FC<{
 }> = ({ columns, hiddenColumns, onToggleColumn, onClose }) => {
   const { t } = useTranslation();
   
+  // Velo explícito en rgba: con `bg-black bg-opacity-50` salía NEGRO SÓLIDO y tapaba la
+  // página entera en vez de dejarla entrever.
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div style={{ background: "rgba(43,43,48,.4)" }} className="fixed inset-0 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-800">
@@ -283,7 +285,7 @@ export const ColumnConfigModal: React.FC<{
                   onChange={() => onToggleColumn(column.id)}
                   className="rounded border-gray-300 text-primary focus:ring-primary"
                 />
-                <span className="flex-1 text-sm text-gray-700">
+                <span className="flex-1 text-sm text-gray-700 first-letter:uppercase">
                   {column.Header}
                 </span>
                 <div className="flex items-center text-xs text-gray-400">
