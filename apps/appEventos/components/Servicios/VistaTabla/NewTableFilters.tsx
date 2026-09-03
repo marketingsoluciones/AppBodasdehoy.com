@@ -19,6 +19,7 @@ import {
 } from './NewTypes';
 import { TableDropdown } from './NewDropdown';
 import { useTranslation } from 'react-i18next';
+import { isStudioPathname } from '../../../utils/studioPaths';
 
 // Función auxiliar para convertir tipos de columna a tipos de filtro
 const getFilterType = (columnType: string): TableFilter['type'] => {
@@ -165,7 +166,7 @@ export const TableFilters: React.FC<FiltersProps> = ({
             type="date"
             value={filter.value || ''}
             onChange={(e) => updateFilter(filter.id, { value: e.target.value })}
-            className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary/20"
+            className={isStudio ? "" : "px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary/20"} style={isStudio ? { border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "8px 12px", font: "400 12.5px Poppins", color: "#3A3A42", outline: "none", background: "#fff" } : undefined}
           />
         );
       
@@ -176,7 +177,7 @@ export const TableFilters: React.FC<FiltersProps> = ({
             value={filter.value || ''}
             onChange={(e) => updateFilter(filter.id, { value: e.target.value })}
             placeholder={t('Valor')}
-            className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary/20"
+            className={isStudio ? "" : "px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary/20"} style={isStudio ? { border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "8px 12px", font: "400 12.5px Poppins", color: "#3A3A42", outline: "none", background: "#fff" } : undefined}
           />
         );
       
@@ -187,16 +188,23 @@ export const TableFilters: React.FC<FiltersProps> = ({
             value={filter.value || ''}
             onChange={(e) => updateFilter(filter.id, { value: e.target.value })}
             placeholder={t('Valor')}
-            className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary/20"
+            className={isStudio ? "" : "px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary/20"} style={isStudio ? { border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "8px 12px", font: "400 12.5px Poppins", color: "#3A3A42", outline: "none", background: "#fff" } : undefined}
           />
         );
     }
   };
 
+  // Paleta del diseño: el HTML no dibuja este panel, pero sí define el lenguaje —
+  // Poppins, bordes #E7E7EA y radio 10. La cabecera interna "Filtros/Vistas" se oculta:
+  // el botón de filtro ya vive en la barra de la tabla y salía duplicada.
+  const isStudio = typeof window !== "undefined"
+    && isStudioPathname(window.location.pathname)
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
+
   return (
-    <div className="border-b border-gray-200 bg-white">
-      {/* Header del panel de filtros */}
-      <div className="flex items-center justify-between p-3">
+    <div className={isStudio ? "bg-white" : "border-b border-gray-200 bg-white"}>
+      {/* Header del panel de filtros — oculto en studio: duplicaba el botón de la barra */}
+      <div className={isStudio ? "hidden" : "flex items-center justify-between p-3"}>
         <div className="flex items-center space-x-3">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
@@ -298,7 +306,7 @@ export const TableFilters: React.FC<FiltersProps> = ({
                         value: ''
                       });
                     }}
-                    className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary/20"
+                    className={isStudio ? "" : "px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary/20"} style={isStudio ? { border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "8px 12px", font: "400 12.5px Poppins", color: "#3A3A42", outline: "none", background: "#fff" } : undefined}
                   >
                     {columns.filter(col => col.id !== 'actions' && col.canFilter !== false).map((col) => (
                       <option key={col.id} value={col.id}>
@@ -311,7 +319,7 @@ export const TableFilters: React.FC<FiltersProps> = ({
                   <select
                     value={filter.operator}
                     onChange={(e) => updateFilter(filter.id, { operator: e.target.value as any })}
-                    className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary/20"
+                    className={isStudio ? "" : "px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary/20"} style={isStudio ? { border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "8px 12px", font: "400 12.5px Poppins", color: "#3A3A42", outline: "none", background: "#fff" } : undefined}
                   >
                     {operators.map((op) => (
                       <option key={op.value} value={op.value}>
