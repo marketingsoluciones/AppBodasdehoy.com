@@ -195,7 +195,7 @@ const getRowActions = (task: any, optionsItineraryButtonBox: any[], handlers: an
   return actions;
 };
 
-export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTask, setSelectTask, onTaskUpdate, onTaskDelete, onTaskCreate }) => {
+export const NewTableView: React.FC<TableProps & { expandida?: boolean; onToggleExpandida?: () => void }> = ({ data, itinerario, selectTask, setSelectTask, onTaskUpdate, onTaskDelete, onTaskCreate, expandida = false, onToggleExpandida }) => {
   const { t } = useTranslation();
   const { config, user } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
@@ -215,9 +215,6 @@ export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTas
   }));
   const [editingCell, setEditingCell] = useState<{ row: number; column: string } | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  // "Expandir tabla" del HTML: dentro del contenedor la tabla scrollea en horizontal
-  // (min-width 1060). Expandida ocupa la ventana entera para verla de lado a lado.
-  const [expandida, setExpandida] = useState(false);
   const [viewMode, setViewMode] = useState<'table' | 'board'>('table');
   const [savedViews, setSavedViews] = useState<ViewConfig[]>([]);
   const [showEditModal, setShowEditModal] = useState<{ show: boolean; task?: any }>({ show: false });
@@ -801,10 +798,7 @@ export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTas
 
   return (
     <div
-      // Expandir: MISMO patrón que "Expandir" de PresupuestoDetalladoStudio — 94vw
-      // centrado con margen negativo y transición. Sigue en el flujo (nada de
-      // position:fixed, que tapaba la cabecera) y deja aire a los lados.
-      style={isStudio ? { position: "relative", transition: "margin .3s ease, width .3s ease", ...(expandida ? { width: "94vw", marginLeft: "calc(-47vw + 50%)" } : {}) } : undefined}
+
       className={isStudio ? "h-full flex flex-col bg-white relative text-xs" : "h-full flex flex-col bg-gray-50 relative text-xs"}>
       {isStudio && <style dangerouslySetInnerHTML={{ __html: ".tv-studio-scroll::-webkit-scrollbar{display:none;height:0}.tv-studio-scroll{scrollbar-width:none}" }} />}
       {/* Header principal - fixed para evitar solapamiento */}
@@ -826,7 +820,7 @@ export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTas
           onFiltersToggle={() => setShowFilters(!showFilters)}
           filtersActive={activeFiltersCount > 0}
           expanded={expandida}
-          onExpandToggle={() => setExpandida((v) => !v)}
+          onExpandToggle={onToggleExpandida}
         />
       </div>
       {/* Panel de filtros */}

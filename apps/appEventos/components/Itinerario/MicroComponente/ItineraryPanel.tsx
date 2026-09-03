@@ -115,6 +115,10 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   // Itinerario tiene su propia cabecera (SubHeader) y no lleva esta fila.
   const isTareas = typeof window !== "undefined" && window.location.pathname === "/servicios"
   const [q, setQ] = useState<string>("")
+  // "Expandir tabla": el ensanchado va en la TARJETA (rectángulo 3), no en la tabla.
+  // Aplicarlo dentro no servía: el padre seguía estrecho y la tabla se salía y se cortaba.
+  // Mismo patrón que "Expandir" de PresupuestoDetalladoStudio (94vw centrado).
+  const [tablaExpandida, setTablaExpandida] = useState(false)
 
   const isStudioIti = searchParams.get("studio") !== "legacy"
     && (typeof window !== "undefined" && isStudioPathname(window.location.pathname))
@@ -861,7 +865,12 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
 
   return (
     <div
-      style={isStudioIti && isTareas ? { background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, padding: "14px 18px 18px", gap: 10 } : undefined}
+      style={isStudioIti && isTareas ? {
+        background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16,
+        padding: "14px 18px 18px", gap: 10,
+        transition: "margin .3s ease, width .3s ease",
+        ...(tablaExpandida ? { width: "94vw", marginLeft: "calc(-47vw + 50%)" } : {}),
+      } : undefined}
       className={`w-full flex-1 flex flex-col ${isStudioIti && view === "table" ? "overflow-visible" : `overflow-auto ${isStudioIti ? "iti-hidescroll" : ""}`}`}>
       {isStudioIti && <style dangerouslySetInnerHTML={{ __html: ".iti-hidescroll{scrollbar-width:none;-ms-overflow-style:none;}.iti-hidescroll::-webkit-scrollbar{display:none;width:0;height:0;}" }} />}
       <InfoLateral ubication="left" infoOptions={infoLeftOptions} />
@@ -971,6 +980,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                 ? (<div className="w-full flex-1">
                   <PermissionTaskWrapper isTaskVisible={true}>
                     <NewTableView
+                      expandida={tablaExpandida}
+                      onToggleExpandida={() => setTablaExpandida((v) => !v)}
                       data={tasks}
                       itinerario={itinerario}
                       selectTask={selectTask}
