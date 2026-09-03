@@ -869,7 +869,10 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16,
         padding: "14px 18px 18px", gap: 10,
         transition: "margin .3s ease, width .3s ease",
-        ...(tablaExpandida ? { width: "94vw", marginLeft: "calc(-47vw + 50%)" } : {}),
+        // El contenedor de BoddyIter es flex con items-center, así que YA centra al hijo:
+        // el marginLeft negativo de Presupuesto —pensado para un contenedor de bloque—
+        // lo desplazaba a la izquierda. Basta con el ancho.
+        ...(tablaExpandida ? { width: "94vw", maxWidth: "94vw" } : {}),
       } : undefined}
       className={`w-full flex-1 flex flex-col ${isStudioIti && view === "table" ? "overflow-visible" : `overflow-auto ${isStudioIti ? "iti-hidescroll" : ""}`}`}>
       {isStudioIti && <style dangerouslySetInnerHTML={{ __html: ".iti-hidescroll{scrollbar-width:none;-ms-overflow-style:none;}.iti-hidescroll::-webkit-scrollbar{display:none;width:0;height:0;}" }} />}
