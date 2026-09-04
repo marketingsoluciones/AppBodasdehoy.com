@@ -299,6 +299,35 @@ function WeddingCreatorContent() {
   // tener que chatear con la IA ("el editor es difícil/básico"). Usa los MISMOS métodos que ya
   // llama la IA (updateCouple/updateDate) → misma persistencia, 0 backend nuevo.
   const [showEditPanel, setShowEditPanel] = useState(false);
+  // P1 constructor de webs (4-sep): estado de subida de fotos de la galería (spinner + deshabilitar).
+  const [galleryUploading, setGalleryUploading] = useState(false);
+  // Sube ficheros de imagen al endpoint existente /api/upload (public/uploads/wedding) y devuelve
+  // URLs absolutas (origin + ruta) para que funcionen también en la web publicada (otro subdominio).
+  const uploadGalleryFiles = useCallback(
+    async (files: FileList | null): Promise<Array<{ id: string; url: string }>> => {
+      if (!files || files.length === 0) return [];
+      const out: Array<{ id: string; url: string }> = [];
+      for (const file of Array.from(files)) {
+        try {
+          const fd = new FormData();
+          fd.append('file', file);
+          fd.append('type', 'wedding-gallery');
+          const res = await fetch('/api/upload', { body: fd, method: 'POST' });
+          const json = await res.json();
+          if (json?.success && json.url) {
+            const abs = String(json.url).startsWith('http')
+              ? json.url
+              : `${typeof window !== 'undefined' ? window.location.origin : ''}${json.url}`;
+            out.push({ id: `p-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, url: abs });
+          }
+        } catch {
+          // una foto que falla no debe abortar el resto del lote
+        }
+      }
+      return out;
+    },
+    [],
+  );
   const copyPublicLink = useCallback(async () => {
     if (!publishedSubdomain) return;
     const url = `https://${publishedSubdomain}.bodasdehoy.com`;
@@ -1134,6 +1163,210 @@ function WeddingCreatorContent() {
                             </button>
                           );
                         })}
+                      </div>
+                    </div>
+                  );
+                })()}
+                {/* Editor de GALERÍA (solo si la sección está activa): subir fotos + enlace + pie. */}
+                {wedding.sections?.find((x) => x.type === 'gallery')?.enabled && (() => {
+                  const data = (wedding.sections?.find((x) => x.type === 'gallery')?.data ?? {
+                    layout: 'grid',
+                    photos: [],
+                    title: 'Galería',
+                  }) as { photos?: Array<{ caption?: string; id: string; url: string }> };
+                  const photos = data.photos ?? [];
+                  const setPhotos = (next: typeof photos) => updateSection?.('gallery', { photos: next } as any);
+                  const addByUrl = () => {
+                    const url = typeof window !== 'undefined' ? window.prompt('Pega el enlace de la imagen (https://...)') : null;
+                    if (url && /^https?:\/\//i.test(url.trim())) {
+                      setPhotos([...photos, { id: `p-${Date.now()}`, url: url.trim() }]);
+                    }
+                  };
+                  return (
+                    <div className="mx-auto mt-3 max-w-3xl border-t border-gray-100 pt-3">
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-xs font-semibold text-gray-600">🖼️ Galería de fotos</span>
+                        <div className="flex items-center gap-2">
+                          {galleryUploading && <span className="text-xs text-gray-400">Subiendo…</span>}
+                          <label className={`cursor-pointer rounded border px-2 py-1 text-xs font-medium ${galleryUploading ? 'border-gray-200 text-gray-300' : 'border-blue-600 text-blue-700 hover:bg-blue-50'}`}>
+                            + Subir fotos
+                            <input
+                              accept="image/*"
+                              className="hidden"
+                              disabled={galleryUploading}
+                              multiple
+                              onChange={async (e) => {
+                                const files = e.target.files;
+                                setGalleryUploading(true);
+                                try {
+                                  const uploaded = await uploadGalleryFiles(files);
+                                  if (uploaded.length) setPhotos([...photos, ...uploaded]);
+                                } finally {
+                                  setGalleryUploading(false);
+                                  e.target.value = '';
+                                }
+                              }}
+                              type="file"
+                            />
+                          </label>
+                          <button
+                            className="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                            onClick={addByUrl}
+                            type="button"
+                          >
+                            Añadir por enlace
+                          </button>
+                        </div>
+                      </div>
+                      {photos.length === 0 ? (
+                        <span className="text-xs text-gray-400">Sin fotos aún · pulsa «+ Subir fotos» o añade por enlace</span>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                          {photos.map((ph, i) => (
+                            <div className="flex flex-col gap-1" key={ph.id}>
+                              <div className="relative">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img alt={ph.caption || `Foto ${i + 1}`} className="h-24 w-full rounded border border-gray-200 object-cover" src={ph.url} />
+                                <button
+                                  aria-label="Eliminar foto"
+                                  className="absolute right-1 top-1 rounded-full bg-black/60 px-1.5 text-xs text-white hover:bg-black/80"
+                                  onClick={() => setPhotos(photos.filter((p) => p.id !== ph.id))}
+                                  type="button"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                              <input
+                                className="rounded border border-gray-300 px-1.5 py-1 text-[11px]"
+                                onChange={(e) => setPhotos(photos.map((p) => (p.id === ph.id ? { ...p, caption: e.target.value } : p)))}
+                                placeholder="Pie de foto (opcional)"
+                                type="text"
+                                value={ph.caption ?? ''}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+                {/* Editor de INFO (solo si la sección está activa): vestimenta + alojamiento + FAQs. */}
+                {wedding.sections?.find((x) => x.type === 'info')?.enabled && (() => {
+                  const data = (wedding.sections?.find((x) => x.type === 'info')?.data ?? {}) as {
+                    accommodations?: Array<{ description?: string; id: string; name: string }>;
+                    dressCode?: { description?: string; type?: string };
+                    faqs?: Array<{ answer: string; id: string; question: string }>;
+                  };
+                  const dc = data.dressCode ?? { type: 'formal' };
+                  const faqs = data.faqs ?? [];
+                  const accs = data.accommodations ?? [];
+                  const dressOptions: Array<{ label: string; value: string }> = [
+                    { label: 'Formal', value: 'formal' },
+                    { label: 'Semi-formal', value: 'semi-formal' },
+                    { label: 'Cóctel', value: 'cocktail' },
+                    { label: 'Casual', value: 'casual' },
+                    { label: 'Playa', value: 'beach' },
+                    { label: 'Etiqueta (black-tie)', value: 'black-tie' },
+                  ];
+                  const setDress = (patch: { description?: string; type?: string }) => updateSection?.('info', { dressCode: { ...dc, ...patch } } as any);
+                  const setFaqs = (next: typeof faqs) => updateSection?.('info', { faqs: next } as any);
+                  const setAccs = (next: typeof accs) => updateSection?.('info', { accommodations: next } as any);
+                  return (
+                    <div className="mx-auto mt-3 max-w-3xl border-t border-gray-100 pt-3">
+                      <div className="mb-2 text-xs font-semibold text-gray-600">ℹ️ Información para los invitados</div>
+                      <div className="flex flex-wrap items-end gap-3">
+                        <label className="flex flex-col gap-1 text-xs font-medium text-gray-600">
+                          Código de vestimenta
+                          <select
+                            className="rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-800"
+                            onChange={(e) => setDress({ type: e.target.value })}
+                            value={dc.type ?? 'formal'}
+                          >
+                            {dressOptions.map((o) => (
+                              <option key={o.value} value={o.value}>{o.label}</option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="flex flex-1 flex-col gap-1 text-xs font-medium text-gray-600" style={{ minWidth: 200 }}>
+                          Detalle (opcional)
+                          <input
+                            className="rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-800"
+                            onChange={(e) => setDress({ description: e.target.value })}
+                            placeholder="Ej. Se ruega evitar el blanco"
+                            type="text"
+                            value={dc.description ?? ''}
+                          />
+                        </label>
+                      </div>
+                      <div className="mt-3">
+                        <div className="mb-1.5 flex items-center justify-between">
+                          <span className="text-xs font-medium text-gray-500">🏨 Alojamiento sugerido</span>
+                          <button
+                            className="rounded border border-blue-600 px-2 py-0.5 text-xs font-medium text-blue-700 hover:bg-blue-50"
+                            onClick={() => setAccs([...accs, { description: '', id: `a-${Date.now()}`, name: '' }])}
+                            type="button"
+                          >
+                            + Añadir
+                          </button>
+                        </div>
+                        {accs.length === 0 && <span className="text-xs text-gray-400">Sin alojamientos · opcional</span>}
+                        <div className="flex flex-col gap-1.5">
+                          {accs.map((a) => (
+                            <div className="flex items-center gap-2" key={a.id}>
+                              <input
+                                className="w-40 rounded border border-gray-300 px-2 py-1 text-xs"
+                                onChange={(e) => setAccs(accs.map((x) => (x.id === a.id ? { ...x, name: e.target.value } : x)))}
+                                placeholder="Hotel / lugar"
+                                type="text"
+                                value={a.name ?? ''}
+                              />
+                              <input
+                                className="flex-1 rounded border border-gray-300 px-2 py-1 text-xs"
+                                onChange={(e) => setAccs(accs.map((x) => (x.id === a.id ? { ...x, description: e.target.value } : x)))}
+                                placeholder="Nota (precio, distancia, código…)"
+                                type="text"
+                                value={a.description ?? ''}
+                              />
+                              <button aria-label="Eliminar alojamiento" className="rounded px-2 py-1 text-xs text-red-500 hover:bg-red-50" onClick={() => setAccs(accs.filter((x) => x.id !== a.id))} type="button">✕</button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <div className="mb-1.5 flex items-center justify-between">
+                          <span className="text-xs font-medium text-gray-500">❓ Preguntas frecuentes</span>
+                          <button
+                            className="rounded border border-blue-600 px-2 py-0.5 text-xs font-medium text-blue-700 hover:bg-blue-50"
+                            onClick={() => setFaqs([...faqs, { answer: '', id: `f-${Date.now()}`, question: '' }])}
+                            type="button"
+                          >
+                            + Añadir
+                          </button>
+                        </div>
+                        {faqs.length === 0 && <span className="text-xs text-gray-400">Sin preguntas · opcional</span>}
+                        <div className="flex flex-col gap-2">
+                          {faqs.map((f) => (
+                            <div className="flex items-start gap-2" key={f.id}>
+                              <div className="flex flex-1 flex-col gap-1">
+                                <input
+                                  className="rounded border border-gray-300 px-2 py-1 text-xs"
+                                  onChange={(e) => setFaqs(faqs.map((x) => (x.id === f.id ? { ...x, question: e.target.value } : x)))}
+                                  placeholder="Pregunta (ej. ¿Hay aparcamiento?)"
+                                  type="text"
+                                  value={f.question ?? ''}
+                                />
+                                <input
+                                  className="rounded border border-gray-300 px-2 py-1 text-xs"
+                                  onChange={(e) => setFaqs(faqs.map((x) => (x.id === f.id ? { ...x, answer: e.target.value } : x)))}
+                                  placeholder="Respuesta"
+                                  type="text"
+                                  value={f.answer ?? ''}
+                                />
+                              </div>
+                              <button aria-label="Eliminar pregunta" className="mt-1 rounded px-2 py-1 text-xs text-red-500 hover:bg-red-50" onClick={() => setFaqs(faqs.filter((x) => x.id !== f.id))} type="button">✕</button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   );
