@@ -500,6 +500,9 @@ export const NewTableView: React.FC<TableProps & { expandida?: boolean; onToggle
           return newEvent;
         });
         setSelectTask(newTask._id);
+        // En studio, abrir el detalle de la tarea recién creada (fiel al flujo: "Añadir
+        // tarea" lleva a la tarjeta nueva, no la deja suelta en una fila de la tabla).
+        if (isStudio && onRowOpen) onRowOpen(newTask._id);
         toast('success', t('Tarea creada correctamente'));
       } else {
         throw new Error('Respuesta inválida del servidor');

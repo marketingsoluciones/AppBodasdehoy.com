@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   MoreHorizontal,
   ArrowUp,
@@ -255,10 +256,12 @@ export const ColumnConfigModal: React.FC<{
 }> = ({ columns, hiddenColumns, onToggleColumn, onClose }) => {
   const { t } = useTranslation();
   
-  // Velo explícito en rgba: con `bg-black bg-opacity-50` salía NEGRO SÓLIDO y tapaba la
-  // página entera en vez de dejarla entrever.
-  return (
-    <div style={{ background: "rgba(43,43,48,.4)" }} className="fixed inset-0 flex items-center justify-center z-50">
+  // Portal a body: un ancestro con transform/width (p. ej. la tabla expandida) hace que
+  // `position:fixed` se ancle a ÉL en vez de al viewport y el modal salga descentrado.
+  // Renderizándolo en body se centra siempre respecto a la pantalla.
+  if (typeof document === "undefined") return null;
+  return createPortal(
+    <div style={{ background: "rgba(43,43,48,.4)" }} className="fixed inset-0 flex items-center justify-center z-[200]">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-800">
@@ -307,5 +310,5 @@ export const ColumnConfigModal: React.FC<{
         </div>
       </div>
     </div>
-  );
+    , document.body);
 };
