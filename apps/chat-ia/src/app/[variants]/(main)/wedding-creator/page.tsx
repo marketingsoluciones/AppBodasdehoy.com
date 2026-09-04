@@ -264,31 +264,34 @@ function WeddingCreatorContent() {
   const isSaving = activeHook.isSaving ?? legacyHook.isSaving ?? false;
   const weddingLoading = activeHook.isLoading ?? legacyHook.isLoading ?? false;
 
-  const updateCouple = graphQLHook?.updateCoupleLocal || legacyHook.updateCouple;
-  const updateDate = graphQLHook?.updateDateLocal || legacyHook.updateDate;
-  const updatePalette = graphQLHook?.updatePalette || legacyHook.updatePalette;
-  const updateHero = graphQLHook?.updateHero || legacyHook.updateHero;
-  const toggleSection = graphQLHook?.toggleSection || legacyHook.toggleSection;
-  // Actualizador genérico de data de sección — para editar Ubicación/RSVP/Galería/Info
-  // directamente desde el panel. 4-sep: prefiere el editor LOCAL de graphQL (refleja en
-  // localWedding) cuando hay web guardada; si no, cae al legacy. Antes era solo legacy →
-  // con web guardada las ediciones no se reflejaban (render venía de graphQL).
-  const updateSection = graphQLHook?.updateSectionLocal || legacyHook.updateSection;
-  const _applyAIChanges = graphQLHook?.applyAIChanges || legacyHook.applyAIChanges;
+  // 4-sep — CONSISTENCIA del editor directo: hay que EDITAR el mismo hook que RENDERIZA.
+  // `wedding` sale de graphQL SOLO si graphQLHook tiene datos (localWedding/weddingWeb);
+  // si no, cae a legacy (ver rawWedding). Antes los editores de sección/agenda/fecha iban
+  // SIEMPRE a legacy → con web guardada (render graphQL) no se reflejaban. Ahora cada
+  // editor apunta al hook que realmente pinta la web. Los editores locales de graphQL
+  // (updateSectionLocal, etc.) hacen no-op si localWedding es null, por eso NO basta con
+  // `graphQLHook?.x || legacy`: gateamos por graphQLRenders.
+  const graphQLRenders = !!graphQLHook?.wedding;
+  const updateCouple = graphQLRenders ? graphQLHook!.updateCoupleLocal : legacyHook.updateCouple;
+  const updateDate = graphQLRenders ? graphQLHook!.updateDateLocal : legacyHook.updateDate;
+  const updatePalette = graphQLRenders ? graphQLHook!.updatePalette : legacyHook.updatePalette;
+  const updateHero = graphQLRenders ? graphQLHook!.updateHero : legacyHook.updateHero;
+  const toggleSection = graphQLRenders ? graphQLHook!.toggleSection : legacyHook.toggleSection;
+  const updateSection = graphQLRenders ? graphQLHook!.updateSectionLocal : legacyHook.updateSection;
+  const _applyAIChanges = graphQLRenders ? graphQLHook!.applyAIChanges : legacyHook.applyAIChanges;
   const _saveWedding = legacyHook.saveWedding;
 
-  // Agenda: prefiere los editores LOCALES de graphQL (reflejan con web guardada); si no, legacy.
   const addScheduleEvent = useCallback((event: Omit<import('@bodasdehoy/wedding-creator').ScheduleEvent, 'id'>) => {
-    (graphQLHook?.addScheduleEventLocal || legacyHook.addScheduleEvent)?.(event);
-  }, [graphQLHook, legacyHook]);
+    (graphQLRenders ? graphQLHook!.addScheduleEventLocal : legacyHook.addScheduleEvent)?.(event);
+  }, [graphQLRenders, graphQLHook, legacyHook]);
 
   const updateScheduleEvent = useCallback((eventId: string, updates: Partial<import('@bodasdehoy/wedding-creator').ScheduleEvent>) => {
-    (graphQLHook?.updateScheduleEventLocal || legacyHook.updateScheduleEvent)?.(eventId, updates);
-  }, [graphQLHook, legacyHook]);
+    (graphQLRenders ? graphQLHook!.updateScheduleEventLocal : legacyHook.updateScheduleEvent)?.(eventId, updates);
+  }, [graphQLRenders, graphQLHook, legacyHook]);
 
   const deleteScheduleEvent = useCallback((eventId: string) => {
-    (graphQLHook?.deleteScheduleEventLocal || legacyHook.deleteScheduleEvent)?.(eventId);
-  }, [graphQLHook, legacyHook]);
+    (graphQLRenders ? graphQLHook!.deleteScheduleEventLocal : legacyHook.deleteScheduleEvent)?.(eventId);
+  }, [graphQLRenders, graphQLHook, legacyHook]);
 
   // UI State
   const [viewMode, setViewMode] = useState<ViewMode>('desktop');
