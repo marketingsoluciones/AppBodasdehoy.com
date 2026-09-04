@@ -39,7 +39,7 @@ import type {
   GetWeddingWebResponse,
 } from '@/types/wedding-web';
 import { WeddingSectionName, mapTemplateToPalette, mapPaletteToTemplate } from '@/types/wedding-web';
-import type { WeddingWebData, PaletteType, SectionType } from '@bodasdehoy/wedding-creator';
+import type { WeddingWebData, PaletteType, SectionType, ScheduleEvent } from '@bodasdehoy/wedding-creator';
 import { getCurrentDevelopment } from '@/utils/developmentDetector';
 
 /**
@@ -287,8 +287,16 @@ export interface UseWeddingWebGraphQLReturn {
   // Actions - Mutations Granulares
   updateCouple: (partner1?: UpdatePartnerInput, partner2?: UpdatePartnerInput, hashtag?: string) => Promise<boolean>;
   // Actions - Local state (para compatibilidad con código existente)
+  // Editores LOCALES de sección/agenda/fecha: reflejan en localWedding para que el panel
+  // de edición directa funcione TAMBIÉN cuando hay web guardada (modo graphQL). Espejo de
+  // updateHero — persisten con el flujo de guardado/publicar existente (localWedding).
+  addScheduleEventLocal: (event: Omit<ScheduleEvent, 'id'>) => void;
+  deleteScheduleEventLocal: (eventId: string) => void;
   updateCoupleLocal: (partner: 'partner1' | 'partner2', name: string) => void;
+  updateDateLocal: (date: string) => void;
   updateHero: (updates: Partial<WeddingWebData['hero']>) => void;
+  updateScheduleEventLocal: (eventId: string, updates: Partial<ScheduleEvent>) => void;
+  updateSectionLocal: (type: SectionType, data: Record<string, unknown>) => void;
   updateOurStory: (input: OurStoryInput) => Promise<boolean>;
   updatePalette: (palette: PaletteType) => void;
   updateRSVP: (input: RSVPConfigInput) => Promise<boolean>;
@@ -880,8 +888,94 @@ export function useWeddingWebGraphQL(
     onUpdate?.(localWedding);
   }, [localWedding, onUpdate]);
 
+  // --- Editores LOCALES de sección/agenda/fecha (espejo de updateHero) -----------------
+  // El panel de edición directa (Ubicación/RSVP/Galería/Info/Agenda/Fecha) escribía SOLO
+  // en el hook legacy; con web guardada el render viene de graphQL (localWedding) → las
+  // ediciones no se reflejaban. Estos updaters mutan localWedding para que SÍ se reflejen.
+  const updateSectionLocal = useCallback((type: SectionType, data: Record<string, unknown>) => {
+    setLocalWedding((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        sections: prev.sections.map((s) =>
+          s.type === type ? { ...s, data: { ...(s.data as Record<string, unknown>), ...data } } : s,
+        ),
+      };
+    });
+    setIsDirty(true);
+  }, []);
+
+  const addScheduleEventLocal = useCallback((event: Omit<ScheduleEvent, 'id'>) => {
+    setLocalWedding((prev) => {
+      if (!prev) return prev;
+      const section = prev.sections.find((s) => s.type === 'schedule');
+      if (!section) return prev;
+      const newEvent = {
+        ...event,
+        id: `event-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      } as ScheduleEvent;
+      const scheduleData = (section.data as { events?: ScheduleEvent[] }) || { events: [] };
+      const events = [...(scheduleData.events || []), newEvent].sort((a, b) =>
+        (a.time || '').localeCompare(b.time || ''),
+      );
+      return {
+        ...prev,
+        sections: prev.sections.map((s) =>
+          s.type === 'schedule' ? { ...s, data: { ...scheduleData, events } } : s,
+        ),
+      };
+    });
+    setIsDirty(true);
+  }, []);
+
+  const updateScheduleEventLocal = useCallback((eventId: string, updates: Partial<ScheduleEvent>) => {
+    setLocalWedding((prev) => {
+      if (!prev) return prev;
+      const section = prev.sections.find((s) => s.type === 'schedule');
+      if (!section) return prev;
+      const scheduleData = (section.data as { events?: ScheduleEvent[] }) || { events: [] };
+      const events = (scheduleData.events || []).map((e) => (e.id === eventId ? { ...e, ...updates } : e));
+      return {
+        ...prev,
+        sections: prev.sections.map((s) =>
+          s.type === 'schedule' ? { ...s, data: { ...scheduleData, events } } : s,
+        ),
+      };
+    });
+    setIsDirty(true);
+  }, []);
+
+  const deleteScheduleEventLocal = useCallback((eventId: string) => {
+    setLocalWedding((prev) => {
+      if (!prev) return prev;
+      const section = prev.sections.find((s) => s.type === 'schedule');
+      if (!section) return prev;
+      const scheduleData = (section.data as { events?: ScheduleEvent[] }) || { events: [] };
+      const events = (scheduleData.events || []).filter((e) => e.id !== eventId);
+      return {
+        ...prev,
+        sections: prev.sections.map((s) =>
+          s.type === 'schedule' ? { ...s, data: { ...scheduleData, events } } : s,
+        ),
+      };
+    });
+    setIsDirty(true);
+  }, []);
+
+  const updateDateLocal = useCallback((date: string) => {
+    setLocalWedding((prev) => {
+      if (!prev) return prev;
+      return { ...prev, date: { ...prev.date, date } };
+    });
+    setIsDirty(true);
+  }, []);
+
   return {
+    addScheduleEventLocal,
     applyAIChanges,
+    deleteScheduleEventLocal,
+    updateScheduleEventLocal,
+    updateSectionLocal,
     createWedding,
     error: error as Error | null,
     isDirty,
@@ -898,6 +992,7 @@ export function useWeddingWebGraphQL(
     updateColors,
     updateCouple,
     updateCoupleLocal,
+    updateDateLocal,
     updateHero,
     updateOurStory,
     updatePalette,

@@ -265,27 +265,30 @@ function WeddingCreatorContent() {
   const weddingLoading = activeHook.isLoading ?? legacyHook.isLoading ?? false;
 
   const updateCouple = graphQLHook?.updateCoupleLocal || legacyHook.updateCouple;
-  const updateDate = legacyHook.updateDate;
+  const updateDate = graphQLHook?.updateDateLocal || legacyHook.updateDate;
   const updatePalette = graphQLHook?.updatePalette || legacyHook.updatePalette;
   const updateHero = graphQLHook?.updateHero || legacyHook.updateHero;
   const toggleSection = graphQLHook?.toggleSection || legacyHook.toggleSection;
-  // Actualizador genérico de data de sección (paquete useWeddingWeb) — para editar Ubicación
-  // (venues) directamente desde el panel. P1 2-sep.
-  const updateSection = legacyHook.updateSection;
+  // Actualizador genérico de data de sección — para editar Ubicación/RSVP/Galería/Info
+  // directamente desde el panel. 4-sep: prefiere el editor LOCAL de graphQL (refleja en
+  // localWedding) cuando hay web guardada; si no, cae al legacy. Antes era solo legacy →
+  // con web guardada las ediciones no se reflejaban (render venía de graphQL).
+  const updateSection = graphQLHook?.updateSectionLocal || legacyHook.updateSection;
   const _applyAIChanges = graphQLHook?.applyAIChanges || legacyHook.applyAIChanges;
   const _saveWedding = legacyHook.saveWedding;
 
+  // Agenda: prefiere los editores LOCALES de graphQL (reflejan con web guardada); si no, legacy.
   const addScheduleEvent = useCallback((event: Omit<import('@bodasdehoy/wedding-creator').ScheduleEvent, 'id'>) => {
-    legacyHook.addScheduleEvent?.(event);
-  }, [legacyHook]);
+    (graphQLHook?.addScheduleEventLocal || legacyHook.addScheduleEvent)?.(event);
+  }, [graphQLHook, legacyHook]);
 
   const updateScheduleEvent = useCallback((eventId: string, updates: Partial<import('@bodasdehoy/wedding-creator').ScheduleEvent>) => {
-    legacyHook.updateScheduleEvent?.(eventId, updates);
-  }, [legacyHook]);
+    (graphQLHook?.updateScheduleEventLocal || legacyHook.updateScheduleEvent)?.(eventId, updates);
+  }, [graphQLHook, legacyHook]);
 
   const deleteScheduleEvent = useCallback((eventId: string) => {
-    legacyHook.deleteScheduleEvent?.(eventId);
-  }, [legacyHook]);
+    (graphQLHook?.deleteScheduleEventLocal || legacyHook.deleteScheduleEvent)?.(eventId);
+  }, [graphQLHook, legacyHook]);
 
   // UI State
   const [viewMode, setViewMode] = useState<ViewMode>('desktop');
