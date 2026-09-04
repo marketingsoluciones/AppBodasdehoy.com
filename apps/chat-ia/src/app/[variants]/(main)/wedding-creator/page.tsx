@@ -38,6 +38,7 @@ import {
   type WeddingChangeAction,
 } from '@/services/weddingChatService';
 import { getCurrentEventId } from '@/services/storage-r2';
+import { crearTareaEnItinerario, editarTareaCampo, eliminarTareaDeItinerario } from '@/services/mcpApi/tasks';
 
 import { useEventSeed } from './useEventSeed';
 import { WeddingEventPicker } from './WeddingEventPicker';
@@ -71,6 +72,11 @@ const PublishModal = lazy(() =>
 // Selector de fotos desde los álbumes/Momentos del evento (fuente real de fotos).
 // Lazy: arrastra @bodasdehoy/memories (~276K) → solo se carga al abrir el picker.
 const AlbumPicker = lazy(() => import('./AlbumPicker'));
+
+// Un id de agenda que corresponde a una TAREA real del itinerario (sembrada desde la app)
+// es un _id de Mongo; los añadidos en la web llevan prefijo temporal (event-/seed-) y aún
+// no tienen tarea en la app → solo se sincronizan al crearlos, no al re-editarlos.
+const isRealTaskId = (id?: string) => !!id && !id.startsWith('event-') && !id.startsWith('seed-');
 
 type ViewMode = 'desktop' | 'tablet' | 'mobile';
 
@@ -237,7 +243,9 @@ function WeddingCreatorContent() {
             data: {
               events: eventSeed.schedule.map((s, i) => ({
                 description: undefined,
-                id: `seed-${i}`,
+                // id = _id REAL de la tarea (para editar/borrar la tarea correcta en la app).
+                // Solo caemos a seed-i si el backend no trajo _id (esas no se sincronizan).
+                id: s.id || `seed-${i}`,
                 location: s.location,
                 time: s.time || '',
                 title: s.title,
@@ -285,17 +293,54 @@ function WeddingCreatorContent() {
   const _applyAIChanges = graphQLRenders ? graphQLHook!.applyAIChanges : legacyHook.applyAIChanges;
   const _saveWedding = legacyHook.saveWedding;
 
+  // ── Escritura de vuelta al ITINERARIO del evento (modelo A: el backend enforce permisos).
+  // Cuando la agenda viene de un evento (eventSeed.itinerarioId), los cambios se escriben
+  // TAMBIÉN en el itinerario real vía api-mcp. Si el backend rechaza (p.ej. sin permiso) →
+  // avisamos "pide permiso" (no duplicamos la lógica de permisos, que es crítica/NO-TOCAR).
+  const [itinerarioWarning, setItinerarioWarning] = useState<string | null>(null);
+  const scheduleTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const reportItinerarioError = useCallback((err?: string) => {
+    setItinerarioWarning(
+      err && /permis|autor|allow|denied|forbidden/i.test(err)
+        ? 'No tienes permiso para editar el itinerario de este evento. Pídeselo al organizador para que la agenda se guarde en la app.'
+        : `No se pudo guardar el cambio en el itinerario del evento${err ? ` (${err})` : ''}.`,
+    );
+  }, []);
+
   const addScheduleEvent = useCallback((event: Omit<import('@bodasdehoy/wedding-creator').ScheduleEvent, 'id'>) => {
     (graphQLRenders ? graphQLHook!.addScheduleEventLocal : legacyHook.addScheduleEvent)?.(event);
-  }, [graphQLRenders, graphQLHook, legacyHook]);
+    const itId = eventSeed?.itinerarioId;
+    if (eventId && eventId !== 'dummy' && itId) {
+      crearTareaEnItinerario(eventId, itId, {
+        descripcion: event.title || 'Nuevo momento',
+        ...(event.time ? { hora: event.time } : {}),
+      }).then((r) => { if (!r.ok) reportItinerarioError(r.error); });
+    }
+  }, [graphQLRenders, graphQLHook, legacyHook, eventId, eventSeed, reportItinerarioError]);
 
-  const updateScheduleEvent = useCallback((eventId: string, updates: Partial<import('@bodasdehoy/wedding-creator').ScheduleEvent>) => {
-    (graphQLRenders ? graphQLHook!.updateScheduleEventLocal : legacyHook.updateScheduleEvent)?.(eventId, updates);
-  }, [graphQLRenders, graphQLHook, legacyHook]);
+  const updateScheduleEvent = useCallback((schedEventId: string, updates: Partial<import('@bodasdehoy/wedding-creator').ScheduleEvent>) => {
+    (graphQLRenders ? graphQLHook!.updateScheduleEventLocal : legacyHook.updateScheduleEvent)?.(schedEventId, updates);
+    const itId = eventSeed?.itinerarioId;
+    if (!(eventId && eventId !== 'dummy' && itId && isRealTaskId(schedEventId))) return;
+    // Debounce por tarea+campo: el onChange dispara en cada tecla → no spamear api-mcp.
+    const fire = (field: string, value: string) => {
+      const key = `${schedEventId}:${field}`;
+      clearTimeout(scheduleTimersRef.current[key]);
+      scheduleTimersRef.current[key] = setTimeout(() => {
+        editarTareaCampo(eventId, itId, schedEventId, field, value).then((r) => { if (!r.ok) reportItinerarioError(r.error); });
+      }, 600);
+    };
+    if (typeof updates.title === 'string') fire('descripcion', updates.title);
+    if (typeof updates.time === 'string') fire('hora', updates.time);
+  }, [graphQLRenders, graphQLHook, legacyHook, eventId, eventSeed, reportItinerarioError]);
 
-  const deleteScheduleEvent = useCallback((eventId: string) => {
-    (graphQLRenders ? graphQLHook!.deleteScheduleEventLocal : legacyHook.deleteScheduleEvent)?.(eventId);
-  }, [graphQLRenders, graphQLHook, legacyHook]);
+  const deleteScheduleEvent = useCallback((schedEventId: string) => {
+    (graphQLRenders ? graphQLHook!.deleteScheduleEventLocal : legacyHook.deleteScheduleEvent)?.(schedEventId);
+    const itId = eventSeed?.itinerarioId;
+    if (eventId && eventId !== 'dummy' && itId && isRealTaskId(schedEventId)) {
+      eliminarTareaDeItinerario(eventId, itId, schedEventId).then((r) => { if (!r.ok) reportItinerarioError(r.error); });
+    }
+  }, [graphQLRenders, graphQLHook, legacyHook, eventId, eventSeed, reportItinerarioError]);
 
   // UI State
   const [viewMode, setViewMode] = useState<ViewMode>('desktop');
@@ -1069,6 +1114,24 @@ function WeddingCreatorContent() {
                           + Añadir
                         </button>
                       </div>
+                      {eventSeed?.itinerarioId ? (
+                        <div className="mb-2 text-[11px] text-gray-400">
+                          Los cambios de la agenda se guardan también en el itinerario del evento.
+                        </div>
+                      ) : null}
+                      {itinerarioWarning && (
+                        <div className="mb-2 flex items-start justify-between gap-2 rounded border border-amber-300 bg-amber-50 px-2 py-1.5 text-[11px] text-amber-800">
+                          <span>⚠️ {itinerarioWarning}</span>
+                          <button
+                            aria-label="Cerrar aviso"
+                            className="shrink-0 rounded px-1 text-amber-700 hover:bg-amber-100"
+                            onClick={() => setItinerarioWarning(null)}
+                            type="button"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      )}
                       <div className="flex flex-col gap-1.5">
                         {events.length === 0 && (
                           <span className="text-xs text-gray-400">Sin eventos aún · pulsa «+ Añadir»</span>

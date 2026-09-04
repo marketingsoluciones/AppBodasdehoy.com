@@ -97,3 +97,56 @@ export async function crearTareaEnItinerario(
   if (r?.success) return { ok: true };
   return { error: r?.errors?.[0]?.message || 'No se pudo crear la tarea.', ok: false };
 }
+
+const ELIMINAR_TAREA_MUTATION = `
+  mutation EliminarTarea($evento_id: ID!, $itinerario_id: ID!, $tarea_id: ID!) {
+    eliminarTarea(evento_id: $evento_id, itinerario_id: $itinerario_id, tarea_id: $tarea_id) {
+      success
+      errors { message }
+    }
+  }
+`;
+
+/**
+ * Borra una tarea del itinerario. Devuelve el error del backend (no lo traga) para poder
+ * avisar (p.ej. sin permiso). El backend enforce los permisos de itinerario server-side.
+ */
+export async function eliminarTareaDeItinerario(
+  eventoId: string,
+  itinerarioId: string,
+  tareaId: string,
+): Promise<{ error?: string; ok: boolean }> {
+  try {
+    const data = await mcpClient.query<{
+      eliminarTarea: { errors?: Array<{ message: string }>; success: boolean };
+    }>(ELIMINAR_TAREA_MUTATION, {
+      evento_id: eventoId,
+      itinerario_id: itinerarioId,
+      tarea_id: tareaId,
+    });
+    const r = data?.eliminarTarea;
+    if (r?.success) return { ok: true };
+    return { error: r?.errors?.[0]?.message || 'No se pudo borrar la tarea.', ok: false };
+  } catch (e: any) {
+    return { error: e?.message || 'No se pudo borrar la tarea.', ok: false };
+  }
+}
+
+/**
+ * Edita un campo de una tarea devolviendo error si falla (p.ej. sin permiso). El backend
+ * enforce los permisos; si mcpClient lanza (GraphQL error) lo tratamos como fallo.
+ */
+export async function editarTareaCampo(
+  eventoId: string,
+  itinerarioId: string,
+  taskId: string,
+  field: string,
+  value: string,
+): Promise<{ error?: string; ok: boolean }> {
+  try {
+    await updateTaskField(eventoId, itinerarioId, taskId, field, value);
+    return { ok: true };
+  } catch (e: any) {
+    return { error: e?.message || 'No se pudo actualizar la tarea.', ok: false };
+  }
+}

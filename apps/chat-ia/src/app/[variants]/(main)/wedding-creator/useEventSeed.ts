@@ -22,7 +22,11 @@ import { getEventoDetalle, getEventosByUsuario } from '@/services/mcpApi/eventos
 export interface EventSeed {
   coupleNames: [string, string];
   date?: string;
-  schedule: Array<{ location?: string; time?: string; title: string }>;
+  // itinerarioId: id del itinerario del evento al que pertenece la agenda (para escribir de
+  // vuelta a la app). taskId (`id`) por evento: el _id REAL de la tarea, necesario para
+  // editar/borrar la tarea correcta. Convención (como bandeja/ProximoPanel): 1er itinerario.
+  itinerarioId?: string;
+  schedule: Array<{ id?: string; itinerarioId?: string; location?: string; time?: string; title: string }>;
 }
 
 // "Boda de Pedro y Pedra" / "Pedro & Pedra" / "Pedro y Pedra" → ["Pedro","Pedra"].
@@ -36,17 +40,27 @@ function parseCouple(nombre?: string): [string, string] {
 }
 
 // itinerarios_array es JSON opaco de api-mcp. Parseo DEFENSIVO: buscamos tareas con hora/título.
+// Además del texto, capturamos el _id REAL de cada tarea y de su itinerario para poder escribir
+// de vuelta (editar/borrar la tarea correcta) respetando permisos en el backend.
 function parseSchedule(itinerarios: unknown): EventSeed['schedule'] {
   const out: EventSeed['schedule'] = [];
   const arr = Array.isArray(itinerarios) ? itinerarios : [];
   for (const it of arr) {
+    const itinerarioId = (it as any)?._id ? String((it as any)._id) : undefined;
     const tasks = (it as any)?.tasks || (it as any)?.itinerario || (Array.isArray(it) ? it : [it]);
     for (const t of Array.isArray(tasks) ? tasks : []) {
       const title = (t as any)?.descripcion || (t as any)?.titulo || (t as any)?.title || (t as any)?.tip;
       if (!title) continue;
       const time = (t as any)?.hora || (t as any)?.time || (t as any)?.horaActual;
       const location = (t as any)?.lugar || (t as any)?.location || (t as any)?.responsable;
-      out.push({ location: location ? String(location) : undefined, time: time ? String(time) : undefined, title: String(title) });
+      const id = (t as any)?._id ? String((t as any)._id) : undefined;
+      out.push({
+        id,
+        itinerarioId,
+        location: location ? String(location) : undefined,
+        time: time ? String(time) : undefined,
+        title: String(title),
+      });
       if (out.length >= 20) return out;
     }
   }
@@ -96,7 +110,9 @@ export function useEventSeed(eventId: string | null): EventSeed | null {
       if (cancelled) return;
       const [p1, p2] = parseCouple(nombre);
       if (!p1 && !p2 && !schedule.length) return; // nada real que sembrar → no inventamos
-      setSeed({ coupleNames: [p1, p2], date: fecha, schedule });
+      // itinerario destino para escribir de vuelta = el de la agenda sembrada (1er itinerario).
+      const itinerarioId = schedule.find((s) => s.itinerarioId)?.itinerarioId;
+      setSeed({ coupleNames: [p1, p2], date: fecha, itinerarioId, schedule });
     })();
 
     return () => {
