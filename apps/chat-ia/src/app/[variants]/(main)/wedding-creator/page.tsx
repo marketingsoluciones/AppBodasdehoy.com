@@ -669,7 +669,10 @@ function WeddingCreatorContent() {
                     <path d="M19 12H5M12 19l-7-7 7-7" />
                   </svg>
                 </button>
-                <h1 className="text-lg font-semibold">Editor de Eventos & Bodas</h1>
+                {/* En móvil el título se apretaba en 5 líneas y cortaba "Guardado" (QA responsive
+                    3-sep). Se oculta bajo sm (las pestañas Chat/Vista Previa ya dan contexto) y no
+                    envuelve; así el selector de evento y el indicador de guardado respiran. */}
+                <h1 className="hidden whitespace-nowrap text-lg font-semibold sm:block">Editor de Eventos & Bodas</h1>
                 {/* Selector de evento (gap QA 22-ago): elegir QUÉ boda edita la web pública.
                     Reutiliza el flujo eventId existente (useWeddingWebGraphQL) — sin él, el
                     editor caía a la plantilla dummy. Con buscador (owner tiene 50+ eventos). */}
