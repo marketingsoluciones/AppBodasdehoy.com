@@ -68,6 +68,10 @@ const PublishModal = lazy(() =>
   })
 );
 
+// Selector de fotos desde los álbumes/Momentos del evento (fuente real de fotos).
+// Lazy: arrastra @bodasdehoy/memories (~276K) → solo se carga al abrir el picker.
+const AlbumPicker = lazy(() => import('./AlbumPicker'));
+
 type ViewMode = 'desktop' | 'tablet' | 'mobile';
 
 interface Message {
@@ -307,6 +311,8 @@ function WeddingCreatorContent() {
   const [showEditPanel, setShowEditPanel] = useState(false);
   // P1 constructor de webs (4-sep): estado de subida de fotos de la galería (spinner + deshabilitar).
   const [galleryUploading, setGalleryUploading] = useState(false);
+  // Picker de fotos desde el álbum del evento (la fuente REAL de fotos son los Momentos).
+  const [showAlbumPicker, setShowAlbumPicker] = useState(false);
   // Sube ficheros de imagen al endpoint existente /api/upload (public/uploads/wedding) y devuelve
   // URLs absolutas (origin + ruta) para que funcionen también en la web publicada (otro subdominio).
   const uploadGalleryFiles = useCallback(
@@ -333,6 +339,17 @@ function WeddingCreatorContent() {
       return out;
     },
     [],
+  );
+  // Añade a la galería las fotos elegidas en el álbum del evento (append a las existentes).
+  const handleAddAlbumPhotos = useCallback(
+    (picked: Array<{ caption?: string; id: string; thumbnail?: string; url: string }>) => {
+      const cur =
+        ((wedding.sections?.find((x) => x.type === 'gallery')?.data as
+          | { photos?: Array<{ caption?: string; id: string; thumbnail?: string; url: string }> }
+          | undefined)?.photos) ?? [];
+      updateSection?.('gallery', { photos: [...cur, ...picked] } as any);
+    },
+    [wedding, updateSection],
   );
   const copyPublicLink = useCallback(async () => {
     if (!publishedSubdomain) return;
@@ -1215,6 +1232,15 @@ function WeddingCreatorContent() {
                               type="file"
                             />
                           </label>
+                          {eventId && eventId !== 'dummy' && (
+                            <button
+                              className="rounded border border-blue-600 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50"
+                              onClick={() => setShowAlbumPicker(true)}
+                              type="button"
+                            >
+                              📷 Traer del álbum
+                            </button>
+                          )}
                           <button
                             className="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
                             onClick={addByUrl}
@@ -1425,6 +1451,15 @@ function WeddingCreatorContent() {
             onClose={() => setShowPublishModal(false)}
             onPublish={handlePublish}
             onUnpublish={handleUnpublish}
+          />
+        </Suspense>
+      )}
+      {showAlbumPicker && eventId && eventId !== 'dummy' && (
+        <Suspense fallback={null}>
+          <AlbumPicker
+            eventId={eventId}
+            onClose={() => setShowAlbumPicker(false)}
+            onSelect={handleAddAlbumPhotos}
           />
         </Suspense>
       )}
