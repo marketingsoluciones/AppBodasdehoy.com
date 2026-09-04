@@ -11,8 +11,15 @@ import { useToast } from '../../../hooks/useToast';
 import { GruposResponsablesArry } from '../Utils/ResponsableSelector';
 import { DescriptionCell, AttachmentsCell, CommentsCell } from './NewCellRenderers';
 import { TimeTaskTable } from './TimeTaskTable';
+import { isStudioPathname } from '../../../utils/studioPaths';
 
 export const NewTableCell: React.FC<TableCellProps> = ({ column, value, task, onUpdate, isEditing, onStartEdit, onStopEdit, onCommentsClick }) => {
+  // Tipografía del HTML sin reescribir la edición de cada celda: Poppins, padding 13px 10px,
+  // texto 12px. El título va en 600/13 #3A3A42; los textos de solo lectura en 500/12.
+  const isStudio = typeof window !== "undefined"
+    && isStudioPathname(window.location.pathname)
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
+  const pad = isStudio ? "px-2.5 py-3" : "px-3 py-2";
   const [editValue, setEditValue] = useState(value);
   const [showEditControls, setShowEditControls] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -101,8 +108,9 @@ export const NewTableCell: React.FC<TableCellProps> = ({ column, value, task, on
             placeholder={t('Escribir...')}
           />
         ) : (
-          <div className="px-3 py-2 relative">
+          <div className={`${pad} relative`}>
             <span
+              style={isStudio && value ? { font: "600 13px Poppins", color: "#3A3A42" } : undefined}
               className={`${!value ? 'text-gray-400 italic' : 'text-gray-900 font-medium'} ${needsTruncate && !showFullText ? 'cursor-pointer hover:text-primary' : ''}`}
               onClick={(e) => {
                 if (needsTruncate && !showFullText) {
@@ -130,7 +138,7 @@ export const NewTableCell: React.FC<TableCellProps> = ({ column, value, task, on
 
       case 'select':
         return (
-          <div className="px-3 py-2">
+          <div className={pad}>
             <StatusDropdown
               value={value || 'pending'}
               onChange={(newValue) => {
@@ -143,7 +151,7 @@ export const NewTableCell: React.FC<TableCellProps> = ({ column, value, task, on
 
       case 'priority':
         return (
-          <div className="px-3 py-2">
+          <div className={pad}>
             <PriorityDropdown
               value={value || 'media'}
               onChange={(newValue) => {
@@ -156,7 +164,7 @@ export const NewTableCell: React.FC<TableCellProps> = ({ column, value, task, on
 
       case 'date':
         return (
-          <div className="px-3 py-2 flex items-center gap-2">
+          <div className={`${pad} flex items-center gap-2`}>
             <DateTask
               value={value ? new Date(value).toISOString().split('T')[0] : ''}
               onChange={(newValue) => {
@@ -173,7 +181,7 @@ export const NewTableCell: React.FC<TableCellProps> = ({ column, value, task, on
 
       case 'time':
         return (
-          <div className="px-3 py-2">
+          <div className={pad}>
             <TimeTaskTable
               value={task.fecha} // Pasar la fecha completa del task
               onChange={async (newValue, additionalUpdates) => {
@@ -204,8 +212,10 @@ export const NewTableCell: React.FC<TableCellProps> = ({ column, value, task, on
             placeholder="0"
           />
         ) : (
-          <div className="px-3 py-2">
-            <span className={`${!value ? 'text-gray-400' : ''}`}>
+          <div className={pad}>
+            <span
+              style={isStudio ? { font: "500 12px Poppins", color: value ? "#6b6b72" : "#c4c4cc" } : undefined}
+              className={`${!value ? 'text-gray-400' : ''}`}>
               {value ? `${value} min` : t('Sin duración')}
             </span>
           </div>
@@ -343,7 +353,7 @@ export const NewTableCell: React.FC<TableCellProps> = ({ column, value, task, on
 
       default:
         return (
-          <div className="px-3 py-2">
+          <div className={pad}>
             <span className={`${!value ? 'text-gray-400' : ''}`}>
               {value || t('Sin información')}
             </span>

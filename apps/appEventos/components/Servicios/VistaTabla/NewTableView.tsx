@@ -799,6 +799,7 @@ export const NewTableView: React.FC<TableProps & { expandida?: boolean; onToggle
   return (
     <div
 
+      style={isStudio ? { fontFamily: "'Poppins',sans-serif" } : undefined}
       className={isStudio ? "h-full flex flex-col bg-white relative text-xs" : "h-full flex flex-col bg-gray-50 relative text-xs"}>
       {isStudio && <style dangerouslySetInnerHTML={{ __html: ".tv-studio-scroll::-webkit-scrollbar{display:none;height:0}.tv-studio-scroll{scrollbar-width:none}" }} />}
       {/* Header principal - fixed para evitar solapamiento */}
