@@ -858,8 +858,8 @@ export const NewTableView: React.FC<TableProps & { expandida?: boolean; onToggle
                         className={isStudio ? "group relative text-left" : "group relative px-4 py-3 text-left  font-medium text-gray-500 uppercase tracking-wider"}
                         style={{
                           width: column.width,
-                          minWidth: column.minWidth,
-                          maxWidth: column.maxWidth,
+                          minWidth: (isStudio && expandida) ? 0 : column.minWidth,
+                          maxWidth: (isStudio && expandida) ? undefined : column.maxWidth,
                           ...(isStudio ? { padding: "12px 10px", font: "600 10.5px Poppins", color: "#8a8a90", letterSpacing: ".5px", textTransform: "uppercase" as const } : {}),
                         }}
                       >
@@ -936,8 +936,8 @@ export const NewTableView: React.FC<TableProps & { expandida?: boolean; onToggle
                           className="px-0 py-0 whitespace-nowrap overflow-visible relative"
                           style={{
                             width: cell.column.width,
-                            minWidth: cell.column.minWidth,
-                            maxWidth: cell.column.maxWidth
+                            minWidth: (isStudio && expandida) ? 0 : cell.column.minWidth,
+                            maxWidth: (isStudio && expandida) ? undefined : cell.column.maxWidth
                           }}
                         >
                           {/* Barra de acciones flotante - Solo en la primera columna */}
@@ -1017,8 +1017,9 @@ export const NewTableView: React.FC<TableProps & { expandida?: boolean; onToggle
           )}
         </div>
       </div>
-      {/* Footer con información */}
-      <div className="bg-white border-t border-gray-200 px-4 py-3">
+      {/* Footer con información — oculto en studio: ya está el pie "Mostrando…" del HTML
+          bajo la tabla, y salían los dos. */}
+      <div className={isStudio ? "hidden" : "bg-white border-t border-gray-200 px-4 py-3"}>
         <div className="flex items-center justify-between  text-gray-600">
           <div>
             {t('Mostrando')} {filteredData.length} {t('de')} {data.length} {t('tareas')}

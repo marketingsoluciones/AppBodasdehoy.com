@@ -284,9 +284,10 @@ export const TableFilters: React.FC<FiltersProps> = ({
         </div>
       </div>
 
-      {/* Panel expandido de filtros */}
-      {isExpanded && (
-        <div className="px-3 pb-3 border-t border-gray-200">
+      {/* Panel de filtros. En studio la cabecera con el botón toggle está oculta, así que
+          la fila de condiciones se muestra SIEMPRE (al abrir el panel desde la barra). */}
+      {(isExpanded || isStudio) && (
+        <div className={isStudio ? "pt-1 pb-2" : "px-3 pb-3 border-t border-gray-200"}>
           <div className="space-y-3 mt-3">
             {filters.map((filter) => {
               const column = columns.find(col => col.id === filter.columnId);
