@@ -116,16 +116,12 @@ const defineColumns = (t: any): TableColumn[] => [
     canResize: true,
     type: 'tips'
   },
-  {
-    id: 'tags',
-    Header: t('labels'),
-    accessor: 'tags',
-    width: 180,
-    minWidth: 150,
-    maxWidth: 300,
-    canResize: true,
-    type: 'tags'
-  },
+  // Columna Etiquetas retirada de la vista Tabla (petición diseño): las etiquetas se
+  // gestionan en la tarjeta de detalle, no como columna. Los datos (task.tags) no se tocan.
+  // {
+  //   id: 'tags', Header: t('labels'), accessor: 'tags',
+  //   width: 180, minWidth: 150, maxWidth: 300, canResize: true, type: 'tags'
+  // },
   {
     id: 'attachments',
     Header: t('attachments'),
