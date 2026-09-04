@@ -265,6 +265,10 @@ export default function AgentesPage() {
   // Selección visual local (no cambia el activo hasta que el usuario
   // interactúa con la ficha → evita side-effect al montar).
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Móvil (QA responsive 3-sep): en <768px no caben las 2 columnas (lista + ficha) → el detalle
+  // salía en ~30px con el texto vertical letra a letra. Patrón maestro-detalle: por defecto la
+  // lista; al tocar un agente se ve la ficha; un "← Volver" regresa. En escritorio (md+) ambas.
+  const [mobileView, setMobileView] = useState<'list' | 'detail'>('list');
   const [creating, setCreating] = useState(false);
   const handleCreateAgent = useCallback(async () => {
     if (creating) return;
@@ -684,7 +688,7 @@ export default function AgentesPage() {
       {/* H3 (QA re-run 21-ago): MessagesRail RETIRADO — duplicaba el rail principal. */}
       {/* Lista agentes 260px */}
       <aside
-        className="flex w-[260px] shrink-0 flex-col overflow-hidden"
+        className={`${mobileView === 'detail' ? 'hidden md:flex' : 'flex'} w-full shrink-0 flex-col overflow-hidden md:w-[260px]`}
         style={{ backgroundColor: '#FFFFFF', borderRight: '1px solid #EDEDF0' }}
       >
         <div
@@ -720,7 +724,7 @@ export default function AgentesPage() {
                 aria-current={isSelected}
                 className="w-full text-left transition-colors"
                 key={agent.id}
-                onClick={() => setSelectedId(agent.id)}
+                onClick={() => { setSelectedId(agent.id); setMobileView('detail'); }}
                 onMouseEnter={(e) => {
                   if (!isSelected) e.currentTarget.style.backgroundColor = '#FCFCFD';
                 }}
@@ -802,7 +806,7 @@ export default function AgentesPage() {
 
       {/* Ficha del agente flex-1 */}
       {selected && (
-        <section className="flex flex-1 flex-col overflow-auto">
+        <section className={`${mobileView === 'detail' ? 'flex' : 'hidden md:flex'} flex-1 flex-col overflow-auto`}>
           {/* Cabecera ficha */}
           <div
             className="sticky top-0 z-10 px-6 py-4"
@@ -810,6 +814,17 @@ export default function AgentesPage() {
           >
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
+                {/* Volver a la lista (solo móvil) — el patrón maestro-detalle. */}
+                <button
+                  aria-label="Volver a la lista de agentes"
+                  className="-ml-1 mr-1 shrink-0 rounded p-1 text-gray-500 hover:bg-gray-100 md:hidden"
+                  onClick={() => setMobileView('list')}
+                  type="button"
+                >
+                  <svg fill="none" height="20" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="20">
+                    <path d="M15 18l-6-6 6-6" />
+                  </svg>
+                </button>
                 <div
                   className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full text-lg font-semibold"
                   style={{
