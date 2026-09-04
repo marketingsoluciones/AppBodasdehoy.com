@@ -276,7 +276,8 @@ export const ColumnConfigModal: React.FC<{
         </div>
 
         <div className="p-4">
-          <div className="space-y-2 max-h-64 overflow-y-auto">
+          <div className="space-y-2 max-h-64 overflow-y-auto cc-hidescroll">
+          <style>{`.cc-hidescroll::-webkit-scrollbar{display:none;width:0;height:0}.cc-hidescroll{scrollbar-width:none;-ms-overflow-style:none}`}</style>
             {columns.filter(col => col.id !== 'actions').map((column) => (
               <label
                 key={column.id}
