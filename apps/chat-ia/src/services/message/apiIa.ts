@@ -26,7 +26,6 @@
  */
 import { UIChatMessage } from '@lobechat/types';
 
-import { INBOX_SESSION_ID } from '@/const/session';
 import { buildAuthHeaders } from '@/utils/authToken';
 
 import { mapApiIaMessages } from '../api-ia.mappers';
@@ -75,16 +74,20 @@ async function call(method: string, path: string, body?: unknown): Promise<any> 
  * lanza pending() para que NUNCA se active sin confirmar el endpoint.
  */
 export class ApiIaMessageService implements IMessageService {
-  private toDbSessionId = (sessionId: string | undefined) =>
-    sessionId === INBOX_SESSION_ID ? null : sessionId;
+  // #9 (4-sep, decisión OPCIÓN B): el INBOX (asistente) DEBE persistir/leer como cualquier
+  // sesión, bajo su sessionId real ('inbox'). Antes lo mapeábamos a null → ni POST ni GET →
+  // el asistente perdía la memoria. api-ia confirmó que POST/GET /chat/messages con
+  // sessionId='inbox' funciona (persiste en chat_messages, la fuente durable de api-mcp).
+  // Ya NO anulamos el inbox: identidad. Los guards de vacío (undefined/'') siguen aplicando.
+  private toDbSessionId = (sessionId: string | undefined) => sessionId;
 
   // ───────── LECTURA (GET /chat/messages confirmado por api-ia) ─────────
   getMessages: IMessageService['getMessages'] = async (sessionId, topicId) => {
     const dbSessionId = this.toDbSessionId(sessionId);
     // Guard: NO lanzar GET /chat/messages con ?sessionId= vacío → api-ia responde 400
     // (reporte 14-jun §0: "chat atascado en esqueletos" = bucle de 400 por sessionId vacío).
-    // dbSessionId es null para INBOX (INBOX_SESSION_ID); el inbox NO se lee por esta ruta
-    // (tiene su propia capa inbox-api). undefined/''/null → no hay sesión real que leer → [].
+    // #9 OPCIÓN B: el INBOX ('inbox') SÍ se lee por esta ruta ahora (para recuperar el
+    // historial del asistente). Solo undefined/''/null (sin sesión real) → [].
     if (dbSessionId === undefined || dbSessionId === null || dbSessionId === '') return [];
     const qs = new URLSearchParams({ sessionId: String(dbSessionId) });
     if (topicId) qs.set('topicId', topicId);
@@ -103,17 +106,15 @@ export class ApiIaMessageService implements IMessageService {
 
   // ───────── ESCRITURA vía api-ia (endpoints por confirmar) ─────────
   // POST /chat/messages — crear. body confirmado: {sessionId, role, content, type?}.
-  // Devuelve {success, data:{id,...}}. toDbSessionId mapea INBOX_SESSION_ID → null (no revertir).
+  // Devuelve {success, data:{id,...}}.
   createMessage: IMessageService['createMessage'] = async ({ sessionId, ...params }) => {
     const dbSessionId = this.toDbSessionId(sessionId);
-    // B2 (auditoría 22-ago, causa raíz del 422): el INBOX no tiene sesión real en BD
-    // (dbSessionId=null). El READ (getMessages) YA guarda este caso; el WRITE no lo hacía →
-    // POST /chat/messages con sessionId:null → api-ia 422 ("chat no consolida" en la
-    // conversación de bienvenida). Además es REDUNDANTE: el inbox ya persiste por el
-    // streaming (/chat/stream persist:true). Guardamos igual que getMessages: id local,
-    // sin tocar el servidor. Sesiones reales (dbSessionId no-null) → sin cambios.
+    // #9 OPCIÓN B (4-sep): el INBOX ('inbox') SÍ se persiste ahora (POST con sessionId='inbox')
+    // → así el asistente recupera el historial al recargar. Antes se anulaba (dbSessionId=null)
+    // → no había POST → memoria perdida. api-ia confirmó que sessionId='inbox' persiste en
+    // chat_messages. Solo cae al id local si NO hay sesión real (undefined/'') — nunca para inbox.
     if (dbSessionId === null || dbSessionId === undefined || dbSessionId === '') {
-      return `local-inbox-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      return `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     }
     const res = await call('POST', '/chat/messages', {
       // campos extra del flujo (parentId, topicId, etc.) van también — api-ia ignora los no usados.
