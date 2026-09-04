@@ -26,6 +26,7 @@
  */
 import { UIChatMessage } from '@lobechat/types';
 
+import { INBOX_SESSION_ID } from '@/const/session';
 import { buildAuthHeaders } from '@/utils/authToken';
 
 import { mapApiIaMessages } from '../api-ia.mappers';
@@ -74,20 +75,22 @@ async function call(method: string, path: string, body?: unknown): Promise<any> 
  * lanza pending() para que NUNCA se active sin confirmar el endpoint.
  */
 export class ApiIaMessageService implements IMessageService {
-  // #9 (4-sep, decisión OPCIÓN B): el INBOX (asistente) DEBE persistir/leer como cualquier
-  // sesión, bajo su sessionId real ('inbox'). Antes lo mapeábamos a null → ni POST ni GET →
-  // el asistente perdía la memoria. api-ia confirmó que POST/GET /chat/messages con
-  // sessionId='inbox' funciona (persiste en chat_messages, la fuente durable de api-mcp).
-  // Ya NO anulamos el inbox: identidad. Los guards de vacío (undefined/'') siguen aplicando.
-  private toDbSessionId = (sessionId: string | undefined) => sessionId;
+  // #9 (4-sep): REVERTIDO el intento de OPCIÓN B (persistir inbox con sessionId='inbox').
+  // Verificado en vivo (user real + JWT): POST /chat/messages {sessionId:'inbox'} → HTTP 200
+  // pero {success:false, errors:[{message:'Error enviando mensaje'}]} → api-ia NO persiste el
+  // inbox con ese sessionId, y como call() lanza ante success:false rompería el envío. Volvemos
+  // a mapear inbox→null (no POST, id local, sin romper) hasta que api-ia confirme el sessionId
+  // real del inbox / payload correcto. Ver [[project_9_asistente_persistencia_inbox_opcionB]].
+  private toDbSessionId = (sessionId: string | undefined) =>
+    sessionId === INBOX_SESSION_ID ? null : sessionId;
 
   // ───────── LECTURA (GET /chat/messages confirmado por api-ia) ─────────
   getMessages: IMessageService['getMessages'] = async (sessionId, topicId) => {
     const dbSessionId = this.toDbSessionId(sessionId);
     // Guard: NO lanzar GET /chat/messages con ?sessionId= vacío → api-ia responde 400
     // (reporte 14-jun §0: "chat atascado en esqueletos" = bucle de 400 por sessionId vacío).
-    // #9 OPCIÓN B: el INBOX ('inbox') SÍ se lee por esta ruta ahora (para recuperar el
-    // historial del asistente). Solo undefined/''/null (sin sesión real) → [].
+    // dbSessionId es null para INBOX (mapeo revertido, ver toDbSessionId) → el inbox NO se lee
+    // por esta ruta hasta que api-ia confirme su sessionId real. undefined/''/null → [].
     if (dbSessionId === undefined || dbSessionId === null || dbSessionId === '') return [];
     const qs = new URLSearchParams({ sessionId: String(dbSessionId) });
     if (topicId) qs.set('topicId', topicId);
@@ -109,12 +112,12 @@ export class ApiIaMessageService implements IMessageService {
   // Devuelve {success, data:{id,...}}.
   createMessage: IMessageService['createMessage'] = async ({ sessionId, ...params }) => {
     const dbSessionId = this.toDbSessionId(sessionId);
-    // #9 OPCIÓN B (4-sep): el INBOX ('inbox') SÍ se persiste ahora (POST con sessionId='inbox')
-    // → así el asistente recupera el historial al recargar. Antes se anulaba (dbSessionId=null)
-    // → no había POST → memoria perdida. api-ia confirmó que sessionId='inbox' persiste en
-    // chat_messages. Solo cae al id local si NO hay sesión real (undefined/'') — nunca para inbox.
+    // #9 (4-sep, REVERTIDO): el intento de persistir el inbox con sessionId='inbox' se
+    // deshizo — POST /chat/messages devuelve success:false ('Error enviando mensaje') para
+    // 'inbox'. Volvemos al comportamiento previo: inbox (dbSessionId=null) → id local sin POST,
+    // sin romper el envío. Pendiente contrato de api-ia (sessionId real / payload del inbox).
     if (dbSessionId === null || dbSessionId === undefined || dbSessionId === '') {
-      return `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      return `local-inbox-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     }
     const res = await call('POST', '/chat/messages', {
       // campos extra del flujo (parentId, topicId, etc.) van también — api-ia ignora los no usados.
