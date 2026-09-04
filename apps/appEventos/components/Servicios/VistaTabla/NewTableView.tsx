@@ -195,7 +195,7 @@ const getRowActions = (task: any, optionsItineraryButtonBox: any[], handlers: an
   return actions;
 };
 
-export const NewTableView: React.FC<TableProps & { expandida?: boolean; onToggleExpandida?: () => void }> = ({ data, itinerario, selectTask, setSelectTask, onTaskUpdate, onTaskDelete, onTaskCreate, expandida = false, onToggleExpandida }) => {
+export const NewTableView: React.FC<TableProps & { expandida?: boolean; onToggleExpandida?: () => void; onRowOpen?: (taskId: string) => void }> = ({ data, itinerario, selectTask, setSelectTask, onTaskUpdate, onTaskDelete, onTaskCreate, expandida = false, onToggleExpandida, onRowOpen }) => {
   const { t } = useTranslation();
   const { config, user } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
@@ -913,7 +913,7 @@ export const NewTableView: React.FC<TableProps & { expandida?: boolean; onToggle
                       relative hover:bg-gray-50 transition-colors divide-x divide-gray-200
                       ${isSelected ? 'bg-primary/5 border-l-4 border-primary' : ''}
                     `}
-                    onClick={() => setSelectTask(row.original._id)}
+                    onClick={() => { if (isStudio && onRowOpen) { onRowOpen(row.original._id); } else { setSelectTask(row.original._id); } }}
                     onMouseEnter={() => {
                       setHoveredRow(row.original._id);
                     }}

@@ -119,6 +119,9 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   // Aplicarlo dentro no servía: el padre seguía estrecho y la tabla se salía y se cortaba.
   // Mismo patrón que "Expandir" de PresupuestoDetalladoStudio (94vw centrado).
   const [tablaExpandida, setTablaExpandida] = useState(false)
+  // Detalle de una fila de la TABLA: al pulsarla se abre su tarjeta con un banner
+  // "Volver a la vista Tabla", en vez de editar en la celda (fiel a tareasvistatabla).
+  const [tablaDetalle, setTablaDetalle] = useState<string | null>(null)
 
   const isStudioIti = searchParams.get("studio") !== "legacy"
     && (typeof window !== "undefined" && isStudioPathname(window.location.pathname))
@@ -980,7 +983,43 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                 </PermissionTaskWrapper>
               </div>)
               : view === "newTable"
-                ? (<div className="w-full flex-1">
+                ? (() => {
+                  const tareaDetalle = tablaDetalle ? tasks?.find((t: any) => t._id === tablaDetalle) : null;
+                  if (tareaDetalle) {
+                    // Detalle de la fila: banner de volver + la MISMA tarjeta de la vista Tarjeta.
+                    return (
+                      <div className="w-full flex-1 flex flex-col gap-3">
+                        <div
+                          onClick={() => setTablaDetalle(null)}
+                          style={{ display: "inline-flex", alignItems: "center", gap: 7, font: "600 13px Poppins", color: "#EF5B94", cursor: "pointer", padding: "2px 2px 0", alignSelf: "flex-start" }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+                          {t("Volver a la vista Tabla", { defaultValue: "Volver a la vista Tabla" })}
+                        </div>
+                        <PermissionTaskActionWrapper task={tareaDetalle} isTaskVisible={tareaDetalle.spectatorView} optionsItineraryButtonBox={optionsItineraryButtonBox}>
+                          <TaskNew
+                            id={tareaDetalle._id}
+                            task={tareaDetalle}
+                            itinerario={itinerario}
+                            view={"cards"}
+                            optionsItineraryButtonBox={optionsItineraryButtonBox}
+                            showModalCompartir={showModalCompartir}
+                            setShowModalCompartir={setShowModalCompartir}
+                            onClick={() => { }}
+                            tempPastedAndDropFiles={tempPastedAndDropFiles}
+                            setTempPastedAndDropFiles={setTempPastedAndDropFiles}
+                            minimalView={false}
+                            setSelectTask={setSelectTask}
+                            selectTask={selectTask}
+                            handleUpdate={handleUpdate}
+                            isExpanded={true}
+                            onToggleExpand={() => { }}
+                          />
+                        </PermissionTaskActionWrapper>
+                      </div>
+                    );
+                  }
+                  return (<div className="w-full flex-1">
                   <PermissionTaskWrapper isTaskVisible={true}>
                     <NewTableView
                       expandida={tablaExpandida}
@@ -989,6 +1028,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                       itinerario={itinerario}
                       selectTask={selectTask}
                       setSelectTask={setSelectTask}
+                      onRowOpen={(taskId: string) => { setSelectTask(taskId); setTablaDetalle(taskId); }}
                       onTaskUpdate={handleTaskUpdate}
                       onTaskDelete={(taskId) => {
                         const task = tasks.find(t => t._id === taskId);
@@ -999,7 +1039,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                       onTaskCreate={handleTaskCreate}
                     />
                   </PermissionTaskWrapper>
-                </div>)
+                </div>);
+                })()
                 : view === "extraTable"
                   ? (<div className="w-full flex-1">
                     <PermissionTaskWrapper isTaskVisible={true}>
