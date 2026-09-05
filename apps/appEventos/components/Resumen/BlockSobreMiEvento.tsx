@@ -7,6 +7,7 @@ import InputField from "../Forms/InputField";
 import { useDelayUnmount } from "../../utils/Funciones";
 import ModalBottom from "../Utils/ModalBottom";
 import { fetchApiBodas, fetchApiEventos, queries } from '../../utils/Fetching';
+import { withRetry } from "@bodasdehoy/shared/upload";
 import { AuthContextProvider, EventContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
@@ -44,12 +45,14 @@ const InsideBlockWithButtons: FC<propsInsideBlock> = ({
             {...item}
             onClick={async () => {
               try {
-                const result: any = await fetchApiEventos({
+                const result: any = await fetchApiBodas({
                   query: queries.eventUpdate,
-                  variables: { idEvento: event._id, variable: title, value: item.title },
+                  variables: { idEvento: event._id, input: { [title]: item.title } },
                   token: null
                 })
-                if (result.errors) {
+                // errors llega [] (array vacío) en éxito → truthy en JS. Sólo lanzar si HAY
+                // errores reales; si no, saltaba toast falso y setEvent no corría (UI stale).
+                if (result?.errors?.length) {
                   throw new Error("Hubo un error")
                 }
                 setEvent({ ...event, [title]: item.title })
@@ -75,7 +78,12 @@ const InsideBlockWithMultiSelected: FC<propsInsideBlock> = ({
   const toast = useToast()
   const { event, setEvent } = EventContextProvider()
   const { t } = useTranslation();
-  const [selectedItems, setSelectedItems] = useState(event.color)
+  // event[title] (p.ej. event.color) llega null cuando no hay selección → normalizar a
+  // array SIEMPRE. Sin esto, selectedItems.includes(...) reventaba "Sobre mi evento".
+  // Usar event[title] (no hardcodear .color) generaliza el patrón para reutilización.
+  const [selectedItems, setSelectedItems] = useState<string[]>(
+    Array.isArray(event?.[title]) ? event[title] : []
+  )
 
   const handleItemClick = (item) => {
     if (selectedItems.includes(item)) {
@@ -90,9 +98,9 @@ const InsideBlockWithMultiSelected: FC<propsInsideBlock> = ({
 
   const handleSave = async () => {
     try {
-      const result: any = await fetchApiEventos({
+      const result: any = await fetchApiBodas({
         query: queries.eventUpdate,
-        variables: { idEvento: event._id, variable: title, value: JSON.stringify(selectedItems) },
+        variables: { idEvento: event._id, input: { [title]: selectedItems } },
         token: null
       })
       setEvent({ ...event, [title]: selectedItems })
@@ -137,11 +145,12 @@ const InsideBlockWithForm: FC<propsInsideBlock> = ({ setEditing, setFieldValue, 
     <div className="px-5">
       <Formik initialValues={values[title]} onSubmit={async (values) => {
         try {
-          const result: any = await fetchApiEventos({
+          const result: any = await fetchApiBodas({
             query: queries.eventUpdate,
-            variables: { idEvento: event._id, variable: title, value: values.title }, token: null
+            variables: { idEvento: event._id, input: { [title]: values.title } }, token: null
           })
-          if (result?.errors) {
+          // errors llega [] en éxito → truthy. Sólo lanzar si HAY errores reales.
+          if (result?.errors?.length) {
             throw new Error("Hubo un error")
           }
           setEvent({ ...event, [title]: values.title })
@@ -199,7 +208,7 @@ const ElementItemInsideBlockSelect: FC<{
       onClick={onClick}
       className={`
         w-full h-full p-3 rounded-3xl flex flex-col items-center justify-center gap-1 transform transition hover:scale-105 focus:outline-none
-        ${selectedItems.includes(title) ? 'bg-gray-200' : ''}
+        ${(selectedItems ?? []).includes(title) ? 'bg-gray-200' : ''}
       `}
     >
       {icon && cloneElement(icon, { className: `${color} w-8 h-8` })}
@@ -363,7 +372,10 @@ const BlockSobreMiEvento: FC = () => {
       >
         {schema.map((item, idx) => (
           <SwiperSlide key={idx} className="py-2 pb-8 relative">
-            {item.title != "tarta" && <AboutItem
+            {/* Tarta usa el mismo editor de TEXTO que Temática (ambos list:null →
+                InsideBlockWithForm). Antes abría TartaButton (subida de imagen); QA pidió
+                texto libre como Temática (decisión de producto 08-jul). */}
+            <AboutItem
               {...item}
               toggleClick={() => {
                 if (!isMounted) {
@@ -372,20 +384,7 @@ const BlockSobreMiEvento: FC = () => {
                 }
               }}
               value={values[item.title]}
-            />}
-            {
-              item.title === "tarta" && <TartaButton
-                {...item}
-                toggleClick={() => {
-                  if (!isMounted) {
-                    setItemSelected(item)
-                    setIsMounted(true)
-                  }
-                }}
-                value={values[item.title]}
-                setFieldValue={setFieldValue}
-              />
-            }
+            />
           </SwiperSlide>
         ))}
       </Swiper>
@@ -480,21 +479,32 @@ const TartaButton: FC<propsElement> = ({ title, value}) => {
       const file = e.target.files[0]
       const reader = new FileReader();
       reader.onloadend = async () => {
-        const result: Partial<image> = await fetchApiBodas(
-          {
+        // withRetry: red móvil intermitente → 2 reintentos backoff exponencial.
+        const result: any = await withRetry(
+          () => fetchApiBodas({
             query: queries.singleUpload,
-            variables: { file, use: "tarta" },
+            variables: {
+              file,
+              development: config?.development || 'bodasdehoy',
+              eventId: event?._id,
+              category: "tarta",
+            },
             type: "formData",
             development: config?.development
-          }
+          }),
+          { maxRetries: 2, initialDelay: 1000, backoffMultiplier: 2 }
         )
-        if (result?.i640) {
-          await fetchApiEventos({
+        const url = result?.file?.publicUrls?.optimized400w
+          ?? result?.file?.publicUrls?.optimized800w
+          ?? result?.file?.publicUrls?.original
+          ?? null
+        if (url) {
+          await fetchApiBodas({
             query: queries.eventUpdate,
-            variables: { idEvento: event._id, variable: title, value: result.i640 },
+            variables: { idEvento: event._id, input: { [title]: url } },
             token: null
           })
-          setEvent({ ...event, "tarta": result.i640 })
+          setEvent({ ...event, "tarta": url })
           toast("success", t("imagesuccessfully"))
         } else {
           toast("error", t("El tipo de imagen no es correcta"))
@@ -538,7 +548,14 @@ const TartaButton: FC<propsElement> = ({ title, value}) => {
         <span className="leading-4 text-center">
           {
             event.tarta &&
-            <img src={`https://apiapp.bodasdehoy.com${event.tarta}`} alt={"tarta"} className={"border-none border-2 rounded-md  h-20 w-20 hover:opacity-50 cursor-pointer object-cover object-center mb-2"} />
+            // Defensivo: si el binario está perdido (404 legacy), ocultar la
+            // <img> en lugar de mostrar el icono de imagen rota.
+            <img
+              src={`https://api-mcp.eventosorganizador.com${event.tarta}`}
+              alt={"tarta"}
+              className={"border-none border-2 rounded-md  h-20 w-20 hover:opacity-50 cursor-pointer object-cover object-center mb-2"}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
           }
 
           <p className="font-display font-light md:text-md text-gray-500">

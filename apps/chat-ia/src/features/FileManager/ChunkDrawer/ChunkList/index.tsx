@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { Flexbox } from 'react-layout-kit';
 import { Virtuoso } from 'react-virtuoso';
 
-import { lambdaQuery } from '@/libs/trpc/client';
+import { useChunksByFileId } from '@/services/apiIa/chunks';
 
 import SkeletonLoading from '../Loading';
 import ChunkItem from './ChunkItem';
@@ -11,12 +11,7 @@ interface ChunkListProps {
   fileId: string;
 }
 const ChunkList = memo<ChunkListProps>(({ fileId }) => {
-  const { data, isLoading, fetchNextPage } = lambdaQuery.chunk.getChunksByFileId.useInfiniteQuery(
-    { id: fileId },
-    {
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    },
-  );
+  const { data, isLoading, fetchNextPage } = useChunksByFileId(fileId);
 
   const dataSource = data?.pages.flatMap((page) => page.items) || [];
 

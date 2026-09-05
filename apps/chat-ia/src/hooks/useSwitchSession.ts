@@ -18,7 +18,7 @@ export const useSwitchSession = () => {
       switchSession(id);
       togglePortal(false);
 
-      const chatPath = '/chat';
+      const chatPath = '/asistente';
       if (mobile || pathname !== chatPath) {
         setTimeout(() => {
           router.push(chatPath, {

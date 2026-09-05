@@ -102,11 +102,86 @@
       "Read(//private/etc/**)",
       "Bash(E2E_ENV=dev PLAYWRIGHT_BROWSER=webkit TEST_USER_EMAIL=bodasdehoy.com@gmail.com TEST_USER_PASSWORD='lorca2012M*+' npx playwright test e2e-app/auth-flow-multiapp.spec.ts --grep \"SSO02\")",
       "Bash(nc -z -w5 localhost 3210)",
-      "Bash(top -l 1 -pid 42151 -stats pid,command,cpu,mem)"
+      "Bash(top -l 1 -pid 42151 -stats pid,command,cpu,mem)",
+      "Bash(bash scripts/slack-send.sh --web \":white_check_mark: *createNotifications FUNCIONA — confirmado E2E*:*)",
+      "Bash(/dev/null pkill:*)",
+      "Bash(/dev/null sleep:*)",
+      "Bash(bash scripts/slack-send.sh --web \":mag: *Verificacion del informe E2E A→B de cowork — 2 bugs backend confirmados*:*)",
+      "Bash(bash scripts/slack-send.sh --web \":rotating_light: *CRITICO: ~70 queries van a romperse cuando se apague apiapp*:*)",
+      "Bash(bash scripts/slack-send.sh --web \":rotating_light: *ACTUALIZACION CRITICA: 44 de 68 operaciones NO EXISTEN en api3-mcp*:*)",
+      "Bash(bash scripts/slack-send.sh --web \":bulb: *CORRECCION: Las 44 operaciones SI EXISTEN — renombradas a espanol*:*)",
+      "Bash(bash scripts/slack-send.sh --web \":sos: *28 operaciones NO EXISTEN en api3-mcp — necesitamos implementacion URGENTE*:*)",
+      "Bash(bash scripts/slack-read.sh --from api-ia 3)",
+      "Bash(bash scripts/slack-send.sh --web \":white_check_mark: *Frontend adaptado — createComment migrado + proxy unificado*:*)",
+      "Bash(bash scripts/slack-send.sh --web \":white_check_mark: *Pruebas completadas — 27/28 operaciones OK*:*)",
+      "Bash(cd /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/appEventos lsof -ti:3220)",
+      "Bash(bash scripts/slack-send.sh --web \":white_check_mark: *Frontend adaptado al schema JSON — breaking change resuelto*:*)",
+      "Bash(cd /Users/juancarlosparra/Projects/AppBodasdehoy.com curl -s https://app-dev.bodasdehoy.com/)",
+      "Bash(perl -pi -e 's/\\\\bgetDeveloperShortName\\\\b/getDeveloperDisplayName/g' apps/chat-ia/src/features/User/UserAvatar.tsx)",
+      "Bash(sed -n '60,68p' apps/chat-ia/src/features/FirebaseAuth/index.tsx)",
+      "Bash(sed -n '135,145p' apps/chat-ia/src/features/FirebaseAuth/index.tsx)",
+      "Bash(sed -n '165,175p' apps/chat-ia/src/utils/developmentDetector.ts)",
+      "Bash(perl -pi -e \"s|https://api3-mcp-graphql\\\\.eventosorganizador\\\\.com/graphql|https://api-mcp.eventosorganizador.com/graphql|g\" e2e-app/security-deep.spec.ts)",
+      "Bash(perl -pi -e \"s|https://api3-mcp-graphql\\\\.eventosorganizador\\\\.com|https://api-mcp.eventosorganizador.com|g\" e2e-app/security-deep.spec.ts)",
+      "Bash(npx --yes depcheck --json)",
+      "Bash(nc -z localhost 3220)",
+      "Bash(nc -z localhost 3210)",
+      "Bash(awk '{print $2, $3\"% CPU\", $5, \"RSS\", $11, $12}')",
+      "Bash(# Crear *)",
+      "Bash(awk -F'│' '{print $3, $7, $10}')",
+      "Bash(awk 'NR>1 {split\\($9,a,\":\"\\); port=a[length\\(a\\)]; if \\(port+0 >= 3000 && port+0 < 4000 || port+0 == 8000 || port+0 == 8080\\) print port\"\\\\t\"$1\"\\\\t\"$2}')",
+      "Bash(head -80 e2e-app/auth-flow.spec.ts)",
+      "Bash(head -40 e2e-app/crud-permission.spec.ts)",
+      "Bash(awk -F'|' '$2 ~ /[0-9]+ *[+-]/ && $2 !~ /^[ ]+0[ ]+$/ {print}')",
+      "Bash(git config *)",
+      "Bash(git rev-list *)",
+      "Bash(awk '/  getWhatsappInvitationTemplates: `/{f=1} f{print} f&&/`,$/{exit}' apps/appEventos/utils/Fetching.ts)",
+      "Bash(awk '/  getGalerySvgs: `/{f=1} f{print} f&&/`,$/{exit}' apps/appEventos/utils/Fetching.ts)",
+      "Bash(awk '/  guardarListaRegalos: `/{f=1} f{print} f&&/`,$/{exit}' apps/appEventos/utils/Fetching.ts)",
+      "Bash(awk '/  getPreregister: `/{f=1} f{print} f&&/`,$/{exit}' apps/appEventos/utils/Fetching.ts)",
+      "Bash(sed -i '' 's/p\\\\.chromium\\\\.launch/p.webkit.launch/' /tmp/chat_ia_smoke_webkit.py)",
+      "Bash(/usr/bin/curl -s -o /dev/null -w \"/settings → %{http_code} \\(%{time_total}s\\)\\\\n\" --max-time 180 \"http://localhost:3210/settings\")",
+      "Bash(/usr/bin/curl -s -o /dev/null -w '%{http_code}' --max-time 40 http://localhost:3210__TRACKED_VAR__)",
+      "Bash(awk '{print \"estado:\", $10, \"reinicios:\", $9, \"mem:\", $11, \"cpu:\", $13}')",
+      "Bash(ipconfig getifaddr *)",
+      "Bash(arp -a)",
+      "Bash(awk '{print \"uptime:\", $8, \"reinicios:\", $9, \"cpu:\", $13, \"mem:\", $11}')",
+      "Bash(awk '{print \"estado:\", $10, \"reinicios:\", $9, \"uptime:\", $8}')",
+      "Bash(/usr/bin/curl -s -o /dev/null -w \"/ → %{http_code}\\\\n\" --max-time 15 \"http://localhost:3210/\")",
+      "Bash(/usr/bin/curl -s -o /dev/null -w \"/chat → %{http_code}\\\\n\" --max-time 30 \"http://localhost:3210/chat\")",
+      "Bash(awk '{printf \"%.1f%%mem  %s %s\\\\n\", $4, $11, $12}')",
+      "Bash(awk '{print \"estado:\", $10, \"cpu:\", $13, \"mem:\", $11, \"uptime:\", $8}')",
+      "Bash(awk '{print $4, $10, \"uptime:\", $8}')",
+      "Bash(awk '{printf \"PID %s · %s%%cpu · %s%%mem · %s\\\\n\", $2, $3, $4, $11}')",
+      "Bash(awk '{print \"estado:\", $10, \"uptime:\", $8, \"reinicios:\", $9}')",
+      "Bash(awk '{printf \"proceso top: PID %s · %s%%cpu · %s%%mem\\\\n\", $2, $3, $4}')",
+      "Bash(awk '{print \"dev server:\", $10}')",
+      "Bash(/usr/bin/curl -s -o /dev/null -w \"100.105.48.36:3210/chat → %{http_code} \\(%{time_total}s\\)\\\\n\" --max-time 30 \"http://100.105.48.36:3210/chat\")",
+      "Bash(/usr/bin/curl -s -o /dev/null -w \"100.105.48.36:3210/settings → %{http_code} \\(%{time_total}s\\)\\\\n\" --max-time 30 \"http://100.105.48.36:3210/settings\")",
+      "Bash(awk '{print $5, $NF}')",
+      "Bash(awk '{print \"chat-ia-dev:\", $10}')",
+      "Bash(awk '{print \"estado:\", $10, \"uptime:\", $8}')",
+      "Bash(awk '{printf \"next proc: %s%%cpu %s%%mem\\\\n\", $3, $4}')",
+      "Bash(/usr/bin/curl -s -o /dev/null -w \"/chat → %{http_code} \\(%{time_total}s\\)\\\\n\" --max-time 100 \"http://localhost:3210/chat\")",
+      "Bash(/usr/bin/curl -s -o /dev/null -w \"/knowledge → %{http_code}\\\\n\" --max-time 60 \"http://localhost:3210/knowledge\")"
     ],
     "additionalDirectories": [
       "/Users/juancarlosparra/.claude/projects/-Users-juancarlosparra-Projects-AppBodasdehoy-com/memory",
-      "/Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/(auth)/login/[[...login]]"
+      "/Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/(auth)/login/[[...login]]",
+      "/Users/juancarlosparra/Projects/AppBodasdehoy.com/docs"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/block-git-push.sh"
+          }
+        ]
+      }
     ]
   }
 }

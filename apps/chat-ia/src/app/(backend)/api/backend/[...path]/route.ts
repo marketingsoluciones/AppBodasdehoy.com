@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
+
 export const runtime = 'nodejs';
 
-const getBackendUrl = (): string =>
-  process.env.PYTHON_BACKEND_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  'https://api-ia.bodasdehoy.com';
+// 502 chat (QA 7-ago): el proxy de chat (topics/messages/sessions) caía al fallback FLAKY
+// `api-ia.bodasdehoy.com` (526/502 intermitente CF↔origin) → el asistente no respondía.
+// api-ia origen está vivo (localhost:8030=200); el problema era el host. Uso el resolver
+// canónico (api-ia.eventosorganizador.com, no-flaky) como el resto de proxies.
+const getBackendUrl = (): string => resolveServerBackendOrigin();
 
 /**
  * Proxy catch-all: /api/backend/[...path] → api-ia/{path}

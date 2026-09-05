@@ -4,6 +4,7 @@ import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 
 import { EVENTOS_API_CONFIG } from '@/config/eventos-api';
 import { buildAuthHeaders } from '@/utils/authToken';
+import { refreshJWTStandalone } from '@/hooks/useTokenRefresh';
 
 export interface ExternalMessage {
   content: string;
@@ -50,9 +51,14 @@ const fetchExternalConversationMessages = async (
     is_group?: boolean;
     limit?: number;
     session_type?: string;
-  }
+  },
+  isRetry: boolean = false,
 ): Promise<ExternalConversationMessagesPage> => {
-  const backendURL = EVENTOS_API_CONFIG.BACKEND_URL || 'http://localhost:8030';
+  const backendURL = EVENTOS_API_CONFIG.BACKEND_URL;
+  const baseURL =
+    backendURL && backendURL.startsWith('http')
+      ? backendURL
+      : `${window.location.origin}/api/backend`;
   const params = new URLSearchParams({
     development,
     limit: String(options.limit || 50),
@@ -68,15 +74,23 @@ const fetchExternalConversationMessages = async (
   }
 
   const response = await fetch(
-    `${backendURL}/api/conversations/${encodeURIComponent(sessionId)}/messages?${params.toString()}`,
+    `${baseURL}/api/conversations/${encodeURIComponent(sessionId)}/messages?${params.toString()}`,
     {
       credentials: 'include',
       headers: buildAuthHeaders(),
     }
   );
 
+  if ((response.status === 401 || response.status === 403) && !isRetry) {
+    const refreshed = await refreshJWTStandalone(true);
+    if (refreshed) {
+      return fetchExternalConversationMessages(sessionId, development, page, options, true);
+    }
+    throw new Error('Sesión no válida. Inicia sesión nuevamente en /login.');
+  }
+
   if (response.status === 401 || response.status === 403) {
-    throw new Error('Sesión no válida. Inicia sesión nuevamente en dev-login.');
+    throw new Error('Sesión no válida. Inicia sesión nuevamente en /login.');
   }
 
   if (!response.ok) {
@@ -149,4 +163,3 @@ export const useExternalConversationMessages = (
 
 export type ExternalConversationMessagesInfiniteData =
   InfiniteData<ExternalConversationMessagesPage>;
-

@@ -1,0 +1,270 @@
+═══════════════════════════════════════════════════════════════════
+ PROMPT COWORK — PRUEBAS NAVEGADOR REAL · SISTEMA UPLOAD UNIVERSAL
+ BUILD: FGzmqskSDoh3OwbcZUuqE
+ FECHA: 19/06/2026
+ DURACIÓN ESTIMADA: 30-45 min
+═══════════════════════════════════════════════════════════════════
+
+CONTEXTO
+────────
+El front acaba de desplegar el sistema universal de subida (FASES A+C+D+E).
+Necesitamos validar que NO se cae ningún archivo del usuario en condiciones
+reales (red móvil, distintos tipos, distintos tamaños, refresh, drag&drop).
+
+NO probamos FASE B (D5 directo a R2 + multipart) — está bloqueada por
+respuesta de backend. Hoy se prueba sobre singleUpload GraphQL existente.
+
+
+ENTORNO
+───────
+URL: https://app-dev.bodasdehoy.com
+BUILD esperado: FGzmqskSDoh3OwbcZUuqE
+Verificar BUILD_ID antes de empezar:
+  DevTools → Console → escribir:
+    window.__NEXT_DATA__.buildId
+  Si NO sale "FGzmqskSDoh3OwbcZUuqE" → hard refresh (Cmd+Shift+R) o
+  abrir incógnito.
+
+CREDENCIALES (de las que ya conoces):
+  · admin (super-admin)        bodasdehoy.com@gmail.com / lorca2012M*+
+  · jcc@bodasdehoy.com         (mismo password)
+  · jcc@marketingsoluciones... (mismo password)
+
+NAVEGADORES:
+  Mínimo: 1 desktop Chrome/Safari + 1 móvil real (iPhone o Android)
+  Ideal: ambos
+
+
+PREPARAR ARCHIVOS DE PRUEBA (haz un /tmp/upload-tests/ con esto):
+─────────────────────────────────────────────────────────────────
+
+Si no tienes a mano, te genero shortcuts:
+
+  Foto pequeña (~200KB)    : cualquier .jpg de WhatsApp
+  Foto grande (~5MB)       : una foto reciente del iPhone (en HEIC NATIVO,
+                             SIN convertir)
+  Foto enorme (~30MB)      : una foto 4K de cámara DSLR si tienes, o duplica
+                             el contenido de una con `cat foto.jpg foto.jpg
+                             > grande.jpg` para inflarla
+  Vídeo corto (~8MB)       : un MP4 de 15s del móvil
+  Vídeo medio (~15MB)      : 30s 4K del iPhone — DEBERÍA RECHAZARSE en
+                             flujo singleUpload (tope nginx 10MB) con error
+                             legible. NO debería caer en silencio.
+  Vídeo grande (~150MB)    : MOV 4K largo — DEBERÍA RECHAZARSE con error
+                             legible (hoy no tenemos D5).
+  PDF (~2MB)               : cualquier factura
+  PDF grande (~30MB)       : un PDF escaneado de muchas páginas
+  DOCX (~500KB)            : cualquier Word
+  XLSX (~1MB)              : cualquier Excel
+  PPTX (~10MB)             : cualquier PowerPoint
+  ZIP (~20MB)              : cualquier carpeta zippeada
+  MP3 (~5MB)               : una canción
+  M4A iPhone (~3MB)        : un memo de voz
+  TXT vacío (0 bytes)      : `touch /tmp/upload-tests/vacio.txt`
+  EXE (peligroso)          : un .exe cualquiera — DEBE RECHAZARSE
+  Carpeta entera           : una carpeta con 5+ archivos mixtos
+                             (foto+PDF+ZIP+vídeo)
+
+
+═══════════════════════════════════════════════════════════════════
+ MATRIZ DE PRUEBAS — capturar resultado de CADA una
+═══════════════════════════════════════════════════════════════════
+
+Para cada test devuelves:
+  ✅ PASS / ❌ FAIL / ⚠️ COMPORTAMIENTO RARO
+  + Screenshot si FAIL o RARO
+  + Logs DevTools Console si hubo error
+  + URL del eventId donde probaste
+
+
+────────────────────────────────────────────────────────────────────
+BLOQUE 1 — Foto perfil (input ÚNICO)
+────────────────────────────────────────────────────────────────────
+Ruta: cualquier página de la app → menú usuario → "Mi perfil" → click foto
+
+1.1 Subir JPG pequeño (200KB)
+    Esperado: aparece tras 1-2s, toast "Imagen subida".
+    Capturar: ¿se ve la foto al refrescar?
+
+1.2 Subir HEIC del iPhone (sin convertir)
+    Esperado: se convierte a JPEG client-side y sube. Toast OK.
+
+1.3 Subir vídeo MP4
+    Esperado: RECHAZADO con mensaje "Tipo no permitido" (el input es solo foto).
+
+1.4 Subir PDF
+    Esperado: RECHAZADO con mensaje "Tipo no permitido".
+
+1.5 Subir foto 30MB
+    Esperado: ACEPTADO (límite fotos = 50MB).
+
+1.6 Subir 0 bytes
+    Esperado: RECHAZADO "El archivo está vacío".
+
+
+────────────────────────────────────────────────────────────────────
+BLOQUE 2 — Imagen del evento (ModuloSubida — invitación / portada)
+────────────────────────────────────────────────────────────────────
+Ruta: evento → editar → cambiar imagen del evento
+
+2.1 Subir JPG normal
+2.2 Subir HEIC iPhone
+2.3 Subir PDF → debe RECHAZARSE
+2.4 Subir foto con orientation EXIF 6 (iPhone vertical recién hecha)
+    Esperado: aparece en el orden correcto, NO al revés.
+    (Si no tienes una, sáltalo.)
+
+
+────────────────────────────────────────────────────────────────────
+BLOQUE 3 — ADJUNTOS DE TAREA (Servicios > tarea > adjuntos)
+                ⭐ ESTE BLOQUE ES EL MÁS IMPORTANTE
+────────────────────────────────────────────────────────────────────
+Crear una tarea de prueba en Servicios (cualquier itinerario).
+Abrir el editor de adjuntos.
+
+3.1 Subir 1 PDF de 2MB
+    Esperado: aparece con icono rojo PDF, sube en pocos segundos,
+    toast OK, quedan listados.
+
+3.2 Subir 1 DOCX
+    Esperado: icono azul, sube OK.
+
+3.3 Subir 1 XLSX
+    Esperado: icono verde (FileSpreadsheet), sube OK.
+
+3.4 Subir 1 ZIP de 20MB
+    Esperado: icono amarillo, sube OK.
+
+3.5 Subir 1 MP3
+    Esperado: icono música, sube OK.
+
+3.6 Subir 1 vídeo MP4 de 8MB
+    Esperado: icono vídeo, sube OK.
+
+3.7 Subir 1 vídeo de 15MB
+    Esperado: RECHAZADO con mensaje legible (tope nginx 10MB hoy en
+    singleUpload, FASE B vendrá con D5 para esto).
+
+3.8 Subir 1 EXE
+    Esperado: RECHAZADO "Tipo no permitido".
+
+3.9 Subir TXT vacío (0 bytes)
+    Esperado: RECHAZADO "Archivo vacío".
+
+3.10 Subir 10 archivos MIXTOS de golpe (multi-select)
+     (3 fotos + 2 PDFs + 1 ZIP + 2 DOCX + 1 MP3 + 1 vídeo)
+     Esperado:
+       · Aparece el UploadTray flotante esquina inferior derecha
+       · Lista los 10 con icono correcto
+       · Sube de 3 en 3 (concurrencia)
+       · Barras de progreso individuales
+       · Total global "X subiendo · Y%"
+       · Al terminar todos: aparece "Limpiar terminadas"
+
+3.11 Cancelar 1 archivo durante la subida
+     Esperado: X cancela ese item, los demás siguen.
+
+3.12 Provocar fallo de red durante subida
+     DevTools → Network → seleccionar "Offline" o "Slow 3G" durante 5s
+     en medio de un upload grande.
+     Esperado: el item pasa a "error", botón retry visible.
+     Pulsar retry: reintenta y termina OK al volver la red.
+
+3.13 Refrescar la pestaña a la mitad de un batch
+     Esperado: al recargar, el UploadTray vuelve a aparecer con los
+     items que estaban en cola/error, listos para retry.
+     (LOS QUE YA ESTABAN UPLOADING al refresh se persisten como QUEUED
+     y se reintentan desde el principio.)
+
+
+────────────────────────────────────────────────────────────────────
+BLOQUE 4 — Drag & drop CARPETAS (este es nuevo)
+────────────────────────────────────────────────────────────────────
+4.1 Abrir editor de adjuntos de una tarea.
+    Crear localmente una carpeta:
+      /tmp/upload-tests/mi-carpeta/
+        ├─ foto1.jpg
+        ├─ foto2.jpg
+        ├─ documento.pdf
+        └─ subcarpeta/
+            ├─ video.mp4
+            └─ doc.docx
+    Arrastrar TODA la carpeta encima del editor.
+    Esperado:
+      · Detecta los 5 archivos (recorre la subcarpeta)
+      · Aparecen en el UploadTray
+      · Ignora .DS_Store automáticamente
+
+
+────────────────────────────────────────────────────────────────────
+BLOQUE 5 — MÓVIL real
+────────────────────────────────────────────────────────────────────
+Abrir app-dev.bodasdehoy.com en iPhone / Android.
+
+5.1 Editar perfil → tomar foto recién con la cámara
+    Esperado: HEIC convertido a JPG, sube OK.
+
+5.2 Adjuntar PDF descargado en el móvil a una tarea
+    iPhone: Archivos → seleccionar PDF
+    Esperado: sube OK.
+
+5.3 Adjuntar vídeo de 30s del iPhone (probablemente >10MB)
+    Esperado: RECHAZO LEGIBLE (no caída silenciosa).
+
+5.4 Adjuntar 5 fotos del carrete a la vez
+    Esperado: UploadTray con los 5, concurrencia 3, terminan todos.
+
+5.5 Empezar subida, MINIMIZAR navegador 30s, volver
+    Esperado: idealmente sigue, mínimo no se rompe.
+    NOTA: el Service Worker NO está activo todavía (FASE E completa).
+    iOS Safari puede suspender — si pasa, anótalo como esperado.
+
+
+────────────────────────────────────────────────────────────────────
+BLOQUE 6 — UploadTray UX
+────────────────────────────────────────────────────────────────────
+6.1 Click en flecha colapsar/expandir → funciona
+6.2 Click X en item terminado → desaparece
+6.3 "Limpiar terminadas" → quita solo los done
+6.4 Cuando NO hay items, el tray NO se ve (no debe ocupar espacio)
+6.5 Cancelar TODOS los items → tray desaparece
+6.6 Probar en móvil (responsive): cabe en pantalla, no tapa botones
+
+
+═══════════════════════════════════════════════════════════════════
+ FORMATO DE REPORTE
+═══════════════════════════════════════════════════════════════════
+
+Devuelve UN bloque code así, una línea por test:
+
+  3.1  ✅ PASS   PDF 2MB sube en 3s, icono correcto, listado OK
+  3.2  ✅ PASS
+  3.3  ⚠️  RARO  XLSX subió pero icono salió genérico (gris)
+  3.10 ❌ FAIL   Solo 8 de 10 archivos llegaron; el log dice
+                 "AbortError" en los últimos 2. Adjunto screenshot.
+  3.13 ✅ PASS   Refresh recuperó los items pendientes
+  4.1  ❌ FAIL   La subcarpeta NO se detectó (solo los 3 del root)
+  5.3  ✅ PASS   Vídeo 25MB rechazado "demasiado grande"
+  ...
+
+Y al final un bloque RESUMEN:
+  · TESTS TOTAL : XX
+  · PASS        : XX  (XX%)
+  · FAIL        : XX
+  · RARO        : XX
+  · BLOQUEANTES : XX (los FAIL que impiden seguir)
+  · NICE-TO-HAVE: XX (los RARO o FAIL no urgentes)
+
+
+═══════════════════════════════════════════════════════════════════
+ LO QUE NO ESTAMOS PROBANDO (espera FASE B):
+═══════════════════════════════════════════════════════════════════
+  · Vídeos > 10MB (presign D5)
+  · Archivos > 100MB (multipart D5)
+  · Resumable upload (chunks)
+  · Service Worker background subir
+
+Si te encuentras un edge case raro, anótalo aunque no esté en la matriz.
+
+DRI: QA / cowork
+═══════════════════════════════════════════════════════════════════

@@ -1,5 +1,7 @@
-import { BrowserContext, Page } from '@playwright/test';
+import { BrowserContext, Page, Response } from '@playwright/test';
 import { getChatUrl } from './fixtures';
+
+declare const process: { env: Record<string, string | undefined> };
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -62,7 +64,10 @@ async function clearStorageAtOrigin(page: Page): Promise<void> {
  * redirigde de vuelta automáticamente por sesión Firebase en su propio storage.
  */
 export async function clearSession(context: BrowserContext, page: Page): Promise<void> {
+  const existingCookies = await context.cookies().catch(() => []);
+  const cfCookies = existingCookies.filter((c) => c.name === 'cf_clearance' || c.name === '__cf_bm');
   await context.clearCookies();
+  if (cfCookies.length) await context.addCookies(cfCookies).catch(() => {});
 
   // 1. Limpiar app-test origin
   try {
@@ -89,6 +94,7 @@ export async function clearSession(context: BrowserContext, page: Page): Promise
   }
 
   await context.clearCookies();
+  if (cfCookies.length) await context.addCookies(cfCookies).catch(() => {});
 }
 
 /**
@@ -98,16 +104,95 @@ export async function clearSession(context: BrowserContext, page: Page): Promise
 export async function waitForAppReady(page: Page, timeoutMs = 25_000): Promise<void> {
   const body = page.locator('body');
   await body.waitFor({ state: 'visible', timeout: Math.min(timeoutMs, 10_000) }).catch(() => {});
+  const sessionOverlay = page.locator('[role="status"]').filter({ hasText: /comprobando sesión y conexión/i }).first();
+  await sessionOverlay.waitFor({ state: 'hidden', timeout: Math.min(timeoutMs, 15_000) }).catch(() => {});
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
     try {
       const text = (await body.textContent()) ?? '';
-      if (text.length > 80 && !text.includes('Error Capturado por ErrorBoundary')) return;
+      const lower = text.toLowerCase();
+      const stillAuthLoading =
+        lower.includes('comprobando sesión y conexión') ||
+        lower.includes('si ves esto, la app está respondiendo') ||
+        lower.includes('continuar como invitado');
+      if (text.length > 80 && !text.includes('Error Capturado por ErrorBoundary') && !stillAuthLoading) return;
     } catch {
       return; // Página cerrada o navegación en curso
     }
     await delay(400);
   }
+}
+
+/**
+ * Navega a un módulo de la app haciendo click en el menú lateral
+ * (simulación realista de usuario — NO usar page.goto que fuerza full reload
+ * y dispara re-mount de AuthProvider, generando race condition con overlay).
+ *
+ * Mapping nombre módulo → texto del botón en menú lateral de appEventos:
+ *   "mesas"        → "Mesas"
+ *   "invitados"    → "Invitados"
+ *   "presupuesto"  → "Presupuesto"
+ *   "resumen"      → "Resumen"
+ *   "regalos"      → "Lista de regalos"
+ *   "invitaciones" → "Invitaciones"
+ *   "itinerario"   → "Itinerario"
+ *   "servicios"    → "Servicios"
+ *
+ * Pre-condición: el usuario debe estar logueado y tener un evento seleccionado
+ * (después de loginAndSelectEvent). Si el menú lateral no aparece (ej. en home),
+ * intenta primero seleccionar evento via "Mis eventos" tab.
+ *
+ * Retorna true si la navegación funcionó (módulo cargó), false si no.
+ */
+export async function navigateToModule(page: Page, moduleName: string, timeoutMs = 30_000): Promise<boolean> {
+  const moduleButtonMap: Record<string, RegExp> = {
+    mesas: /^Mesas$/i,
+    invitados: /^Invitados$/i,
+    presupuesto: /^Presupuesto$/i,
+    resumen: /^Resumen$/i,
+    regalos: /^Lista de regalos$/i,
+    invitaciones: /^Invitaciones$/i,
+    itinerario: /^Itinerario$/i,
+    servicios: /^Servicios$/i,
+  };
+
+  const buttonRegex = moduleButtonMap[moduleName.toLowerCase()];
+  if (!buttonRegex) {
+    console.warn(`[navigateToModule] módulo desconocido: ${moduleName}`);
+    return false;
+  }
+
+  const nav = page.locator('nav').first();
+  const candidates = [
+    page.getByRole('button', { name: buttonRegex }).first(),
+    page.getByRole('listitem', { name: buttonRegex }).first(),
+    page.getByRole('link', { name: buttonRegex }).first(),
+    page.getByText(buttonRegex).first(),
+    nav.getByText(buttonRegex).first(),
+  ];
+
+  let clicked = false;
+  for (const c of candidates) {
+    const ok = await c.isVisible({ timeout: 2_000 }).catch(() => false);
+    if (!ok) continue;
+    await c.click({ timeout: 10_000 }).catch(() => {});
+    clicked = true;
+    break;
+  }
+
+  if (!clicked) {
+    console.warn(`[navigateToModule] destino "${moduleName}" no visible — ¿no hay evento seleccionado?`);
+    return false;
+  }
+
+  // Esperar a que la app responda — overlay desaparezca y contenido del módulo cargue.
+  // NO usar waitForAppReady completo porque la navegación es interna (SPA)
+  // y AuthProvider NO se re-monta — solo esperar overlay si aparece por defensa.
+  await page.waitForTimeout(800);
+  const sessionOverlay = page.locator('[role="status"]').filter({ hasText: /comprobando sesión y conexión/i }).first();
+  await sessionOverlay.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => {});
+
+  return true;
 }
 
 /**
@@ -122,45 +207,160 @@ export async function loginAndSelectEvent(
   email: string,
   password: string,
   baseUrl: string,
+  loginAfterSubmitScreenshotPath?: string,
 ): Promise<string | null> {
   const isRemoteEnv = baseUrl.includes('app-test') || baseUrl.includes('app-dev');
-  const loginUrl = isRemoteEnv ? `${baseUrl}/login?local-login=1` : `${baseUrl}/login`;
-  await page.goto(loginUrl, { waitUntil: 'domcontentloaded', timeout: 45_000 });
-  await page.waitForLoadState('domcontentloaded').catch(() => {});
+  const isLocalEnv = baseUrl.includes('127.0.0.1') || baseUrl.includes('localhost');
+
+  if (isRemoteEnv) {
+    const loginUrl = `${baseUrl.replace(/\/$/, '')}/login?local-login=1`;
+    try {
+      await page.goto(loginUrl, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+      await page.waitForTimeout(1500);
+      const emailInput = page.locator('input[type="email"]').first();
+      const hasLoginForm = await emailInput.isVisible({ timeout: 12_000 }).catch(() => false);
+      if (hasLoginForm) {
+        await emailInput.fill(email, { timeout: 10_000 });
+        await page.locator('input[type="password"]').first().fill(password);
+        const submit = page
+          .locator('button[type="submit"], button')
+          .filter({ hasText: /iniciar\s+sesión|continuar|entrar/i })
+          .first();
+        await submit.click({ timeout: 20_000 });
+        await page.waitForTimeout(1500);
+        await page.waitForURL((u: URL) => !u.pathname.includes('/login'), { timeout: 45_000 }).catch(() => {});
+        const cookies = await page.context().cookies();
+        const hasAuthCookie = cookies.some((c) => c.name === 'idTokenV0.1.0' || c.name === 'sessionBodas');
+        if (hasAuthCookie) {
+          console.log(`loginAndSelectEvent: app local-login OK url=${page.url()}`);
+        } else {
+          console.log(`loginAndSelectEvent: app local-login no cookie url=${page.url()}`);
+        }
+      }
+    } catch (e) {
+      console.log(`loginAndSelectEvent: app local-login failed (${String(e).split('\n')[0]})`);
+    }
+  }
+  const chatUrl = isRemoteEnv
+    ? baseUrl.replace('app-test', 'chat-test').replace('app-dev', 'chat-dev').replace(/\/$/, '')
+    : isLocalEnv
+      ? baseUrl.replace(':3220', ':3210').replace(':8080', ':3210')
+      : baseUrl.replace('app.', 'chat.');
+
+  try {
+    await page.goto(`${chatUrl}/login`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  } catch (e) {
+    if (!String(e).includes('interrupted by another navigation')) throw e;
+  }
   await page.waitForTimeout(2000);
+  // Esperar hidratación React: el form usa onSubmit React, si Playwright clica antes
+  // de que el handler quede bound el form hace GET HTML nativo (URL con ?email=...&password=...).
+  // Esperamos a que React Network APIs sean accesibles via window — indicador de hidratación.
+  await page.waitForFunction(
+    () => typeof window !== 'undefined' && document.readyState === 'complete' && !!(document.querySelector('button[type=\"submit\"]') as any),
+    { timeout: 15_000 },
+  ).catch(() => {});
+  await page.waitForTimeout(1500); // margen extra para handlers React
 
-  const emailInput = page.locator('input[type="email"], input[name="identifier"]').first();
-  if (!await emailInput.isVisible({ timeout: 15_000 }).catch(() => false)) return null;
+  let lastTraceId: string | null = null;
+  const captureTraceId = async (response: Response) => {
+    const url = response.url();
+    if (!url.includes('bodasdehoy.com')) return;
+    if (!url.includes('/api/') && !url.includes('graphql')) return;
+    const ct = response.headers()['content-type'] || '';
+    if (!ct.includes('application/json')) return;
+    try {
+      const body: any = await response.json();
+      const t1 = body?.extensions?.trace_id;
+      const t2 = body?.trace_id;
+      const t3 = Array.isArray(body?.errors)
+        ? body.errors.find((e: any) => typeof e?.extensions?.trace_id === 'string')?.extensions?.trace_id
+        : null;
+      const trace = t1 || t2 || t3;
+      if (typeof trace === 'string' && trace.length > 6) lastTraceId = trace;
+    } catch { /* ignore */ }
+  };
 
-  await emailInput.fill(email, { timeout: 20_000 });
-  await page.locator('input[type="password"]').first().fill(password);
-  await page.locator('button[type="submit"]').first().click();
-  await page.waitForURL((url: URL) => !url.pathname.includes('/login'), { timeout: 30_000 }).catch(() => {});
-  await waitForAppReady(page, 20_000);
-  if (page.url().includes('/login')) return null;
+  page.on('response', captureTraceId);
+  try {
+    const emailInput = page.locator('input[type="email"]').first();
+    const hasLoginForm = await emailInput.isVisible({ timeout: 15_000 }).catch(() => false);
+    if (hasLoginForm) {
+      const passwordInput = page.locator('input[type="password"]').first();
+      const submitButton = page.locator('button[type="submit"]').first();
+      for (let attempt = 0; attempt < 2; attempt++) {
+        await emailInput.fill(email, { timeout: 10_000 });
+        await passwordInput.fill(password);
+        await submitButton.click();
+        await page.waitForTimeout(500);
+        if (attempt === 0 && loginAfterSubmitScreenshotPath) {
+          await page.screenshot({ path: loginAfterSubmitScreenshotPath, fullPage: true }).catch(() => {});
+        }
+        console.log(`loginAndSelectEvent: after submit url=${page.url()} trace_id=${lastTraceId ?? 'NONE'}`);
+        await page
+          .waitForURL((url: URL) => url.pathname.endsWith('/chat'), {
+            timeout: 45_000,
+            waitUntil: 'domcontentloaded',
+          })
+          .catch(() => {});
+        const chatPath = new URL(page.url()).pathname;
+        if (chatPath.endsWith('/chat')) break;
+        const emailValue = await emailInput.inputValue().catch(() => '');
+        if (attempt === 0 && emailValue === '') {
+          await page.waitForTimeout(1200);
+          continue;
+        }
+        break;
+      }
+      const finalChatPath = new URL(page.url()).pathname;
+      if (!finalChatPath.endsWith('/chat')) {
+        console.log(`loginAndSelectEvent: failed redirect url=${page.url()} trace_id=${lastTraceId ?? 'NONE'}`);
+        return null;
+      }
+      const cookies = await page.context().cookies();
+      const hasAuthCookie = cookies.some((c) => c.name === 'idTokenV0.1.0' || c.name === 'sessionBodas');
+      if (!hasAuthCookie) {
+        console.log(`loginAndSelectEvent: missing auth cookie url=${page.url()} trace_id=${lastTraceId ?? 'NONE'}`);
+        return null;
+      }
+    }
+  } finally {
+    page.off('response', captureTraceId);
+  }
 
   // 2. Ir al home y hacer click en el primer evento
-  await page.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+  await page.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 60_000 });
   await waitForAppReady(page, 15_000);
 
-  // Buscar tarjeta de evento (Card component)
-  let eventCards = page.locator('[class*="rounded"][class*="shadow"]').filter({
-    hasText: /\d{4}|boda|evento|fiesta|aniversario|cumpleaños/i,
-  });
+  const misEventosTab = page.locator('a, button').filter({ hasText: /^Mis eventos$/i }).first();
+  if (await misEventosTab.isVisible({ timeout: 8_000 }).catch(() => false)) {
+    await misEventosTab.click().catch(() => {});
+    await page.waitForTimeout(1500);
+    await waitForAppReady(page, 20_000);
+  }
+
+  // Buscar tarjeta de evento (Card component). La tarjeta real lleva la clase .cardEvento
+  // (components/Home/Card.tsx:341). Esperar a que aparezca — los eventos cargan async tras el
+  // login, y con el backend lento pueden tardar; sin esta espera se caía al fallback y timeout.
+  // hasNotText excluye los eventos marcados como [ZOMBIE] en BD (clones de test obsoletos)
+  const notEventCard = /\[ZOMBIE\]|crea\s*evento|crear\s+un\s+evento|crear\s+evento/i;
+  await page.locator('.cardEvento').first().waitFor({ state: 'visible', timeout: 20_000 }).catch(() => {});
+  let eventCards = page.locator('.cardEvento').filter({ hasNotText: notEventCard });
   let cardCount = await eventCards.count();
   if (cardCount === 0) {
     eventCards = page.locator('[class*="rounded"][class*="shadow"], [class*="card"], [data-testid*="event"]').filter({
       hasText: /evento|isabel|raúl|invitado|\d{4}|boda/i,
+      hasNotText: notEventCard,
     });
     cardCount = await eventCards.count();
   }
   if (cardCount === 0) {
-    const anyEventLink = page.locator('a[href*="event"], [role="button"]').filter({ hasText: /evento|isabel|raúl|\d{4}/i });
+    const anyEventLink = page.locator('a[href*="event"], [role="button"]').filter({ hasText: /evento|isabel|raúl|\d{4}/i, hasNotText: notEventCard });
     if ((await anyEventLink.count()) > 0) {
       await anyEventLink.first().click();
       await page.waitForTimeout(2000);
       const url = page.url();
-      const eventIdMatch = url.match(/event=([a-f0-9]{24})/);
+      const eventIdMatch = url.match(/event=([a-f0-9]{24})/i) || url.match(/\/e\/([a-f0-9]{24})/i);
       console.log('✅ Evento seleccionado (enlace/fallback)');
       return eventIdMatch?.[1] ?? 'selected';
     }
@@ -171,15 +371,91 @@ export async function loginAndSelectEvent(
   // Click en primer evento
   const firstCard = eventCards.first();
   const cardText = (await firstCard.textContent()) ?? '';
-  await firstCard.click();
+  // Dismiss <nextjs-portal> overlay (dev mode intercepta pointer events)
+  await page.locator('nextjs-portal').evaluateAll((els) => els.forEach((el) => el.remove())).catch(() => {});
+  await firstCard.click({ force: true }).catch(async () => {
+    await firstCard.click();
+  });
   await page.waitForTimeout(2000);
 
   // Extraer event ID de la URL si cambió
   const url = page.url();
-  const eventIdMatch = url.match(/event=([a-f0-9]{24})/);
+  const eventIdMatch = url.match(/event=([a-f0-9]{24})/i) || url.match(/\/e\/([a-f0-9]{24})/i);
   const eventId = eventIdMatch?.[1] ?? null;
 
   console.log(`✅ Evento seleccionado: "${cardText.slice(0, 40).trim()}" (id: ${eventId ?? 'desconocido'})`);
+  return eventId ?? 'selected';
+}
+
+export async function loginInAppAndSelectFirstEvent(
+  page: Page,
+  email: string,
+  password: string,
+  baseUrl: string,
+): Promise<string | null> {
+  const loginUrl =
+    (baseUrl.includes('app-test') || baseUrl.includes('app-dev') || baseUrl.includes('127.0.0.1') || baseUrl.includes('localhost'))
+      ? `${baseUrl}/login?local-login=1`
+      : `${baseUrl}/login`;
+
+  try {
+    await page.goto(loginUrl, { waitUntil: 'commit', timeout: 90_000 });
+  } catch (e) {
+    if (!String(e).includes('interrupted by another navigation')) throw e;
+  }
+  await page.waitForLoadState('domcontentloaded').catch(() => {});
+  await page.waitForTimeout(2000);
+
+  const emailInput = page
+    .locator('input[type="email"], input[name="identifier"], input[placeholder*="@"], input[autocomplete="email"]')
+    .first();
+  if (!(await emailInput.isVisible({ timeout: 25_000 }).catch(() => false))) return null;
+
+  await emailInput.fill(email, { timeout: 20_000 });
+  await page.locator('input[type="password"]').first().fill(password);
+  const submitButton = page
+    .locator('button[type="submit"], button')
+    .filter({ hasText: /iniciar\s+sesión/i })
+    .first();
+  await submitButton.click({ timeout: 30_000 });
+
+  await page.waitForURL((url: URL) => !url.pathname.includes('/login'), { timeout: 60_000 }).catch(() => {});
+  const hasToken = await page
+    .waitForFunction(
+      () => document.cookie.includes('idTokenV0.1.0') || document.cookie.includes('sessionBodas'),
+      null,
+      { timeout: 25_000 },
+    )
+    .then(() => true)
+    .catch(() => false);
+  await waitForAppReady(page, 25_000);
+  if (page.url().includes('/login') && !hasToken) return null;
+
+  await page.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 90_000 });
+  await waitForAppReady(page, 25_000);
+
+  const misEventosTab = page.locator('a, button').filter({ hasText: /^Mis eventos$/i }).first();
+  if (await misEventosTab.isVisible({ timeout: 10_000 }).catch(() => false)) {
+    await misEventosTab.click().catch(() => {});
+    await page.waitForTimeout(1500);
+  }
+
+  const eventCards = page.locator('[class*="rounded"][class*="shadow"]').filter({
+    hasText: /\d{4}|boda|evento|fiesta|aniversario|cumpleaños/i,
+    hasNotText: /\[ZOMBIE\]/,
+  });
+  const cardCount = await eventCards.count();
+  if (cardCount === 0) return null;
+
+  const firstCard = eventCards.first();
+  const cardText = ((await firstCard.textContent()) ?? '').trim();
+  await firstCard.click();
+  await page.waitForTimeout(2000);
+
+  const url = page.url();
+  const eventIdMatch = url.match(/event=([a-f0-9]{24})/i) || url.match(/\/e\/([a-f0-9]{24})/i);
+  const eventId = eventIdMatch?.[1] ?? null;
+  console.log(`✅ Evento seleccionado (app login): "${cardText.slice(0, 40).trim()}" (id: ${eventId ?? 'desconocido'})`);
   return eventId ?? 'selected';
 }
 
@@ -195,7 +471,10 @@ export async function loginAndSelectEventByName(
   baseUrl: string,
   eventName: string,
 ): Promise<string | null> {
-  const loginUrl = (baseUrl.includes('app-test') || baseUrl.includes('app-dev')) ? `${baseUrl}/login?local-login=1` : `${baseUrl}/login`;
+  const loginUrl =
+    (baseUrl.includes('app-test') || baseUrl.includes('app-dev') || baseUrl.includes('127.0.0.1') || baseUrl.includes('localhost'))
+      ? `${baseUrl}/login?local-login=1`
+      : `${baseUrl}/login`;
   try {
     await page.goto(loginUrl, { waitUntil: 'commit', timeout: 45_000 });
   } catch (e) {
@@ -205,12 +484,14 @@ export async function loginAndSelectEventByName(
       const searchWords = eventName.replace(/\s+/g, ' ').trim().toLowerCase().split(' ').filter(Boolean);
       const eventCards = page.locator('[class*="rounded"][class*="shadow"]').filter({
         hasText: /\d{4}|boda|evento|fiesta|aniversario|cumpleaños/i,
+        hasNotText: /\[ZOMBIE\]/,
       });
       const cardCount = await eventCards.count();
       if (cardCount === 0) return null;
       for (let i = 0; i < cardCount; i++) {
         const card = eventCards.nth(i);
         const text = (await card.textContent()) ?? '';
+        if (text.includes('[ZOMBIE]')) continue;
         const textLower = text.toLowerCase();
         if (searchWords.every((w: string) => textLower.includes(w))) {
           await card.click();
@@ -234,15 +515,22 @@ export async function loginAndSelectEventByName(
   await page.locator('input[type="password"]').first().fill(password);
   await page.locator('button[type="submit"]').first().click();
   await page.waitForURL((url: URL) => !url.pathname.includes('/login'), { timeout: 30_000 }).catch(() => {});
+  const hasToken = await page.waitForFunction(
+    () => document.cookie.includes('idTokenV0.1.0') || document.cookie.includes('sessionBodas'),
+    null,
+    { timeout: 20_000 },
+  ).then(() => true).catch(() => false);
   await waitForAppReady(page, 20_000);
-  if (page.url().includes('/login')) return null;
+  if (page.url().includes('/login') && !hasToken) return null;
 
   await page.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
   await waitForAppReady(page, 15_000);
 
   const searchWords = eventName.replace(/\s+/g, ' ').trim().toLowerCase().split(' ').filter(Boolean);
+  // hasNotText excluye eventos marcados como [ZOMBIE] (clones test obsoletos en BD)
   const eventCards = page.locator('[class*="rounded"][class*="shadow"]').filter({
     hasText: /\d{4}|boda|evento|fiesta|aniversario|cumpleaños/i,
+    hasNotText: /\[ZOMBIE\]/,
   });
   const cardCount = await eventCards.count();
   if (cardCount === 0) return null;
@@ -250,6 +538,7 @@ export async function loginAndSelectEventByName(
   for (let i = 0; i < cardCount; i++) {
     const card = eventCards.nth(i);
     const text = (await card.textContent()) ?? '';
+    if (text.includes('[ZOMBIE]')) continue;
     const textLower = text.toLowerCase();
     const allWordsMatch = searchWords.every((w) => textLower.includes(w));
     if (allWordsMatch) {
@@ -266,6 +555,7 @@ export async function loginAndSelectEventByName(
     for (let i = 0; i < cardCount; i++) {
       const card = eventCards.nth(i);
       const text = (await card.textContent()) ?? '';
+      if (text.includes('[ZOMBIE]')) continue;
       if (text.toLowerCase().includes(word)) {
         await card.click();
         await page.waitForTimeout(2000);
@@ -470,6 +760,7 @@ export async function gotoModule(
   if (page.url().endsWith('/') || page.url().endsWith(baseUrl)) {
     const cards = page.locator('[class*="rounded"][class*="shadow"]').filter({
       hasText: /\d{4}|boda|evento/i,
+      hasNotText: /\[ZOMBIE\]/,
     });
     if (await cards.count() > 0) {
       await cards.first().click();
@@ -503,4 +794,72 @@ export async function getAuthJwt(page: Page): Promise<string | null> {
     if (firebase && firebase !== 'null' && firebase !== 'undefined') return firebase;
     return null;
   });
+}
+
+/**
+ * Detecta errores runtime UI que un user real vería y NO seguiría usando la app.
+ * Llamar tras cada page.goto + waitForAppReady, antes de assertions principales.
+ *
+ * Si detecta error → throw con prefijo BUG_PRODUCTO + snippet pantalla.
+ * Test que ignora estos overlays = simulación user inválida.
+ */
+export async function assertNoRuntimeError(page: Page): Promise<void> {
+  const text = (await page.locator('body').textContent().catch(() => '')) ?? '';
+  const errorPatterns: { pattern: RegExp; label: string }[] = [
+    { pattern: /Runtime Error/i, label: 'Next.js Runtime Error overlay' },
+    { pattern: /Variable ".*" of type .* expecting type/i, label: 'GraphQL schema mismatch' },
+    { pattern: /Error Capturado por ErrorBoundary/i, label: 'React ErrorBoundary' },
+    { pattern: /Internal Server Error/i, label: 'HTTP 500' },
+    { pattern: /Hydration failed/i, label: 'Next.js hydration mismatch' },
+    { pattern: /Application error: a client-side exception/i, label: 'Next.js client exception' },
+  ];
+  for (const { pattern, label } of errorPatterns) {
+    if (pattern.test(text)) {
+      const snippet = text.slice(0, 400).replace(/\s+/g, ' ');
+      throw new Error(`BUG_PRODUCTO [${label}]: ${pattern.source} detectado en UI. Snippet: ${snippet}`);
+    }
+  }
+}
+
+/**
+ * Detecta pantallas en blanco / loaders infinitos que un user real vería como roto.
+ *
+ * Falla si tras `waitMs` la página NO tiene contenido significativo:
+ *   - Body con <minMeaningfulChars caracteres no-whitespace.
+ *   - Texto compuesto SOLO por loaders/spinners ("Comprobando sesión", "Cargando...", "Loading").
+ *
+ * Llamar tras `waitForAppReady` cuando la ruta debería tener contenido real renderizado.
+ * Si la ruta es legítimamente loading (carga lenta de datos), aumentar `waitMs`.
+ */
+export async function assertNotBlankScreen(
+  page: Page,
+  opts: { waitMs?: number; minMeaningfulChars?: number } = {},
+): Promise<void> {
+  const waitMs = opts.waitMs ?? 5000;
+  const minChars = opts.minMeaningfulChars ?? 80;
+  await page.waitForTimeout(waitMs);
+
+  const text = (await page.locator('body').textContent().catch(() => '')) ?? '';
+  const clean = text.replace(/\s+/g, ' ').trim();
+
+  if (clean.length < minChars) {
+    const snippet = clean.slice(0, 200);
+    throw new Error(
+      `BUG_PRODUCTO [Pantalla en blanco]: body tiene ${clean.length} chars (<${minChars} esperados) tras ${waitMs}ms. Snippet: "${snippet}"`,
+    );
+  }
+
+  const stuckLoadingPatterns = [
+    /^Comprobando sesión y conexión/i,
+    /^Cargando\.{3,}$/i,
+    /^Loading\.{3,}$/i,
+    /^Cargando contenido\.{3,}$/i,
+  ];
+  for (const pat of stuckLoadingPatterns) {
+    if (pat.test(clean)) {
+      throw new Error(
+        `BUG_PRODUCTO [Loading infinito]: body contiene solo "${clean.slice(0, 100)}" tras ${waitMs}ms. La app no terminó de cargar.`,
+      );
+    }
+  }
 }

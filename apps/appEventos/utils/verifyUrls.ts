@@ -2,6 +2,8 @@
  * Utilidad para verificar que las URLs y dominios configurados funcionen correctamente
  */
 
+import { resolveApiBodasGraphqlUrl, resolveApiBodasOrigin, resolveApiIaOrigin } from './apiEndpoints';
+
 export interface UrlCheckResult {
   url: string;
   status: 'ok' | 'error' | 'timeout';
@@ -21,12 +23,9 @@ export async function checkUrl(url: string, timeout = 5000): Promise<UrlCheckRes
     const timeoutId = setTimeout(() => controller.abort(), timeout);
     
     const response = await fetch(url, {
-      method: 'HEAD', // Solo HEAD para verificar sin descargar contenido
+      method: 'GET',
       signal: controller.signal,
-      // Agregar headers para evitar bloqueos
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; URL-Checker/1.0)',
-      },
+      cache: 'no-store',
     });
     
     clearTimeout(timeoutId);
@@ -69,16 +68,14 @@ export async function verifyAllUrls(): Promise<UrlCheckResult[]> {
   if (typeof window === 'undefined') {
     // Server-side: usar variables de entorno
     const envUrls = [
-      process.env.NEXT_PUBLIC_BASE_URL,
-      process.env.NEXT_PUBLIC_BASE_API_BODAS,
+      resolveApiBodasOrigin(),
+      resolveApiBodasGraphqlUrl(),
       process.env.NEXT_PUBLIC_DIRECTORY,
       process.env.NEXT_PUBLIC_CMS,
       process.env.NEXT_PUBLIC_CUSTOMWEB,
       process.env.NEXT_PUBLIC_EVENTSAPP,
       process.env.NEXT_PUBLIC_CHAT,
-      // Backend IA
-      process.env.PYTHON_BACKEND_URL || 'https://api-ia.bodasdehoy.com',
-      process.env.NEXT_PUBLIC_BACKEND_URL,
+      resolveApiIaOrigin(),
     ].filter(Boolean) as string[];
     
     urlsToCheck.push(...envUrls);
@@ -94,11 +91,9 @@ export async function verifyAllUrls(): Promise<UrlCheckResult[]> {
     if (hostname.includes('bodasdehoy.com') && !isTestDomain) {
       // Solo verificar APIs externas en producción (evitar CORS en test)
       urlsToCheck.push('https://bodasdehoy.com');
-      urlsToCheck.push('https://api2.eventosorganizador.com');
-      urlsToCheck.push('https://apiapp.bodasdehoy.com');
+      urlsToCheck.push(resolveApiBodasOrigin());
       urlsToCheck.push('https://chat.bodasdehoy.com');
-      // Backend IA
-      urlsToCheck.push('https://api-ia.bodasdehoy.com');
+      urlsToCheck.push(resolveApiIaOrigin());
     } else if (isTestDomain) {
       // En test, solo verificar URLs locales/proxy
       urlsToCheck.push(`${baseUrl}/api/proxy-bodas/graphql`);
@@ -174,6 +169,9 @@ export function verifyDomain(): {
  * Log de verificación para debugging
  */
 export function logUrlVerification(results: UrlCheckResult[]) {
+  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+    if (window.localStorage.getItem('debug_verify_urls') !== 'true') return;
+  }
   console.group('🔍 Verificación de URLs y Dominios');
   
   results.forEach(result => {

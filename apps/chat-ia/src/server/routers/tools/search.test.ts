@@ -13,11 +13,7 @@ vi.mock('@lobechat/utils/server', () => ({
   getXorPayload: vi.fn().mockReturnValue({ userId: '1' }),
 }));
 
-vi.mock('@lobechat/web-crawler', () => ({
-  Crawler: vi.fn().mockImplementation(() => ({
-    crawl: vi.fn().mockResolvedValue({ content: 'test content' }),
-  })),
-}));
+// Mock web-crawler eliminado tras migración 2026-05-19 — crawl via api-ia /webapi/crawl.
 
 vi.mock('@/server/services/search/impls/searxng/client');
 

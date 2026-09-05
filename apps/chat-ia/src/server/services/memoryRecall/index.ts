@@ -87,7 +87,7 @@ export async function recallMemories(
 
   // 3. Marcar memorias como accedidas (fire-and-forget)
   for (const m of memories) {
-    memoryModel.touchAccessed(m.id).catch(() => {});
+    memoryModel.touchAccessed(m.id).catch((e) => console.warn(`[memoryRecall] touchAccessed(${m.id}) falló:`, e?.message));
   }
 
   // 4. Formatear bloque de contexto

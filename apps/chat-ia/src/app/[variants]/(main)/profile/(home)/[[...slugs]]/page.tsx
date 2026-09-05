@@ -1,7 +1,3 @@
-import { Skeleton } from 'antd';
-import dynamic from 'next/dynamic';
-
-import { enableClerk } from '@/const/auth';
 import { metadataModule } from '@/server/metadata';
 import { translation } from '@/server/translation';
 import { DynamicLayoutProps } from '@/types/next';
@@ -9,15 +5,9 @@ import { RouteVariants } from '@/utils/server/routeVariants';
 
 import Client from '../Client';
 
-// 为了兼容 ClerkProfile， 需要使用 [[...slug]]
-
-const ClerkProfile = dynamic(() => import('../../features/ClerkProfile'), {
-  loading: () => (
-    <div style={{ flex: 1 }}>
-      <Skeleton paragraph={{ rows: 8 }} title={false} />
-    </div>
-  ),
-});
+// SPRINT-N 2026-05-19 — migración Clerk-out:
+// Eliminada rama ClerkProfile (UI nativa de Clerk). bodasdehoy usa Firebase via
+// api-ia: el profile es siempre el Client local con AvatarWithUpload + UserAvatar.
 
 export const generateMetadata = async (props: DynamicLayoutProps) => {
   const locale = await RouteVariants.getLocale(props);
@@ -31,9 +21,6 @@ export const generateMetadata = async (props: DynamicLayoutProps) => {
 
 const Page = async (props: DynamicLayoutProps) => {
   const mobile = await RouteVariants.getIsMobile(props);
-
-  if (enableClerk) return <ClerkProfile mobile={mobile} />;
-
   return <Client mobile={mobile} />;
 };
 

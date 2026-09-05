@@ -334,7 +334,7 @@ const LoginRequired = memo(() => {
             size="large"
             type="primary"
           >
-            Iniciar Sesion
+            Iniciar Sesión
           </Button>
           <Button
             block

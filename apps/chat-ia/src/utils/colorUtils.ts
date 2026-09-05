@@ -21,10 +21,10 @@ export function convertAlphaToSolid(foreground: string, background: string): str
 }
 
 interface RGBA {
-  r: number;
-  g: number;
-  b: number;
   a: number;
+  b: number;
+  g: number;
+  r: number;
 }
 
 function parseColor(color: string): RGBA | null {
@@ -34,39 +34,39 @@ function parseColor(color: string): RGBA | null {
   const rgbaMatch = color.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\s*\)/);
   if (rgbaMatch) {
     return {
-      r: parseInt(rgbaMatch[1], 10),
-      g: parseInt(rgbaMatch[2], 10),
-      b: parseInt(rgbaMatch[3], 10),
       a: rgbaMatch[4] !== undefined ? parseFloat(rgbaMatch[4]) : 1,
+      b: parseInt(rgbaMatch[3], 10),
+      g: parseInt(rgbaMatch[2], 10),
+      r: parseInt(rgbaMatch[1], 10),
     };
   }
 
   // #rrggbbaa or #rrggbb or #rgb
-  const hexMatch = color.match(/^#([0-9a-f]{3,8})$/i);
+  const hexMatch = color.match(/^#([\da-f]{3,8})$/i);
   if (hexMatch) {
     const hex = hexMatch[1];
     if (hex.length === 3) {
       return {
-        r: parseInt(hex[0] + hex[0], 16),
-        g: parseInt(hex[1] + hex[1], 16),
-        b: parseInt(hex[2] + hex[2], 16),
         a: 1,
+        b: parseInt(hex[2] + hex[2], 16),
+        g: parseInt(hex[1] + hex[1], 16),
+        r: parseInt(hex[0] + hex[0], 16),
       };
     }
     if (hex.length === 6) {
       return {
-        r: parseInt(hex.slice(0, 2), 16),
-        g: parseInt(hex.slice(2, 4), 16),
-        b: parseInt(hex.slice(4, 6), 16),
         a: 1,
+        b: parseInt(hex.slice(4, 6), 16),
+        g: parseInt(hex.slice(2, 4), 16),
+        r: parseInt(hex.slice(0, 2), 16),
       };
     }
     if (hex.length === 8) {
       return {
-        r: parseInt(hex.slice(0, 2), 16),
-        g: parseInt(hex.slice(2, 4), 16),
-        b: parseInt(hex.slice(4, 6), 16),
         a: parseInt(hex.slice(6, 8), 16) / 255,
+        b: parseInt(hex.slice(4, 6), 16),
+        g: parseInt(hex.slice(2, 4), 16),
+        r: parseInt(hex.slice(0, 2), 16),
       };
     }
   }

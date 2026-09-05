@@ -11,6 +11,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { Task } from '../../../utils/Interfaces';
+import { isStudioPathname } from '../../../utils/studioPaths';
 
 interface BoardFiltersProps {
   activeFilters: Record<string, any>;
@@ -130,13 +131,16 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
   ).length;
 
   return (
-    <div className="bg-white border-b border-gray-200 p-4">
+    <div
+      style={(typeof window !== "undefined" && isStudioPathname(window.location.pathname) && new URLSearchParams(window.location.search).get("studio") !== "legacy")
+        ? { background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, padding: 18, fontFamily: "'Poppins',sans-serif" } : undefined}
+      className={(typeof window !== "undefined" && isStudioPathname(window.location.pathname) && new URLSearchParams(window.location.search).get("studio") !== "legacy") ? "" : "bg-white border-b border-gray-200 p-4"}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
           <Filter className="w-5 h-5 text-gray-500" />
           <h3 className="text-lg font-semibold text-gray-800">Filtros</h3>
           {activeFilterCount > 0 && (
-            <span className="bg-pink-100 text-primary text-xs px-2 py-1 rounded-full">
+            <span className="bg-base border border-primary text-primary text-xs px-2 py-1 rounded-full">
               {activeFilterCount} activo{activeFilterCount > 1 ? 's' : ''}
             </span>
           )}
@@ -198,7 +202,7 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
           <div className="space-y-1">
             {[
               { key: 'pending', label: 'Pendiente', icon: Clock, color: 'text-gray-600' },
-              { key: 'completed', label: 'Completado', icon: CheckCircle, color: 'text-[#00b341]' }
+              { key: 'completed', label: 'Completado', icon: CheckCircle, color: 'text-emerald-600' }
             ].map(status => (
               <label
                 key={status.key}

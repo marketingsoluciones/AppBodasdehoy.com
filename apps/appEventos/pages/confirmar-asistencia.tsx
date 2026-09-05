@@ -25,9 +25,9 @@ const ConfirmaAsistencia = () => {
             .then((r) => r.json())
             .then((result) => {
                 if (result?.error) return
-                setGuestData(result?.invitados_array)
-                setGuestFather(result?.invitados_array?.find((e: guests) => e.father === null))
-                setMenus_array(result?.menus_array)
+                setGuestData(result?.invitados)
+                setGuestFather(result?.invitados?.[0])
+                setMenus_array(result?.menus)
                 if (result?._id) setEventId(result._id)
             })
             .catch(() => {

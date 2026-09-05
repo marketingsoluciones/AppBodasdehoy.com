@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, Dispatch, SetStateAction } from 'react';
 import { usePathname } from 'next/navigation';
-import { Upload, X, FileText, FileImage, FileVideo, FileAudio, File, Check, Loader2, Download, Trash2, Lock, Plus } from 'lucide-react';
+import { Upload, X, FileText, FileImage, FileVideo, FileAudio, File, Check, Loader2, Download, Trash2, Lock, Plus, FileArchive, FileSpreadsheet } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getStorage, ref, uploadBytesResumable, deleteObject } from "firebase/storage";
 import { FileData, Task } from '../../../utils/Interfaces';
@@ -9,21 +9,42 @@ import { fetchApiEventos, queries } from "../../../utils/Fetching";
 import { AuthContextProvider, EventContextProvider } from "../../../context";
 import { downloadFile } from "../../Utils/storages";
 import { useToast } from "../../../hooks/useToast";
+import { validateFiles, ALL_FILES_ACCEPT, filesFromDataTransfer, filterDropFiles } from '@bodasdehoy/shared/upload';
+import { isStudioPathname } from "../../../utils/studioPaths";
 
 const getFileIcon = (fileName: string) => {
   const ext = fileName.split('.').pop()?.toLowerCase();
 
-  if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(ext || '')) {
+  // Imágenes (+ HEIC/HEIF iOS, AVIF moderno)
+  if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'heic', 'heif', 'avif'].includes(ext || '')) {
     return <FileImage className="w-4 h-4 text-primary" />;
   }
-  if (['mp4', 'avi', 'mov', 'wmv'].includes(ext || '')) {
-    return <FileVideo className="w-4 h-4 text-purple-500" />;
+  // Vídeos (+ webm, mkv)
+  if (['mp4', 'avi', 'mov', 'wmv', 'webm', 'mkv'].includes(ext || '')) {
+    return <FileVideo className="w-4 h-4 text-secondary" />;
   }
-  if (['mp3', 'wav', 'ogg'].includes(ext || '')) {
+  // Audio (+ m4a, flac)
+  if (['mp3', 'wav', 'ogg', 'm4a', 'flac'].includes(ext || '')) {
     return <FileAudio className="w-4 h-4 text-green-500" />;
   }
-  if (['pdf', 'doc', 'docx', 'txt'].includes(ext || '')) {
+  // PDF/DOC
+  if (['pdf', 'doc', 'docx', 'odt', 'rtf'].includes(ext || '')) {
     return <FileText className="w-4 h-4 text-red-500" />;
+  }
+  // Spreadsheets / presentaciones
+  if (['xls', 'xlsx', 'ods', 'csv'].includes(ext || '')) {
+    return <FileSpreadsheet className="w-4 h-4 text-emerald-600" />;
+  }
+  if (['ppt', 'pptx', 'odp'].includes(ext || '')) {
+    return <FileText className="w-4 h-4 text-orange-500" />;
+  }
+  // Archives
+  if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext || '')) {
+    return <FileArchive className="w-4 h-4 text-yellow-500" />;
+  }
+  // Texto plano
+  if (['txt', 'md', 'json'].includes(ext || '')) {
+    return <FileText className="w-4 h-4 text-gray-600" />;
   }
 
   return <File className="w-4 h-4 text-gray-500" />;
@@ -68,10 +89,20 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
   const [deletingFiles, setDeletingFiles] = useState<string[]>([]);
   const ruta = usePathname();
   const isItinerarioRoute = ["/itinerario"].includes(ruta);
+  const isStudio = typeof window !== "undefined"
+    && isStudioPathname(window.location.pathname)
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
 
   const handleFileSelect = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
-    const filesArray = Array.from(files);
+    // Validar TODOS antes de subir nada. Tope por categoría dinámico
+    // (50MB fotos, 5GB vídeos, 100MB docs, 500MB archives, 100MB audio).
+    const { valid, rejected } = validateFiles(files);
+    for (const r of rejected) {
+      toast('error', `${r.file.name}: ${r.error}`);
+    }
+    if (valid.length === 0) return;
+    const filesArray = valid.map((v) => v.file);
     // Verificar archivos duplicados
     const existingNames = task.attachments.map(elem => elem.name);
     const duplicates = filesArray.filter(file => existingNames.includes(file.name));
@@ -138,16 +169,26 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
             }).then(() => {
               toast("success", t("Archivo subido correctamente"));
               const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerarioId);
-              const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === task._id);
-              event.itinerarios_array[f1].tasks[f2].attachments.push(newFileData);
-              setEvent({ ...event });
+              setEvent((prev) => ({
+                ...prev,
+                itinerarios_array: prev.itinerarios_array.map((it, i) =>
+                  i !== f1 ? it : {
+                    ...it,
+                    tasks: it.tasks.map(tk =>
+                      tk._id !== task._id ? tk : { ...tk, attachments: [...(tk.attachments ?? []), newFileData] }
+                    ),
+                  }
+                ),
+              }));
               setUploadingFiles(prev => prev?.filter(elem => elem.id !== uploadId));
             })
           } catch (error) {
             console.error('Error updating attachments:', error);
-            // Si falla la actualización, eliminar el archivo del storage
+            // Si falla la actualización, eliminar el archivo del storage (cleanup).
             const deleteRef = ref(storage, `${task._id}//${file.name}`);
-            deleteObject(deleteRef).catch(() => { });
+            deleteObject(deleteRef).catch((delErr) => {
+              console.warn('[NewAttachmentsEditor] deleteObject cleanup falló:', delErr?.code ?? delErr?.message ?? delErr)
+            });
             setUploadingFiles(prev => prev.map(elem =>
               elem.id === uploadId ? { ...elem, status: 'error' } : elem
             ));
@@ -249,25 +290,32 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
     e.stopPropagation();
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
 
-    const files = e.dataTransfer.files;
-    handleFileSelect(files);
+    // filesFromDataTransfer recorre subcarpetas con webkitGetAsEntry;
+    // soltar una CARPETA antes daba 0 archivos. filterDropFiles descarta
+    // .DS_Store, ._* y archivos 0 bytes.
+    const { files: dropped } = await filesFromDataTransfer(e.dataTransfer);
+    const { kept } = filterDropFiles(dropped);
+    if (kept.length === 0) return;
+    const dt = new DataTransfer();
+    kept.forEach((f) => dt.items.add(f));
+    handleFileSelect(dt.files);
   };
 
   return (
     <div className="flex flex-col bg-white max-h-[144px] w-1/2. ">
       {/* Header fijo con título y botón de agregar */}
-      <div className="flex items-center justify-between flex-shrink-0  ">
+      <div className="flex items-center justify-between flex-shrink-0">
         <div className={`flex items-center gap-1 ${!canEdit? task.attachments.length > 0 && 'cursor-pointer' : ''}`} onClick={() => !canEdit ? task.attachments.length > 0 && setShowAttachments(!showAttachments) : setShowAttachments(!showAttachments)}>
-          <span className="text-xs text-gray-700">{t('Archivos adjuntos')}</span>
-          <div className={`w-5 h-5 rounded-full ${task.attachments.length > 0 ? 'bg-emerald-600' : 'bg-gray-300'} flex items-center justify-center`}>
-            <span className="text-xs text-white font-extrabold">{task.attachments.length}</span>
+          <span className={isStudio ? "text-xs text-[#a0a0a8] font-semibold" : "text-xs text-gray-700"}>{isStudio ? t('Adjuntos') : t('Archivos adjuntos')}</span>
+          <div className={`w-5 h-5 rounded-full flex items-center justify-center ${isStudio ? 'bg-[#f2f2f4]' : (task.attachments.length > 0 ? 'bg-emerald-600' : 'bg-gray-300')}`}>
+            <span className={`text-xs font-extrabold ${isStudio ? 'text-[#8a8a90] !font-bold text-[10.5px]' : 'text-white'}`}>{task.attachments.length}</span>
           </div>
-          <span className={`text-xs ${task.attachments.length > 0 ? 'text-emerald-600' : 'text-gray-500'} font-bold`}>{showAttachments ? t("Ocultar") : t("Ver")}</span>
+          <span className={`text-xs font-bold ${isStudio ? 'text-[#EF5B94]' : (task.attachments.length > 0 ? 'text-emerald-600' : 'text-gray-500')}`}>{showAttachments ? t("Ocultar") : t("Ver")}</span>
           {/*  {!canEdit && (
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">
               <Lock className="w-3 h-3 mr-1" />
@@ -288,6 +336,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
               ref={fileInputRef}
               type="file"
               multiple
+              accept={ALL_FILES_ACCEPT}
               onChange={(e) => handleFileSelect(e.target.files)}
               className="hidden"
             />
@@ -310,7 +359,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
         )}
       </div>
       {/* Contenedor con scroll para archivos */}
-      <div className={`flex-1  overflow-y-auto px-3 py-1 space-y-0.5 border-[1px] border-gray-200 rounded-lg ${showAttachments ? 'block' : 'hidden'}`}
+      <div className={`flex-1 overflow-y-auto space-y-0.5 ${isStudio ? `border-0 p-0 mt-2 ${showAttachments ? 'block' : 'hidden'}` : `px-3 py-1 border-[1px] border-gray-200 rounded-lg ${showAttachments ? 'block' : 'hidden'}`}`}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
@@ -401,7 +450,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
           ))
           : canEdit && uploadingFiles.length === 0 &&
           <div
-            className={`h-full flex items-center justify-center min-h-[40px] border border-dashed rounded-md text-center transition-all ${isDragging
+            className={`h-full flex items-center justify-center border border-dashed rounded-md text-center transition-all ${isStudio ? 'min-h-[62px] py-5' : 'min-h-[40px]'} ${isDragging
               ? 'border-primary bg-primary/5'
               : 'border-gray-300'
               }`}
@@ -410,19 +459,26 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
               <p className="text-xs text-gray-500">
                 {isDragging
                   ? <span className="text-primary font-medium">{t('Suelta los archivos aquí')}</span>
-                  : <>
-                    {t('Arrastra archivos o')}{' '}
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="text-primary hover:text-primary/80 font-medium"
-                    >
-                      {t('haz clic aquí')}
-                    </button>
-                  </>
+                  : isStudio
+                    ? <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-primary hover:text-primary/80 font-medium"
+                      >
+                        {t('Subir foto JPG o PNG', { defaultValue: 'Subir foto JPG o PNG' })}
+                      </button>
+                    : <>
+                      {t('Arrastra archivos o')}{' '}
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-primary hover:text-primary/80 font-medium"
+                      >
+                        {t('haz clic aquí')}
+                      </button>
+                    </>
                 }
               </p>
               <p className="text-xs text-gray-400 mt-0.5">
-                {t('Máx: 10MB')}
+                {isStudio ? t('máx. 10 MB', { defaultValue: 'máx. 10 MB' }) : t('Máx: 10MB')}
               </p>
             </div>
           </div>

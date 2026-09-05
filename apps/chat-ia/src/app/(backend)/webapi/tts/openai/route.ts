@@ -1,15 +1,16 @@
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
 /**
  * TTS proxy → api-ia backend
  * No llama a OpenAI directamente. Todo el audio pasa por api-ia para
  * mantener el enrutamiento y facturación centralizada.
  */
 
-export const runtime = 'nodejs';
+// SPRINT-AC 2026-05-20: edge runtime (antes nodejs). Solo hace fetch a api-ia
+// + reenvía stream binario audio — todas Web APIs disponibles en edge.
+export const runtime = 'edge';
 
 const getBackendUrl = () =>
-  process.env.PYTHON_BACKEND_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  'https://api-ia.bodasdehoy.com';
+  resolveServerBackendOrigin();
 
 export const POST = async (req: Request) => {
   const backendUrl = getBackendUrl();

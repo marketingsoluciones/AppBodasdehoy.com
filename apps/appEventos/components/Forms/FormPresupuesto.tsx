@@ -1,0 +1,99 @@
+import { Formik } from "formik";
+import { formikValidateUx } from "./formikValidateUx";
+import { useContext, useState } from "react";
+import { api } from "../../api";
+import { EventContextProvider } from "../../context";
+import InputField from "./InputField";
+import { useTranslation } from 'react-i18next';
+
+type FormPresupuestoValues = {
+  nombre: string;
+  presupuesto?: number;
+};
+
+const validacion = (_values: FormPresupuestoValues) => {
+  const errors: Partial<Record<keyof FormPresupuestoValues, string>> = {};
+  return errors;
+};
+
+type FormPresupuestoProps = {
+  set?: (v: any) => void;
+  state?: any;
+};
+
+const FormPresupuesto = ({ set, state }: FormPresupuestoProps) => {
+  const { event, setEvent } = EventContextProvider();
+  return (
+    <Formik
+      {...formikValidateUx}
+      initialValues={{
+        nombre: "",
+      }}
+      onSubmit={async (values, actions) => {
+
+      }}
+      validate={validacion}
+    >
+      {(props) => <BasicForm {...props} />}
+    </Formik>
+  );
+};
+
+export default FormPresupuesto;
+
+type BasicFormProps = {
+  handleChange: (e: React.ChangeEvent<any>) => void;
+  handleSubmit: (e?: React.FormEvent<HTMLFormElement>) => void;
+  isSubmitting: boolean;
+  values: { presupuesto?: number; nombre?: string };
+  handleBlur: (e: React.FocusEvent<any>) => void;
+};
+
+export const BasicForm = ({
+  handleChange,
+  handleSubmit,
+  isSubmitting,
+  values,
+  handleBlur,
+}: BasicFormProps) => {
+  const { t } = useTranslation();
+  return (
+    <div className="w-full flex flex-col">
+      <div className="border-l-2 border-gray-100 pl-3 w-full ">
+        <h2 className="font-display text-3xl capitalize text-primary font-light">
+          {t("edit")} <br />
+          <span className="font-display text-5xl capitalize text-gray-500 font-medium">
+            {t("budget")}
+          </span>
+        </h2>
+      </div>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5 py-6 w-full">
+        <div className="grid grid-cols-1 gap-4">
+          <div className="flex items-center box-content">
+            <img
+              src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y"
+              alt="imagen-invitados"
+              className="w-12 h-12 rounded-full mr-6 "
+            />
+            <InputField
+              name="presupuesto"
+              label={t("budget")}
+              onChange={handleChange}
+              value={values.presupuesto}
+              onBlur={handleBlur}
+              type="number"
+            />
+          </div>
+        </div>
+        <button
+          className={`font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"
+            }`}
+          disabled={isSubmitting}
+          type="submit"
+        >
+          {t("creategroup")}
+        </button>
+      </form>
+    </div>
+  );
+};

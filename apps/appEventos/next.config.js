@@ -1,8 +1,21 @@
 /** @type {import('next').NextConfig} */
 const path = require('path');
+// QA 30-jun: inyectar commit SHA en NEXT_PUBLIC_COMMIT_SHA para que el
+// footer de debug pueda mostrarlo sin depender de ninguna env var manual.
+const { execSync } = require('child_process');
+try {
+  if (!process.env.NEXT_PUBLIC_COMMIT_SHA) {
+    process.env.NEXT_PUBLIC_COMMIT_SHA = execSync('git rev-parse --short HEAD', {
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).toString().trim();
+  }
+} catch (_) { /* falla silente si no hay git */ }
 const nextConfig = {
   // Habilitar React Strict Mode para mejor desarrollo
   reactStrictMode: true,
+  env: {
+    NEXT_PUBLIC_COMMIT_SHA: process.env.NEXT_PUBLIC_COMMIT_SHA || 'unknown',
+  },
 
   // Ignorar errores de ESLint durante el build (son solo warnings)
   eslint: {
@@ -12,8 +25,20 @@ const nextConfig = {
   // Deshabilitar indicadores de desarrollo que causan errores en Next.js 15
   devIndicators: false,
 
-  // Transpile packages del monorepo y @lobehub/ui
-  transpilePackages: ['@bodasdehoy/auth-ui', '@bodasdehoy/shared', '@bodasdehoy/memories', '@bodasdehoy/copilot-shared', '@lobehub/ui', '@lobehub/editor', 'react-layout-kit', 'zustand-utils'],
+  // ⚡ FASE 4 PR-4.2 (2026-05-13): packages compartidos eliminados de transpilePackages
+  // tras migrar a dist build (FASE 3). Next los carga pre-compilados → ahorra recompile.
+  // SOLO quedan los packages externos que aún requieren transpile.
+  transpilePackages: ['@lobehub/ui', '@lobehub/editor', 'react-layout-kit', 'zustand-utils'],
+
+  // Antipatrón 6 (auditoría 20-jun): 109 archivos tenían console.log heredados de debug.
+  // El SWC compiler de Next 15 los elimina del bundle de producción —
+  // mantenemos `error` y `warn` para que sigan llegando a Sentry y a logs operativos
+  // (especialmente útil ahora que erradicamos los .catch silentes en commit 70ac0402).
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
+  },
 
   // Redirects para URLs con caracteres especiales → ASCII equivalente
   async redirects() {
@@ -66,11 +91,21 @@ const nextConfig = {
   },
 
   // Configuración experimental para compatibilidad
-  experimental: process.env.NODE_ENV === 'production'
-    ? {
-        optimizePackageImports: ['react-icons', 'lucide-react', 'framer-motion', '@lobehub/ui', 'antd', '@ant-design/icons', 'date-fns', 'swiper'],
-      }
-    : {},
+  // PERF 2026-06-04: optimizePackageImports también en DEV (antes solo prod). Reduce el fan-out
+  // de barrels grandes (antd, lucide, @lobehub/ui) en cada compilación on-demand de dev.
+  experimental: {
+    optimizePackageImports: ['react-icons', 'lucide-react', 'framer-motion', '@lobehub/ui', 'antd', '@ant-design/icons', 'date-fns', 'swiper'],
+  },
+
+  // PERF 2026-06-04: no retener páginas compiladas inactivas en memoria (la Mac de 16GB satura
+  // swap al compilar /login = 15922 módulos). Solo afecta a dev.
+  // 2026-08-28: maxInactiveAge sube de 25s a 30min. Con app-dev sirviendo `next dev` detrás del
+  // túnel, compilar una página tarda aquí 40-160s: a los 25s Next ya la había descartado, así
+  // que recompilaba en CADA petición y Cloudflare cortaba con 502 antes de recibir nada.
+  // El buffer sigue corto (5) para no reventar el swap: acota la memoria sin la espiral.
+  ...(process.env.NODE_ENV === 'production'
+    ? {}
+    : { onDemandEntries: { maxInactiveAge: 30 * 60 * 1000, pagesBufferLength: 5 } }),
 
   // Turbopack: equivalentes de los aliases webpack críticos
   // Evita instancias duplicadas de React (resolveDispatcher is null)
@@ -80,6 +115,9 @@ const nextConfig = {
       // next/navigation: compatibilidad con Pages Router (relativo a este next.config.js)
       'next/navigation': './hooks/useCompatRouter.ts',
     },
+    // Permitir resolver imports `from "../api"` a `api.ts` (post migración ITEM 8 .js→.ts)
+    // Sin esto, Turbopack en Next 15 busca literalmente `.js` y falla si solo existe `.ts`.
+    resolveExtensions: ['.tsx', '.ts', '.jsx', '.js', '.mts', '.cts', '.mjs', '.cjs', '.json'],
   },
 
   // Webpack config para resolver módulos ESM de @lobehub/ui
@@ -115,6 +153,18 @@ const nextConfig = {
       ];
     }
 
+    // PERF 2026-06-04: cache filesystem de webpack en DEV → compilaciones posteriores 3-5× más
+    // rápidas (no recompila los 15922 módulos desde cero en cada arranque). Replicado de chat-ia.
+    if (dev) {
+      config.cache = {
+        type: 'filesystem',
+        cacheDirectory: path.join(__dirname, '.next/cache/webpack'),
+        compression: false,
+        maxMemoryGenerations: 1,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
+      };
+    }
+
     return config;
   },
 
@@ -123,12 +173,59 @@ const nextConfig = {
     'app-test.bodasdehoy.com',
     '127.0.0.1',
     'localhost',
+    '192.168.1.48',
+    '204.168.187.112',
   ],
+
+  // Source maps en prod desactivados — Sentry los sube por su cuenta si está configurado.
+  productionBrowserSourceMaps: false,
 
   // Rewrites para el proxy de Lobe-Chat. Usa NEXT_PUBLIC_CHAT del .env (chat-dev en dev, chat en prod).
   async rewrites() {
     const copilotBase = (process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com').replace(/\/$/, '');
     return [
+      {
+        source: '/locales/:path*',
+        has: [
+          { type: 'header', key: 'referer', value: '.*\\/copilot-chat.*' },
+        ],
+        destination: `${copilotBase}/locales/:path*`,
+      },
+      {
+        source: '/cdn-cgi/:path*',
+        has: [
+          { type: 'header', key: 'referer', value: '.*\\/copilot-chat.*' },
+        ],
+        destination: `${copilotBase}/cdn-cgi/:path*`,
+      },
+      {
+        source: '/jwe/:path*',
+        has: [
+          { type: 'header', key: 'referer', value: '.*\\/copilot-chat.*' },
+        ],
+        destination: `${copilotBase}/jwe/:path*`,
+      },
+      {
+        source: '/trpc/:path*',
+        has: [
+          { type: 'header', key: 'referer', value: '.*\\/copilot-chat.*' },
+        ],
+        destination: `${copilotBase}/trpc/:path*`,
+      },
+      {
+        source: '/socket.io/:path*',
+        has: [
+          { type: 'header', key: 'referer', value: '.*\\/copilot-chat.*' },
+        ],
+        destination: `${copilotBase}/socket.io/:path*`,
+      },
+      {
+        source: '/api/graphql',
+        has: [
+          { type: 'header', key: 'referer', value: '.*\\/copilot-chat.*' },
+        ],
+        destination: `${copilotBase}/api/graphql`,
+      },
       {
         source: '/_next/:path*',
         has: [
@@ -155,4 +252,20 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+// Sentry — solo activo cuando NEXT_PUBLIC_SENTRY_DSN está definido.
+// En dev se deshabilita el webpack plugin para evitar overhead de compilación.
+const { withSentryConfig } = require('@sentry/nextjs');
+const isProdBuild = process.env.NODE_ENV === 'production';
+
+module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
+  ? withSentryConfig(nextConfig, {
+      silent: true,
+      org: 'itel-0n',
+      project: 'app-eventos',
+      widenClientFileUpload: true,
+      hideSourceMaps: true,
+      webpack: { treeshake: { removeDebugLogging: true } },
+      disableClientWebpackPlugin: !isProdBuild,
+      disableServerWebpackPlugin: !isProdBuild,
+    })
+  : nextConfig;

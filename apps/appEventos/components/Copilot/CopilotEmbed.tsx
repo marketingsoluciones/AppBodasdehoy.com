@@ -33,6 +33,13 @@ import {
   type CodeOutputEvent,
 } from '../../services/copilotChat';
 import { EventsGroupContextProvider } from '../../context';
+import { developments } from '@bodasdehoy/shared/types';
+
+/** Hosts conocidos de todos los tenants — para interceptar links internos */
+const KNOWN_APP_HOSTS = developments.flatMap((d) => {
+  const root = d.domain.replace(/^\./, '');
+  return [`app.${root}`, `app-test.${root}`, `app-dev.${root}`, `organizador.${root}`];
+});
 
 /** Mapeo de path → entity para filtros del Copilot */
 const PATH_TO_ENTITY: Record<string, string> = {
@@ -541,7 +548,7 @@ function lsLoadMsgs(sessionId: string): MessageItem[] | null {
     }
     return messages.map((m: any) => ({
       ...m,
-      avatar: m.role === 'user' ? { title: 'Tú' } : { title: 'Copilot', backgroundColor: '#FF1493' },
+      avatar: m.role === 'user' ? { title: 'Tú', avatar: '👤', backgroundColor: '#f3f4f6' } : { title: 'Copilot', avatar: '✨', backgroundColor: '#FF1493' },
       loading: false,
       // JSON serializa Date → string; restaurar como Date para que MessageList llame .getTime()
       createdAt: m.createdAt ? new Date(m.createdAt) : undefined,
@@ -618,8 +625,8 @@ export const CopilotEmbed = ({
           message: msg.content,
           avatar:
             msg.role === 'user'
-              ? { title: 'Tú' }
-              : { title: 'Copilot', backgroundColor: '#FF1493' },
+              ? { title: 'Tú', avatar: '👤', backgroundColor: '#f3f4f6' }
+              : { title: 'Copilot', avatar: '✨', backgroundColor: '#FF1493' },
           createdAt: msg.createdAt,
           loading: false,
           error: msg.error ? { message: msg.error } : undefined,
@@ -837,7 +844,7 @@ export const CopilotEmbed = ({
         id: userMessageId,
         role: 'user',
         message: content,
-        avatar: { title: 'Tú' },
+        avatar: { title: 'Tú', avatar: '👤', backgroundColor: '#f3f4f6' },
         createdAt: new Date(),
       };
       setMessages(prev => [...prev, userMessage]);
@@ -850,7 +857,7 @@ export const CopilotEmbed = ({
         id: assistantMessageId,
         role: 'assistant',
         message: '',
-        avatar: { title: 'Copilot', backgroundColor: '#FF1493' },
+        avatar: { title: 'Copilot', avatar: '✨', backgroundColor: '#FF1493' },
         createdAt: new Date(),
         loading: true,
       };
@@ -968,7 +975,7 @@ export const CopilotEmbed = ({
       }
       try {
         const url = new URL(href, window.location.origin);
-        const knownHosts = ['app.bodasdehoy.com', 'app-test.bodasdehoy.com', 'app-dev.bodasdehoy.com', 'organizador.bodasdehoy.com'];
+        const knownHosts = KNOWN_APP_HOSTS;
         if (url.origin === window.location.origin || knownHosts.some(h => url.hostname === h)) {
           e.preventDefault();
           router.push(url.pathname + url.search + url.hash);
@@ -1041,24 +1048,19 @@ export const CopilotEmbed = ({
         <p style={{ margin: '0 0 18px', fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
           Pregunta por invitados, presupuesto, mesas o servicios. También puedes escribir abajo.
         </p>
-        <p
-          style={{
-            margin: '0 0 10px',
-            fontSize: 11,
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            color: '#9ca3af',
-          }}
-        >
-          Prueba con
-        </p>
+        {/* BUG-15 (informe QA 21-jun): "PRUEBA CON" sin chips proactivos quedaba huérfano
+            (label sin lista). Movemos el label DENTRO del bloque de chips para que solo
+            aparezca cuando hay algo que mostrar. */}
         {/* Chips proactivos */}
         {(() => {
           const chips = getProactiveChips(pageContext);
           if (chips.length === 0) return null;
           const chipColors = { danger: { bg: '#fef2f2', border: '#fca5a5', text: '#dc2626' }, warning: { bg: '#fffbeb', border: '#fcd34d', text: '#d97706' }, info: { bg: '#eff6ff', border: '#93c5fd', text: '#2563eb' } };
           return (
+            <>
+            <p style={{ margin: '0 0 10px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9ca3af' }}>
+              Atención
+            </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
               {chips.map(chip => {
                 const c = chipColors[chip.severity];
@@ -1073,13 +1075,20 @@ export const CopilotEmbed = ({
                 );
               })}
             </div>
+            </>
           );
         })()}
-        <p style={{ margin: '0 0 10px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9ca3af' }}>
-          Prueba con
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'stretch' }}>
-          {getSuggestedQuestions(router?.pathname || '').map(q => (
+        {/* BUG-15: ocultar "Prueba con" si no hay sugerencias. */}
+        {(() => {
+          const suggestions = getSuggestedQuestions(router?.pathname || '');
+          if (!suggestions || suggestions.length === 0) return null;
+          return (
+            <>
+              <p style={{ margin: '0 0 10px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9ca3af' }}>
+                Prueba con
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'stretch' }}>
+                {suggestions.map(q => (
             <button
               key={q}
               type="button"
@@ -1111,8 +1120,11 @@ export const CopilotEmbed = ({
             >
               {q}
             </button>
-          ))}
-        </div>
+                ))}
+              </div>
+            </>
+          );
+        })()}
       </div>
     </div>
   ), [eventName, handleSend, pageContext, router?.pathname]);
@@ -1228,6 +1240,7 @@ export const CopilotEmbed = ({
       >
         <CopilotChatInput
           generating={loading}
+          leftActions={[['history', 'clear']]}
           chatKey={sessionId}
           onSend={({ clearContent, getMarkdownContent }) => {
             const content = getMarkdownContent();

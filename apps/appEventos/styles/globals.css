@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@config "../tailwind.config.js";
+@import "tailwindcss";
 
 
 
@@ -64,8 +63,10 @@ body {
 
 
 .paper {
-  background-color: #ffffff;
-  background-image: url("../public/paper.svg");
+  background-color: transparent;
+  background-image: url("/paper.svg");
+  background-repeat: repeat;
+  background-size: 100px 100px;
   /* height: 100%;
   width: 100%; */
 }
@@ -102,6 +103,16 @@ input[type="text"]:focus {
   flex: 1 1 0;
   min-height: 0;
   overflow: auto;
+}
+
+/* BUG-H-01 (informe QA 22-jun): Tailwind preflight setea button { cursor: default }
+   sobreescribiendo el comportamiento nativo. Los <button> sin clase cursor-pointer
+   explícita mostraban cursor de flecha → daña la affordance UX en TODA la app.
+   Fix: revertir al cursor pointer por defecto en cualquier <button> no disabled.
+   También se aplica a <a> y elementos con role="button" para consistencia. */
+button:not([disabled]):not([aria-disabled="true"]),
+[role="button"]:not([disabled]):not([aria-disabled="true"]) {
+  cursor: pointer;
 }
 
 /* Override Next.js dev overlay portal — prevent transparent overlay from intercepting clicks */

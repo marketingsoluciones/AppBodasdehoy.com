@@ -29,9 +29,9 @@ export default function ApiDebug() {
       addLog(`Config development: ${config?.development}`);
 
       // Test 1: Llamada directa a API Bodas
-      addLog('--- Test 1: Llamada directa a https://api2.eventosorganizador.com/graphql ---');
+      addLog('--- Test 1: Llamada directa a https://api-mcp.eventosorganizador.com ---');
 
-      const directResponse = await fetch('https://api2.eventosorganizador.com/graphql', {
+      const directResponse = await fetch('https://api-mcp.eventosorganizador.com', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

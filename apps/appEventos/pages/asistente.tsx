@@ -1,4 +1,4 @@
-import { FC, useMemo } from "react"
+import { FC, useEffect, useMemo } from "react"
 import { useRouter } from "next/router"
 import { AuthContextProvider, EventContextProvider } from "../context"
 import { useMounted } from "../hooks/useMounted"
@@ -25,12 +25,16 @@ const AsistentePage: FC = () => {
   const router = useRouter()
   const { user, config } = AuthContextProvider()
   const { event } = EventContextProvider()
+  const guestId = useMemo(() => getGuestSessionId(), [])
 
-  if (config?.copilotEnabled === false) {
-    if (typeof window !== 'undefined') router.replace('/')
-    return null
-  }
-  const guestId = useMemo(() => (typeof window !== 'undefined' ? getGuestSessionId() : null), [])
+  useEffect(() => {
+    if (config?.copilotEnabled === false) {
+      router.replace('/')
+    }
+  }, [config?.copilotEnabled, router])
+
+  if (config?.copilotEnabled === false) return null
+
   const userId = user?.email || user?.uid || guestId || undefined
   const isAnonymous = !user || user?.displayName === 'guest' || !user?.email
 

@@ -35,6 +35,7 @@ import {
   sessionGroups,
   sessions,
   topics,
+  users,
 } from '../schemas';
 import { LobeChatDatabase } from '../type';
 import { genEndDateWhere, genRangeWhere, genStartDateWhere, genWhere } from '../utils/genWhere';
@@ -204,6 +205,8 @@ export class SessionModel {
     type: 'agent' | 'group';
   }): Promise<SessionItem> => {
     return this.db.transaction(async (trx) => {
+      await trx.insert(users).values({ id: this.userId }).onConflictDoNothing();
+
       if (slug) {
         const existResult = await trx.query.sessions.findFirst({
           where: and(eq(sessions.slug, slug), eq(sessions.userId, this.userId)),

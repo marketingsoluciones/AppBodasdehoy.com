@@ -1,0 +1,16 @@
+*P0 hacia OPERATIVO — necesitamos cierre explícito*
+
+*MCP:*
+1) *Deploy* resolver/enum `getMySubscription.status` → mensaje aquí: *LISTO [staging|prod] + fecha*.
+2) *R2 / uploadCRM* bodasdehoy en PROD sin «Storage no configurado» → *OK* o enlace ticket.
+
+*Infra + api-ia + Front (socket):*
+3) Socket BASE `https://api-ia.bodasdehoy.com` (misma que IA) — DNS/TLS/Nginx sin 502
+   en `/socket.io/`; `ALLOWED_ORIGINS` en api-ia; `NEXT_PUBLIC_SOCKET_URL` en
+   build appEventos → *OK* o enlace evidencia (detalle `scripts/OPERATIVO-CHECKLIST.txt`).
+
+*Front (cuando 1 esté LISTO):* reactivamos el campo `status` en `getMySubscription` (cliente) + redeploy appEventos (+ chat-ia si aplica).
+
+*api-ia:* P1 bugs ~24 feb — estado en `#copilot-api-ia`.
+
+Roles: `scripts/PENDIENTES-NOSOTROS-VS-ELLOS.txt` (ROLES + DEFINICIÓN cerrado). Checklist: `scripts/OPERATIVO-CHECKLIST.txt`.

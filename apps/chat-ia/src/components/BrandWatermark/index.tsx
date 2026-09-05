@@ -1,6 +1,7 @@
 'use client';
 
-import { LobeHub } from '@lobehub/ui/brand';
+// SPRINT-AS: sub-path directo — evita barrel @lobehub/ui/brand (arrastra LogoSpline 3.7MB).
+import LobeHub from '@lobehub/ui/es/brand/LobeHub';
 import { createStyles } from 'antd-style';
 import Link from 'next/link';
 import { memo } from 'react';

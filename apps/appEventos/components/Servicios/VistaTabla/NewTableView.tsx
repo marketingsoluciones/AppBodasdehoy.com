@@ -17,6 +17,7 @@ import { Task } from '../../../utils/Interfaces';
 import { DescriptionModal } from './NewDescriptionModal';
 import { AttachmentsModal } from './NewAttachmentsModal';
 import { NewCommentsModal } from './NewCommentsModal';
+import { isStudioPathname } from "../../../utils/studioPaths";
 
 // Función auxiliar para descargar archivos sin file-saver
 const downloadFile = (data: Blob, filename: string) => {
@@ -115,16 +116,12 @@ const defineColumns = (t: any): TableColumn[] => [
     canResize: true,
     type: 'tips'
   },
-  {
-    id: 'tags',
-    Header: t('labels'),
-    accessor: 'tags',
-    width: 180,
-    minWidth: 150,
-    maxWidth: 300,
-    canResize: true,
-    type: 'tags'
-  },
+  // Columna Etiquetas retirada de la vista Tabla (petición diseño): las etiquetas se
+  // gestionan en la tarjeta de detalle, no como columna. Los datos (task.tags) no se tocan.
+  // {
+  //   id: 'tags', Header: t('labels'), accessor: 'tags',
+  //   width: 180, minWidth: 150, maxWidth: 300, canResize: true, type: 'tags'
+  // },
   {
     id: 'attachments',
     Header: t('attachments'),
@@ -194,7 +191,7 @@ const getRowActions = (task: any, optionsItineraryButtonBox: any[], handlers: an
   return actions;
 };
 
-export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTask, setSelectTask, onTaskUpdate, onTaskDelete, onTaskCreate }) => {
+export const NewTableView: React.FC<TableProps & { expandida?: boolean; onToggleExpandida?: () => void; onRowOpen?: (taskId: string) => void }> = ({ data, itinerario, selectTask, setSelectTask, onTaskUpdate, onTaskDelete, onTaskCreate, expandida = false, onToggleExpandida, onRowOpen }) => {
   const { t } = useTranslation();
   const { config, user } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
@@ -503,6 +500,9 @@ export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTas
           return newEvent;
         });
         setSelectTask(newTask._id);
+        // En studio, abrir el detalle de la tarea recién creada (fiel al flujo: "Añadir
+        // tarea" lleva a la tarjeta nueva, no la deja suelta en una fila de la tabla).
+        if (isStudio && onRowOpen) onRowOpen(newTask._id);
         toast('success', t('Tarea creada correctamente'));
       } else {
         throw new Error('Respuesta inválida del servidor');
@@ -787,8 +787,20 @@ export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTas
     return <div>Cargando...</div>;
   }
 
+  // Rediseño studio (fiel a tareasvistatabla.html): cabecera gris redondeada con
+  // etiquetas en mayúsculas, filas separadas por una línea muy suave y scroll
+  // horizontal sin barra. Solo estilo — react-table, filtros, orden y configuración
+  // de columnas siguen intactos.
+  const isStudio = typeof window !== "undefined"
+    && isStudioPathname(window.location.pathname)
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
+
   return (
-    <div className="h-full flex flex-col bg-gray-50 relative text-xs">
+    <div
+
+      style={isStudio ? { fontFamily: "'Poppins',sans-serif" } : undefined}
+      className={isStudio ? "h-full flex flex-col bg-white relative text-xs" : "h-full flex flex-col bg-gray-50 relative text-xs"}>
+      {isStudio && <style dangerouslySetInnerHTML={{ __html: ".tv-studio-scroll::-webkit-scrollbar{display:none;height:0}.tv-studio-scroll{scrollbar-width:none}" }} />}
       {/* Header principal - fixed para evitar solapamiento */}
       <div className="sticky top-0 z-20 bg-white shadow-sm">
         <TableHeader
@@ -807,6 +819,8 @@ export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTas
           onToggleColumn={handleToggleColumn}
           onFiltersToggle={() => setShowFilters(!showFilters)}
           filtersActive={activeFiltersCount > 0}
+          expanded={expandida}
+          onExpandToggle={onToggleExpandida}
         />
       </div>
       {/* Panel de filtros */}
@@ -823,27 +837,30 @@ export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTas
         </div>
       )}
       {/* Tabla principal con contenedor de scroll */}
-      <div ref={tableContainerRef} className="flex-1 overflow-auto relative">
-        <div className="min-w-full">
+      <div ref={tableContainerRef} className={`flex-1 overflow-auto relative${isStudio ? " tv-studio-scroll" : ""}`}>
+        <div className="min-w-full" style={isStudio && !expandida ? { minWidth: 1060 } : undefined}>
           <table {...getTableProps()} className="w-full bg-white relative">
             {/* Header de la tabla */}
-            <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
+            <thead
+              style={isStudio ? { background: "#fafafa" } : undefined}
+              className={isStudio ? "sticky top-0 z-10" : "bg-gray-50 border-b border-gray-200 sticky top-0 z-10"}>
               {headerGroups.map((headerGroup, headerGroupIndex) => (
                 <tr
                   key={`header-group-${headerGroupIndex}`}
                   {...headerGroup.getHeaderGroupProps()}
-                  className="divide-x divide-gray-200"
+                  className={isStudio ? "" : "divide-x divide-gray-200"}
                 >
                   {headerGroup.headers.map((column, columnIndex) => {
                     return (
                       <th
                         key={`header-${column.id || columnIndex}`}
                         {...column.getHeaderProps()}
-                        className="group relative px-4 py-3 text-left  font-medium text-gray-500 uppercase tracking-wider"
+                        className={isStudio ? "group relative text-left" : "group relative px-4 py-3 text-left  font-medium text-gray-500 uppercase tracking-wider"}
                         style={{
                           width: column.width,
-                          minWidth: column.minWidth,
-                          maxWidth: column.maxWidth
+                          minWidth: (isStudio && expandida) ? 0 : column.minWidth,
+                          maxWidth: (isStudio && expandida) ? undefined : column.maxWidth,
+                          ...(isStudio ? { padding: "12px 10px", font: "600 10.5px Poppins", color: "#8a8a90", letterSpacing: ".5px", textTransform: "uppercase" as const } : {}),
                         }}
                       >
                         <div className="flex items-center justify-between">
@@ -888,11 +905,14 @@ export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTas
                   <tr
                     key={row.original._id || `row-${rowIndex}`}
                     {...row.getRowProps()}
-                    className={`
+                    style={isStudio ? { borderBottom: "1px solid #f7f7f9", cursor: "pointer" } : undefined}
+                    className={isStudio
+                      ? `relative transition-colors ${isSelected ? 'bg-[#FCE7F0]' : 'hover:bg-[#fafafa]'}`
+                      : `
                       relative hover:bg-gray-50 transition-colors divide-x divide-gray-200
                       ${isSelected ? 'bg-primary/5 border-l-4 border-primary' : ''}
                     `}
-                    onClick={() => setSelectTask(row.original._id)}
+                    onClick={() => { if (isStudio && onRowOpen) { onRowOpen(row.original._id); } else { setSelectTask(row.original._id); } }}
                     onMouseEnter={() => {
                       setHoveredRow(row.original._id);
                     }}
@@ -916,12 +936,13 @@ export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTas
                           className="px-0 py-0 whitespace-nowrap overflow-visible relative"
                           style={{
                             width: cell.column.width,
-                            minWidth: cell.column.minWidth,
-                            maxWidth: cell.column.maxWidth
+                            minWidth: (isStudio && expandida) ? 0 : cell.column.minWidth,
+                            maxWidth: (isStudio && expandida) ? undefined : cell.column.maxWidth
                           }}
                         >
-                          {/* Barra de acciones flotante - Solo en la primera columna */}
-                          {cellIndex === 0 && hoveredRow === row.original._id && (
+                          {/* Barra de acciones flotante (hover): fuera del diseño studio.
+                              Las acciones viven en la tarjeta de detalle al abrir la fila. */}
+                          {!isStudio && cellIndex === 0 && hoveredRow === row.original._id && (
                             <div
                               className="absolute -top-0 left-0 z-50 pointer-events-none"
                               style={{ transform: 'translateY(-100%)' }}
@@ -953,8 +974,8 @@ export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTas
                             value={cell.value}
                             task={row.original}
                             onUpdate={(value) => handleCellUpdate(rowIndex, cell.column.id, value)}
-                            isEditing={editingCell?.row === rowIndex && editingCell?.column === cell.column.id}
-                            onStartEdit={() => setEditingCell({ row: rowIndex, column: cell.column.id })}
+                            isEditing={isStudio ? false : (editingCell?.row === rowIndex && editingCell?.column === cell.column.id)}
+                            onStartEdit={isStudio ? () => { } : () => setEditingCell({ row: rowIndex, column: cell.column.id })}
                             onStopEdit={() => setEditingCell(null)}
                             onCommentsClick={() => {
                               if (modalType) {
@@ -971,6 +992,12 @@ export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTas
               })}
             </tbody>
           </table>
+          {/* Pie de tareasvistatabla.html: recuento y pista de que la fila es clicable. */}
+          {isStudio && filteredData.length > 0 && (
+            <div style={{ font: "400 11.5px Poppins", color: "#a0a0a8", padding: "12px 10px 0" }}>
+              {t('Mostrando')} {filteredData.length} {t('de')} {data.length} {t('tareas')} · {t('haz clic en una fila para abrir su detalle')}
+            </div>
+          )}
           {/* Mensaje cuando no hay datos */}
           {filteredData.length === 0 && (
             <div className="text-center py-12">
@@ -991,8 +1018,9 @@ export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTas
           )}
         </div>
       </div>
-      {/* Footer con información */}
-      <div className="bg-white border-t border-gray-200 px-4 py-3">
+      {/* Footer con información — oculto en studio: ya está el pie "Mostrando…" del HTML
+          bajo la tabla, y salían los dos. */}
+      <div className={isStudio ? "hidden" : "bg-white border-t border-gray-200 px-4 py-3"}>
         <div className="flex items-center justify-between  text-gray-600">
           <div>
             {t('Mostrando')} {filteredData.length} {t('de')} {data.length} {t('tareas')}

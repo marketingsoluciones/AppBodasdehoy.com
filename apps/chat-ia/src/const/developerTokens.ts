@@ -1,15 +1,43 @@
 /**
- * Tokens JWT por developer para modo desarrollo
- * 
- * ⚠️ IMPORTANTE: Estos tokens son solo para desarrollo local
- * En producción, los usuarios deben autenticarse normalmente
+ * Tokens JWT por developer para modo desarrollo LOCAL.
+ *
+ * 🔒 SEGURIDAD: estas son credenciales `role:admin`. NO deben estar hardcodeadas
+ * en el código (viajarían en el bundle de test/prod y permitirían suplantar admin).
+ *
+ * Se cargan EXCLUSIVAMENTE desde la variable de entorno opcional
+ * `NEXT_PUBLIC_DEV_TOKENS_JSON`, que solo se define en `.env.local` de desarrollo
+ * (nunca commiteada). En test/prod la variable no existe → el mapa queda vacío →
+ * no hay ningún token predefinido que inyectar.
+ *
+ * Además, la auto-inyección está gateada por `isLocalDevBypassEnabled()` en
+ * EventosAutoAuth (requiere hostname local + `localStorage.dev_bypass='true'`).
+ *
+ * Formato de la env var (JSON de un objeto developer → jwt):
+ *   NEXT_PUBLIC_DEV_TOKENS_JSON='{"bodasdehoy":"<jwt>","marcablanca":"<jwt>"}'
  */
 
-export const DEVELOPER_TOKENS: Record<string, string> = {
-  'bodasdehoy': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJib2Rhc2RlaG95LWFkbWluLWJvZGFzZWhveS1jb20tMTc2MzAyNjg5MTU1OCIsImVtYWlsIjoiYWRtaW5AbW9kYXNkZWhveS5jb20iLCJyb2xlIjoiYWRtaW4iLCJkZXZlbG9wbWVudCI6ImJvZGFzZGVob3kiLCJpYXQiOjE3NjMwMjY4OTEsImV4cCI6MTc2NTYxODg5MTd9.RSTE1bxElZH4l9aYHWwwE12Puto4zSFknqPydVzc8BQ',
-  'marcablanca': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJtYXJjYWJsYW5jYS1hZG1pbi1tYXJjYWJsYW5jYS1jb20tMTc2MzAyNjYyMzExMiIsImVtYWlsIjoiYWRtaW5AbWFyY2FibGxjYS5jb20iLCJyb2xlIjoiYWRtaW4iLCJkZXZlbG9wbWVudCI6Im1hcmNhYmxhbmNhIiwiaWF0IjoxNzYzMDI2NjIzLCJleHAiOjE3NjU2MTg2MjN9.nmyvv_oxvlFjEw-8h8Dmy3tysJPLHURJD5Gw352z4aY',
-  'wildliberty': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJ3aWxkbGliZXJ0eS12aXNpdGEtd2lsZGxpYnJ0eS1jb20tMTc2MzAyNjYxNjg0MCIsImVtYWlsIjoidmlzaXRhQHdpbGRsaWJydHkuY29tIiwicm9sZSI6InVzZXIiLCJkZXZlbG9wbWVudCI6IndpbGRsaWJydHkiLCJpYXQiOjE3NjMwMjY2MTYsImV4cCI6MTc2NTYxODYxNn0.YL7z1Q8shMaQHLegkHo66A0hmMYhgco_H53pV6DHh04',
+const parseDevTokens = (): Record<string, string> => {
+  const raw = process.env.NEXT_PUBLIC_DEV_TOKENS_JSON;
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      // filtrar solo valores string
+      const out: Record<string, string> = {};
+      for (const [k, v] of Object.entries(parsed)) {
+        if (typeof v === 'string' && v) out[k] = v;
+      }
+      return out;
+    }
+  } catch {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[developerTokens] NEXT_PUBLIC_DEV_TOKENS_JSON no es JSON válido; ignorado.');
+    }
+  }
+  return {};
 };
+
+export const DEVELOPER_TOKENS: Record<string, string> = parseDevTokens();
 
 export const getDeveloperToken = (developer: string): string | undefined => {
   return DEVELOPER_TOKENS[developer];
@@ -19,7 +47,7 @@ export const setDeveloperToken = (developer: string, token: string): void => {
   if (typeof window !== 'undefined' && token) {
     // Guardar en localStorage para que apolloClient lo use
     localStorage.setItem('jwt_token', token);
-    
+
     // También actualizar en dev-user-config
     try {
       const configStr = localStorage.getItem('dev-user-config');

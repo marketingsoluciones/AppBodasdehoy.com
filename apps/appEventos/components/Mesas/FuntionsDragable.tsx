@@ -1,7 +1,7 @@
 import interact from "interactjs"
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
 import { string } from "yup/lib/locale"
-import { fetchApiEventos, queries } from "../../utils/Fetching"
+import { fetchApiEventos, fetchApiBodas, queries } from "../../utils/Fetching"
 import { Event, guests, planSpace, table } from "../../utils/Interfaces"
 
 const addClass = (element: any, className: any) => {
@@ -38,6 +38,11 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, event: e
     interact(target)
       .dropzone({
         accept: accept,
+        // El item arrastrable (sidebar) NO se mueve — solo el "espejo" (dragM) sigue al
+        // cursor. Con overlap por elemento (default) el dropzone del canvas nunca detecta
+        // el item (queda en el sidebar) → el evento 'drop' no se disparaba. overlap:'pointer'
+        // = soltar donde está el CURSOR (patrón paleta→lienzo). Así el drop sí se registra.
+        overlap: 'pointer',
         ondropactivate: function (event) {
         },
         ondropdeactivate: function (event) {
@@ -192,17 +197,26 @@ type propsMoveInvitado = {
 export const moveGuest = async ({ invitadoID, chair, tableID, event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo, planSpaceSelect }: propsMoveInvitado): Promise<void> => {
   try {
     const eventID = event?._id
-    let table: table = planSpaceActive?.tables?.find(elem => elem._id === tableID)
+    const table: table = planSpaceActive?.tables?.find(elem => elem._id === tableID)
     const idx = table?.guests?.findIndex(elem => elem.chair === chair)
     if (idx < 0 || idx === undefined) {
       if (chair >= 0) {
-        table.guests.push({ _id: invitadoID, chair, order: new Date() })
-        let f1 = planSpaceActive.tables.findIndex(elem => elem._id === tableID)
-        //planSpaceActive.tables.splice(f1, 1, table)
-        setPlanSpaceActive({ ...planSpaceActive })
-        f1 = event.planSpace.findIndex(elem => elem._id === planSpaceSelect)
-        event.planSpace[f1] = planSpaceActive
-        setEvent({ ...event })
+        const newGuest = { _id: invitadoID, chair, order: new Date() }
+        const newGuests = [...(table.guests ?? []), newGuest]
+        // Update inmutable de planSpaceActive y event.planSpace.
+        const newPlanSpaceActive = {
+          ...planSpaceActive,
+          tables: planSpaceActive.tables.map(tb =>
+            tb._id !== tableID ? tb : { ...tb, guests: newGuests }
+          ),
+        }
+        setPlanSpaceActive(newPlanSpaceActive)
+        setEvent((prev) => ({
+          ...prev,
+          planSpace: prev.planSpace.map(ps =>
+            ps._id !== planSpaceSelect ? ps : newPlanSpaceActive
+          ),
+        }))
         fetchApiEventos({
           query: queries.editTable,
           variables: {
@@ -210,15 +224,30 @@ export const moveGuest = async ({ invitadoID, chair, tableID, event, setEvent, p
             planSpaceID: planSpaceActive?._id,
             tableID: table?._id,
             variable: "guests",
-            valor: JSON.stringify([...table?.guests])
+            valor: JSON.stringify(newGuests)
           },
+        });
+        // Sync guest record: update nombre_mesa and puesto (api-mcp via fetchApiBodas)
+        fetchApiBodas({
+          query: queries.editGuests,
+          variables: { eventID, guestID: invitadoID, datos: { nombre_mesa: table?.title || tableID } },
+        });
+        fetchApiBodas({
+          query: queries.editGuests,
+          variables: { eventID, guestID: invitadoID, datos: { puesto: String(chair) } },
         });
       }
       if (prefijo === "dragS") {
         const gestPrevMove = filterGuests.sentados.find(elem => elem._id === invitadoID)
-        let f1 = planSpaceActive.tables.findIndex(elem => elem._id === gestPrevMove.tableID)
-        const f2 = planSpaceActive.tables[f1].guests.findIndex(elem => elem._id === invitadoID)
-        planSpaceActive.tables[f1].guests.splice(f2, 1)
+        const f1 = planSpaceActive.tables.findIndex(elem => elem._id === gestPrevMove.tableID)
+        const newGuestsAfterRemove = planSpaceActive.tables[f1].guests.filter(g => g._id !== invitadoID)
+        // Update inmutable: remover invitado de mesa previa.
+        const newPlanSpaceActive2 = {
+          ...planSpaceActive,
+          tables: planSpaceActive.tables.map((tb, i) =>
+            i !== f1 ? tb : { ...tb, guests: newGuestsAfterRemove }
+          ),
+        }
         fetchApiEventos({
           query: queries.editTable,
           variables: {
@@ -226,13 +255,16 @@ export const moveGuest = async ({ invitadoID, chair, tableID, event, setEvent, p
             planSpaceID: planSpaceActive?._id,
             tableID: planSpaceActive.tables[f1]._id,
             variable: "guests",
-            valor: JSON.stringify(planSpaceActive.tables[f1].guests)
+            valor: JSON.stringify(newGuestsAfterRemove)
           },
         });
-        setPlanSpaceActive({ ...planSpaceActive })
-        f1 = event.planSpace.findIndex(elem => elem._id === planSpaceSelect)
-        event.planSpace[f1] = planSpaceActive
-        setEvent({ ...event })
+        setPlanSpaceActive(newPlanSpaceActive2)
+        setEvent((prev) => ({
+          ...prev,
+          planSpace: prev.planSpace.map(ps =>
+            ps._id !== planSpaceSelect ? ps : newPlanSpaceActive2
+          ),
+        }))
       }
     }
   } catch (error) {
@@ -253,41 +285,31 @@ interface PropsActualizarPosicion {
 export const ActualizarPosicion = async ({ x, y, targetID, event, setEvent, planSpaceActive, setPlanSpaceActive }):
   Promise<void> => {
   try {
-    const asd = targetID.split("_")
-    const target = asd[0]
-    const ID = asd[1]
-    if (target === "table") {
-      fetchApiEventos({
-        query: queries.editTable,
-        variables: {
-          eventID: event._id,
-          planSpaceID: planSpaceActive._id,
-          tableID: ID,
-          variable: "position",
-          valor: JSON.stringify({ x, y })
-        },
-      });
-      const index: number = planSpaceActive?.tables.findIndex((elem) => elem._id === ID)
-      planSpaceActive.tables[index].position = { x, y }
-      setPlanSpaceActive({ ...planSpaceActive })
-      setEvent({ ...event })
+    const [target, ID] = targetID.split("_")
+    // El front es dueño de planSpace[].tables/elements. editTable/editElement escriben
+    // en el legacy evento.mesas_array (backend rechaza la mutación de position) → se
+    // persiste el planSpace completo vía updateEvento({planSpace}), igual que el resto
+    // del CRUD de mesas.
+    const key = target === "table" ? "tables" : "elements"
+    const arr = (planSpaceActive as any)[key] || []
+    const newPlanSpaceActive: any = {
+      ...planSpaceActive,
+      [key]: arr.map((it: any) => it._id !== ID ? it : { ...it, position: { x, y } }),
     }
-    if (target === "element") {
-      fetchApiEventos({
-        query: queries.editElement,
-        variables: {
-          eventID: event._id,
-          planSpaceID: planSpaceActive._id,
-          elementID: ID,
-          variable: "position",
-          valor: JSON.stringify({ x, y })
-        },
-      });
-      const index: number = planSpaceActive?.elements.findIndex((elem) => elem._id === ID)
-      planSpaceActive.elements[index].position = { x, y }
-      setPlanSpaceActive({ ...planSpaceActive })
-      setEvent({ ...event })
-    }
+    setPlanSpaceActive(newPlanSpaceActive)
+    const nextPlanSpaces = (event.planSpace ?? []).map((ps: any) =>
+      ps._id !== planSpaceActive._id ? ps : newPlanSpaceActive
+    )
+    setEvent((prev: any) => ({
+      ...prev,
+      planSpace: prev.planSpace.map((ps: any) => ps._id !== planSpaceActive._id ? ps : newPlanSpaceActive),
+    }))
+    fetchApiEventos({
+      query: queries.eventUpdate,
+      variables: { idEvento: event._id, input: { planSpace: nextPlanSpaces } },
+    }).then((r: any) => {
+      if (r && r.success === false) console.warn('[ActualizarPosicion] updateEvento rechazó:', r.errors)
+    }).catch((e: any) => console.warn('[ActualizarPosicion] updateEvento falló:', e?.message ?? e))
   } catch (error) {
     console.error(error);
   }
@@ -307,42 +329,29 @@ interface PropsActualizarSize {
 export const ActualizarSize = async ({ width, height, targetID, event, setEvent, planSpaceActive, setPlanSpaceActive }: PropsActualizarSize): Promise<void> => {
   try {
     const [target, ID] = targetID.split("_");
-    if (target === "table") {
-      await fetchApiEventos({
-        query: queries.editTable,
-        variables: {
-          eventID: event._id,
-          planSpaceID: planSpaceActive._id,
-          tableID: ID,
-          variable: "size",
-          valor: JSON.stringify({ width, height })
-        },
-      });
-      const index: number = planSpaceActive?.tables.findIndex((elem) => elem._id === ID);
-      if (index >= 0) {
-        planSpaceActive.tables[index].size = { width, height } as any;
-        setPlanSpaceActive({ ...planSpaceActive });
-        setEvent({ ...event });
-      }
-    }
-    if (target === "element") {
-      await fetchApiEventos({
-        query: queries.editElement,
-        variables: {
-          eventID: event._id,
-          planSpaceID: planSpaceActive._id,
-          elementID: ID,
-          variable: "size",
-          valor: JSON.stringify({ width, height })
-        },
-      });
-      const index: number = planSpaceActive?.elements.findIndex((elem) => elem._id === ID);
-      if (index >= 0) {
-        planSpaceActive.elements[index].size = { width, height } as any;
-        setPlanSpaceActive({ ...planSpaceActive });
-        setEvent({ ...event });
-      }
-    }
+    // Igual que ActualizarPosicion: persistir el size vía updateEvento({planSpace})
+    // (editTable/editElement escriben en el legacy mesas_array que el backend rechaza).
+    const key = target === "table" ? "tables" : "elements";
+    const arr = (planSpaceActive as any)[key] || [];
+    if (!arr.some((it: any) => it._id === ID)) return;
+    const newPlanSpaceActive: any = {
+      ...planSpaceActive,
+      [key]: arr.map((it: any) => it._id !== ID ? it : { ...it, size: { width, height } }),
+    };
+    setPlanSpaceActive(newPlanSpaceActive);
+    const nextPlanSpaces = (event.planSpace ?? []).map((ps: any) =>
+      ps._id !== planSpaceActive._id ? ps : newPlanSpaceActive
+    );
+    setEvent((prev: any) => ({
+      ...prev,
+      planSpace: prev.planSpace.map((ps: any) => ps._id !== planSpaceActive._id ? ps : newPlanSpaceActive),
+    }));
+    fetchApiEventos({
+      query: queries.eventUpdate,
+      variables: { idEvento: event._id, input: { planSpace: nextPlanSpaces } },
+    }).then((r: any) => {
+      if (r && r.success === false) console.warn('[ActualizarSize] updateEvento rechazó:', r.errors)
+    }).catch((e: any) => console.warn('[ActualizarSize] updateEvento falló:', e?.message ?? e));
   } catch (error) {
     console.error(error);
   }

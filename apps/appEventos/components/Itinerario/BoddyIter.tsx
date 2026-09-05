@@ -6,11 +6,12 @@ import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider }
 import { Event, Itinerary, SelectModeSortType } from "../../utils/Interfaces"
 import { ViewItinerary } from "../../pages/invitados";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { createItinerarioList } from "../../utils/itinerarioActions";
 import { useToast } from "../../hooks/useToast";
 import { Modal } from "../Utils/Modal";
 import { DeleteConfirmation } from "../Utils/DeleteConfirmation";
 import { useTranslation } from "react-i18next";
-import { useAllowed, useAllowedViewer } from "../../hooks/useAllowed";
+import { useServicePermissions } from "../../hooks/useServicePermissions";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LiaUserClockSolid } from "react-icons/lia";
 import { t } from "i18next";
@@ -18,6 +19,7 @@ import { deleteAllFiles, deleteRecursive } from "../Utils/storages";
 import { getStorage } from "firebase/storage";
 import { ModalDuplicate } from "../Servicios/Utils/ModalDuplicate";
 import { PermissionWrapper } from "../Servicios/Utils/PermissionWrapper";
+import ItinerarioVacioStudio from "./ItinerarioVacioStudio";
 
 interface Modal {
     state: boolean
@@ -27,13 +29,20 @@ interface Modal {
 }
 
 export const BoddyIter = () => {
-    const { config } = AuthContextProvider()
+    const { config, user } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
+    // QA ITI-01 (04-jul): mensaje "espera al dueño" se mostraba al PROPIO
+    // Propietario. Detectamos owner para render distinto en ViewWihtoutData.
+    const isOwner = Boolean(user?.uid && event?.usuario_id && user.uid === event.usuario_id)
     const { copilotFilter } = EventsGroupContextProvider()
     const [itinerario, setItinerario] = useState<Itinerary>()
+    // Tareas (fiel a tareasvistatarjeta.html): la toolbar y el contenido son DOS tarjetas
+    // separadas, no una. Itinerario conserva su composición, que ya estaba aprobada.
+    const isTareasStudio = typeof window !== "undefined"
+        && window.location.pathname === "/servicios"
+        && new URLSearchParams(window.location.search).get("studio") !== "legacy"
     const [editTitle, setEditTitle] = useState<boolean>(false)
-    const [isAllowedViewer] = useAllowedViewer()
-    const [isAllowed] = useAllowed()
+    const { canAccessList } = useServicePermissions(itinerario?.viewers ?? [])
     const [view, setView] = useState<ViewItinerary>()
     const [modal, setModal] = useState<Modal>({ state: false, title: null, subTitle: null, handle: () => { } })
     const toast = useToast()
@@ -46,6 +55,22 @@ export const BoddyIter = () => {
     const storage = getStorage();
     const [selectTask, setSelectTask] = useState<string>()
     const [orderAndDirection, setOrderAndDirection] = useState<SelectModeSortType>()
+    // Rediseño studio: expansión de tarjetas de tarea (vista Tarjeta). Por defecto
+    // la PRIMERA tarea del itinerario expandida y el resto colapsadas. "Expandir todo /
+    // Contraer todo" alterna todas. Solo presentación (no toca backend).
+    const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set())
+    const allTaskIds = Array.isArray(itinerario?.tasks) ? itinerario.tasks.map((tk: any) => tk?._id).filter(Boolean) : []
+    const allExpanded = allTaskIds.length > 0 && allTaskIds.every((id: string) => expandedTasks.has(id))
+    const toggleExpandAll = () => setExpandedTasks(allExpanded ? new Set() : new Set(allTaskIds))
+    const toggleTaskExpand = (id: string) => setExpandedTasks((prev) => {
+        const next = new Set(prev)
+        next.has(id) ? next.delete(id) : next.add(id)
+        return next
+    })
+    useEffect(() => {
+        const first = Array.isArray(itinerario?.tasks) ? itinerario.tasks.find((tk: any) => tk?._id)?._id : undefined
+        setExpandedTasks(first ? new Set([first]) : new Set())
+    }, [itinerario?._id])
 
     // Query params usando useSearchParams (Next.js 15)
     const queryItinerary = searchParams.get("itinerary")
@@ -97,6 +122,20 @@ export const BoddyIter = () => {
         }
     }, [])
 
+    // Forzar vista cards en móvil cuando la vista actual es de tabla
+    useEffect(() => {
+        if (typeof window === "undefined") return
+        const TABLE_VIEWS = ["newTable", "extraTable", "table", "boardView"]
+        const check = () => {
+            if (window.innerWidth < 768) {
+                setView(prev => prev && TABLE_VIEWS.includes(prev) ? "cards" : prev)
+            }
+        }
+        check()
+        window.addEventListener("resize", check)
+        return () => window.removeEventListener("resize", check)
+    }, [])
+
     useEffect(() => {
         try {
             if (typeof window !== "undefined" && view && itinerario) {
@@ -111,10 +150,9 @@ export const BoddyIter = () => {
         return await fetchApiEventos({
             query: queries.editItinerario,
             variables: {
-                eventID: event._id,
-                itinerarioID: itinerary._id,
-                variable: "next_id",
-                valor: itinerary.next_id
+                evento_id: event._id,
+                itinerario_id: itinerary._id,
+                datos: { next_id: itinerary.next_id }
             },
             domain: config.domain
         })
@@ -125,8 +163,7 @@ export const BoddyIter = () => {
             query: queries.eventUpdate,
             variables: {
                 idEvento: event._id,
-                variable: "listIdentifiers",
-                value: JSON.stringify(event.listIdentifiers)
+                input: { listIdentifiers: event.listIdentifiers }
             }
         })
     }
@@ -140,15 +177,7 @@ export const BoddyIter = () => {
             state: true,
             title: itinerario.title,
             subTitle: <span className="flex flex-col">
-                <strong>{itinerario.title}</strong>
                 <strong>{t("warningdelete1")}</strong>
-                <p className="text-xs gap-2 flex justify-center">
-                    {t("textwarningdelete1")}
-                    <span className="font-semibold">
-                        {itinerario.title.replace(/\s+/g, '').toLocaleLowerCase()}
-                    </span>
-                    {t("textwarningdelete2")}
-                </p>
             </span>,
             handle: async () => {
                 try {
@@ -163,8 +192,8 @@ export const BoddyIter = () => {
                                     fetchApiEventos({
                                         query: queries.deleteItinerario,
                                         variables: {
-                                            eventID: event._id,
-                                            itinerarioID: itinerario?._id,
+                                            evento_id: event._id,
+                                            itinerario_id: itinerario?._id,
                                         },
                                         domain: config.domain
                                     })
@@ -193,11 +222,40 @@ export const BoddyIter = () => {
                                                     updatedNextId(event.itinerarios_array[f1next_id])
                                                 }
                                             }
-                                            const f1 = event.itinerarios_array?.findIndex(elem => elem._id === itinerario._id)
-                                            if (f1 > -1) {
-                                                event.itinerarios_array?.splice(f1, 1)
+                                            // Inmutable: filtrar fuera del array en vez de splice.
+                                            const deletedId = itinerario._id
+                                            const pathSlice = typeof window !== "undefined"
+                                                ? window.location.pathname.slice(1)
+                                                : ""
+                                            if (event?._id && pathSlice) {
+                                                const lsKey = `E_${event._id}_${pathSlice}`
+                                                if (localStorage.getItem(lsKey) === deletedId) {
+                                                    localStorage.removeItem(lsKey)
+                                                }
                                             }
-                                            setEvent({ ...event })
+                                            setEvent((prev: any) => {
+                                                if (!Array.isArray(prev?.itinerarios_array)) return prev
+                                                const nextArr = prev.itinerarios_array.filter(
+                                                    (elem: any) => elem._id !== deletedId
+                                                )
+                                                const remaining = nextArr.filter(
+                                                    (elem: any) => elem?.tipo === pathSlice
+                                                )
+                                                if (remaining.length && event?._id && pathSlice) {
+                                                    localStorage.setItem(
+                                                        `E_${event._id}_${pathSlice}`,
+                                                        remaining[0]._id
+                                                    )
+                                                }
+                                                return {
+                                                    ...prev,
+                                                    itinerarios_array: nextArr
+                                                }
+                                            })
+                                            // Limpiar selección local; el useEffect reasigna al
+                                            // siguiente itinerario o deja ViewWihtoutData.
+                                            setItinerario(undefined)
+                                            setSelectTask(undefined)
                                             setModal({ state: false })
                                             setTimeout(() => {
                                                 setLoadingModal(false)
@@ -216,17 +274,22 @@ export const BoddyIter = () => {
         await fetchApiEventos({
             query: queries.editItinerario,
             variables: {
-                eventID: event._id,
-                itinerarioID: itinerario?._id,
-                variable: "title",
-                valor: title
+                evento_id: event._id,
+                itinerario_id: itinerario?._id,
+                datos: { title: title }
             },
             domain: config.domain
         })
-        const f1 = event.itinerarios_array?.findIndex(elem => elem._id === itinerario._id)
-        const updatedItinerario = { ...event.itinerarios_array[f1], title }
-        event.itinerarios_array[f1] = updatedItinerario
-        setEvent({ ...event })
+        // Inmutable: actualizar el itinerario sin mutar el array.
+        setEvent((prev: any) => {
+            const arr = prev?.itinerarios_array
+            if (!Array.isArray(arr)) return prev
+            const idx = arr.findIndex((elem: any) => elem._id === itinerario._id)
+            if (idx < 0) return prev
+            const next = [...arr]
+            next[idx] = { ...arr[idx], title }
+            return { ...prev, itinerarios_array: next }
+        })
         setEditTitle(false)
     }
 
@@ -291,42 +354,86 @@ export const BoddyIter = () => {
     };
 
     useEffect(() => {
+        // BUG-CW-02 (informe QA 22-jun noche): crash "Cannot read properties of null"
+        // por accesos a itinerario._id, nuevoItinerario.tasks sin guard cuando
+        // itinerario era null/undefined o el find no encontraba nada.
+        // Fix: guards exhaustivos + early returns.
+        if (typeof window === 'undefined') return
         let arr = Array.isArray(event?.itinerarios_array) ? event.itinerarios_array : []
         if ((copilotFilter?.entity === 'moments' || copilotFilter?.entity === 'services') && copilotFilter.ids?.length) {
             arr = arr.filter((elem) => elem?._id && copilotFilter.ids!.includes(elem._id))
         }
-        const itinerarios = arr.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))
-        const itinerarioSeleccionado = event?._id ? localStorage.getItem(`E_${event._id}_${window?.location?.pathname.slice(1)}`) : null
-        const itinerario = arr.find(elem => elem._id === itinerarioSeleccionado)
+        const pathSlice = window?.location?.pathname.slice(1)
+        const itinerarios = arr.filter(elem => elem?.tipo === pathSlice)
+        const itinerarioSeleccionado = event?._id ? localStorage.getItem(`E_${event._id}_${pathSlice}`) : null
+        // No sombrear el state `itinerario`: hay que comparar el estado React
+        // con el elegido (LS / query) para detectar borrados.
+        const selectedFromStorage = arr.find(elem => elem?._id === itinerarioSeleccionado)
         if (itinerarios.length) {
-            let nuevoItinerario = itinerario;
+            let nuevoItinerario = selectedFromStorage
             if (queryItinerary) {
-                nuevoItinerario = itinerarios.find(elem => elem?._id === queryItinerary)
-            } else if (!itinerario || !itinerarios.some(elem => elem._id === itinerario._id)) {
+                const found = itinerarios.find(elem => elem?._id === queryItinerary)
+                if (found) nuevoItinerario = found
+            } else if (!selectedFromStorage || !itinerarios.some(elem => elem?._id === selectedFromStorage._id)) {
                 nuevoItinerario = itinerarios[0]
             }
+            // Guard CRÍTICO: si después de todo no hay nuevoItinerario, no continuar.
+            if (!nuevoItinerario || !nuevoItinerario._id) {
+                return
+            }
+            if (event?._id && pathSlice && nuevoItinerario._id) {
+                localStorage.setItem(`E_${event._id}_${pathSlice}`, nuevoItinerario._id)
+            }
             if (!itinerario || nuevoItinerario._id !== itinerario._id) {
-                const tasksOrdenadas = sortTasks(nuevoItinerario.tasks, orderAndDirection);
-                nuevoItinerario = { ...nuevoItinerario, tasks: tasksOrdenadas };
-                setItinerario(nuevoItinerario);
-            } else if (itinerario && orderAndDirection) {
-                const tasksOrdenadas = sortTasks(itinerario.tasks, orderAndDirection);
-                setItinerario({ ...itinerario, tasks: tasksOrdenadas });
+                const tasksOrdenadas = sortTasks(nuevoItinerario.tasks ?? [], orderAndDirection);
+                setItinerario({ ...nuevoItinerario, tasks: tasksOrdenadas });
+            } else if (orderAndDirection) {
+                const tasksOrdenadas = sortTasks(nuevoItinerario.tasks ?? [], orderAndDirection);
+                setItinerario({ ...nuevoItinerario, tasks: tasksOrdenadas });
             }
         } else {
-            setItinerario({ ...itinerario })
+            // No quedan itinerarios de este tipo: limpiar estado (antes se
+            // re-seteaba el borrado y las tareas seguían visibles).
+            if (event?._id && pathSlice) {
+                localStorage.removeItem(`E_${event._id}_${pathSlice}`)
+            }
+            setItinerario(undefined)
+            setSelectTask(undefined)
         }
     }, [event, queryItinerary, orderAndDirection, itinerario?._id, view, copilotFilter])
+
+    // Rediseño studio (gate ?studio, default ON): estado vacío de itinerario fiel
+    // al HTML. Solo cuando el evento está cargado y NO hay itinerarios del tipo.
+    // Scoped a "itinerario" (servicios conserva su vista). Rollback ?studio=legacy.
+    const studioIter = searchParams.get("studio") !== "legacy"
+    const pathSliceIter = typeof window !== "undefined" ? window.location.pathname.slice(1) : "itinerario"
+    const itinerariosDelTipo = Array.isArray(event?.itinerarios_array)
+        ? event.itinerarios_array.filter((el: any) => el?.tipo === pathSliceIter)
+        : []
+    const handleCreateItinerarioMovil = () =>
+        createItinerarioList({ event, setEvent, setItinerario, setSelectTask, config, t, toast })
+    const handleSelectItinerarioMovil = (item: Itinerary) => {
+        if (typeof window !== "undefined") localStorage.setItem(`E_${event._id}_${pathSliceIter}`, item._id)
+        setItinerario(item)
+    }
+    const isEmptyTipo = !(Array.isArray(event?.itinerarios_array) && event.itinerarios_array.some((el: any) => el?.tipo === pathSliceIter))
+    if (studioIter && event?._id && pathSliceIter === "itinerario" && isEmptyTipo) {
+        return (
+            <PermissionWrapper>
+                <ItinerarioVacioStudio event={event} setEvent={setEvent} config={config} isOwner={isOwner} pathSlice={pathSliceIter} />
+            </PermissionWrapper>
+        )
+    }
 
     return (
         <PermissionWrapper>
             <div
-                className={`bg-white ${view === "cards" ? "max-w-[1050px] mx-auto" : "w-auto"
-                    } md:h-[calc(100vh-212px)] flex flex-col items-center rounded-t-lg mt-3 relative overflow-hidden`}
+                className={`${isTareasStudio ? "bg-transparent md:gap-3.5" : "bg-white rounded-t-lg"} ${(view === "cards" || isTareasStudio) ? "max-w-[1050px] mx-auto" : "w-auto"
+                    } ${(studioIter && view === "table" && pathSliceIter === "itinerario") || isTareasStudio ? "md:min-h-[calc(100vh-244px)]" : "md:h-[calc(100vh-244px)] overflow-hidden"} flex flex-col items-center ${isTareasStudio ? "mt-0 md:mt-3" : "mt-3"} relative`}
             >
                 {
                     modal.state &&
-                    <Modal set={setModal} classe={"w-[95%] md:w-[450px] h-[250px]"} loading={loadingModal} >
+                    <Modal set={setModal} classe={"w-[380px] max-w-[95%] h-auto min-h-[220px] !top-1/2 !left-1/2 !right-auto !bottom-auto -translate-x-1/2 -translate-y-1/2"} loading={loadingModal} >
                         <DeleteConfirmation setModal={setModal} modal={modal} />
                     </Modal>
                 }
@@ -352,11 +459,17 @@ export const BoddyIter = () => {
                     setSelectTask={setSelectTask}
                     orderAndDirection={orderAndDirection}
                     setOrderAndDirection={setOrderAndDirection}
+                    allExpanded={allExpanded}
+                    onToggleExpandAll={toggleExpandAll}
                 />
                 {
-                    (isAllowedViewer(itinerario?.viewers ?? []) || window?.location?.pathname === "/itinerario" || isAllowed())
+                    (canAccessList || window?.location?.pathname === "/itinerario")
                         ? <ModuleErrorBoundary label="Itinerario">
-                            <ItineraryPanel
+                            {/* BUG-CW-02 (informe QA 22-jun noche): si itinerario
+                                es undefined (evento sin datos o array null),
+                                ItineraryPanel crashea al hacer itinerario._id.
+                                Render alternativo "sin datos" en ese caso. */}
+                            {itinerario && itinerario._id ? <ItineraryPanel
                                 itinerario={itinerario}
                                 editTitle={editTitle}
                                 setEditTitle={setEditTitle}
@@ -368,10 +481,18 @@ export const BoddyIter = () => {
                                 selectTask={selectTask}
                                 setSelectTask={setSelectTask}
                                 orderAndDirection={orderAndDirection}
-                            />
-                          </ModuleErrorBoundary>
+                                expandedTasks={expandedTasks}
+                                toggleTaskExpand={toggleTaskExpand}
+                                setOrderAndDirection={setOrderAndDirection}
+                                allExpanded={allExpanded}
+                                onToggleExpandAll={toggleExpandAll}
+                                itineraries={itinerariosDelTipo}
+                                setItinerario={handleSelectItinerarioMovil}
+                                onCreateItinerario={handleCreateItinerarioMovil}
+                            /> : <ViewWihtoutData isOwner={isOwner} />}
+                        </ModuleErrorBoundary>
                         : <div className="h-full">
-                            <ViewWihtoutData />
+                            <ViewWihtoutData isOwner={isOwner} />
                         </div>
                 }
             </div>
@@ -380,14 +501,16 @@ export const BoddyIter = () => {
 }
 
 
-const ViewWihtoutData = () => {
+const ViewWihtoutData = ({ isOwner = false }: { isOwner?: boolean }) => {
     return (
         <div className=" capitalize w-full h-full flex flex-col justify-center items-center bg-white rounded-lg mt-3 text-gray-500">
             <div>
                 {t("noData2")}
             </div>
             <div>
-                {t("waitOwner2")}
+                {/* QA ITI-01 (04-jul): al propietario NO le decimos "espera al dueño"
+                    (ese es él mismo). Se le sugiere crear su itinerario. */}
+                {isOwner ? t("ownerCreateItinerary") : t("waitOwner2")}
             </div>
             <div>
                 <LiaUserClockSolid className="h-12 w-auto" />

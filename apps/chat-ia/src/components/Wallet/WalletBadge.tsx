@@ -13,7 +13,7 @@ export interface WalletBadgeProps {
 }
 
 const WalletBadge = memo<WalletBadgeProps>(({ onClick, showDetails = false, size = 'medium' }) => {
-  const { totalBalance, currency, isLowBalance, isNegativeBalance, loading, status, formatBalance } = useWallet();
+  const { totalBalance, balanceLoaded, isLowBalance, isNegativeBalance, loading, status, formatBalance } = useWallet();
 
   const sizeStyles = {
     large: { fontSize: 16, iconSize: 20, padding: '10px 16px' },
@@ -91,10 +91,20 @@ const WalletBadge = memo<WalletBadgeProps>(({ onClick, showDetails = false, size
         padding,
         transition: 'all 0.2s ease',
       }}
-      title={isNegativeBalance ? 'Saldo negativo - Click para recargar' : isLowBalance ? 'Saldo bajo - Click para recargar' : 'Ver wallet'}
+      title={
+        !balanceLoaded
+          ? 'Saldo no disponible ahora — reintentando'
+          : isNegativeBalance
+            ? 'Saldo negativo - Click para recargar'
+            : isLowBalance
+              ? 'Saldo bajo - Click para recargar'
+              : 'Ver wallet'
+      }
     >
       <Wallet size={iconSize} />
-      <span>{formatBalance(totalBalance)}</span>
+      {/* €0/FREE falso (QA 7-ago): si el saldo NO se ha leído con éxito (fallo api-mcp),
+          mostrar "—" en vez de "€0.00" para no aparentar saldo agotado. */}
+      <span>{balanceLoaded ? formatBalance(totalBalance) : '—'}</span>
       {(isLowBalance || isNegativeBalance) && (
         <span
           style={{

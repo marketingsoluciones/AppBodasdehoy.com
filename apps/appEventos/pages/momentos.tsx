@@ -3,18 +3,23 @@
  * Usa el paquete compartido; opcionalmente redirige a Copilot para la UI completa.
  */
 import { AuthContextProvider, EventContextProvider } from '../context';
+import ModuloBloqueadoInvitado from '../components/Utils/ModuloBloqueadoInvitado';
+import { useEventSyncWithUrl } from '../hooks/useEventSyncWithUrl';
 import { MemoriesProvider, useMemoriesStore } from '@bodasdehoy/memories';
+import { resolveChatOrigin } from '@bodasdehoy/shared/utils';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { LiaLinkSolid } from 'react-icons/lia';
 import { FiCheck, FiLoader, FiZap, FiCopy, FiGrid } from 'react-icons/fi';
+import { resolveApiIaOrigin } from '../utils/apiEndpoints';
+import { useSearchParams } from 'next/navigation';
+import MomentosStudio from '../components/Momentos/MomentosStudio';
+import MomentosStudioMovil from '../components/Momentos/MomentosStudioMovil';
 
 const MOMENTOS_API_BASE =
   typeof window !== 'undefined'
     ? ''
-    : (process.env.NEXT_PUBLIC_MEMORIES_API_URL ||
-        process.env.NEXT_PUBLIC_BASE_URL ||
-        '');
+    : resolveApiIaOrigin();
 
 function ShareAlbumButton({ albumId }: { albumId: string }) {
   const { generateShareLink } = useMemoriesStore();
@@ -79,7 +84,7 @@ function AlbumQRButton({ albumId, eventId }: { albumId: string; eventId: string 
           <p className="text-xs text-gray-500 text-center max-w-[130px] break-all">{momentUrl}</p>
           <button
             onClick={() => { navigator.clipboard.writeText(momentUrl); setOpen(false); }}
-            className="text-xs text-pink-500 hover:underline"
+            className="text-xs text-primary hover:underline"
           >
             Copiar enlace
           </button>
@@ -90,6 +95,9 @@ function AlbumQRButton({ albumId, eventId }: { albumId: string; eventId: string 
 }
 
 function MomentosContent() {
+  useEventSyncWithUrl()  // BUG-12: sincronizar event activo con ?event= de URL
+  const searchParams = useSearchParams();
+  const studio = searchParams?.get('studio') !== 'legacy';
   const { albums, albumsLoading, fetchAlbums, createEventAlbumStructure } = useMemoriesStore();
   const { event } = EventContextProvider();
   const [creatingStructure, setCreatingStructure] = useState(false);
@@ -130,11 +138,17 @@ function MomentosContent() {
 
   const chatBase =
     typeof window !== 'undefined'
-      ? process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com'
-      : 'https://chat.bodasdehoy.com';
+      ? resolveChatOrigin(window.location.hostname)
+      : (process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com');
 
   return (
-    <section className="bg-base w-full min-h-[60vh] md:py-10 px-4 md:px-0">
+    <>
+    {/* ESCRITORIO (rediseño fiel a Momentos.dc.html). Rollback: ?studio=legacy */}
+    {studio && <MomentosStudio chatBase={chatBase} />}
+    {/* MÓVIL (fiel a Momentos_movil.dc.html) */}
+    {studio && <MomentosStudioMovil chatBase={chatBase} />}
+    {/* Vista anterior: solo con ?studio=legacy */}
+    <section className={`bg-base w-full min-h-[60vh] md:py-10 px-4 md:px-0${studio ? " hidden" : ""}`}>
       <div className="md:max-w-screen-lg mx-auto">
         <h1 className="text-2xl font-semibold text-gray-800 mb-2">Momentos</h1>
         <p className="text-gray-600 mb-6">
@@ -143,10 +157,10 @@ function MomentosContent() {
 
         {/* ── Portal del invitado ── */}
         {portalUrl && (
-          <div className="mb-6 p-4 bg-pink-50 border border-pink-200 rounded-lg flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="mb-6 p-4 bg-base border border-primary rounded-lg flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex-1">
-              <p className="text-sm font-medium text-pink-800 mb-1">Portal del evento para invitados</p>
-              <p className="text-xs text-pink-600 break-all">{portalUrl}</p>
+              <p className="text-sm font-medium text-gray-800 mb-1">Portal del evento para invitados</p>
+              <p className="text-xs text-gray-600 break-all">{portalUrl}</p>
             </div>
             <div className="flex items-center gap-3 shrink-0">
               <img
@@ -159,13 +173,13 @@ function MomentosContent() {
                   href={portalUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-pink-600 hover:underline"
+                  className="text-xs text-primary hover:underline"
                 >
                   Ver portal →
                 </a>
                 <button
                   onClick={handleCopyPortal}
-                  className="flex items-center gap-1 text-xs text-pink-600 hover:text-pink-800"
+                  className="flex items-center gap-1 text-xs text-primary hover:text-primaryOrg"
                 >
                   {copiedPortal ? <FiCheck className="w-3 h-3 text-green-500" /> : <FiCopy className="w-3 h-3" />}
                   {copiedPortal ? 'Copiado' : 'Copiar URL'}
@@ -241,12 +255,13 @@ function MomentosContent() {
           href={`${chatBase.replace(/\/$/, '')}/bodasdehoy/memories`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-pink-500 text-white font-medium hover:bg-pink-600 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white font-medium hover:opacity-80 transition-opacity"
         >
           Abrir Momentos en Copilot
         </a>
       </div>
     </section>
+    </>
   );
 }
 
@@ -263,6 +278,12 @@ export default function MomentosPage() {
     );
   }
 
+  // Invitado (usuario fantasma): módulo bloqueado con preview + tarjeta de registro.
+  // (El portal QR público de Momentos vive en otra ruta y no se bloquea.)
+  if (user?.displayName === 'guest') {
+    return <ModuloBloqueadoInvitado modulo="momentos" />;
+  }
+
   if (!userId) {
     return (
       <section className="bg-base w-full min-h-[60vh] flex items-center justify-center">
@@ -270,7 +291,7 @@ export default function MomentosPage() {
           <p className="text-gray-700 mb-4">Inicia sesión para ver tus Momentos.</p>
           <Link
             href="/login/"
-            className="inline-block px-4 py-2 rounded-lg bg-pink-500 text-white font-medium hover:bg-pink-600"
+            className="inline-block px-4 py-2 rounded-lg bg-primary text-white font-medium hover:opacity-80 transition-opacity"
           >
             Iniciar sesión
           </Link>

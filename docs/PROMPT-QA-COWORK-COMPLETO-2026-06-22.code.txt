@@ -1,0 +1,476 @@
+# 🧪 PROMPT QA COMPLETO COWORK — 22-jun-2026 (build BUILD_ID `vzhq0Z5jgSeBv0GufABf4`)
+
+## ✅ Lo que tienes que saber antes de empezar
+
+- **BUILD desplegado**: `vzhq0Z5jgSeBv0GufABf4` en `https://app-dev.bodasdehoy.com` (commit `f0a4ffae`).
+- **Entorno**: solo `*-dev.bodasdehoy.com`. NO usar `*-test` ni producción.
+- **Apps activas y URLs**:
+  - `https://app-dev.bodasdehoy.com` — appEventos (organizador)
+  - `https://chat-dev.bodasdehoy.com` — chat-ia (copilot IA)
+  - `https://memories-dev.bodasdehoy.com` — álbumes de fotos
+  - `https://creador-dev.bodasdehoy.com` — editor de web de boda
+- **Usuarios E2E** (credenciales en .env.e2e.dev, password `lorca2012M*+`):
+  - Principal: `bodasdehoy.com@gmail.com`
+  - Secundarios: `jcc@bodasdehoy.com`, `jcc@marketingsoluciones.com`
+- **Evento de prueba intocable**: "Boda Isabel & Raúl" (`66a9042dec5c58aa734bca44`). NO borrar nunca.
+
+## ⚠️ Regla CRÍTICA: cleanup post-test
+
+Cualquier data que crees (invitados, gastos, mesas, comunicaciones) debes BORRARLA al
+acabar el test. La BD es compartida entre QA y dev.
+
+## 🎯 Lo que hay que probar (27 commits — agrupado por módulo)
+
+---
+
+### 1. AUTH + LOGIN + SSO (4 commits)
+
+#### 1.1 OBS-2: botón "Ir a {brand}" en login (multi-tenant)
+- [ ] **Test 1**: ir a `https://app-dev.bodasdehoy.com/login` SIN sesión.
+  - **Esperado**: en esquina superior derecha debe verse botón "Ir a bodasdehoy.com ↗" (NO la ✕ vieja).
+  - Hover muestra tooltip "Ir a bodasdehoy.com".
+  - Click navega a `https://bodasdehoy.com`.
+- [ ] **Test 2**: ir a `https://chat-dev.bodasdehoy.com/login` (whitelabel chat-ia).
+  - **Esperado**: SOLO botón ← Volver. No debe aparecer "Ir a..." porque chat-ia no tiene `pathDirectory`.
+- [ ] **Test 3**: probar con otros whitelabels si tienes acceso (annlo, champagne, etc.) — el texto del botón debe cambiar dinámicamente.
+
+#### 1.2 OBS-4: mobile tagline en SplitLoginPage
+- [ ] **Test 4**: abrir `/login` en móvil (ancho <768px, devtools responsive iPhone SE).
+  - **Esperado**: SOBRE el formulario debe aparecer barra horizontal con:
+    - Logo emoji (💒 para bodasdehoy)
+    - "BODAS DE HOY" en gris oscuro
+    - "La plataforma todo-en-uno para organizar tu boda" en negro
+  - Esa barra NO debe aparecer en desktop (>768px).
+
+#### 1.3 BUG-1: sesión fantasma corregida
+- [ ] **Test 5**: hacer login normal. Inspeccionar localStorage:
+  - Si la cookie `idTokenV0.1.0` está, NO debe haber `sessionBodas_fallback`.
+  - Si la cookie se borra manualmente, refrescar página → `sessionBodas_fallback` debe aparecer como fallback y la sesión NO debe romperse.
+- [ ] **Test 6**: logout. Verificar:
+  - localStorage `sessionBodas_fallback` BORRADO.
+  - localStorage `appEventos_activeEventId` BORRADO.
+
+#### 1.4 BUG-11: cookie SSO Safari iOS ITP (PARCIAL — falta verificar)
+- [ ] **Test 7** (Safari iOS REAL): ITP activo (Settings > Safari > Privacy > Prevent Cross-Site Tracking ON).
+  - Hacer login desde chat-dev → ir a app-dev manualmente.
+  - **Esperado**: la sesión se preserva. Si la cookie cross-domain falla, debe usar `sessionBodas_fallback`.
+  - **Reportar**: si rompe, captura del Safari + Network panel + storage.
+
+---
+
+### 2. CARGA DE PÁGINA + REDIRECTS (1 commit `f053a127`)
+
+#### 2.1 BUG-12: persistencia del evento activo en URL
+- [ ] **Test 8**: seleccionar "Boda Isabel & Raúl" en `/home`. Ir a `/invitados`.
+  - **Esperado**: URL debe quedar `/invitados?event=66a9042dec5c58aa734bca44`.
+  - Refrescar página → el evento sigue cargado, NO redirect a `/home`.
+- [ ] **Test 9**: copiar URL `/invitados?event=66a9042dec5c58aa734bca44` en otra pestaña.
+  - **Esperado**: carga directo en invitados sin pasar por `/home` ni mostrar selector.
+- [ ] **Test 10**: probar en `/mesas`, `/presupuesto`, `/invitaciones`, `/resumen-evento`, `/momentos`, `/lista-regalos`, `/servicios` (7 páginas con `useEventSyncWithUrl`).
+
+#### 2.2 BUG-13: dialog "Archivar" mejorado
+- [ ] **Test 11**: en `/home` con 2+ eventos. Click en icono "archivar" de un evento PENDIENTE.
+  - **Esperado**: dialog "¿Archivar 'Boda de XYZ'?" — confirmar/cancelar.
+- [ ] **Test 12**: con un evento ya ARCHIVADO, click en icono "des-archivar".
+  - **Esperado**: NO debe mostrar dialog (sólo el archivar lo muestra).
+
+---
+
+### 3. INVITADOS + MESAS (drag&drop crítico)
+
+#### 3.1 GrupoTablas: drag&drop inmutable (3 sitios refactor `92f60bf7`)
+- [ ] **Test 13** (CRÍTICO): en `/invitados`, vista "Grupo Tablas".
+  - Mover un invitado de mesa A → mesa B mediante el dropdown.
+  - **Esperado**:
+    - Invitado aparece en mesa B inmediatamente.
+    - Refresh sigue en mesa B (persistencia API).
+    - NO debe haber error 500 ni overlay rojo.
+- [ ] **Test 14**: en mesa con 5 invitados, mover uno fuera de toda mesa (estado "sin mesa").
+  - **Esperado**: ve a "Sin asignar". El conteo de la mesa se reduce en 1.
+- [ ] **Test 15**: cambiar showChildrenGuest (expandir invitado con acompañantes).
+  - **Esperado**: chevron rota + lista de acompañantes se muestra. Refresh persiste estado.
+
+#### 3.2 BlockTableroInvitados: showChildrenGuest (`fd1710ed`)
+- [ ] **Test 16**: misma vista, en columna "Acompañantes", expandir/colapsar invitados.
+  - **Esperado**: estado persiste tras refresh.
+
+#### 3.3 Mesas: drag&drop posición + tamaño + rotación (`f0a4ffae`)
+- [ ] **Test 17** (CRÍTICO): en `/mesas`, arrastrar una mesa de posición A a B.
+  - **Esperado**: queda en B. Refresh persiste. NO error 500.
+- [ ] **Test 18**: redimensionar una mesa (esquina drag).
+  - **Esperado**: tamaño cambia. Refresh persiste.
+- [ ] **Test 19**: rotar mesa (botón rotate left/right).
+  - **Esperado**: rotación cambia +15°/-15°. Refresh persiste.
+- [ ] **Test 20**: arrastrar elemento (silla, árbol, mesa de regalos) de posición.
+  - **Esperado**: igual que mesa.
+- [ ] **Test 21**: cambiar alto/ancho del lienzo en InputMini (esquina inferior).
+  - **Esperado**: lienzo cambia tamaño.
+
+#### 3.4 Mesas: crear mesa nueva (`0e245080` — bug latente fixed)
+- [ ] **Test 22** (CRÍTICO — bug latente): crear mesa nueva con `FormCrearMesa`.
+  - **Esperado**: mesa aparece en el lienzo. Refresh persiste.
+  - **OJO**: antes este test podía fallar silenciosamente (mesa creada en API pero no en estado local). Verificar AMBOS.
+
+#### 3.5 Mesas: drag&drop elemento nuevo (`f0a4ffae` — mismo bug latente)
+- [ ] **Test 23**: en `/mesas`, arrastrar un elemento (silla, árbol) DESDE el panel lateral AL lienzo.
+  - **Esperado**: elemento creado y aparece en posición. Refresh persiste.
+
+#### 3.6 Mesas: drag&drop invitado a silla (`f0a4ffae` FuntionsDragable)
+- [ ] **Test 24**: arrastrar invitado del panel lateral a una silla específica.
+  - **Esperado**: invitado sentado en esa silla. Mesa muestra +1 invitado.
+- [ ] **Test 25**: arrastrar invitado YA SENTADO a otra silla.
+  - **Esperado**: se mueve. Mesa origen pierde 1, mesa destino gana 1.
+
+#### 3.7 Mesas: borrar mesa + borrar elemento (`f0a4ffae` EditDefault)
+- [ ] **Test 26**: borrar una mesa creada en tests anteriores.
+  - **Esperado**: desaparece del lienzo. Refresh persiste.
+- [ ] **Test 27**: borrar un elemento.
+  - **Esperado**: desaparece + galerySvgs se limpia.
+
+#### 3.8 Mesas: editar título de elemento (`f0a4ffae` ElementContent)
+- [ ] **Test 28**: doble-click en un elemento de texto para editar.
+  - Cambiar título.
+  - **Esperado**: nuevo título persiste tras refresh.
+
+#### 3.9 Mesas: aplicar template/plantilla (`f0a4ffae` BlockPlantillas)
+- [ ] **Test 29**: en `/mesas`, abrir panel plantillas. Aplicar una plantilla.
+  - **Esperado**: tables + elements del lienzo cambian al de la plantilla.
+
+#### 3.10 BUG-4: NaN guard en TableConfigurator (PARCIAL — falta DOM screenshot)
+- [ ] **Test 30** (CRÍTICO REPORTE): en `/mesas` con muchos invitados (>20):
+  - Provocar resize que dispare `calculoEscala`.
+  - **Si rompe**: capturar DOM con devtools abierto + viewport + array length.
+  - **Si no rompe**: confirmar que funciona en mobile + tablet + desktop.
+
+#### 3.11 BUG-19: TableConfigurator position guard
+- [ ] **Test 31**: ¿puedes reproducir el crash que reportaron del 18-jun?
+  - Crear mesa nueva en un planSpace sin position definida.
+  - **Esperado**: NO crash. Mesa se crea con position default (0,0).
+
+---
+
+### 4. PRESUPUESTO (10 sitios refactor `70697317` + `db5892bc`)
+
+#### 4.1 MontoPresupuesto: cambio moneda (`70697317`)
+- [ ] **Test 32**: en `/presupuesto`, cambiar moneda (eur → usd → ves → mxn → cop → ars → uyu).
+  - **Esperado**: símbolos y formatos cambian. Refresh persiste.
+- [ ] **Test 33**: toggle viewEstimates (mostrar/ocultar costes estimados).
+  - **Esperado**: columnas aparecen/desaparecen.
+
+#### 4.2 Crear/editar categoría + gasto + item (`db5892bc` — antes mutación 3-niveles)
+- [ ] **Test 34** (CRÍTICO): crear categoría nueva → automáticamente se crea gasto inicial.
+  - **Esperado**: aparecen los 2. Refresh persiste.
+- [ ] **Test 35**: añadir item a un gasto existente.
+  - **Esperado**: item aparece con valores default (cantidad=1, valor_unitario=0).
+- [ ] **Test 36**: editar nombre de item.
+- [ ] **Test 37**: editar cantidad de item (1 → 5).
+  - **Esperado**: total se recalcula automáticamente (5 × valor_unitario).
+- [ ] **Test 38**: editar valor_unitario.
+  - **Esperado**: total se recalcula.
+- [ ] **Test 39**: editar unidad → "xUni." → la cantidad debe resetearse a 0.
+- [ ] **Test 40**: editar gasto nombre / coste_final.
+  - **Esperado**: coste_final de categoría se actualiza con suma de gastos.
+- [ ] **Test 41**: editar nombre de categoría.
+- [ ] **Test 42**: borrar item / gasto / categoría.
+  - **Esperado**: filas desaparecen. Refresh persiste.
+
+#### 4.3 Toggle estatus gasto + item (ocultar de suma)
+- [ ] **Test 43**: toggle estatus de un item (botón visibility).
+  - **Esperado**: item se oculta. Sumas de gasto/categoría se recalculan SIN ese item.
+
+#### 4.4 BlockListaCategorias + DuplicatePesupuesto
+- [ ] **Test 44**: duplicar presupuesto de un evento → otro evento.
+  - **Esperado**: presupuesto destino se reemplaza con el origen.
+
+#### 4.5 ResumenDeInvitadosPresupuesto
+- [ ] **Test 45**: cambiar adults / children en bloque resumen.
+  - **Esperado**: valores se actualizan. Refresh persiste.
+
+#### 4.6 ModalTaskList: links de gastos (`70697317`)
+- [ ] **Test 46**: en un gasto, abrir modal "Links" / "Tareas".
+  - Añadir URL → debe aparecer en lista.
+  - Eliminar URL (X) → desaparece.
+  - Refresh persiste.
+
+#### 4.7 TableBudgetV8: visibilidad de columnas (`f0a4ffae`)
+- [ ] **Test 47**: en presupuesto v2, abrir selector de columnas.
+  - Toggle visibilidad de "cantidad", "valor unitario", "total", etc.
+  - **Esperado**: columnas aparecen/desaparecen. Refresh persiste.
+
+#### 4.8 FormEditarPago: editar pago (`fd1710ed`)
+- [ ] **Test 48**: en un gasto con pagos, editar un pago existente.
+  - Cambiar monto + fecha + descripción.
+  - **Esperado**: cambios persisten. Refresh muestra valores nuevos.
+
+#### 4.9 BUG-17: scroll horizontal NavigationTabs (informe QA 21-jun)
+- [ ] **Test 49**: en `/presupuesto`, vista de tabs (categorías como tabs horizontales).
+  - Con 10+ categorías, las tabs deben hacer scroll horizontal con flechas o swipe.
+  - NO deben superponerse ni desaparecer.
+
+---
+
+### 5. ITINERARIO + SERVICIOS (Tareas)
+
+#### 5.1 ItineraryPanel: editar tarea (`e797ee4f` + `45179beb` + `fd1710ed`)
+- [ ] **Test 50** (CRÍTICO): en `/itinerario` o `/servicios`, editar campo de tarea (descripción, fecha, prioridad, estatus, responsable).
+  - **Esperado**: cambio aparece inmediato (optimistic update). Si API falla, rollback automático.
+- [ ] **Test 51**: cambiar estatus de tarea (completar/descompletar).
+  - **Esperado**: checkbox cambia. Notificación a otros responsables.
+- [ ] **Test 52**: toggle spectatorView de tarea.
+  - **Esperado**: oculta/muestra tarea en vista pública del itinerario.
+
+#### 5.2 Itinerario: crear/borrar tarea (`e797ee4f` + `45179beb`)
+- [ ] **Test 53**: crear tarea nueva en itinerario (botón "+ añadir").
+  - **Esperado**: aparece con defaults. Refresh persiste.
+- [ ] **Test 54**: borrar tarea.
+  - **Esperado**: desaparece. Refresh persiste.
+
+#### 5.3 Itinerario: crear/duplicar itinerario completo
+- [ ] **Test 55**: crear itinerario nuevo (botón "+ pestaña").
+  - **Esperado**: pestaña nueva aparece.
+- [ ] **Test 56**: duplicar itinerario completo (con tareas dentro).
+  - **Esperado**: nuevo itinerario con TODAS las tareas duplicadas.
+- [ ] **Test 57**: duplicar itinerario a OTRO evento.
+  - **Esperado**: itinerario aparece en evento destino, no en el actual.
+
+#### 5.4 Comentarios en tareas (`45179beb` — InputCommentsOld)
+- [ ] **Test 58**: en TaskDetailModal (Kanban), añadir comentario.
+  - **Esperado**: aparece en feed. Notificación a otros responsables.
+
+#### 5.5 Attachments en tareas (`45179beb` — NewAttachmentsEditor + `fd1710ed` — InputAttachments)
+- [ ] **Test 59**: subir archivo a tarea (Vista Tabla).
+  - **Esperado**: archivo aparece en lista. Refresh persiste.
+- [ ] **Test 60**: borrar attachment.
+  - **Esperado**: desaparece + se borra del storage Firebase.
+
+#### 5.6 Permisos compartidos (`fd1710ed` — Utils/Compartir)
+- [ ] **Test 61**: añadir/quitar usuario de "viewers" en itinerario (servicios).
+  - **Esperado**: usuario aparece/desaparece de la lista. Permisos se actualizan.
+- [ ] **Test 62**: cambiar permisos de un usuario (edit / view / none).
+  - **Esperado**: cambio persiste. Notificación al usuario afectado.
+
+---
+
+### 6. INVITACIONES + COMUNICACIONES
+
+#### 6.1 Reenvío de invitación (`fd1710ed` — GuestTableAll)
+- [ ] **Test 63**: en `/invitaciones`, click "reenviar email" a un invitado.
+  - **Esperado**: comunicación se añade a `comunicaciones_array` del invitado.
+  - Toast "Envio por email exitoso".
+- [ ] **Test 64**: reenviar WhatsApp.
+  - **Esperado**: igual que email pero por WhatsApp.
+
+#### 6.2 BUG-15: tipo evento normalizado al editar (`4ed05d5c`)
+- [ ] **Test 65**: editar un evento existente cuyo tipo está guardado en MAYÚSCULAS en BD.
+  - **Esperado**: el selector de tipo precarga el valor correctamente (no vacío).
+
+---
+
+### 7. RESUMEN + LUGAR
+
+#### 7.1 Cambiar lugar del evento (`fd1710ed` — BlockLugarEvento)
+- [ ] **Test 66**: en `/resumen-evento`, cambiar lugar.
+  - **Esperado**: nombre del lugar cambia inmediato. Refresh persiste.
+
+#### 7.2 BUG-13: archivar evento desde resumen
+- [ ] **Test 67**: archivar evento "Boda de TEST" (NO Isabel & Raúl).
+  - **Esperado**: dialog confirma. Evento desaparece de PENDIENTES, aparece en ARCHIVADOS.
+
+---
+
+### 8. CACHE OFFLINE + INVALIDACIÓN (`bc1afa07` + `4083ed82`)
+
+#### 8.1 Stale-while-revalidate
+- [ ] **Test 68**: hacer login + cargar /home.
+  - Cerrar wifi/4G.
+  - Abrir otra pestaña en /home → debe cargar lista de eventos desde cache (rápido).
+- [ ] **Test 69**: con cache cargada, crear un evento nuevo.
+  - **Esperado**: el cache se invalida automáticamente.
+  - Próximo /home muestra el nuevo evento.
+
+#### 8.2 Cache planSpaceSelect
+- [ ] **Test 70**: cambiar de evento varias veces.
+  - **Esperado**: el plan space activo se recuerda por evento (cache 5min).
+  - Cuando cambias de evento, el último plan space usado en ese evento se carga.
+
+---
+
+### 9. CHAT-IA + COPILOT
+
+#### 9.1 CopilotEmbed (`9fe2cc31` — BUG-15 labels + BUG-3 avatar)
+- [ ] **Test 71**: en app-dev abrir copilot embebido.
+  - **Esperado**: avatar del usuario es 👤 con nombre "Tú".
+  - Si no hay sugerencias, los labels "Prueba con" NO aparecen.
+- [ ] **Test 72**: pedir al copilot algo simple ("hazme una lista de tareas").
+  - **Esperado**: streaming visible. Mensaje queda persistido tras refresh.
+
+#### 9.2 Chat-ia logout (`76520010` + `72c0ab9a`)
+- [ ] **Test 73**: en chat-dev, hacer logout.
+  - **Esperado**: `jwt_token_cache` borrado del localStorage.
+  - Login con OTRO usuario → debe funcionar sin "sesión zombie".
+
+#### 9.3 BUG-2: icono guest header (`9fe2cc31` — MEJ-1 Sparkles + BUG-14 getCopilotBaseUrl)
+- [ ] **Test 74**: como guest (sin login) en app-dev.
+  - **Esperado**: header muestra Sparkles + CTA "Inicia sesión / Regístrate" claro.
+  - Click navega al chat-ia/login correcto.
+
+---
+
+### 10. UPLOAD UNIVERSAL (`77e88464` + `26827e03` + `08931fc8`)
+
+#### 10.1 Foto + EXIF auto-rotate
+- [ ] **Test 75**: subir foto del móvil tomada en orientación retrato.
+  - **Esperado**: aparece bien orientada (sin rotación incorrecta).
+- [ ] **Test 76**: subir foto >5MB.
+  - **Esperado**: se comprime antes de subir. URL Cloudflare R2.
+
+#### 10.2 Vídeo + Documento + ZIP + Audio
+- [ ] **Test 77**: subir vídeo .mp4.
+- [ ] **Test 78**: subir documento .pdf.
+- [ ] **Test 79**: subir .docx.
+- [ ] **Test 80**: subir .xlsx.
+- [ ] **Test 81**: subir .zip.
+- [ ] **Test 82**: subir .mp3.
+  - **Esperado en todos**: aparecen en la cola (UploadTray). Suben sin error.
+
+#### 10.3 Drag&drop carpetas
+- [ ] **Test 83**: arrastrar una CARPETA completa con 10 fotos al área de upload.
+  - **Esperado**: lee recursivamente todas las fotos de la carpeta.
+
+#### 10.4 Cola persistente
+- [ ] **Test 84**: empezar a subir 5 archivos. Cerrar pestaña con upload en progreso.
+  - Reabrir → debe continuar donde se quedó.
+
+#### 10.5 Sin red móvil
+- [ ] **Test 85**: subir foto desde móvil con datos 3G/4G lentos.
+  - **Esperado**: NO se pierde si la red corta. Reintento automático.
+
+---
+
+### 11. SOCKET REALTIME (`RT-01` — `0115ee60`)
+
+#### 11.1 NEXT_PUBLIC_SOCKET_URL en .env.production
+- [ ] **Test 86**: abrir app-dev en 2 navegadores (Chrome + Safari) con MISMO usuario.
+  - Mismo evento abierto en `/invitados`.
+  - Editar invitado en Chrome → Safari debe ver el cambio en <2s.
+- [ ] **Test 87**: 2 usuarios distintos con permisos en el mismo evento.
+  - Cambiar gasto en presupuesto en usuario 1 → usuario 2 lo ve.
+
+---
+
+### 12. ACCESIBILIDAD + A11Y (`df7a9982`)
+
+#### 12.1 Atributos alt en imágenes
+- [ ] **Test 88**: con devtools, inspeccionar `<img>` en:
+  - `/home` Card de evento → alt = nombre evento.
+  - `DropdownCountries` → alt = "Bandera del país seleccionado".
+  - `ModalListAddUser` avatar → alt = "Avatar de NOMBRE".
+- [ ] **Test 89**: ejecutar Lighthouse a11y en `/home` → score >85.
+
+#### 12.2 OBS-1: autoComplete passwords (`162e76b6`)
+- [ ] **Test 90**: en `/login` form, password input → `autocomplete="current-password"`.
+- [ ] **Test 91**: en `/register` form, password input → `autocomplete="new-password"`.
+
+#### 12.3 OBS-3: flecha "Volver" con label (`1a558d47`)
+- [ ] **Test 92**: en `/login` con stage=register, hover sobre la flecha izquierda.
+  - **Esperado**: tooltip "Volver" + texto visible "Volver" en desktop.
+
+#### 12.4 OBS-5: RegisterQuestion prominente (`1a558d47`)
+- [ ] **Test 93**: en `/login`, debajo del botón principal debe verse:
+  - "¿No tienes cuenta? **Regístrate**" como botón prominente (no link plano).
+
+---
+
+### 13. SEGURIDAD + PII (`162e76b6` BUG-8)
+
+#### 13.1 PII en seating endpoint
+- [ ] **Test 94**: hacer GET `https://app-dev.bodasdehoy.com/api/public/seating/{eventId}`.
+  - **Esperado**: NO debe contener emails, teléfonos, datos sensibles de invitados.
+  - Solo nombre + mesa + silla (info necesaria para seating).
+
+---
+
+### 14. CHAT-IA ANTIPATRONES (`bc1afa07` + `72c0ab9a`)
+
+#### 14.1 Console output limpio en producción
+- [ ] **Test 95**: en chat-dev (modo producción), abrir devtools consola.
+  - **Esperado**: NO debe haber `console.log` ni fetches a `127.0.0.1:7242`.
+  - SOLO `console.warn` con prefix `[modulo]` cuando algo falle.
+
+---
+
+## 🐛 REGRESIONES — verificar que NO se rompieron features existentes
+
+- [ ] **Reg 1**: login email + password normal.
+- [ ] **Reg 2**: login Google OAuth.
+- [ ] **Reg 3**: login Facebook OAuth.
+- [ ] **Reg 4**: SSO entre app-dev ↔ chat-dev (login en uno = sesión en otro).
+- [ ] **Reg 5**: logout en uno = logout en todos (norma del user).
+- [ ] **Reg 6**: registro nuevo usuario completo.
+- [ ] **Reg 7**: crear evento nuevo desde 0.
+- [ ] **Reg 8**: subir fotos a `/momentos` (álbum del evento).
+- [ ] **Reg 9**: ver web pública del evento (creador-dev).
+- [ ] **Reg 10**: cambiar idioma (ES → EN si hay).
+
+---
+
+## 📝 Cómo reportar bugs encontrados
+
+Para cada bug usar este formato:
+
+```
+### BUG-#-NN
+- Página: /ruta (URL completa)
+- Stage: cuál fase del flujo
+- Usuario: bodasdehoy.com@gmail.com / etc.
+- Pasos para reproducir:
+  1. ...
+  2. ...
+- Esperado: ...
+- Obtenido: ...
+- Screenshot DOM (con devtools abierto si crash JS): adjunto
+- Browser + OS: Chrome 121 / macOS 25
+- Severidad: blocker / critical / major / minor / cosmetic
+```
+
+Postear todo el reporte en `C0AV8EV5495` (canal `#bodasdehoy-backend-coordinacion` hilo `1778170638.897419`) con prefijo:
+
+```
+DE: QA-cowork
+PARA: FRONT-AppEventos
+DRI: ...
+ASUNTO: QA report BUILD vzhq0Z5jgSeBv0GufABf4
+```
+
+---
+
+## 🎯 Prioridad de ejecución
+
+**P0 (debe hacerse SI O SI hoy/mañana):**
+- Tests 13-31 (Mesas drag&drop) — más alto valor refactor inmutable
+- Tests 34-48 (Presupuesto) — más profundo del refactor
+- Tests 50-62 (Itinerario + Servicios) — workflow diario
+- Test 30 (BUG-4 PARCIAL — necesita DOM screenshot ya)
+
+**P1 (esta semana):**
+- Tests 1-12 (Auth + URL persistence)
+- Tests 68-70 (Cache offline)
+- Test 86-87 (Socket realtime multi-usuario)
+
+**P2 (cuando puedas):**
+- Tests 71-85 (Chat-ia + Upload — features ya probadas antes)
+- Tests 88-95 (A11y + seguridad — refactor más cosmético)
+- Reg 1-10 (regresiones — no debería fallar nada)
+
+---
+
+## ⏱️ Estimación
+
+- P0 completo: ~6h
+- P1 completo: ~3h
+- P2 completo: ~3h
+- **TOTAL**: ~12h de QA exhaustivo
+
+Gracias por la dedicación. Cualquier duda, ping en hilo `1778170638.897419`.
+
+— FRONT-AppEventos · 22-jun-2026

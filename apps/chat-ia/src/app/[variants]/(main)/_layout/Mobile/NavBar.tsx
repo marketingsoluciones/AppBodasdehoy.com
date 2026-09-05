@@ -3,10 +3,10 @@
 import { Icon } from '@lobehub/ui';
 import { TabBar, type TabBarProps } from '@lobehub/ui/mobile';
 import { createStyles } from 'antd-style';
-import { Compass, Inbox, MessageSquare, User } from 'lucide-react';
+import { Bot, Compass, FolderClosed, Globe, Images, Inbox, LayoutGrid, MessageSquare, Settings, User, UserPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { rgba } from 'polished';
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { MOBILE_TABBAR_HEIGHT } from '@/const/layoutTokens';
@@ -22,11 +22,69 @@ const useStyles = createStyles(({ css, token }) => ({
       fill: ${rgba(token.colorPrimary, 0.33)};
     }
   `,
+  backdrop: css`
+    position: fixed;
+    z-index: 900;
+    inset: 0;
+    background: ${rgba('#000', 0.45)};
+    animation: navFade 0.15s ease;
+    @keyframes navFade {
+      from { opacity: 0; }
+    }
+  `,
   container: css`
     position: fixed;
     z-index: 100;
     inset-block-end: 0;
     inset-inline: 0 0;
+  `,
+  item: css`
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    padding: 14px 18px;
+    border-radius: 12px;
+    color: ${token.colorText};
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    &:active {
+      background: ${token.colorFillSecondary};
+    }
+    svg {
+      color: ${token.colorPrimary};
+      flex: none;
+    }
+  `,
+  sheet: css`
+    position: fixed;
+    z-index: 901;
+    inset-inline: 0 0;
+    inset-block-end: 0;
+    padding: 6px 12px calc(18px + env(safe-area-inset-bottom));
+    border-start-start-radius: 20px;
+    border-start-end-radius: 20px;
+    background: ${token.colorBgContainer};
+    box-shadow: 0 -8px 34px ${rgba('#000', 0.2)};
+    animation: navSlide 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    @keyframes navSlide {
+      from { transform: translateY(100%); }
+    }
+  `,
+  sheetHandle: css`
+    width: 40px;
+    height: 4px;
+    margin: 8px auto 12px;
+    border-radius: 3px;
+    background: ${token.colorBorder};
+  `,
+  sheetTitle: css`
+    padding: 0 8px 8px;
+    color: ${token.colorTextTertiary};
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
   `,
 }));
 
@@ -42,6 +100,22 @@ const NavBar = memo(() => {
   const isServerMode = process.env.NEXT_PUBLIC_SERVICE_MODE === 'server';
   const inboxUnread = useInboxUnreadCount();
 
+  // P0 móvil (5-sep): en móvil se perdía el acceso al resto de la app (Agentes, Momentos,
+  // Documentos, Editor de webs, Ajustes). La pestaña "Más" abre una hoja con esas secciones.
+  // OJO: declarar DESPUÉS de isLoggedIn (si no, TDZ → ReferenceError → crash de render).
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreSections = useMemo(
+    () =>
+      [
+        isLoggedIn && { href: '/agentes', icon: Bot, title: 'Agentes' },
+        { href: '/memories', icon: Images, title: 'Momentos' },
+        { href: '/files', icon: FolderClosed, title: 'Documentos' },
+        { href: '/wedding-creator', icon: Globe, title: 'Web de boda' },
+        { href: '/settings', icon: Settings, title: 'Ajustes y saldo' },
+      ].filter(Boolean) as Array<{ href: string; icon: typeof Bot; title: string }>,
+    [isLoggedIn],
+  );
+
   const items: TabBarProps['items'] = useMemo(
     () =>
       [
@@ -51,9 +125,10 @@ const NavBar = memo(() => {
           ),
           key: SidebarTabKey.Chat,
           onClick: () => {
-            router.push('/chat');
+            router.push('/asistente');
           },
-          title: t('tab.chat'),
+          // R1 nomenclatura (diseño PLAN-CHAT-IA-REDISENO): "Chat IA" → "Asistente".
+          title: 'Asistente',
         },
         // Bandeja de mensajes — solo usuarios registrados en server mode
         isServerMode && isLoggedIn && {
@@ -87,12 +162,14 @@ const NavBar = memo(() => {
           ),
           key: SidebarTabKey.Messages,
           onClick: () => {
-            router.push('/messages');
+            router.push('/bandeja');
           },
-          title: 'Mensajes',
+          // R1 nomenclatura: la mensajería unificada se llama "Bandeja".
+          title: 'Bandeja',
         },
-        // Discover/Market - Marketplace de agentes y plugins
-        showMarket && {
+        // Discover/Market — solo registrados (P0 fricción 5, 5-sep: al visitante no le
+        // sirve el marketplace de agentes que no puede usar).
+        showMarket && isLoggedIn && {
           icon: (active: boolean) => (
             <Icon className={active ? styles.active : undefined} icon={Compass} />
           ),
@@ -102,7 +179,9 @@ const NavBar = memo(() => {
           },
           title: t('tab.discover'),
         },
-        {
+        // "Yo" y "Más" solo para registrados. Un visitante debe ver lo básico (Asistente)
+        // + la puerta a registrarse (menú mínimo, feedback JCP 5-sep).
+        isLoggedIn && {
           icon: (active: boolean) => (
             <Icon className={active ? styles.active : undefined} icon={User} />
           ),
@@ -112,17 +191,60 @@ const NavBar = memo(() => {
           },
           title: t('tab.me'),
         },
+        isLoggedIn && {
+          icon: (active: boolean) => (
+            <Icon className={active ? styles.active : undefined} icon={LayoutGrid} />
+          ),
+          key: 'more',
+          onClick: () => setMoreOpen(true),
+          title: 'Más',
+        },
+        // Visitante: CTA de registro prominente (menú mínimo + capta data, KPI del negocio).
+        !isLoggedIn && {
+          icon: (active: boolean) => (
+            <Icon className={active ? styles.active : undefined} icon={UserPlus} />
+          ),
+          key: 'register',
+          onClick: () => {
+            router.push('/login?q=register');
+          },
+          title: 'Registrarse',
+        },
       ].filter(Boolean) as TabBarProps['items'],
     [t, showMarket, isGuest, isLoggedIn, isServerMode, inboxUnread, router, styles.active],
   );
 
   return (
-    <TabBar
-      activeKey={activeKey}
-      className={styles.container}
-      height={MOBILE_TABBAR_HEIGHT}
-      items={items}
-    />
+    <>
+      <TabBar
+        activeKey={activeKey}
+        className={styles.container}
+        height={MOBILE_TABBAR_HEIGHT}
+        items={items}
+      />
+      {moreOpen && (
+        <>
+          <div className={styles.backdrop} onClick={() => setMoreOpen(false)} />
+          <div className={styles.sheet}>
+            <div className={styles.sheetHandle} />
+            <div className={styles.sheetTitle}>Ir a…</div>
+            {moreSections.map((s) => (
+              <div
+                className={styles.item}
+                key={s.href}
+                onClick={() => {
+                  setMoreOpen(false);
+                  router.push(s.href);
+                }}
+              >
+                <Icon icon={s.icon} size={20} />
+                {s.title}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </>
   );
 });
 

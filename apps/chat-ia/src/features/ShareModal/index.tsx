@@ -1,4 +1,5 @@
 import { Modal, type ModalProps, Segmented, Tabs } from '@lobehub/ui';
+import dynamic from 'next/dynamic';
 import { memo, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
@@ -8,8 +9,11 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 
 import ShareImage from './ShareImage';
 import ShareJSON from './ShareJSON';
-import SharePdf from './SharePdf';
 import ShareText from './ShareText';
+
+// SPRINT-Z: SharePdf usa react-pdf + pdfjs-dist (~600KB) — solo carga si user
+// click tab PDF. Lazy ssr:false. Tab solo visible en isServerMode.
+const SharePdf = dynamic(() => import('./SharePdf'), { ssr: false });
 
 enum Tab {
   JSON = 'json',

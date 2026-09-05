@@ -1,8 +1,9 @@
 import { createContext, useContext, useState, useEffect, useRef } from "react";
-import { getAuth, onAuthStateChanged, signInWithCustomToken, getRedirectResult } from 'firebase/auth'
+import { getAuth, onAuthStateChanged, getRedirectResult } from 'firebase/auth'
 import Cookies from 'js-cookie'
 import { nanoid, customAlphabet, } from 'nanoid'
 import { developments } from "../firebase";
+import { useRouter as usePagesRouter } from 'next/router';
 
 /** En localhost el navegador rechaza cookies con domain=.bodasdehoy.com */
 function safeCookieDomain(domain?: string): string | undefined {
@@ -11,7 +12,27 @@ function safeCookieDomain(domain?: string): string | undefined {
   }
   return domain;
 }
+
+/**
+ * BUG R4-002 (QA 30-jun): fallback nombre cookie cuando config aún no
+ * está hidratado — antes escribíamos cookie literal llamada "undefined".
+ */
+function resolveCookieName(configCookie?: string, fallback: string = 'sessionBodas'): string {
+  if (typeof configCookie === 'string' && configCookie.length > 0) return configCookie;
+  console.warn(`[AuthContext] config.cookie undefined — usando fallback "${fallback}".`);
+  return fallback;
+}
+
+function safeJsonParse<T>(raw: unknown, fallback: T): T {
+  if (typeof raw !== 'string') return fallback;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
 import { fetchApiBodas, fetchApiEventos, queries } from "../utils/Fetching";
+import { resolveApiBodasGraphqlUrl } from "../utils/apiEndpoints";
 import { initializeApp } from "firebase/app";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useActivity } from "../hooks/useActivity";
@@ -21,6 +42,7 @@ import {
   parseJwt,
   parseSessionJwt,
   getSessionUserIdFromToken,
+  setCrossAppIdToken,
 } from '@bodasdehoy/shared/auth';
 import { getDevelopmentNameFromHostname } from '@bodasdehoy/shared/types';
 import { registerReferralIfPending, trackRegistrationComplete, sendAttributionToApi } from '@bodasdehoy/shared';
@@ -104,7 +126,31 @@ const AuthContext = createContext<Context>(initialContext);
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState<any>(initialContext.user);
   const [verificationDone, setVerificationDone] = useState<any>(false);
-  const [config, setConfig] = useState<any>();
+  // BUG QA-R5+ (2-jul): antes config se hidrataba SOLO tras el primer useEffect
+  // (line 242). Si un login popup Firebase completaba antes de esa hidratación
+  // el warning "config.cookie undefined" aparecía y resolveCookieName caía a
+  // fallback. Ahora init síncrono desde hostname para que config esté
+  // disponible desde el primer render (guard SSR).
+  // SSR: NO devolver undefined — /login leía config?.headTitle/theme y caía a
+  // defaults distintos del cliente → hydration mismatch (Bodas de Hoy vs
+  // headTitle de bodasdehoy + gradiente rosa vs marca).
+  const [config, setConfig] = useState<any>(() => {
+    const resolveDev = (name: string) =>
+      developments.find((elem) => elem.name === name || elem.development === name) || developments[0];
+    try {
+      if (typeof window === 'undefined') {
+        const ssrName =
+          process.env.NEXT_PUBLIC_DEV_WHITELABEL ||
+          process.env.NEXT_PUBLIC_DEVELOPMENT ||
+          'bodasdehoy';
+        return resolveDev(ssrName);
+      }
+      const domainDevelop = getDevelopmentNameFromHostname(window.location.hostname);
+      return resolveDev(domainDevelop);
+    } catch {
+      return resolveDev('bodasdehoy');
+    }
+  });
   const [isMounted, setIsMounted] = useState<boolean>(false)
   const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<any>(0);
   const [actionModals, setActionModals] = useState(false);
@@ -132,6 +178,7 @@ const AuthProvider = ({ children }) => {
   const verificatorDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [WihtProvider, SetWihtProvider] = useState<boolean>(false)
   const router = useRouter()
+  const pagesRouter = usePagesRouter()
   const searchParams = useSearchParams()
   const [updateActivity] = useActivity()
   const [EventTicket, setEventTicket] = useState({})
@@ -159,7 +206,7 @@ const AuthProvider = ({ children }) => {
           query: queries.getPreregister,
           variables: { _id: searchParams?.get("_id") }
         }).then((result: any) => {
-          SetPreregister(JSON.parse(result ?? {}))
+          SetPreregister(typeof result === 'string' ? safeJsonParse(result, {}) : (result ?? {}))
         })
       }
       SetLinkMedia(searchParams?.get("m"))
@@ -291,28 +338,6 @@ const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (isMounted && config) {
-      // BYPASS: Para subdominios de test SOLAMENTE (no localhost)
-      // localhost ahora usa autenticación real de Firebase
-      const isTestEnv = window.location.hostname.includes('chat-test') || window.location.hostname.includes('app-test') || window.location.hostname.includes('test.') || window.location.hostname.includes('app-dev') || window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1')
-      const devBypass = localStorage.getItem('dev_bypass') === 'true' || sessionStorage.getItem('dev_bypass') === 'true'
-
-      if (isTestEnv && devBypass) {
-        const bypassEmail = localStorage.getItem('dev_bypass_email') || sessionStorage.getItem('dev_bypass_email') || 'jcc@bodasdehoy.com'
-        const bypassUid = localStorage.getItem('dev_bypass_uid') || sessionStorage.getItem('dev_bypass_uid') || 'upSETrmXc7ZnsIhrjDjbHd7u2up1'
-        const bypassRole = localStorage.getItem('dev_bypass_role') || sessionStorage.getItem('dev_bypass_role') || 'creator'
-        console.log("[Auth] 🔓 Bypass activo:", bypassEmail, bypassUid, "role:", bypassRole)
-        const devUser = {
-          uid: bypassUid,
-          email: bypassEmail,
-          displayName: bypassEmail.split('@')[0],
-          role: [bypassRole],
-          status: true
-        }
-        setUser(devUser)
-        setVerificationDone(true)
-        return
-      }
-
       // Manejar resultado del redirect de login (Google/Facebook)
       // Esto se ejecuta cuando el usuario regresa de Google/Facebook después de autenticarse
       const wasRedirectPending = sessionStorage.getItem('auth_redirect_pending') === 'true'
@@ -343,22 +368,8 @@ const AuthProvider = ({ children }) => {
             // Procesar el login completo como en el flujo normal
             try {
               const idToken = await result.user.getIdToken()
-              const dateExpire = new Date(parseJwt(idToken).exp * 1000)
-              
-              const idTokenDomain = safeCookieDomain(process.env.NEXT_PUBLIC_PRODUCTION ? config?.domain : process.env.NEXT_PUBLIC_DOMINIO || ".bodasdehoy.com")
-              
-              console.log("[Auth] Estableciendo cookie idTokenV0.1.0:", {
-                domain: idTokenDomain,
-                expires: dateExpire.toISOString()
-              })
-              
-              Cookies.set("idTokenV0.1.0", idToken, { 
-                domain: idTokenDomain, 
-                expires: dateExpire,
-                path: "/",
-                secure: window.location.protocol === "https:",
-                sameSite: "lax"
-              })
+              // Escritor único de la cookie compartida (SessionBridge), atributos consistentes.
+              setCrossAppIdToken(idToken)
               
               // Verificar que la cookie se estableció
               const idTokenVerificado = Cookies.get("idTokenV0.1.0")
@@ -369,6 +380,9 @@ const AuthProvider = ({ children }) => {
               }
 
               // Obtener información adicional del usuario
+              // 🐛 FIX 2026-06-13: antes era `{ status: true }` hardcodeado → el perfil real
+              // (name, email, status, signUpProgress, eventSelected) NO se cargaba → header con "—".
+              // Cargamos el perfil real de BD (getUser) para mergearlo en setUser más abajo.
               const moreInfo = { status: true }
 
               if (moreInfo?.status && result.user.email) {
@@ -425,7 +439,7 @@ const AuthProvider = ({ children }) => {
                   })
                   
                   // Establecer la cookie con el dominio correcto
-                  Cookies.set(config?.cookie, sessionCookie, { 
+                  Cookies.set(resolveCookieName(config?.cookie), sessionCookie, { 
                     domain: cookieDomain || ".bodasdehoy.com", 
                     expires: dateExpire,
                     path: "/",
@@ -434,7 +448,7 @@ const AuthProvider = ({ children }) => {
                   })
                   
                   // Verificar inmediatamente que la cookie se estableció
-                  const cookieInmediata = Cookies.get(config?.cookie)
+                  const cookieInmediata = Cookies.get(resolveCookieName(config?.cookie))
                   console.log("[Auth] Verificación inmediata de cookie:", {
                     cookie: config?.cookie,
                     presente: !!cookieInmediata,
@@ -442,11 +456,25 @@ const AuthProvider = ({ children }) => {
                   })
                   
                   // Verificar que la cookie se estableció correctamente
-                  const cookieVerificada = Cookies.get(config?.cookie)
+                  const cookieVerificada = Cookies.get(resolveCookieName(config?.cookie))
                   if (cookieVerificada) {
                     console.log("[Auth] ✅ Cookie sessionBodas establecida correctamente")
                   } else {
-                    console.error("[Auth] ❌ Error: Cookie sessionBodas NO se estableció")
+                    // BUG-11 (informe QA 21-jun): diagnóstico ampliado + fallback localStorage.
+                    const sz = (typeof sessionCookie === 'string' ? sessionCookie.length : 0)
+                    console.error("[Auth] ❌ Cookie sessionBodas NO se estableció. Aplicando fallback localStorage.", {
+                      valueSize: sz,
+                      domain: cookieDomain,
+                      protocol: window.location.protocol,
+                      hint: sz > 4000
+                        ? "sessionCookie excede 4KB — backend debe acortar el JWT"
+                        : "browser rechazó (third-party cookies / ITP / SameSite)"
+                    })
+                    try {
+                      if (typeof window !== 'undefined') {
+                        localStorage.setItem('sessionBodas_fallback', sessionCookie)
+                      }
+                    } catch { /* quota / private mode */ }
                   }
                 }
 
@@ -461,7 +489,37 @@ const AuthProvider = ({ children }) => {
                 );
 
                 // Actualizar estado con los datos completos
-                setUser({ ...result.user, ...moreInfo })
+                // 🐛 FIX 2026-06-13: cargar el perfil REAL de BD (getUser) — antes solo
+                // se mergeaba {status:true} y el header mostraba "—" (name/email null).
+                let userInfo: any = null
+                try {
+                  userInfo = await fetchApiBodas({
+                    query: queries.getUser,
+                    variables: { uid: result.user.uid },
+                    development: config?.development,
+                  })
+                } catch (e: any) {
+                  console.warn('[Auth] getUser perfil no crítico:', e?.message)
+                }
+                // BUG-CW-03 (informe QA 22-jun noche): userInfo (getUser) puede
+                // venir con displayName/photoURL/email = null y sobreescribir los
+                // de result.user (válidos del JWT). Spread con guards por campo
+                // para que solo MERGE NON-NULL values del backend.
+                const ui: any = userInfo || {}
+                const safeUserInfo: any = {}
+                Object.keys(ui).forEach((k) => {
+                  if (ui[k] !== null && ui[k] !== undefined) safeUserInfo[k] = ui[k]
+                })
+                const ru: any = result.user
+                setUser({
+                  ...result.user,
+                  ...moreInfo,
+                  ...safeUserInfo,
+                  uid: result.user.uid,
+                  email: safeUserInfo.email || ru.email,
+                  displayName: safeUserInfo.displayName || safeUserInfo.name || ru.displayName || ru.name,
+                  photoURL: safeUserInfo.photoURL || safeUserInfo.avatar || ru.photoURL || ru.avatar,
+                })
                 setVerificationDone(true)
 
                 // Redirigir a la URL correcta si estamos en una URL diferente
@@ -512,7 +570,7 @@ const AuthProvider = ({ children }) => {
                 // Esperar 1 segundo para asegurar que las cookies se establezcan
                 setTimeout(() => {
                   // Verificar cookies antes de redirigir
-                  const sessionCookie = Cookies.get(config?.cookie)
+                  const sessionCookie = Cookies.get(resolveCookieName(config?.cookie))
                   const idToken = Cookies.get("idTokenV0.1.0")
 
                   if (sessionCookie && idToken) {
@@ -593,7 +651,7 @@ const AuthProvider = ({ children }) => {
     verificatorDebounceRef.current = setTimeout(() => {
       verificatorDebounceRef.current = null
       const u = getAuth().currentUser
-      const sessionCookie = Cookies.get(config?.cookie)
+      const sessionCookie = Cookies.get(resolveCookieName(config?.cookie))
       void verificator({ user: u, sessionCookie })
     }, 400)
     return () => {
@@ -619,13 +677,27 @@ const AuthProvider = ({ children }) => {
     return () => clearTimeout(safetyTimeout);
   }, [])
 
+  // Fase 3 (cross-tab logout, LO-4): si otra pestaña de appEventos cierra sesión, reflejarlo
+  // aquí al instante (redirigir). BroadcastChannel es same-origin; el cierre cross-APP ya lo
+  // cubre el borrado de la cookie compartida .tenant.com (Fase 3, Profile.tsx).
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof BroadcastChannel === 'undefined') return;
+    const bc = new BroadcastChannel('appeventos-auth');
+    bc.onmessage = (ev) => {
+      if (ev?.data?.type === 'logout') {
+        setUser(null);
+        window.location.href = config?.pathSignout ? `${config.pathSignout}?end=true` : '/';
+      }
+    };
+    return () => bc.close();
+  }, [config?.pathSignout]);
+
   const moreInfo = async (user) => {
     try {
       let idToken = Cookies.get("idTokenV0.1.0")
       if (!idToken) {
         idToken = await getAuth().currentUser?.getIdToken(true)
-        const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-        Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: safeCookieDomain(process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO), expires: dateExpire })
+        if (idToken) setCrossAppIdToken(idToken)
       }
       const userInfo = await fetchApiBodas({
         query: queries.getUser,
@@ -636,7 +708,20 @@ const AuthProvider = ({ children }) => {
       if (!getAuth().currentUser) return;
       const firebaseUid = getAuth().currentUser?.uid || user?.uid
       // getUser no pide `uid` en GraphQL; si la API devolviera campos extra, no deben pisar el UID de Firebase (query eventos usa usuario_id === uid).
-      setUser({ ...user, ...userInfo, uid: firebaseUid });
+      // BUG-CW-03: filter null fields del userInfo para no pisar valores válidos del user actual.
+      const ui: any = userInfo || {}
+      const safeUserInfo: any = {}
+      Object.keys(ui).forEach((k) => {
+        if (ui[k] !== null && ui[k] !== undefined) safeUserInfo[k] = ui[k]
+      })
+      setUser({
+        ...user,
+        ...safeUserInfo,
+        uid: firebaseUid,
+        email: safeUserInfo.email || user?.email,
+        displayName: safeUserInfo.displayName || safeUserInfo.name || user?.displayName || user?.name,
+        photoURL: safeUserInfo.photoURL || safeUserInfo.avatar || user?.photoURL || user?.avatar,
+      });
       updateActivity("accessed")
       // Sincronizar sesión con apps/copilot via AuthBridge (escribe dev-user-config en localStorage)
       if (config) {
@@ -713,7 +798,7 @@ const AuthProvider = ({ children }) => {
               window.location.hostname.includes('-test.') ||
               window.location.hostname.includes('-dev.')
             )
-            const sessionApiUrl = _isDevOrTest ? '/api/proxy-bodas/graphql' : (process.env.NEXT_PUBLIC_API_BODAS_URL || 'https://api2.eventosorganizador.com/graphql')
+            const sessionApiUrl = _isDevOrTest ? '/api/proxy-bodas/graphql' : resolveApiBodasGraphqlUrl()
             const sessionResp = await fetch(sessionApiUrl, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'Development': config?.development || 'bodasdehoy' },
@@ -725,7 +810,7 @@ const AuthProvider = ({ children }) => {
               if (sessionResult?.sessionCookie) {
                 const isDevLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
                 const cookieDomain = isDevLocal ? undefined : (process.env.NEXT_PUBLIC_PRODUCTION ? config?.domain : (process.env.NEXT_PUBLIC_DOMINIO || '.bodasdehoy.com'))
-                Cookies.set(config?.cookie, sessionResult.sessionCookie, {
+                Cookies.set(resolveCookieName(config?.cookie), sessionResult.sessionCookie, {
                   domain: safeCookieDomain(cookieDomain),
                   expires: 365,
                   path: '/',
@@ -756,7 +841,27 @@ const AuthProvider = ({ children }) => {
         }
         // No reintentar auth API2 en bucle por cada onAuthStateChanged si ya falló con esta cookie/uid
         skipApi2SessionRestoreKeyRef.current = restoreLoopKey
-        // Fallback: continuar sin sessionBodas (acceso limitado)
+        // BUG #3 QA 30-jun (CASO D): cuando llegamos aquí el usuario está
+        // autenticado en Firebase pero NO tenemos sessionBodas válida y NO
+        // pudimos restaurarla. Antes la app cargaba en estado "limitado" sin
+        // avisar.
+        // REGRESIÓN R4-001/002/003/004/005: usamos spread `{...user, ...}`
+        // y eso rompía el objeto Firebase User (uid/email son getters de
+        // prototipo y NO se copian con spread → user.uid llegaba undefined).
+        // Fix: dejamos setUser(user) intacto y exponemos la marca degraded
+        // SOLO en window para diagnóstico (no en el state del user).
+        console.error('[Verificator] ❌ CASO D: usuario Firebase sin sessionBodas — acceso degradado', {
+          firebaseUid: user?.uid,
+          email: user?.email,
+        })
+        if (typeof window !== 'undefined') {
+          (window as any).__authDegraded = {
+            reason: 'no_session_bodas',
+            firebaseUid: user?.uid,
+            email: user?.email,
+            at: Date.now(),
+          }
+        }
         setUser(user)
         moreInfo(user) // ← setVerificationDone(true) se llama dentro de moreInfo
         return
@@ -781,44 +886,71 @@ const AuthProvider = ({ children }) => {
         }
       }
       if (sessionUidFromCookie && !user?.uid) {
-        const resp = await fetchApiBodas({
-          query: queries.authStatus,
-          variables: { sessionCookie },
-          development: config?.development
-        });
-        if (resp?.customToken) {
-          setIsStartingRegisterOrLogin(true)
-          await signInWithCustomToken(getAuth(), resp.customToken)
-            .then(result => {
-              setUser(result?.user)
-              moreInfo(result?.user)
-            }).catch(async (error) => {
-              console.error('[Auth] signInWithCustomToken falló:', error?.code, error?.message)
-              // Fallback: si tenemos userId de la sessionCookie, cargar datos del usuario directamente
-              // Esto ocurre cuando el dominio no está autorizado en Firebase (ej. app-test.bodasdehoy.com)
-              if (sessionUidFromCookie) {
-                console.warn('[Auth] Fallback SSO: cargando usuario desde sessionCookie userId:', sessionUidFromCookie)
-                try {
-                  const userInfo = await fetchApiBodas({
-                    query: queries.getUser,
-                    variables: { uid: sessionUidFromCookie },
-                    development: config?.development
-                  })
-                  if (userInfo) {
-                    console.log('[Auth] ✅ Fallback SSO exitoso, usuario cargado:', userInfo?.email)
-                    setUser({ uid: sessionUidFromCookie, ...userInfo })
-                    setVerificationDone(true)
-                    return
-                  }
-                } catch (fallbackErr) {
-                  console.error('[Auth] Fallback SSO también falló:', fallbackErr)
-                }
-              }
-              setVerificationDone(true)
-            })
-        } else {
+        if (typeof sessionCookie !== 'string' || !sessionCookie) {
           setVerificationDone(true)
+          return
         }
+        // T-501 (2026-05-24): validación canónica vía getCurrentUser con Bearer sessionCookie.
+        // Reemplaza el legacy `status(sessionCookie)` mutation (DiarioCivitas) que api-mcp
+        // valida SOLO con JWT_SECRET OLD → rechazaba sessionBodas firmados con JWT_SECRET_NEW
+        // ("Sesión inválida o expirada"). getCurrentUser pasa por context.ts dual-accept (NEW→OLD).
+        // Decisión BACKEND-api-mcp 2026-05-24: no compat legacy, migración en front.
+        // Ver SEGUIMIENTO-BUG-API-MCP-STATUS.md.
+        let sessionResolved = false
+        try {
+          const currentUser = await fetchApiBodas({
+            query: queries.getCurrentUser,
+            variables: {},
+            token: sessionCookie,
+            development: config?.development
+          });
+          if (currentUser?.id) {
+            console.log('[Auth] ✅ Sesión validada vía getCurrentUser:', currentUser?.email)
+            // Cargar datos completos del usuario appEventos (eventSelected, weddingDate, etc.)
+            const userInfo: any = await fetchApiBodas({
+              query: queries.getUser,
+              variables: { uid: currentUser.id },
+              token: sessionCookie,
+              development: config?.development
+            }).catch(() => null)
+            // BUG-H-02 + BUG-CW-03 (informes QA 22-jun): el backend devuelve
+            // campos en `name`/`avatar` (alias) o NULL en `displayName`/`photoURL`.
+            // Filter null fields antes de spread para NO sobreescribir valores
+            // válidos del currentUser con null.
+            const ui: any = userInfo || {}
+            const safeUserInfo: any = {}
+            Object.keys(ui).forEach((k) => {
+              if (ui[k] !== null && ui[k] !== undefined) safeUserInfo[k] = ui[k]
+            })
+            const merged: any = {
+              ...safeUserInfo,
+              uid: currentUser.id,
+              email: currentUser.email || safeUserInfo.email,
+              displayName: safeUserInfo.displayName || safeUserInfo.name || currentUser?.name || currentUser?.displayName,
+              photoURL: safeUserInfo.photoURL || safeUserInfo.avatar || currentUser?.avatar || currentUser?.photoURL,
+            }
+            setUser(merged)
+            moreInfo(merged)
+            sessionResolved = true
+          } else {
+            console.warn('[Auth] getCurrentUser no devolvió usuario — sesión inválida')
+          }
+        } catch (err) {
+          console.error('[Auth] Validación getCurrentUser falló:', err)
+        }
+        // Sesión residual inválida/expirada: en bodasdehoy la entrada es invitado + nudge (NUNCA la landing).
+        // Sin esto, quedábamos con user=null y verificationDone=true → pages/index mostraba LandingVisitante.
+        if (!sessionResolved && ["bodasdehoy"].includes(config?.development) && !user?.uid) {
+          console.log('[Verificator] Sesión residual sin validar → creando usuario guest (bodasdehoy)')
+          const cookieContent = safeJsonParse<{ guestUid?: string }>(Cookies.get(config?.cookieGuest), {})
+          let guestUid = cookieContent?.guestUid
+          if (!guestUid) {
+            guestUid = nanoid(28)
+            Cookies.set(resolveCookieName(config?.cookieGuest, 'guestbodas'), JSON.stringify({ guestUid }), { domain: safeCookieDomain(config?.domain), expires: new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000) })
+          }
+          setUser({ uid: guestUid, displayName: 'guest' })
+        }
+        setVerificationDone(true)
       }
       // SSO cross-domain: si no hay sessionCookie y no hay usuario real (o es anónimo),
       // pero hay idTokenV0.1.0 (p. ej. login en chat-dev/chat-test/chat), crear sesión automáticamente.
@@ -845,7 +977,7 @@ const AuthProvider = ({ children }) => {
               window.location.hostname.includes('-test.') ||
               window.location.hostname.includes('-dev.')
             );
-            const ssoApiUrl = _isDevOrTestSSO ? '/api/proxy-bodas/graphql' : (process.env.NEXT_PUBLIC_API_BODAS_URL || 'https://api2.eventosorganizador.com/graphql');
+            const ssoApiUrl = _isDevOrTestSSO ? '/api/proxy-bodas/graphql' : resolveApiBodasGraphqlUrl();
 
             const ssoResp = await fetch(ssoApiUrl, {
               method: 'POST',
@@ -869,7 +1001,7 @@ const AuthProvider = ({ children }) => {
             if (ssoAuthResult?.sessionCookie) {
               const isDevLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
               const cookieDomain = isDevLocal ? undefined : (process.env.NEXT_PUBLIC_PRODUCTION ? config?.domain : (process.env.NEXT_PUBLIC_DOMINIO || ".bodasdehoy.com"));
-              Cookies.set(config?.cookie, ssoAuthResult.sessionCookie, {
+              Cookies.set(resolveCookieName(config?.cookie), ssoAuthResult.sessionCookie, {
                 domain: cookieDomain,
                 expires: 365,
               })
@@ -901,14 +1033,14 @@ const AuthProvider = ({ children }) => {
       }
 
       // IMPORTANTE: Solo crear guest si NO hay usuario autenticado en Firebase
-      if (["bodasdehoy"].includes(config?.development) && !sessionCookie && !user?.uid) {
-        console.log("[Verificator] Creando usuario guest (no hay sessionCookie ni usuario Firebase)")
-        const cookieContent = JSON.parse(Cookies.get(config?.cookieGuest) ?? "{}")
+      if (["bodasdehoy"].includes(config?.development) && !sessionUidFromCookie && !user?.uid) {
+        console.log("[Verificator] Creando usuario guest (sin sesión válida ni usuario Firebase)")
+        const cookieContent = safeJsonParse<{ guestUid?: string }>(Cookies.get(config?.cookieGuest), {})
         let guestUid = cookieContent?.guestUid
         if (!guestUid) {
           const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
           guestUid = nanoid(28)
-          Cookies.set(config?.cookieGuest, JSON.stringify({ guestUid }), { domain: safeCookieDomain(config?.domain), expires: dateExpire })
+          Cookies.set(resolveCookieName(config?.cookieGuest, 'guestbodas'), JSON.stringify({ guestUid }), { domain: safeCookieDomain(config?.domain), expires: dateExpire })
         }
         setUser({ uid: guestUid, displayName: "guest" })
         setVerificationDone(true)
@@ -923,13 +1055,36 @@ const AuthProvider = ({ children }) => {
       if (!sessionUidFromCookie && !user?.uid) {
         setVerificationDone(true)
       }
-    } catch (error) {
-      console.error("[Verificator] ❌ Error en verificación:", error)
-      console.error("[Verificator] Error detalles:", {
+    } catch (error: any) {
+      const status = error?.response?.status
+      const log = status === 502 || status === 503 ? console.warn : console.error
+      log("[Verificator] ❌ Error en verificación:", error)
+      log("[Verificator] Error detalles:", {
         message: error?.message,
         stack: error?.stack,
-        name: error?.name
+        name: error?.name,
+        status,
       })
+      if ((status === 502 || status === 503) && process.env.NEXT_PUBLIC_SENTRY_DSN) {
+        try {
+          let Sentry: any = null
+          try {
+            const req = (new Function('return typeof require !== "undefined" ? require : null'))()
+            if (req) Sentry = req('@sentry/nextjs')
+          } catch {}
+          if (!Sentry?.withScope) throw new Error('Sentry not available')
+          Sentry.withScope((scope) => {
+            scope.setLevel('warning')
+            scope.setTag('http.status', String(status))
+            scope.setTag('auth.phase', 'verificator')
+            const hostname = typeof window !== 'undefined' ? window.location.hostname : ''
+            if (hostname) scope.setTag('app.hostname', hostname)
+            scope.setFingerprint([`auth-verificator-${status}`])
+            Sentry.captureMessage(`Auth verificator HTTP ${status}`)
+          })
+          void Sentry.flush(1500)
+        } catch { /* ignore */ }
+      }
       // ✅ CORRECCIÓN CRÍTICA: Establecer verificationDone incluso si hay error
       // Esto evita que la aplicación se quede en "Cargando..." indefinidamente
       setVerificationDone(true)
@@ -963,23 +1118,31 @@ const AuthProvider = ({ children }) => {
     return () => clearInterval(id);
   }, [verificationDone]);
 
-  // Timeout de seguridad: desbloquear UI si la verificación se cuelga (antes 5s; algo más corto mejora sensación de carga).
+  // Timeout de seguridad: desbloquear UI si la verificación se cuelga.
+  //
+  // Histórico: era 3,5s → QA 10-jul reportó que agravaba el Bug #1 (crash
+  // PaymentCard) porque en redes lentas el AuthContext forzaba render con
+  // datos incompletos (evento/config sin resolver) y algunos componentes
+  // aguas abajo recibían objetos parciales. Ampliado a 6s: sigue siendo
+  // rápido comparado con "app en blanco 20s" y da más margen a redes
+  // móviles/backends con cold-start. Botón manual `showSkipLoadingButton`
+  // aparece igualmente a los 2s por si el user quiere forzar antes.
   useEffect(() => {
     const t = setTimeout(() => {
       setVerificationDone((done) => {
         if (!done) {
-          console.warn('[AuthContext] Timeout de carga (~3,5s), mostrando app');
+          console.warn('[AuthContext] Timeout de carga (~6s), mostrando app sin verificación completa. Si te aparece "Comprobando sesión…" tras navegar es probable que un componente aguas abajo esté recibiendo datos parciales.');
           return true;
         }
         return done;
       });
-    }, 3500);
+    }, 6000);
     return () => clearTimeout(t);
   }, []);
 
   const handleSkipLoading = () => {
     const currentUser = getAuth().currentUser;
-    const sessionCookie = Cookies.get(config?.cookie);
+    const sessionCookie = Cookies.get(resolveCookieName(config?.cookie));
     setShowSkipLoadingButton(false);
     void verificator({ user: currentUser, sessionCookie });
   };
@@ -998,9 +1161,9 @@ const AuthProvider = ({ children }) => {
       }}
     >
       <div style={{ pointerEvents: 'none' }}>
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-pink-500 mx-auto" />
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-azulCorporativo mx-auto" />
         <p className="mt-4 text-gray-700 font-medium">Comprobando sesión y conexión…</p>
-        <p className="mt-1 text-lg font-semibold tabular-nums text-primary">{authBootSeconds}s</p>
+        <p className="mt-1 text-lg font-semibold tabular-nums text-azulCorporativo">{authBootSeconds}s</p>
         <p className="mt-1 max-w-xs text-center text-sm text-gray-400">
           El contenido principal (banner, tarjetas) carga después de este paso. Si el contador sube mucho, suele ser red lenta o el servidor de datos.
         </p>
@@ -1009,7 +1172,7 @@ const AuthProvider = ({ children }) => {
         <button
           type="button"
           onClick={handleSkipLoading}
-          className="mt-6 px-4 py-2 rounded-lg bg-pink-500 text-white font-medium hover:bg-pink-600 transition"
+          className="mt-6 px-4 py-2 rounded-lg bg-azulCorporativo text-white font-medium hover:bg-azulCorporativo/90 transition"
           style={{ pointerEvents: 'auto' }}
         >
           Reintentar sesión
@@ -1022,7 +1185,7 @@ const AuthProvider = ({ children }) => {
     <AuthContext.Provider value={{
       usuariosTickets, setUsuariosTickets, selectTicket, setSelectTicket, EventTicket, setEventTicket, setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin, link_id, SetLink_id, storage_id, SetStorage_id, linkMedia, SetLinkMedia, preregister, SetPreregister, SetWihtProvider, WihtProvider,
     }}>
-      {verificationDone ? children : loadingScreen}
+      {(verificationDone || ['/login', '/signout', '/vista-sin-cookie'].includes(pagesRouter?.pathname)) ? children : loadingScreen}
     </AuthContext.Provider>
   );
 };

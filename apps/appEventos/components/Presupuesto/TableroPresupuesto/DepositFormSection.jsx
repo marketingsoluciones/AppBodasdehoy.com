@@ -1,6 +1,7 @@
 import { Plus, CheckCircle, Upload } from "lucide-react";
 import { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
+import { formikValidateUx } from "../../Forms/formikValidateUx";
 import * as Yup from "yup";
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
 import { EventContextProvider } from "../../../context/";
@@ -34,7 +35,7 @@ const DepositFormSection = ({
         query: queries.addWeddingPlannerIngreso,
         variables: {
           evento_id: event?._id,
-          weddingPlannerIngreso: {
+          ingreso: {
             fecha: new Date(),
             monto: values.monto,
             metodo: values.metodoPago,
@@ -83,6 +84,7 @@ const DepositFormSection = ({
         </button>
       ) : (
         <Formik
+          {...formikValidateUx}
           initialValues={initialValues}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}

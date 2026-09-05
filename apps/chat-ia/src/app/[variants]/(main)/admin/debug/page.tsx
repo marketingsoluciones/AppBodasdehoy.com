@@ -148,7 +148,7 @@ export default function DebugPage() {
       params.append('format', viewMode);
       params.append('limit', '500');
 
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api-ia.bodasdehoy.com';
+      const backendUrl = process.env.NEXT_PUBLIC_API_IA_URL || 'https://api-ia.bodasdehoy.com';
       const response = await fetch(`${backendUrl}/api/debug/requests?${params}`);
       if (!response.ok) throw new Error('Error al obtener datos');
       const result = await response.json();

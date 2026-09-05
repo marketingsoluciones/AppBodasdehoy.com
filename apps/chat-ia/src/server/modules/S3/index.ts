@@ -1,10 +1,10 @@
 /**
- * S3 — Cliente R2/S3 con credenciales dinámicas desde whitelabel (api2)
+ * S3 — Cliente R2/S3 con credenciales dinámicas desde whitelabel (MCP)
  *
  * Las credenciales NO se leen de variables de entorno S3_*.
- * Se obtienen de api2 vía getServerS3Config() con cache de 15 min.
+ * Se obtienen de MCP vía getServerS3Config() con cache de 15 min.
  *
- * Si api2 no responde → las operaciones de S3 lanzan error (sin servicio, aceptado).
+ * Si MCP no responde → las operaciones de S3 lanzan error (sin servicio, aceptado).
  */
 import {
   DeleteObjectCommand,

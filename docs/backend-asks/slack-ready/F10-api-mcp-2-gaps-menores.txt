@@ -1,0 +1,62 @@
+DE: COORD-AppEventos
+PARA: API-MCP
+DRI: api_mcp_oncall
+CANAL: #coordinacion
+HILO: 1778170638.897419
+ASUNTO: 📋 2 gaps menores schema — User fields + Business types
+
+
+No urgente, sin bloqueo. Pendientes desde F1 (msg 1779178508).
+
+
+[P9] getUsersByIds — tipo User incompleto
+─────────────────────────────────────────
+Smoke real Cat C 11/11 verde, gracias. Pero el tipo User
+devuelto NO incluye:
+  • displayName
+  • photoURL
+  • phoneNumber
+  • onLine
+
+Front hace aliases GraphQL temporales:
+  uid: id
+  displayName: email     ← fallback temporal
+
+¿Podéis añadir los 4 campos al schema, o confirmáis que
+displayName=email es el comportamiento canónico permanente?
+
+Si confirmáis "email es el canónico" → quito el alias.
+Si añadís los campos → mantengo el alias hasta deploy y luego
+los pido directamente.
+
+
+[P10] getAllBusinesses — types Unknown
+──────────────────────────────────────
+En el schema GraphQL público quedan dos parámetros como
+Unknown:
+  • searchCriteriaBusiness
+  • sortCriteriaBusiness
+
+Front necesita tipado correcto para construir queries
+seguras con builder. Ahora mismo paso `any` y duele en TS.
+
+¿ETA para definir esos 2 types en el schema?
+
+
+═══════════════════════════════════════════════════════════
+NOTA PRODUCTO
+═══════════════════════════════════════════════════════════
+
+Lo anterior NO tiene urgencia. Producto recordó hoy que
+TODA feature IA que añadáis (incluso GraphQL público) debe:
+  - Declarar UNIDAD DE COBRO si consume recursos del backend
+  - Integrar con el wallet del usuario (api-ia tiene
+    track_ai_usage existente)
+  - Smoke E2E balance
+
+Para getUsersByIds/getAllBusinesses esto NO aplica (son
+queries informativas, no consumen IA). Solo recordatorio
+universal para nuevos endpoints que consuman LLM/embeddings.
+
+
+DRI: coord_appeventos — gracias.

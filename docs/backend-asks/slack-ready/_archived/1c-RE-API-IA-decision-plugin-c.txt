@@ -1,0 +1,86 @@
+DE: COORD-AppEventos
+PARA: API-IA
+DRI: api_ia_oncall
+ASUNTO: RE: decisión plugin CRUD — vamos con OPCIÓN (c) DEPRECAR
+
+
+Recibido. Tomamos la opción (c) RECOMENDADA: deprecar persistencia de plugins
+instalados. El registry pasa a un único campo enabledPlugins[] en userConfig.
+
+YA INTEGRADO en el front (commits pendientes de push):
+
+
+1) services/plugin/apiIa.ts NUEVO
+----------------------------------
+
+ApiIaPluginService implementa los 8 métodos de IPluginService usando vuestros
+endpoints /api/auth/{get,save}-user-config:
+
+  getInstalledPlugins   → lee enabledPlugins[] de userConfig
+  installPlugin(p)      → añade p.identifier al array, save-user-config
+  uninstallPlugin(id)   → quita id del array, save-user-config
+  createCustomPlugin(p) → añade p.identifier al array (custom URL la añade el user)
+  removeAllPlugins      → enabledPlugins = []
+  updatePlugin          → NO-OP (sin persistencia de settings/customParams)
+  updatePluginManifest  → solo refresca cache en memoria (no se persiste)
+  updatePluginSettings  → NO-OP
+
+Cache en memoria de manifests resueltos vía gateway (no persiste entre sesiones).
+
+
+2) services/plugin/index.ts
+---------------------------
+
+Simplificado: usa solo ApiIaPluginService. Eliminado el ternary tRPC/pglite.
+Borrados server.ts, client.ts, _deprecated.ts y sus tests.
+
+
+3) services/tool.ts
+-------------------
+
+`getOldPluginList` (marketplace via lambdaClient.market.getPluginList) deprecado.
+Stub devuelve { items: [], pageCount: 0, totalCount: 0 } para no romper la UI del
+oldStore. Con plugins via URL/manifest en runtime, no hay marketplace centralizado
+que listar.
+
+
+TRADE-OFFS aceptados
+--------------------
+
+  Pierde:
+    - Settings/customParams persistidos por plugin
+    - Caching de manifests (refetch cada sesión vía gateway)
+    - Marketplace listado del store antiguo
+
+  Gana:
+    - Sin tabla user_installed_plugins en BD (CAPA 2 más limpia)
+    - Implementación 92% más simple
+    - Alineado con vuestra arquitectura "proxy fino → api-mcp"
+
+
+Tras este cambio + lo de hoy (image, global, user, file, rag, generation, plugin,
+tool, ragEval BORRADO), el front YA NO bloquea borrar drizzle/pglite/@trpc/* del
+package.json — solo queda el plumbing de Fase 5 (limpiar src/libs/trpc + 25
+routers lambda + 8 deps package.json).
+
+Servicios CAPA 2 cerrados HOY del lado front:
+  ✅ image, global, user, file, rag, generation
+  ✅ plugin (opción c), tool (stub marketplace)
+  ✅ ragEval BORRADO
+  ⛔ aiProvider (api-ia tiene READ+RUNTIME pero NO CRUD por id de provider) — ¿plan?
+  ⛔ chatGroup (Q3.6.5 abierta: agents con order+role no en api-mcp) — ¿plan?
+  ⛔ knowledgeBase (api-ia tiene admin/kb, no user/kb) — ¿plan?
+  ⛔ thread (esperando ticket api-mcp) — Fase 4
+
+
+PRÓXIMA PREGUNTA (mínima para cerrar Fase 2 completa)
+-----------------------------------------------------
+
+¿aiProvider, chatGroup y knowledgeBase tienen la misma respuesta que plugin
+(deprecar persistencia, guardar selección en userConfig) o requieren CRUD real?
+
+Si la respuesta es "deprecar persistencia" para los 3 también, hacemos el
+mismo patrón y cerramos CAPA 2 completa esta semana.
+
+
+DRI: coord_appeventos — siguiendo en este hilo.

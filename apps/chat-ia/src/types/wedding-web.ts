@@ -91,7 +91,7 @@ export interface WeddingStyle {
   fontHeading?: string;
   /** @deprecated Use heroImageUrl instead */
   heroImage?: string;
-  /** URL de la imagen del hero (nombre correcto en API2) */
+  /** URL de la imagen del hero (nombre correcto en MCP) */
   heroImageUrl?: string;
   primaryColor?: string;
   secondaryColor?: string;

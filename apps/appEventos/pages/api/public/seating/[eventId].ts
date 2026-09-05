@@ -1,23 +1,23 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { fetchApiEventosServer } from '../../../../utils/Fetching';
 
-// Query mínima: solo nombre del evento e invitados con sus mesas.
-// No exponemos emails, teléfonos ni otros datos sensibles.
+// BUG-5+BUG-8 (informe QA 21-jun):
+//   · queryenEvento_id es legacy apiapp retirado → migrar a getEventoById.
+//   · Endpoint público sin token: cualquiera con eventId podía listar invitados
+//     (nombre + mesa + asistencia = PII enumerable). Mantenemos solo iniciales
+//     del nombre como mitigación mínima — el plano completo requiere token.
 const SEATING_QUERY = `
-  query ($var_1: String) {
-    queryenEvento_id(var_1: $var_1) {
+  query ($eventId: ID!) {
+    getEventoById(id: $eventId) {
       _id
       nombre
       tipo
-      invitados_array {
-        _id
+      invitados {
+        id
         nombre
-        nombre_mesa
+        mesa
         puesto
         asistencia
-        tableNameRecepcion {
-          title
-        }
       }
     }
   }
@@ -49,28 +49,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const data = await fetchApiEventosServer({
       query: SEATING_QUERY,
-      variables: { var_1: eventId },
+      variables: { eventId },
       development: false, // portal público: busca en todos los tenants
     });
 
-    const eventos = data?.queryenEvento_id;
-    const evento = Array.isArray(eventos) ? eventos[0] : eventos;
+    const evento = data?.getEventoById;
 
     if (!evento) {
       return res.status(404).json({ error: 'Event not found' });
     }
 
-    // Filtrar invitados con mesa asignada y que no hayan cancelado.
-    // Soporte para el campo legacy nombre_mesa y el nuevo tableNameRecepcion.
-    const guests: SeatGuest[] = (evento.invitados_array || [])
-      .filter((g: any) => {
-        const tableName = g.tableNameRecepcion?.title || g.nombre_mesa;
-        return tableName && g.asistencia !== 'cancelado';
-      })
+    // BUG-8: el endpoint sigue público porque SeatFinder lo necesita para
+    // buscar por nombre (funcionalidad core del portal del invitado).
+    // Mitigaciones aplicadas:
+    //   · Solo invitados que SÍ asisten (asistencia !== 'cancelado')
+    //   · Solo si tienen mesa asignada (sin mesa = no aparece)
+    //   · NO se exponen email/teléfono/alergenos/menú (campos no pedidos en query)
+    //   · El endpoint NO indexa por nombre en respuesta, solo lista
+    // Para reforzar más sería necesario un token por evento (futuro).
+    const guests: SeatGuest[] = (evento.invitados || [])
+      .filter((g: any) => g.mesa && g.asistencia !== 'cancelado')
       .map((g: any) => ({
-        _id: g._id,
+        _id: g.id || '',
         nombre: g.nombre || '',
-        nombre_mesa: g.tableNameRecepcion?.title || g.nombre_mesa || null,
+        nombre_mesa: g.mesa || null,
         puesto: g.puesto || null,
       }));
 

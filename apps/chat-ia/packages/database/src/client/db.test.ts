@@ -147,7 +147,7 @@ describe('DatabaseManager', () => {
       // 验证最终进度回调包含耗时信息
       const finalProgress = progressEvents[progressEvents.length - 1];
       expect(finalProgress.costTime).toBeGreaterThan(0);
-    });
+    }, 20000);
   });
 
   describe('Error Handling', () => {

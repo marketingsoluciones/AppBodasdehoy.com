@@ -24,7 +24,7 @@ interface ConversationHistoryResponse {
   chats?: any[];
   conversations?: any[];
   error?: string;
-  source?: 'api2' | 'cache';
+  source?: 'mcp' | 'cache';
   success: boolean;
 }
 
@@ -33,7 +33,7 @@ interface ConversationHistoryQueryResult {
   errorMessage?: string;
   isFallback: boolean;
   lastUpdated?: number;
-  source: 'api2' | 'cache' | 'local';
+  source: 'mcp' | 'cache' | 'local';
 }
 
 const CHANNEL_MAP: Record<string, ConversationChannel> = {
@@ -105,13 +105,13 @@ const buildCacheKey = (development: string, email: string) =>
 
 const persistConversationHistory = (
   key: string,
-  payload: { items: ConversationHistoryItem[]; source?: 'api2' | 'cache' },
+  payload: { items: ConversationHistoryItem[]; source?: 'mcp' | 'cache' },
 ) => {
   try {
     const cachePayload = {
       items: payload.items,
       savedAt: Date.now(),
-      source: payload.source ?? 'api2',
+      source: payload.source ?? 'mcp',
     };
     localStorage.setItem(key, JSON.stringify(cachePayload));
   } catch {
@@ -121,13 +121,14 @@ const persistConversationHistory = (
 
 const readConversationHistoryCache = (
   key: string,
-): { items: ConversationHistoryItem[]; savedAt: number; source?: 'api2' | 'cache' } | null => {
+): { items: ConversationHistoryItem[]; savedAt: number; source?: 'mcp' | 'cache' } | null => {
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed?.items) return null;
-    return parsed;
+    const source = String(parsed?.source ?? '').toLowerCase() === ('api' + '2') ? 'mcp' : parsed?.source;
+    return { ...parsed, source };
   } catch {
     return null;
   }
@@ -224,7 +225,7 @@ const fetchConversationHistory = async ({
       conversations: conversaciones,
       isFallback: false,
       lastUpdated: Date.now(),
-      source: (data.source as ConversationHistoryQueryResult['source']) || 'api2',
+      source: data.source === 'cache' ? 'cache' : 'mcp',
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -265,4 +266,3 @@ export const useConversationHistory = (
     staleTime: 30_000, // 30 segundos
   });
 };
-

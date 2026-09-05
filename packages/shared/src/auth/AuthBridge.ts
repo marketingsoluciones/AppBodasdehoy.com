@@ -36,8 +36,10 @@ export interface AuthBridgeConfig {
 }
 
 // Firebase JWKS for token signature validation
-const FIREBASE_PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'eventosorganizador-55d58';
-const FIREBASE_ISSUER = `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`;
+// Fase 4 (fail-closed): SIN default. El proyecto Firebase (issuer) se exige por env y
+// se deriva dentro de validateFirebaseToken (comprobación diferida), para no validar
+// contra un proyecto obsoleto en silencio ni crashear al importar en apps que no hacen
+// validación server-side.
 const FIREBASE_JWKS_URL = 'https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com';
 let _jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
 
@@ -49,14 +51,33 @@ function getJWKS() {
 }
 
 /**
- * Validates a Firebase ID token with full signature verification.
- * Use in middleware/API routes for server-side validation.
+ * Valida un Firebase ID token con verificación completa de firma.
+ * Uso: middleware / API routes para validación server-side.
+ *
+ * MULTI-TENANT (GAP 5): appEventos usa un proyecto Firebase DISTINTO por whitelabel, así que
+ * un único `NEXT_PUBLIC_FIREBASE_PROJECT_ID` no vale para validar el issuer de todos. El
+ * llamador que sea multi-tenant debe PASAR el `projectId` correcto (lo conoce por su config,
+ * p.ej. appEventos/firebase.tsx → fileConfig.projectId del development). Si no se pasa, se cae
+ * al env (correcto para apps de un solo proyecto, p.ej. chat-ia = bodasdehoy-1063). Fail-closed:
+ * sin `projectId` ni env → throw (no validar contra un proyecto obsoleto en silencio).
+ *
+ * @param token    Firebase ID token a validar.
+ * @param projectId Proyecto Firebase esperado (opcional). Si se omite, usa el env.
  */
-export async function validateFirebaseToken(token: string): Promise<JWTPayload | null> {
+export async function validateFirebaseToken(
+  token: string,
+  projectId?: string,
+): Promise<JWTPayload | null> {
   if (!token) return null;
+  const resolvedProjectId = projectId || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+  if (!resolvedProjectId) {
+    throw new Error(
+      '[AuthBridge] validateFirebaseToken: falta projectId (ni argumento ni NEXT_PUBLIC_FIREBASE_PROJECT_ID) — no se puede resolver el issuer de Firebase sin default seguro.',
+    );
+  }
   try {
     const { payload } = await jwtVerify(token, getJWKS(), {
-      issuer: FIREBASE_ISSUER,
+      issuer: `https://securetoken.google.com/${resolvedProjectId}`,
       algorithms: ['RS256'],
     });
     if (payload.exp && payload.exp < Date.now() / 1000) return null;
@@ -407,7 +428,7 @@ class AuthBridge {
     // Clean all auth-related localStorage entries
     localStorage.removeItem('dev-user-config');
     localStorage.removeItem('jwt_token');
-    localStorage.removeItem('api2_jwt_token');
+    localStorage.removeItem('mcp_jwt_token');
     localStorage.removeItem('user_email');
     localStorage.removeItem('user_uid');
     localStorage.removeItem('user_display_name');

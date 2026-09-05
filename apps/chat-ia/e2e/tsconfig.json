@@ -3,8 +3,8 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "target": "ES2020",
-    "lib": ["ES2020"],
-    "types": ["node", "@cucumber/cucumber", "@playwright/test"],
+    "lib": ["ES2020", "DOM"],
+    "types": ["node", "@playwright/test"],
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
@@ -13,7 +13,7 @@
       "@/*": ["../*"]
     }
   },
-  "exclude": ["node_modules", "reports"],
+  "exclude": ["node_modules", "reports", "test-results", "playwright-report"],
   "extends": "../tsconfig.json",
-  "include": ["src/**/*", "*.js"]
+  "include": ["tests/**/*", "*.ts", "*.js"]
 }

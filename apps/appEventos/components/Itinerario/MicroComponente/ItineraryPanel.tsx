@@ -1,11 +1,12 @@
 import { TaskNew } from "../../Servicios/VistaTarjeta/TaskNew"
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
-import { Dispatch, FC, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
+import { Dispatch, FC, Fragment, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
 import { AuthContextProvider } from "../../../context/AuthContext";
 import { EventContextProvider } from "../../../context/EventContext";
 import { Modal } from "../../Utils/Modal";
 import { useToast } from "../../../hooks/useToast";
 import { useAllowed, } from "../../../hooks/useAllowed";
+import { useServicePermissions } from "../../../hooks/useServicePermissions";
 import { WarningMessage } from "./WarningMessage";
 import { useTranslation } from 'react-i18next';
 import { ItineraryColumns } from "./ItineraryColumns";
@@ -37,7 +38,10 @@ import { NewTableView } from "../../Servicios/VistaTabla/NewTableView";
 import { PermissionTaskWrapper } from "../../Servicios/Utils/PermissionTaskWrapper";
 import { PermissionTaskActionWrapper } from "../../Servicios/Utils/PermissionTaskActionWrapper";
 import useSWR from 'swr';
-import { handleCopyLink } from "../../Servicios/VistaTarjeta/TaskNewUtils";
+import { handleCopyLink, cleanResponsables } from "../../Servicios/VistaTarjeta/TaskNewUtils";
+import { IconArray } from "../../Servicios/VistaTabla/NewSelectIcon";
+import { isStudioPathname } from "../../../utils/studioPaths";
+import TareasStudioMovil from "../../Servicios/VistaTarjeta/TareasStudioMovil";
 
 interface props {
   itinerario: Itinerary
@@ -51,6 +55,14 @@ interface props {
   selectTask: string
   setSelectTask: Dispatch<SetStateAction<string>>
   orderAndDirection: SelectModeSortType  // Agregar esta línea
+  expandedTasks?: Set<string>
+  toggleTaskExpand?: (id: string) => void
+  setOrderAndDirection?: Dispatch<SetStateAction<SelectModeSortType>>
+  allExpanded?: boolean
+  onToggleExpandAll?: () => void
+  itineraries?: Itinerary[]
+  setItinerario?: (it: Itinerary) => void
+  onCreateItinerario?: () => void
 }
 
 export interface EditTastk {
@@ -76,11 +88,12 @@ export type TempPastedAndDropFile = {
 
 export const Details = undefined
 
-export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle, view, handleDeleteItinerario, handleUpdateTitle, title, setTitle, selectTask, setSelectTask, orderAndDirection }) => {
+export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle, view, handleDeleteItinerario, handleUpdateTitle, title, setTitle, selectTask, setSelectTask, orderAndDirection, expandedTasks, toggleTaskExpand, setOrderAndDirection, allExpanded, onToggleExpandAll, itineraries, setItinerario, onCreateItinerario }) => {
   const { t } = useTranslation();
   const { config, user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const [isAllowed, ht] = useAllowed()
+  const { canViewTask, canEditTask } = useServicePermissions(itinerario?.viewers)
   const toast = useToast()
   const [tasks, setTasks] = useState<Task[]>()
   const [tasksReduce, setTasksReduce] = useState<TaskReduce[]>()
@@ -98,9 +111,126 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
 
   // Query params usando useSearchParams (Next.js 15)
   const queryTask = searchParams.get("task")
+
+  // Rediseño studio (gate ?studio, default ON): solo /itinerario. Añade los
+  // huecos temporales entre tareas (fiel a itinerariovistatarjeta.html .gap).
+  // Servicios (BoddyIter compartido) queda excluido por el path. Mismo backend.
+  // Fila de buscador + acciones: solo en Tareas (fiel a tareasvistatarjeta.html).
+  // Itinerario tiene su propia cabecera (SubHeader) y no lleva esta fila.
+  const isTareas = typeof window !== "undefined" && window.location.pathname === "/servicios"
+  const [q, setQ] = useState<string>("")
+  // "Expandir tabla": el ensanchado va en la TARJETA (rectángulo 3), no en la tabla.
+  // Aplicarlo dentro no servía: el padre seguía estrecho y la tabla se salía y se cortaba.
+  // Mismo patrón que "Expandir" de PresupuestoDetalladoStudio (94vw centrado).
+  const [tablaExpandida, setTablaExpandida] = useState(false)
+  // Detalle de una fila de la TABLA: al pulsarla se abre su tarjeta con un banner
+  // "Volver a la vista Tabla", en vez de editar en la celda (fiel a tareasvistatabla).
+  const [tablaDetalle, setTablaDetalle] = useState<string | null>(null)
+  // "Expandir" del tablero: como en la Tabla, el ensanchado va en la TARJETA (ItineraryPanel),
+  // no dentro de BoardView, cuyo padre está limitado y cortaba la 4ª columna.
+  const [tableroExpandido, setTableroExpandido] = useState(false)
+
+  const isStudioIti = searchParams.get("studio") !== "legacy"
+    && (typeof window !== "undefined" && isStudioPathname(window.location.pathname))
+
+  // Hueco temporal entre dos tareas consecutivas (mismo día): "+X libres" o,
+  // si se solapan, aviso ámbar. Null cuando no aplica (sin hora activa / 0 min).
+  const renderStudioGap = (prev: Task, next: Task) => {
+    try {
+      if (!prev?.horaActiva || !next?.horaActiva) return null
+      const startPrev = prev?.fecha ? new Date(prev.fecha).getTime() : NaN
+      const startNext = next?.fecha ? new Date(next.fecha).getTime() : NaN
+      if (isNaN(startPrev) || isNaN(startNext)) return null
+      const endPrev = startPrev + (Number(prev?.duracion) || 0) * 60000
+      const diffMin = Math.round((startNext - endPrev) / 60000)
+      if (diffMin === 0) return null
+      const overlap = diffMin < 0
+      const abs = Math.abs(diffMin)
+      const h = Math.floor(abs / 60)
+      const m = abs % 60
+      const dur = [h ? `${h} h` : "", m ? `${m} min` : ""].filter(Boolean).join(" ")
+      return (
+        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "0 10px" }}>
+          <div style={{ flex: 1, height: 1, background: "#ececef" }} />
+          <span style={{ font: "500 11px Poppins", color: overlap ? "#E0A32B" : "#a0a0a8", whiteSpace: "nowrap" }}>
+            {overlap ? `⚠ ${t("Se solapa con la tarea anterior")}` : `+${dur} ${t("libres")}`}
+          </span>
+          <div style={{ flex: 1, height: 1, background: "#ececef" }} />
+        </div>
+      )
+    } catch { return null }
+  }
+
+  // Reordenar tareas (arrastre del asa ⋮⋮): mueve draggedId antes de targetId,
+  // persiste con updateTasksOrder y desactiva el orden por fecha para que se vea.
+  const handleReorderTasks = (draggedId: string, targetId: string) => {
+    if (!draggedId || draggedId === targetId) return
+    if (!Array.isArray(event?.itinerarios_array) || !itinerario?._id) return
+    const f1 = event.itinerarios_array.findIndex((it: any) => it?._id === itinerario._id)
+    if (f1 < 0) return
+    const arr = Array.isArray(event.itinerarios_array[f1]?.tasks) ? [...event.itinerarios_array[f1].tasks] : []
+    const from = arr.findIndex((t: any) => t?._id === draggedId)
+    const to = arr.findIndex((t: any) => t?._id === targetId)
+    if (from < 0 || to < 0 || from === to) return
+    const [moved] = arr.splice(from, 1)
+    arr.splice(to, 0, moved)
+    const newIds = arr.map((t: any) => t._id)
+    setOrderAndDirection?.({ order: "ninguna", direction: "asc" })
+    setEvent((prev: any) => ({
+      ...prev,
+      itinerarios_array: prev.itinerarios_array.map((it: any, i: number) => i === f1 ? { ...it, tasks: arr } : it),
+    }))
+    fetchApiEventos({
+      query: queries.updateTasksOrder,
+      variables: { evento_id: event._id, itinerario_id: itinerario._id, taskIds: newIds },
+      domain: config.domain,
+    }).catch((e: any) => {
+      console.warn('[ItineraryPanel] updateTasksOrder falló:', e?.message ?? e)
+      toast("error", t("Error al reordenar"))
+    })
+  }
+
+  // ── Vista Esquema studio: timeline vertical de solo lectura (fiel al HTML) ──
+  const fmtHoraEsq = (f: any) => { const d = new Date(f); if (isNaN(d.getTime())) return ""; let h = d.getUTCHours(); const m = d.getUTCMinutes(); const ap = h < 12 ? "a. m." : "p. m."; h = h % 12; if (h === 0) h = 12; return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")} ${ap}` }
+  const fmtDurEsq = (min: any) => { const v = Number(min) || 0; if (!v) return ""; const h = Math.floor(v / 60); const m = v % 60; return [h ? `${h} h` : "", m ? `${m} m` : ""].filter(Boolean).join(" ") }
+  const renderStudioSchema = () => {
+    const list: any[] = Array.isArray(tasks) ? tasks : []
+    return (
+      <div style={{ maxWidth: 1120, margin: "0 auto", padding: "12px 40px 40px" }}>
+        <div style={{ textAlign: "center", font: "400 12px Poppins", color: "#a0a0a8", marginBottom: 22 }}>{t("schemaHint", { defaultValue: "Vista resumida del itinerario · ideal para compartir o descargar en PDF" })}</div>
+        <div style={{ maxWidth: 640, margin: "0 auto" }}>
+          {list.map((task, idx) => {
+            const first = idx === 0
+            const last = idx === list.length - 1
+            const responsables = cleanResponsables(task?.responsable)
+            const icon = IconArray.find(el => el?.title === task?.icon)?.icon
+            const hora = task?.horaActiva !== false ? fmtHoraEsq(task?.fecha) : ""
+            const dur = fmtDurEsq(task?.duracion)
+            return (
+              <div key={task?._id || idx} style={{ display: "grid", gridTemplateColumns: "44px 26px 1fr", gap: "0 16px" }}>
+                <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#f7f7f9", border: "1px solid #E7E7EA", display: "flex", alignItems: "center", justifyContent: "center", color: "#4a4a52", flex: "none", marginTop: 4 }}>
+                  <span style={{ width: 17, height: 17, display: "flex", alignItems: "center", justifyContent: "center" }}>{icon || <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><path d="M12 4v4M12 16v4M4 12h4M16 12h4M6.3 6.3l2.8 2.8M14.9 14.9l2.8 2.8M6.3 17.7l2.8-2.8M14.9 9.1l2.8-2.8" /></svg>}</span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                  <div style={{ width: 1.5, height: 14, background: first ? "transparent" : "#F3B6CE" }} />
+                  <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#fff", border: "3px solid #EF5B94", flex: "none" }} />
+                  <div style={{ width: 1.5, flex: 1, background: last ? "transparent" : "#F3B6CE" }} />
+                </div>
+                <div style={{ paddingBottom: 22 }}>
+                  <div style={{ font: "700 15px Poppins", color: "#3A3A42" }}>{hora}{dur && <span style={{ font: "500 11.5px Poppins", color: "#a0a0a8", marginLeft: 6 }}>{t("duracion")} {dur}</span>}</div>
+                  <div style={{ font: "600 13.5px Poppins", color: "#EF5B94", marginTop: 3 }}>{task?.descripcion || t("Sin título")}</div>
+                  <div style={{ font: "400 12px Poppins", color: "#8a8a90", marginTop: 2 }}>{t("responsible")}: {responsables.length ? <b style={{ color: "#6b6b72", fontWeight: 500 }}>{responsables.join(", ")}</b> : <span style={{ color: "#c4c4cc" }}>{t("Sin asignar", { defaultValue: "sin asignar" })}</span>}</div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
   const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFile[]>([]);
   const [loading, setLoading] = useState<boolean>(false)
-  const [currentItinerario, setCurrentItinerario] = useState<Itinerary>(itinerario);
+  const [currentItinerario, setCurrentItinerario] = useState<Itinerary | undefined>(itinerario);
   const updateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Per-field API debounce: key = `${taskId}:${fieldName}` → pending timer
   const apiTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
@@ -108,23 +238,35 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   // Función para manejar actualización de campos
   const handleUpdate = async (fieldName: string, value: any): Promise<void> => {
     const task = tasks?.find(task => task._id === selectTask);
-    const canEdit = !user?.uid ? false : isAllowed() || task.responsable?.includes(user?.uid);
+    const canEdit = !user?.uid ? false : canEditTask()
     if (!canEdit) {
       ht();
       return;
     }
 
-    const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario?._id);
-    const f2 = event.itinerarios_array[f1]?.tasks.findIndex(elem => elem._id === task?._id);
-    const previousValue = event.itinerarios_array[f1]?.tasks[f2]?.[fieldName];
+    // Guard: si event.itinerarios_array o itinerario no están, salir sin tocar nada.
+    if (!Array.isArray(event?.itinerarios_array) || !itinerario?._id) return;
+    const f1 = event.itinerarios_array.findIndex(elem => elem?._id === itinerario._id);
+    if (f1 < 0) return; // itinerario no encontrado
+    const tasksArr = event.itinerarios_array[f1]?.tasks;
+    if (!Array.isArray(tasksArr) || !task?._id) return;
+    const f2 = tasksArr.findIndex(elem => elem?._id === task._id);
+    if (f2 < 0) return;
+    const previousValue = tasksArr[f2]?.[fieldName];
 
-    // Optimistic local update immediately — rollback if API fails
-    if (fieldName === 'spectatorView') {
-      event.itinerarios_array[f1].tasks[f2].spectatorView = value;
-    } else {
-      event.itinerarios_array[f1].tasks[f2][fieldName] = value;
-    }
-    setEvent({ ...event });
+    // Optimistic local update inmutable — rollback si API falla.
+    // Refactor: antes mutaba event.itinerarios_array[f1].tasks[f2][fieldName]
+    // directamente (mismo array ref antes/después → React puede no detectar
+    // el cambio en hijos memoizados).
+    setEvent((prev) => ({
+      ...prev,
+      itinerarios_array: prev.itinerarios_array.map((it, i) =>
+        i !== f1 ? it : {
+          ...it,
+          tasks: it.tasks.map((tk, j) => j !== f2 ? tk : { ...tk, [fieldName]: value }),
+        }
+      ),
+    }));
 
     let apiValue: string;
     if (fieldName === 'horaActiva') {
@@ -153,11 +295,11 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         await fetchApiEventos({
           query: queries.editTask,
           variables: {
-            eventID: event._id,
-            itinerarioID: itinerario._id,
-            taskID: task._id,
-            variable: fieldName,
-            valor: apiValue,
+            evento_id: event._id,
+            itinerario_id: itinerario._id,
+            task_id: task._id,
+            development: config.development || "bodasdehoy",
+            updates: { [fieldName]: apiValue },
           },
           domain: config.domain,
         });
@@ -184,10 +326,17 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         !['horaActiva'].includes(fieldName) && (fieldName === 'duracion' ? value !== 0 : true) && toast("success", t("Campo actualizado"));
       } catch (error) {
         console.error('Error al actualizar:', error);
-        // Rollback optimistic state change
+        // Rollback optimistic state change (inmutable)
         if (f1 >= 0 && f2 >= 0) {
-          event.itinerarios_array[f1].tasks[f2][fieldName] = previousValue;
-          setEvent({ ...event });
+          setEvent((prev) => ({
+            ...prev,
+            itinerarios_array: prev.itinerarios_array.map((it, i) =>
+              i !== f1 ? it : {
+                ...it,
+                tasks: it.tasks.map((tk, j) => j !== f2 ? tk : { ...tk, [fieldName]: previousValue }),
+              }
+            ),
+          }));
         }
         toast("error", t("Error al actualizar"));
       } finally {
@@ -288,42 +437,73 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   }, []);
 
   useEffect(() => {
+    // BUG-CW-02 (informe QA 22-jun noche): si event.itinerarios_array contiene
+    // elementos null/undefined, it._id === ... crashea. Guard Array + filter null.
     if (
       event &&
-      event.itinerarios_array &&
+      Array.isArray(event.itinerarios_array) &&
       itinerario &&
       typeof itinerario._id !== "undefined"
     ) {
       const found = event.itinerarios_array.find(
-        (it: Itinerary) => it._id === itinerario._id
+        (it: Itinerary) => it && it._id === itinerario._id
       );
-      if (found) setCurrentItinerario({ ...found });
+      if (found) {
+        setCurrentItinerario({ ...found });
+      } else {
+        // Itinerario eliminado del evento: no dejar tareas stale en pantalla.
+        setCurrentItinerario(undefined);
+        setTasks([]);
+        setTasksReduce([]);
+      }
     }
   }, [event, itinerario?._id, orderAndDirection]);
 
   useEffect(() => {
     if (currentItinerario?.tasks?.length > 0) {
       const array = view === "kanban" ? currentItinerario : itinerario
+      const term = q.trim().toLowerCase();
       const filteredTasks = array?.tasks?.filter(elem =>
         elem && (
           view === "schema"
           || ["/itinerario"].includes(window?.location?.pathname)
-          || elem.spectatorView
-          || event.usuario_id === user.uid
-          || isAllowed()
+          || canViewTask(elem)
         )
+        // Buscador de Tareas: filtra por título y descripción. Sin término no filtra nada,
+        // así que el resto de vistas y de rutas se comportan exactamente igual que antes.
+        && (!term
+          || String(elem?.descripcion ?? "").toLowerCase().includes(term)
+          || String(elem?.tips ?? "").toLowerCase().includes(term))
       );
       if (view === "schema") {
         filteredTasks.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
       }
       setTasks(filteredTasks);
-      // O(n) con Map keyed por timestamp de fecha (UTC día)
+      // O(n) con Map keyed por el DÍA EN EL HUSO DEL EVENTO.
+      // Antes la clave salía de componentes UTC (getUTCFullYear/Month/Date) mientras que
+      // la hora de cada tarjeta se pinta con timeFormated(task.fecha, event.timeZone) y el
+      // chip se pintaba en hora local del navegador: tres husos distintos. Con eso, un mismo
+      // día del evento podía repartirse en DOS grupos y la fecha aparecía repetida
+      // (p.ej. una tarea a las 00:00 en Madrid cae en el día UTC anterior).
+      // La clave se guarda como Date.UTC(...) y el chip se pinta con timeZone:"UTC",
+      // así el ida y vuelta es exacto y la etiqueta no vuelve a desplazarse.
+      const eventTz = event?.timeZone && typeof event.timeZone === 'string' ? event.timeZone : 'UTC';
+      const dayKeyInEventTz = (value: string | number | Date): number | null => {
+        const d = new Date(value);
+        if (isNaN(d.getTime())) return null;
+        try {
+          const parts = new Intl.DateTimeFormat('en-CA', {
+            timeZone: eventTz, year: 'numeric', month: '2-digit', day: '2-digit',
+          }).formatToParts(d).reduce<Record<string, string>>((acc, x) => { acc[x.type] = x.value; return acc; }, {});
+          return Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day));
+        } catch {
+          // Huso inválido guardado en el evento: no romper la vista, caer a UTC.
+          return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+        }
+      };
       const dateMap = new Map<number | null, Task[]>();
       for (const item of filteredTasks) {
-        const f = new Date(item.fecha);
-        const date: number | null = item.fecha
-          ? new Date(f.getUTCFullYear(), f.getUTCMonth(), f.getUTCDate()).getTime()
-          : null;
+        const date: number | null = item.fecha ? dayKeyInEventTz(item.fecha) : null;
         const bucket = dateMap.get(date);
         if (bucket) bucket.push(item);
         else dateMap.set(date, [item]);
@@ -337,7 +517,11 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       setTasks(prev => (prev && prev.length === 0 ? prev : []));
       setTasksReduce(prev => (prev && prev.length === 0 ? prev : []));
     }
-  }, [currentItinerario, itinerario]);
+    // canViewTask NO va en deps: se recrea cada render (useAllowed / viewers ?? [])
+    // y provoca Maximum update depth. view sí, para refiltrar al cambiar esquema/cards.
+    // event?.timeZone SÍ va en deps: el selector de huso lo cambia en caliente y los
+    // grupos por día deben recalcularse, o quedarían partidos según el huso anterior.
+  }, [currentItinerario, itinerario, view, event?.timeZone, q]);
 
   const handleAddSpectatorView = async (values: Task) => {
     try {
@@ -347,23 +531,30 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       fetchApiEventos({
         query: queries.editTask,
         variables: {
-          eventID: event._id,
-          itinerarioID: itinerario._id,
-          taskID: values._id,
-          variable: "spectatorView",
-          valor: JSON.stringify(newSpectatorViewValue)
+          evento_id: event._id,
+          itinerario_id: itinerario._id,
+          task_id: values._id,
+          development: config.development || "bodasdehoy",
+          updates: { spectatorView: newSpectatorViewValue }
         },
         domain: config.domain
       })
         .then(() => {
           const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
-          const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id)
-          event.itinerarios_array[f1].tasks[f2].spectatorView = newSpectatorViewValue
-          setEvent({ ...event })
+          setEvent((prev) => ({
+            ...prev,
+            itinerarios_array: prev.itinerarios_array.map((it, i) =>
+              i !== f1 ? it : {
+                ...it,
+                tasks: it.tasks.map(tk => tk._id !== values._id ? tk : { ...tk, spectatorView: newSpectatorViewValue }),
+              }
+            ),
+          }))
           toast("success", t("Item guardado con exito"))
           setShowEditTask({ state: false })
         })
     } catch (error) {
+      console.error('[ItineraryPanel] handleSpectatorView error:', error)
     }
   }
   const handleChangeStatus = async (values: Task) => {
@@ -381,9 +572,16 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       })
         .then(() => {
           const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
-          const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id)
-          event.itinerarios_array[f1].tasks[f2].estatus = !values?.estatus
-          setEvent({ ...event })
+          const newEstatus = !values?.estatus
+          setEvent((prev) => ({
+            ...prev,
+            itinerarios_array: prev.itinerarios_array.map((it, i) =>
+              i !== f1 ? it : {
+                ...it,
+                tasks: it.tasks.map(tk => tk._id !== values._id ? tk : { ...tk, estatus: newEstatus }),
+              }
+            ),
+          }))
           toast("success", t("Item guardado con exito"))
           setShowEditTask({ state: false })
           const asd = event?.detalles_compartidos_array?.filter(elem => ["edit", "view"]?.includes(elem?.permissions?.find(el => el.title === "itinerari")?.value))?.map(elem => elem.uid)
@@ -412,16 +610,21 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             fetchApiEventos({
               query: queries.deleteTask,
               variables: {
-                eventID: event._id,
-                itinerarioID: itinerario._id,
-                taskID: values._id,
+                task_id: values._id,
+                development: config.development || "bodasdehoy",
               },
               domain: config.domain
             }).then(() => {
               const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
-              const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id);
-              event.itinerarios_array[f1].tasks.splice(f2, 1);
-              setEvent({ ...event });
+              setEvent((prev) => ({
+                ...prev,
+                itinerarios_array: prev.itinerarios_array.map((it, i) =>
+                  i !== f1 ? it : {
+                    ...it,
+                    tasks: it.tasks.filter(tk => tk._id !== values._id),
+                  }
+                ),
+              }));
               setTimeout(() => {
                 setModal({ state: false, title: null, values: null, itinerario: null });
                 setLoading(false);
@@ -456,16 +659,22 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         console.error('Tarea no encontrada:', taskId);
         return;
       }
-      // Actualizar el estado global del evento inmediatamente
+      // Actualizar el estado global del evento inmediatamente (inmutable + guards).
       setEvent((oldEvent) => {
-        const f1 = oldEvent.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
-        const f2 = oldEvent.itinerarios_array[f1].tasks.findIndex(elem => elem._id === taskId);
-        // Actualizar la tarea con los nuevos valores
-        oldEvent.itinerarios_array[f1].tasks[f2] = {
-          ...oldEvent.itinerarios_array[f1].tasks[f2],
-          ...updates
-        }
-        return { ...oldEvent };
+        if (!Array.isArray(oldEvent?.itinerarios_array)) return oldEvent;
+        const f1 = oldEvent.itinerarios_array.findIndex(elem => elem?._id === itinerario._id);
+        if (f1 < 0) return oldEvent;
+        return {
+          ...oldEvent,
+          itinerarios_array: oldEvent.itinerarios_array.map((it, i) =>
+            i !== f1 ? it : {
+              ...it,
+              tasks: Array.isArray(it.tasks)
+                ? it.tasks.map(tk => tk?._id === taskId ? { ...tk, ...updates } : tk)
+                : it.tasks,
+            }
+          ),
+        };
       });
       // Actualizar el estado local de las tareas
       setTasks(prevTasks => {
@@ -517,12 +726,15 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       const response = await fetchApiEventos({
         query: queries.createTask,
         variables: {
-          eventID: event._id,
-          itinerarioID: itinerario._id,
-          descripcion: taskData.descripcion || "Nueva tarea",
-          fecha: fechaString,
-          hora: horaString,
-          duracion: taskData.duracion || 30
+          evento_id: event._id,
+          development: config.development || "bodasdehoy",
+          task: {
+            itinerario_id: itinerario._id,
+            descripcion: taskData.descripcion || "Nueva tarea",
+            fecha: fechaString,
+            hora: horaString,
+            duracion: taskData.duracion || 30
+          }
         },
         domain: config.domain
       });
@@ -530,8 +742,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       if (!response) {
         throw new Error('No se recibió respuesta del servidor');
       }
-      // ✅ Agregar esta línea que faltaba
-      const responseObj = response as any;
+      // Extraer task de EventoResponse wrapper
+      const responseObj = (response as any)?.task || response;
       // Verificar que la respuesta sea un objeto válido con _id
       if (typeof responseObj !== 'object' || !responseObj._id || typeof responseObj._id !== 'string') {
         console.error('Respuesta inválida del servidor:', response);
@@ -662,7 +874,37 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   }, [selectTask, currentItinerario])
 
   return (
-    <div className="w-full flex-1 flex flex-col overflow-auto">
+    <>
+    {/* MÓVIL de Tareas (solo tarjetas), fiel a tareasmovil.html. Escritorio: hidden md:flex. */}
+    {isStudioIti && isTareas && (
+      <TareasStudioMovil
+        itinerario={itinerario}
+        tasks={tasks || []}
+        expandedTasks={expandedTasks}
+        toggleTaskExpand={toggleTaskExpand}
+        handleUpdate={handleUpdate}
+        handleTaskUpdate={handleTaskUpdate}
+        handleTaskCreate={handleTaskCreate}
+        deleteTask={deleteTask}
+        title={title}
+        event={event}
+        itineraries={itineraries}
+        onSelectItinerario={setItinerario}
+        onCreateItinerario={onCreateItinerario}
+      />
+    )}
+    <div
+      style={isStudioIti && isTareas ? {
+        background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16,
+        padding: "14px 18px 18px", gap: 10,
+        transition: "margin .3s ease, width .3s ease",
+        // El contenedor de BoddyIter es flex con items-center, así que YA centra al hijo:
+        // el marginLeft negativo de Presupuesto —pensado para un contenedor de bloque—
+        // lo desplazaba a la izquierda. Basta con el ancho.
+        ...((tablaExpandida || tableroExpandido) ? { width: "94vw", maxWidth: "94vw" } : {}),
+      } : undefined}
+      className={`w-full flex-1 flex flex-col ${isStudioIti && isTareas ? "hidden md:flex" : ""} ${isStudioIti && view === "table" ? "overflow-visible" : `overflow-auto ${isStudioIti ? "iti-hidescroll" : ""}`}`}>
+      {isStudioIti && <style dangerouslySetInnerHTML={{ __html: ".iti-hidescroll{scrollbar-width:none;-ms-overflow-style:none;}.iti-hidescroll::-webkit-scrollbar{display:none;width:0;height:0;}" }} />}
       <InfoLateral ubication="left" infoOptions={infoLeftOptions} />
       <InfoLateral ubication="right" infoOptions={[]} />
       {showEditTask?.state && (
@@ -675,9 +917,53 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       {modal.state && <SimpleDeleteConfirmation
         loading={loading}
         setModal={setModal}
+        title={modal.title}
         handleDelete={() => deleteTask(modal.values, modal.itinerario)}
-        message={<p className="text-azulCorporativo mx-8 text-center capitalize" > Estas seguro de borrar <span className='font-semibold'>{modal.title}</span></p>}
+        message={t('warningdeletetask', 'Si borras esta tarea no la podrás recuperar.')}
       />}
+      <div
+        {...(view === "schema" ? { "data-pdf-root": "itinerario-schema" } : {})}
+        className="w-full flex-1 flex flex-col"
+      >
+      {/* Solo en vista Tarjeta: la tabla y el tablero traen su propia barra (TableHeader /
+          BoardHeader), y montar ésta encima duplicaba buscador y "Añadir tarea". */}
+      {isStudioIti && isTareas && view === "cards" && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap", padding: "4px 2px" }}>
+          {/* Ancho del HTML (min-width 200, sin crecer) y MISMA ALTURA que "Añadir tarea":
+              36px medidos en el HTML de referencia. Fijar el ancho a 136 recortaba el texto. */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "0 14px", height: 36, minWidth: 200, background: "#fff" }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={2} strokeLinecap="round" style={{ flex: "none" }}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+            <input
+              type="text"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder={t("Buscar tareas…", { defaultValue: "Buscar tareas…" })}
+              style={{ border: "none", outline: "none", font: "400 12.5px Poppins", color: "#3A3A42", width: "100%", background: "transparent" }}
+            />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <button
+              onClick={() => !isAllowed() ? ht() : handleTaskCreate({})}
+              style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 18px", borderRadius: 12, background: "#EF5B94", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 5px 14px rgba(239,91,148,.28)", whiteSpace: "nowrap" }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+              {t("Añadir tarea", { defaultValue: "Añadir tarea" })}
+            </button>
+            {onToggleExpandAll && (
+              <div
+                onClick={() => onToggleExpandAll()}
+                title={allExpanded ? t("collapseAll", { defaultValue: "Contraer todo" }) : t("expandAll", { defaultValue: "Expandir todo" })}
+                style={{ width: 36, height: 36, borderRadius: 10, border: "1.5px solid #E7E7EA", display: "flex", alignItems: "center", justifyContent: "center", color: "#8a8a90", cursor: "pointer", background: "#fff", flex: "none" }}
+              >
+                {allExpanded
+                  ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M7 4l5 5 5-5" /><path d="M7 20l5-5 5 5" /></svg>
+                  : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M7 9l5-5 5 5" /><path d="M7 15l5 5 5-5" /></svg>}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {["/itinerario"].includes(window?.location?.pathname) &&
         <SubHeader
           view={view}
@@ -688,15 +974,21 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
           handleUpdateTitle={handleUpdateTitle}
           title={title}
           setTitle={setTitle}
+          allExpanded={allExpanded}
+          onToggleExpandAll={onToggleExpandAll}
         />
       }
-      <div className="w-full flex-1 flex flex-col pt-2 md:px-2 lg:px-6 z-0">
+      <div className="w-full flex-1 flex flex-col pt-2 px-4 md:px-2 lg:px-6 z-0">
         {
           tasksReduce?.length > 0
-            ? view === "boardView"
+            ? (isStudioIti && view === "schema")
+              ? renderStudioSchema()
+              : view === "boardView"
               ? (<div className="w-full flex-1">
                 <PermissionTaskWrapper isTaskVisible={true}>
                   <BoardView
+                    expandida={tableroExpandido}
+                    onToggleExpandida={() => setTableroExpandido((v) => !v)}
                     data={tasks}
                     event={event as EventInterface}
                     setEvent={setEvent}
@@ -719,13 +1011,52 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                 </PermissionTaskWrapper>
               </div>)
               : view === "newTable"
-                ? (<div className="w-full flex-1">
+                ? (() => {
+                  const tareaDetalle = tablaDetalle ? tasks?.find((t: any) => t._id === tablaDetalle) : null;
+                  if (tareaDetalle) {
+                    // Detalle de la fila: banner de volver + la MISMA tarjeta de la vista Tarjeta.
+                    return (
+                      <div className="w-full flex-1 flex flex-col gap-3">
+                        <div
+                          onClick={() => setTablaDetalle(null)}
+                          style={{ display: "inline-flex", alignItems: "center", gap: 7, font: "600 13px Poppins", color: "#EF5B94", cursor: "pointer", padding: "2px 2px 0", alignSelf: "flex-start" }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+                          {t("Volver a la vista Tabla", { defaultValue: "Volver a la vista Tabla" })}
+                        </div>
+                        <PermissionTaskActionWrapper task={tareaDetalle} isTaskVisible={tareaDetalle.spectatorView} optionsItineraryButtonBox={optionsItineraryButtonBox}>
+                          <TaskNew
+                            id={tareaDetalle._id}
+                            task={tareaDetalle}
+                            itinerario={itinerario}
+                            view={"cards"}
+                            optionsItineraryButtonBox={optionsItineraryButtonBox}
+                            showModalCompartir={showModalCompartir}
+                            setShowModalCompartir={setShowModalCompartir}
+                            onClick={() => { }}
+                            tempPastedAndDropFiles={tempPastedAndDropFiles}
+                            setTempPastedAndDropFiles={setTempPastedAndDropFiles}
+                            minimalView={false}
+                            setSelectTask={setSelectTask}
+                            selectTask={selectTask}
+                            handleUpdate={handleUpdate}
+                            isExpanded={true}
+                            onToggleExpand={() => { }}
+                          />
+                        </PermissionTaskActionWrapper>
+                      </div>
+                    );
+                  }
+                  return (<div className="w-full flex-1">
                   <PermissionTaskWrapper isTaskVisible={true}>
                     <NewTableView
+                      expandida={tablaExpandida}
+                      onToggleExpandida={() => setTablaExpandida((v) => !v)}
                       data={tasks}
                       itinerario={itinerario}
                       selectTask={selectTask}
                       setSelectTask={setSelectTask}
+                      onRowOpen={(taskId: string) => { setSelectTask(taskId); setTablaDetalle(taskId); }}
                       onTaskUpdate={handleTaskUpdate}
                       onTaskDelete={(taskId) => {
                         const task = tasks.find(t => t._id === taskId);
@@ -736,7 +1067,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                       onTaskCreate={handleTaskCreate}
                     />
                   </PermissionTaskWrapper>
-                </div>)
+                </div>);
+                })()
                 : view === "extraTable"
                   ? (<div className="w-full flex-1">
                     <PermissionTaskWrapper isTaskVisible={true}>
@@ -762,20 +1094,31 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                   : view !== "table"
                     ? tasksReduce?.map((el, i) => {
                       return (
-                        <div key={i} className="w-full mt-4 flex flex-col gap-4">
+                        <div key={i} className="w-full mt-2 flex flex-col gap-4">
                           {["/itinerario"].includes(window?.location?.pathname) && <div className={`w-full flex ${view === "schema" ? "justify-start" : "justify-center"}`}>
-                            <span className={`${view === "schema" ? "border-primary border-dotted mb-1" : "border-gray-300 mb-1"} border-[1px] px-5 py-[1px] rounded-full text-[12px] font-semibold`}>
-                              {new Date(el?.fecha).toLocaleString(navigator.language, { year: "numeric", month: "long", day: "2-digit" })}
-                            </span>
+                            {isStudioIti && view !== "schema"
+                              ? <span style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", border: "1.5px solid #E7E7EA", borderRadius: 20, padding: "6px 16px", font: "600 12.5px Poppins", color: "#3A3A42" }}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={1.8} strokeLinecap="round"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 9h18M8 3v4M16 3v4" /></svg>
+                                {new Date(el?.fecha).toLocaleString(navigator.language, { year: "numeric", month: "long", day: "2-digit", timeZone: "UTC" })}
+                              </span>
+                              : <span className={`${view === "schema" ? "border-primary border-dotted mb-1" : "border-gray-300"} border-[1px] px-5 py-[1px] rounded-full text-[12px] font-semibold`}>
+                                {new Date(el?.fecha).toLocaleString(navigator.language, { year: "numeric", month: "long", day: "2-digit", timeZone: "UTC" })}
+                              </span>}
                           </div>}
                           {el?.tasks?.map((elem, idx) => {
+                            const prevTask = idx > 0 ? el.tasks[idx - 1] : null
                             return (
-                              <PermissionTaskActionWrapper
-                                key={idx}
-                                task={elem}
-                                isTaskVisible={elem.spectatorView}
-                                optionsItineraryButtonBox={optionsItineraryButtonBox}
-                              >
+                              <Fragment key={idx}>
+                                {isStudioIti && prevTask && renderStudioGap(prevTask, elem)}
+                                <div
+                                  onDragOver={isStudioIti ? (e) => e.preventDefault() : undefined}
+                                  onDrop={isStudioIti ? (e) => { e.preventDefault(); handleReorderTasks(e.dataTransfer.getData('text/plain'), elem._id) } : undefined}
+                                >
+                                <PermissionTaskActionWrapper
+                                  task={elem}
+                                  isTaskVisible={elem.spectatorView}
+                                  optionsItineraryButtonBox={optionsItineraryButtonBox}
+                                >
                                 <TaskNew
                                   id={elem._id}
                                   key={idx}
@@ -792,15 +1135,21 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                                   setSelectTask={setSelectTask}
                                   selectTask={selectTask}
                                   handleUpdate={handleUpdate}
+                                  isExpanded={expandedTasks ? expandedTasks.has(elem._id) : true}
+                                  onToggleExpand={() => toggleTaskExpand?.(elem._id)}
+                                  gripDraggable={isStudioIti}
+                                  onGripDragStart={(e) => { e.dataTransfer.setData('text/plain', elem._id); e.dataTransfer.effectAllowed = 'move' }}
                                 />
-                              </PermissionTaskActionWrapper>
+                                </PermissionTaskActionWrapper>
+                                </div>
+                              </Fragment>
                             )
                           })}
                         </div>
                       )
                     })
-                    : <div className="relative overflow-x-auto md:overflow-x-visible h-full">
-                      <div className="w-[250%] md:w-[100%]">
+                    : <div className={isStudioIti ? "w-full" : "relative overflow-x-auto md:overflow-x-visible h-full"}>
+                      <div className={isStudioIti ? "w-full" : "w-[250%] md:w-[100%]"}>
                         <div className="w-full">
                           <PermissionTaskWrapper isTaskVisible={true}>
                             <ItineraryColumns
@@ -846,6 +1195,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
               </div>
         }
       </div>
+      </div>
       {modalStatus && <Modal set={setModalStatus} state={modalStatus} classe={"w-[95%] md:w-[450px] h-[370px]"}>
         <WarningMessage setModal={setModalStatus} modal={modalStatus} title={t("visibility")} />
       </Modal>
@@ -863,6 +1213,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       </Modal>
       }
     </div>
+    </>
   )
 }
 

@@ -1,20 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { resolveServerMcpGraphqlUrl } from '@/const/mcpEndpoints';
 
 export const runtime = 'nodejs';
 
-// ✅ CORRECCIÓN: Las queries del apolloClient (fetchUserEvents, fetchExternalChats, etc.) son api2 queries.
-// Usar GRAPHQL_ENDPOINT (api2) como destino del proxy, NO el Python backend (api-ia).
-const getBackendUrl = (): string => {
-  const graphqlEndpoint = process.env.GRAPHQL_ENDPOINT || process.env.API2_GRAPHQL_URL;
-  if (graphqlEndpoint) {
-    // graphqlEndpoint ya incluye /graphql — extraemos la base para que el proxy añada /graphql
-    return graphqlEndpoint.replace(/\/graphql$/, '');
-  }
-  return 'https://api2.eventosorganizador.com';
-};
+// ✅ Las queries del apolloClient (fetchUserEvents, fetchExternalChats, etc.) son queries de MCP.
+// Usar MCP GraphQL como destino del proxy, NO el backend Python (api-ia).
+const MCP_GRAPHQL_URL = resolveServerMcpGraphqlUrl();
 
 /**
- * Proxy: POST /api/graphql → **API2** (/graphql). Mongo y dominio de negocio viven detrás de API2.
+ * Proxy: POST /api/graphql → **API2** (/graphql). Mongo y dominio de negocio viven detrás de MCP.
  * Orquestación IA (tools, RAG, chat): **api-ia**; este route solo evita CORS desde el Copilot.
  */
 export async function POST(request: NextRequest) {
@@ -34,8 +28,7 @@ export async function POST(request: NextRequest) {
     const xDevelopment = request.headers.get('x-development');
     if (xDevelopment) headers['X-Development'] = xDevelopment;
 
-    const backendUrl = getBackendUrl();
-    const response = await fetch(`${backendUrl}/graphql`, {
+    const response = await fetch(MCP_GRAPHQL_URL, {
       body: JSON.stringify(body),
       headers,
       method: 'POST',
@@ -49,7 +42,7 @@ export async function POST(request: NextRequest) {
       const operationName = body?.operationName ?? '(unknown)';
       const querySnippet = typeof body?.query === 'string' ? body.query.slice(0, 300) : '(no query)';
       console.error(
-        `❌ api2 GraphQL ${response.status} [${operationName}]:\n` +
+        `❌ MCP GraphQL ${response.status} [${operationName}]:\n` +
         `  Query: ${querySnippet}\n` +
         `  Variables: ${JSON.stringify(body?.variables ?? {}).slice(0, 200)}\n` +
         `  Response: ${JSON.stringify(data).slice(0, 500)}`

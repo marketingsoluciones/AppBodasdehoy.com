@@ -7,7 +7,22 @@ type HeadersInput = Headers | Array<[string, string]> | Record<string, string>;
 let lastLogTime = 0;
 const LOG_THROTTLE_MS = 5000; // Solo loguear cada 5 segundos
 
+// H5 (QA re-run 21-ago): los logs [TOKEN-DEBUG] filtraban en producción (chat-dev) porque
+// shouldLog() era SOLO un throttle, no un gate de entorno → "[TOKEN-DEBUG] NO SE ENCONTRÓ
+// NINGÚN TOKEN" salía en la consola de usuarios reales. Ahora son OPT-IN: solo con
+// ?debug=1 o localStorage debug_auth=1 (mismo patrón que el DebugFooter). Silencio por defecto.
+const authDebugEnabled = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  try {
+    if (localStorage.getItem('debug_auth') === '1') return true;
+    return new URLSearchParams(window.location.search).get('debug') === '1';
+  } catch {
+    return false;
+  }
+};
+
 const shouldLog = () => {
+  if (!authDebugEnabled()) return false;
   const now = Date.now();
   if (now - lastLogTime > LOG_THROTTLE_MS) {
     lastLogTime = now;
@@ -56,7 +71,7 @@ const readTokenFromDevConfig = () => {
     }
     return typeof token === 'string' && token ? token : undefined;
   } catch (e) {
-    console.error('❌ [TOKEN-DEBUG] Error leyendo dev-user-config:', e);
+    if (authDebugEnabled()) console.error('❌ [TOKEN-DEBUG] Error leyendo dev-user-config:', e);
     return undefined;
   }
 };
@@ -70,7 +85,19 @@ export const getAuthToken = (): string | undefined => {
     console.log('🔍 [TOKEN-DEBUG] === Buscando token JWT ===');
   }
 
-  // 1. Primero buscar jwt_token (login directo API2)
+  // 0. Primero buscar jwt_token_cache (MCP HS256, válido ~7 días)
+  const cache = localStorage.getItem('jwt_token_cache');
+  if (cache) {
+    try {
+      const parsed = JSON.parse(cache) as { expiry?: number; token?: string };
+      if (parsed?.token && parsed?.expiry && Date.now() < parsed.expiry) {
+        if (doLog) console.log('✅ [TOKEN-DEBUG] Usando jwt_token_cache');
+        return parsed.token;
+      }
+    } catch {}
+  }
+
+  // 1. Primero buscar jwt_token (login directo MCP)
   const directToken = localStorage.getItem('jwt_token');
   if (doLog) {
     console.log('🔍 [TOKEN-DEBUG] jwt_token:', directToken ? `presente (${directToken.length} chars)` : 'NO EXISTE');
@@ -80,17 +107,30 @@ export const getAuthToken = (): string | undefined => {
     return directToken;
   }
 
-  // 2. Buscar api2_jwt_token (login con Firebase Auth)
-  const firebaseToken = localStorage.getItem('api2_jwt_token');
+  // 2. Buscar mcp_jwt_token (login con Firebase Auth / SSO)
+  const mcpToken = localStorage.getItem('mcp_jwt_token');
   if (doLog) {
-    console.log('🔍 [TOKEN-DEBUG] api2_jwt_token:', firebaseToken ? `presente (${firebaseToken.length} chars)` : 'NO EXISTE');
+    console.log('🔍 [TOKEN-DEBUG] mcp_jwt_token:', mcpToken ? `presente (${mcpToken.length} chars)` : 'NO EXISTE');
   }
-  if (firebaseToken && firebaseToken !== 'null' && firebaseToken !== 'undefined') {
-    if (doLog) console.log('✅ [TOKEN-DEBUG] Usando api2_jwt_token');
-    return firebaseToken;
+  if (mcpToken && mcpToken !== 'null' && mcpToken !== 'undefined') {
+    if (doLog) console.log('✅ [TOKEN-DEBUG] Usando mcp_jwt_token');
+    return mcpToken;
   }
 
-  // 3. Fallback: buscar en dev-user-config
+  // 3. Legacy: buscar mcp_jwt_token
+  const legacyApi2Token = localStorage.getItem('mcp_jwt_token');
+  if (doLog) {
+    console.log(
+      '🔍 [TOKEN-DEBUG] mcp_jwt_token:',
+      legacyApi2Token ? `presente (${legacyApi2Token.length} chars)` : 'NO EXISTE',
+    );
+  }
+  if (legacyApi2Token && legacyApi2Token !== 'null' && legacyApi2Token !== 'undefined') {
+    if (doLog) console.log('✅ [TOKEN-DEBUG] Usando mcp_jwt_token (legacy)');
+    return legacyApi2Token;
+  }
+
+  // 4. Fallback: buscar en dev-user-config
   const devToken = readTokenFromDevConfig();
   if (devToken) {
     if (doLog) console.log('✅ [TOKEN-DEBUG] Usando token de dev-user-config');
@@ -101,7 +141,8 @@ export const getAuthToken = (): string | undefined => {
     console.warn('⚠️ [TOKEN-DEBUG] NO SE ENCONTRÓ NINGÚN TOKEN');
     console.log('🔍 [TOKEN-DEBUG] Estado localStorage:');
     console.log('   - jwt_token:', localStorage.getItem('jwt_token'));
-    console.log('   - api2_jwt_token:', localStorage.getItem('api2_jwt_token'));
+    console.log('   - mcp_jwt_token:', localStorage.getItem('mcp_jwt_token'));
+    console.log('   - mcp_jwt_token:', localStorage.getItem('mcp_jwt_token'));
     console.log('   - dev-user-config:', localStorage.getItem('dev-user-config')?.slice(0, 100));
     console.log('   - user_email:', localStorage.getItem('user_email'));
   }
@@ -119,14 +160,21 @@ export const debugAuthState = () => {
   console.log('╚════════════════════════════════════════════════════════════╝');
 
   const jwtToken = localStorage.getItem('jwt_token');
-  const api2Token = localStorage.getItem('api2_jwt_token');
+  const mcpToken = localStorage.getItem('mcp_jwt_token');
+  const legacyApi2Token = localStorage.getItem('mcp_jwt_token');
+  const jwtCache = localStorage.getItem('jwt_token_cache');
   const devConfig = localStorage.getItem('dev-user-config');
   const userEmail = localStorage.getItem('user_email');
   const currentDev = localStorage.getItem('current_development');
 
   console.log('\n📦 Tokens en localStorage:');
+  console.log('  jwt_token_cache:', jwtCache ? '✅' : '❌ NO EXISTE');
   console.log('  jwt_token:', jwtToken ? `✅ (${jwtToken.length} chars)` : '❌ NO EXISTE');
-  console.log('  api2_jwt_token:', api2Token ? `✅ (${api2Token.length} chars)` : '❌ NO EXISTE');
+  console.log('  mcp_jwt_token:', mcpToken ? `✅ (${mcpToken.length} chars)` : '❌ NO EXISTE');
+  console.log(
+    '  mcp_jwt_token (legacy):',
+    legacyApi2Token ? `✅ (${legacyApi2Token.length} chars)` : '❌ NO EXISTE',
+  );
 
   if (devConfig) {
     try {
@@ -152,10 +200,11 @@ export const debugAuthState = () => {
   console.log('\n🎯 Token final (getAuthToken):', finalToken ? `✅ (${finalToken.length} chars)` : '❌ NINGUNO');
 
   return {
-    api2Token: !!api2Token,
     devConfigToken: !!devConfig,
     finalToken: !!finalToken,
     jwtToken: !!jwtToken,
+    legacyApi2Token: !!legacyApi2Token,
+    mcpToken: !!mcpToken,
     userEmail,
   };
 };
@@ -175,5 +224,3 @@ export const buildAuthHeaders = (headers?: HeadersInput): NormalizedHeaders => {
 
   return normalizedHeaders;
 };
-
-

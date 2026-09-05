@@ -48,11 +48,45 @@ const useStyles = createStyles(({ css, token }) => ({
       }
     }
   `,
+  hydrating: css`
+    opacity: 0.55;
+    animation: user-avatar-hydrating-pulse 1.4s ease-in-out infinite;
+    @keyframes user-avatar-hydrating-pulse {
+      0%, 100% { opacity: 0.35; }
+      50% { opacity: 0.75; }
+    }
+  `,
 }));
 
 export interface UserAvatarProps extends AvatarProps {
   clickable?: boolean;
 }
+
+// BUG QA 13-jul #24: tras refresh (cmd+R) el avatar mostraba "BB" (initials de la
+// marca) durante ~1-2s antes de pintar el avatar real "UC" — el store aún no había
+// hidratado desde localStorage/cookie SSO pero el componente decidía "guest" y
+// pintaba el placeholder. Si detectamos cookie SSO (.bodasdehoy.com) o JWT local,
+// tratamos ese lapso como "sesión probable, aún hidratando" → skeleton pulsante
+// en vez del placeholder de invitado. Ventana de gracia de 3s.
+const AUTH_HYDRATION_GRACE_MS = 3000;
+
+const hasSsoSessionSignal = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  try {
+    if (
+      typeof document !== 'undefined' &&
+      document.cookie &&
+      /(?:^|;\s*)idTokenV0\.1\.0=([^;]{20,})/.test(document.cookie)
+    ) {
+      return true;
+    }
+    const t = localStorage.getItem('jwt_token') || localStorage.getItem('mcp_jwt_token');
+    if (t && t.length > 20) return true;
+  } catch {
+    /* ignore */
+  }
+  return false;
+};
 
 const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(
   (
@@ -75,33 +109,59 @@ const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(
 
     /** Sesión real (no el “siempre logueado” cuando enableAuth=false). */
     const isRealLogin = useUserStore(authSelectors.isLoginWithAuth);
+
+    // Gracia de hidratación: si hay SSO cookie/JWT local y aún no llegó el store,
+    // marcamos "hidratando" durante AUTH_HYDRATION_GRACE_MS.
+    const [ssoSignal, setSsoSignal] = useState(false);
+    const [graceElapsed, setGraceElapsed] = useState(false);
+    // P0 coherencia de sesión (QA 17-ago): el servidor renderiza este componente SIN
+    // sesión cliente → antes pintaba "Visitante · marca" en el HTML SSR, que el Service
+    // Worker cacheaba (NetworkFirst) y servía en navegación DIRECTA (Ctrl+Shift+R lo
+    // bypaseaba y por eso "se arreglaba"). En SSR + primer render cliente (mounted=false)
+    // NO decidimos invitado: mostramos el skeleton neutro. SSR y primer render coinciden
+    // (ambos skeleton) → 0 hydration mismatch. Tras montar resolvemos identidad real.
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+      setMounted(true);
+      setSsoSignal(hasSsoSessionSignal());
+      const t = setTimeout(() => setGraceElapsed(true), AUTH_HYDRATION_GRACE_MS);
+      return () => clearTimeout(t);
+    }, []);
+    const hydrating = !mounted || (ssoSignal && !isRealLogin && !graceElapsed);
+    // Identidad para DISPLAY: isLoginWithAuth (isRealLogin) es el login NATIVO de LobeChat,
+    // que para usuarios Bodas SSO es FALSE → el avatar los trataba como invitados y el alt
+    // decía "Visitante · marca" (hallazgo QA 17-ago en /bandeja?tab=history). Con hasSession
+    // (login nativo O señal SSO: cookie idTokenV0.1.0 / JWT local) el avatar muestra la
+    // identidad real del usuario SSO y el alt nunca dice "Visitante" habiendo sesión.
+    const hasSession = isRealLogin || ssoSignal;
     const remoteServerUrl = useElectronStore(electronSyncSelectors.remoteServerUrl);
 
     const avatarUrl = useMemo(() => {
-      if (isRealLogin && avatar) {
+      if (hasSession && avatar) {
         if (isDesktop && avatar.startsWith('/') && remoteServerUrl) {
           return remoteServerUrl + avatar;
         }
         return avatar;
       }
-      if (isRealLogin && !avatar) {
+      if (hasSession && !avatar) {
         return DEFAULT_USER_AVATAR_URL;
       }
       const fromApi = branding?.logo?.trim();
       return fromApi || DEFAULT_USER_AVATAR_URL;
-    }, [isRealLogin, avatar, remoteServerUrl, branding?.logo]);
+    }, [hasSession, avatar, remoteServerUrl, branding?.logo]);
 
     useEffect(() => {
       setImageLoadFailed(false);
     }, [avatarUrl]);
 
-    const altText =
-      isRealLogin && username
-        ? username
+    const altText = username
+      ? username
+      : hasSession
+        ? guestBrandName
         : `Visitante · ${guestBrandName}`;
 
     const labelForInitials = (
-      isRealLogin ? (nickName || username || '').trim() : ''
+      hasSession ? (nickName || username || '').trim() : ''
     ) || guestBrandName;
 
     const initials = useMemo(
@@ -125,11 +185,31 @@ const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(
       (typeof theme.colorInfo === 'string' ? theme.colorInfo : undefined) ||
       '#764ba2';
 
+    if (hydrating) {
+      return (
+        <div
+          aria-hidden="true"
+          className={cx(className, styles.hydrating)}
+          data-testid="user-avatar-hydrating"
+          ref={ref}
+          style={{
+            background: theme.colorFillTertiary,
+            borderRadius: '50%',
+            flex: 'none',
+            height: size,
+            width: size,
+            ...style,
+          }}
+        />
+      );
+    }
+
     if (useGradientFallback) {
       return (
         <div
           aria-label={altText}
           className={cx(clickable && styles.clickable, className)}
+          data-testid="user-avatar"
           onClick={onClick}
           ref={ref}
           role="img"
@@ -164,6 +244,7 @@ const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(
         avatar={avatarUrl}
         background={isRealLogin && avatar ? background : 'transparent'}
         className={cx(clickable && styles.clickable, className)}
+        data-testid="user-avatar"
         onClick={onClick}
         onError={handleAvatarImageError}
         ref={ref}

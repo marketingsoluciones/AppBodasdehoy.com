@@ -1,0 +1,89 @@
+═══════════════════════════════════════════════════════════
+ AUDITORÍA FRONT — 17/06/2026 · BUILDS: app-dev TQP4SI7S1hJCjh4J7HGLK · chat-dev V25QUtu9
+═══════════════════════════════════════════════════════════
+
+REQUISITO: verifica el BUILD_ID en DevTools→Network ANTES de empezar.
+Si no coincide → hard-refresh (Cmd+Shift+R) o aborta.
+
+USERS (pwd lorca2012M*+):
+  · bodasdehoy.com@gmail.com (ADMIN, Google OAuth)
+  · jcc@bodasdehoy.com (email/password) ← usa este si OAuth falla
+
+
+───────────────────────────────────────────────────────────
+TEST 1 — BUG-19 mesas crash (verificar fix desplegado)
+───────────────────────────────────────────────────────────
+Login jcc@bodasdehoy.com → evento "Boda Isabel & Raúl" → Mesas →
+crear mesa nueva con "+".
+- ¿Plano abre sin ErrorBoundary?
+- ¿Mesa nueva se añade sin crash?
+- Console: ¿TypeError "Cannot read properties of undefined (reading 'x')"?
+- Network: capturar response de mutation createTable.
+
+
+───────────────────────────────────────────────────────────
+TEST 2 — Socket → api-ia (BUG-02)
+───────────────────────────────────────────────────────────
+Login app-dev → Network filtrar "socket.io" →
+¿URL es api-ia.bodasdehoy.com? ¿status 200 + body con "sid"?
+
+
+───────────────────────────────────────────────────────────
+TEST 3 — Crear evento "Falta info usuario (uid/nombre)"
+───────────────────────────────────────────────────────────
+Reporte previo: al guardar evento sale toast
+"Falta información de usuario (uid/nombre). Refresca la página…"
+Código: throw en FormCrearEvento.tsx:135 cuando uid Y displayName/email son null.
+
+Probar:
+1) Login admin (Google OAuth). Cookies: ¿están idTokenV0.1.0 + sessionBodas?
+   Console: firebase.auth().currentUser?.uid / displayName / email ¿valores reales?
+2) Crear evento "Boda Test Audit", Boda, 12/04/2027, Europe/Madrid → Guardar.
+   ¿Toast de error o guarda OK? Si error: tras F5 + reintento, ¿guarda?
+3) Repetir con jcc@bodasdehoy.com (email/password). ¿Igual?
+4) Network filtrar "graphql": ¿sale mutation eventCreate? Capturar payload input.
+
+Hipótesis (confirmar 1):
+  H1 = timing Firebase (si F5 lo arregla)
+  H2 = sesión real rota OAuth admin (si F5 NO arregla)
+  H3 = cache viejo en reporte previo (si nunca se reproduce)
+
+
+───────────────────────────────────────────────────────────
+TEST 4 — Servicios crear tarea (errores TaskInput/titulo/enum)
+───────────────────────────────────────────────────────────
+Reporte previo decía:
+  POST /api/proxy/graphql → 404 "Cannot POST /uploads/graphql"
+  TaskInput rechaza: falta "titulo", "media" no en TaskPrioridad enum,
+  "responsable"/"tips" no existen en TaskInput.
+
+Código actual: adapter apiMcpAdapter.ts:498 mapea createTask(task:TaskInput)
+→ crearTarea(tarea:TareaInput) canonical. En vivo contra api-mcp:
+crearTarea acepta shape (solo falta JWT). Así que NO debería verse en build nuevo.
+
+Probar:
+1) Login jcc → "Boda Isabel & Raúl" → Servicios.
+2) Network filtrar "graphql". Pulsar "+" → crear tarea:
+   título "Tarea Audit Test", prioridad media, responsable novia → Guardar.
+3) Capturar del POST:
+   a) URL exacta (¿/api/proxy/graphql, /api/proxy-bodas/graphql, o api-mcp?)
+   b) Status code
+   c) Request payload completo (¿mutation createTask o crearTarea?
+      ¿task:TaskInput o tarea:TareaInput? ¿qué campos?)
+   d) Response body
+4) ¿La tarea aparece y persiste tras F5?
+
+Hipótesis (confirmar 1):
+  H1 = cache viejo en reporte previo (en build nuevo no se reproduce)
+  H2 = adapter no se aplica aquí → manda createTask legacy → error real front
+  H3 = adapter sí se aplica pero crearTarea api-mcp tiene otro bug → reportar backend
+
+
+───────────────────────────────────────────────────────────
+FORMATO RESPUESTA QUE NECESITO
+───────────────────────────────────────────────────────────
+Por test: BUILD_ID visto · Estado (✅/🔴/🟡/❓) · Evidencia (caps+Network+Console)
+        · Diagnóstico · Culpa (front/api-mcp/api-ia/entorno) · Hipótesis confirmada
+
+Tabla final:
+| Test | BUILD_ID | Estado | Culpa | Próxima acción |

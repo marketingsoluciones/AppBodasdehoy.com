@@ -4,7 +4,6 @@ import { StateCreator } from 'zustand/vanilla';
 import { notification } from '@/components/AntdStaticMethods';
 import { FILE_UPLOAD_BLACKLIST } from '@/const/file';
 import { fileService } from '@/services/file';
-import { ServerService } from '@/services/file/server';
 import { ragService } from '@/services/rag';
 import { UPLOAD_NETWORK_ERROR } from '@/services/upload';
 import {
@@ -21,7 +20,8 @@ import { FileStore } from '../../store';
 
 const n = setNamespace('chat');
 
-const serverFileService = new ServerService();
+// CAPA 2 PASO C 2026-06-05: ServerService (tRPC) eliminado. Usar fileService directo.
+const serverFileService = fileService;
 
 export interface FileAction {
   clearChatUploadFileList: () => void;
@@ -71,7 +71,10 @@ export const createFileSlice: StateCreator<
       let fileItem: FileListItem | undefined = undefined;
 
       try {
-        fileItem = await serverFileService.getFileItem(id);
+        // CAPA 2 PASO C: ApiIaFileService.getFileItem retorna FileItem (sin campos
+        // de embedding chunkingError/finishEmbedding). api-ia no expone esos campos
+        // todavía. TODO api-ia: endpoint con metadata completa de chunking/embedding.
+        fileItem = (await serverFileService.getFileItem(id)) as unknown as FileListItem;
       } catch (e) {
         console.error('getFileItem Error:', e);
         continue;

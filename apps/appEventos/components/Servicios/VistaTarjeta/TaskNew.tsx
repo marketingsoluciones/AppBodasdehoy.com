@@ -8,6 +8,7 @@ import { ViewItinerary } from "../../../pages/invitados";
 import { TempPastedAndDropFile } from "../../Itinerario/MicroComponente/ItineraryPanel";
 import { useToast } from "../../../hooks/useToast";
 import { useAllowed } from '../../../hooks/useAllowed';
+import { useServicePermissions } from '../../../hooks/useServicePermissions';
 // Importar funciones utilitarias
 import { sortCommentsByDate, haveCommentsChanged, } from './TaskNewUtils';
 // Importar componentes
@@ -51,19 +52,24 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   setSelectTask?: (taskId: string) => void;
   selectTask?: string;
   handleUpdate?: (field: string, value: any) => Promise<void>;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
+  gripDraggable?: boolean;
+  onGripDragStart?: (e: React.DragEvent) => void;
 }
 
-export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryButtonBox, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, setSelectTask, selectTask, handleUpdate, ...props }) => {
+export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryButtonBox, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, setSelectTask, selectTask, handleUpdate, isExpanded, onToggleExpand, gripDraggable, onGripDragStart, ...props }) => {
   const { t } = useTranslation();
   const { config, user } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
   const [isAllowed, ht] = useAllowed();
+  const { canEditTask } = useServicePermissions(itinerario?.viewers ?? [])
   const toast = useToast();
   const commentsContainerRef = useRef<HTMLDivElement>(null);
   const [previousCountComments, setPreviousCountComments] = useState(0);
   const [comments, setComments] = useState<Comment[]>([]);
 
-  const canEdit = !user?.uid ? false : isAllowed() || task.responsable?.includes(user?.uid);
+  const canEdit = !user?.uid ? false : canEditTask()
 
   const [localTask, setLocalTask] = useState<TaskFormValues>({
     _id: task?._id,
@@ -76,7 +82,7 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
     responsable: task?.responsable || [],
     tips: task?.tips || '',
     attachments: task?.attachments || [],
-    spectatorView: task?.spectatorView !== undefined ? task?.spectatorView : false,
+    spectatorView: task?.spectatorView ?? false,
     comments: task?.comments || [],
     commentsViewers: task?.commentsViewers || [],
     estatus: task?.estatus ?? false,
@@ -96,7 +102,7 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
       responsable: Array.isArray(task?.responsable) ? task?.responsable : [],
       tips: task?.tips || '',
       attachments: Array.isArray(task?.attachments) ? task.attachments : [],
-      spectatorView: task?.spectatorView ?? true,
+      spectatorView: task?.spectatorView ?? false,
       comments: Array.isArray(task?.comments) ? task?.comments : [],
       commentsViewers: Array.isArray(task?.commentsViewers) ? task.commentsViewers : [],
       estatus: task?.estatus ?? false,
@@ -313,6 +319,11 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
           handleUpdate={handleUpdate}
           optionsItineraryButtonBox={optionsItineraryButtonBox}
           isSelect={selectTask === task._id}
+          isExpanded={isExpanded}
+          onToggleExpand={onToggleExpand}
+          onDuplicate={handleDuplicate}
+          gripDraggable={gripDraggable}
+          onGripDragStart={onGripDragStart}
         />
         : view === "cards" || view === "kanban"
           ? <TaskFullView
@@ -328,6 +339,8 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
             tempPastedAndDropFiles={tempPastedAndDropFiles}
             setTempPastedAndDropFiles={setTempPastedAndDropFiles}
             selectTask={selectTask}
+            isExpanded={isExpanded}
+            onToggleExpand={onToggleExpand}
           />
           : null
   )

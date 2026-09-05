@@ -1,7 +1,7 @@
 import { getCurrency } from "../../utils/Funciones";
 import { capitalize } from '../../utils/Capitalize';
 import { BorrarIcon, EditarIcon, PlusIcon } from "../icons";
-import { api } from "../../api";
+import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { useContext, useEffect, useState } from "react";
 import { EventContextProvider, AuthContextProvider } from "../../context";
 import FormEditarPago from "../Forms/FormEditarPago";
@@ -80,25 +80,12 @@ const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, r
   const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider();
   const BorrarPago = async (pagoID) => {
-    let data;
-    const params = {
-      query: `mutation {
-        borraPago(evento_id:"${event?._id}", categoria_id: "${cate}", gasto_id: "${gasto}", pago_id: "${pagoID}"){
-          pagado
-          categorias_array{
-            pagado
-            gastos_array{
-              pagado
-            }
-          }
-        }
-      }`,
-      variables: {},
-    };
-
+    let updatedPresupuesto: any = null
     try {
-      const { data: res } = await api.ApiApp(params);
-      data = res.data.borraPago;
+      updatedPresupuesto = await fetchApiBodas({
+        query: queries.deletepayment,
+        variables: { evento_id: event?._id, categoria_id: cate, gasto_id: gasto, pago_id: pagoID },
+      })
     } catch {
     } finally {
       setEvent((old) => {
@@ -119,17 +106,22 @@ const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, r
           (item) => item._id !== pagoID
         );
 
-        //Actualizar pagado del evento
-        old.presupuesto_objeto.pagado = data?.pagado;
+        if (updatedPresupuesto?.pagado != null) {
+          old.presupuesto_objeto.pagado = updatedPresupuesto.pagado;
+        }
 
         //Actualizar pagado de la categoria
-        old.presupuesto_objeto.categorias_array[idxCategoria].pagado =
-          data?.categorias_array[0]?.pagado;
+        if (updatedPresupuesto?.categorias_array?.[0]?.pagado != null) {
+          old.presupuesto_objeto.categorias_array[idxCategoria].pagado =
+            updatedPresupuesto.categorias_array[0].pagado;
+        }
 
         //Actualizar pagado del gasto
-        old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[
-          idxGastos
-        ].pagado = data?.categorias_array[0]?.gastos_array[0]?.pagado;
+        if (updatedPresupuesto?.categorias_array?.[0]?.gastos_array?.[0]?.pagado != null) {
+          old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[
+            idxGastos
+          ].pagado = updatedPresupuesto.categorias_array[0].gastos_array[0].pagado;
+        }
 
         // Sobrescribir arr de pagos anterior por el nuevo
         old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[

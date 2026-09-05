@@ -310,7 +310,7 @@ describe('ChatPluginAction', () => {
             id: 'tool2',
             type: 'markdown',
             identifier: 'plugin2',
-            apiName: 'api2',
+            apiName: 'mcp',
             arguments: '{}',
           },
           {
@@ -445,7 +445,7 @@ describe('ChatPluginAction', () => {
             id: 'tool2',
             type: 'markdown',
             identifier: 'plugin2',
-            apiName: 'api2',
+            apiName: 'mcp',
             arguments: '{}',
           },
           {
@@ -1050,7 +1050,7 @@ describe('ChatPluginAction', () => {
         {
           id: 'tool2',
           function: {
-            name: ['plugin2', 'api2', 'markdown'].join(PLUGIN_SCHEMA_SEPARATOR),
+            name: ['plugin2', 'mcp', 'markdown'].join(PLUGIN_SCHEMA_SEPARATOR),
             arguments: '{}',
           },
           type: 'function',
@@ -1072,7 +1072,7 @@ describe('ChatPluginAction', () => {
         {
           id: 'tool2',
           identifier: 'plugin2',
-          apiName: 'api2',
+          apiName: 'mcp',
           type: 'markdown',
           arguments: '{}',
         },

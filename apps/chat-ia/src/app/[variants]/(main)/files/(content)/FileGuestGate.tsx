@@ -6,15 +6,17 @@ import { FolderLock, Sparkles } from 'lucide-react';
 import { memo, type ReactNode } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
-import { useChatStore } from '@/store/chat';
+import CircleLoading from '@/components/Loading/CircleLoading';
+import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
+import { useUserStore } from '@/store/user';
+import { preferenceSelectors } from '@/store/user/selectors';
 
-const getAppLoginUrl = () => {
-  if (typeof window === 'undefined') return 'https://app.bodasdehoy.com/login';
-  const h = window.location.hostname;
-  if (h.includes('-dev.')) return 'https://app-dev.bodasdehoy.com/login';
-  if (h.includes('-test.')) return 'https://app-test.bodasdehoy.com/login';
-  return 'https://app.bodasdehoy.com/login';
-};
+// BUG QA 30-jul: el gate mandaba a app*.bodasdehoy.com/login (la app de eventos) →
+// desde chat-dev saltaba a PRODUCCIÓN (app.bodasdehoy.com) y sacaba al usuario de
+// chat-dev. El login unificado vive en chat-ia mismo, así que apuntamos a /login del
+// MISMO origen: en chat-dev se queda en chat-dev, en chat en chat, etc. El middleware
+// SSO (idTokenV0.1.0 → /api/auth/sso-auto) resuelve la sesión sin salir de la app.
+const getLoginUrl = () => '/login';
 
 const useStyles = createStyles(({ css, token }) => ({
   container: css`
@@ -60,26 +62,26 @@ const useStyles = createStyles(({ css, token }) => ({
  */
 const FileGuestGate = memo<{ children: ReactNode }>(({ children }) => {
   const { styles } = useStyles();
-  const currentUserId = useChatStore((s) => s.currentUserId);
+  // HD-03/HD-04 QA (24-jul): antes decidía guest solo por currentUserId/dev-config →
+  // cuando Firebase perdía el token (HD-05), mostraba el gate de VISITANTE aunque el
+  // usuario tuviera sesión (isSignedIn). Ahora usa la detección CANÓNICA
+  // useDomainGuestUser (requiere !isSignedIn Y confirmación del chat store), consistente
+  // con el fix raíz de auth (PR #207). Evita la caída silenciosa a visitante.
+  const isGuest = useDomainGuestUser();
+  // #10 (QA 5-ago): no decidir "invitado" hasta que el estado de usuario esté
+  // inicializado. Antes, durante el arranque de auth (recarga forzada), el gate caía
+  // a guest=true por defecto y mostraba el muro de "Crear cuenta" pese a haber sesión
+  // válida (falso-negativo). Mientras inicializa, mostramos loader (no cambiamos la
+  // lógica de determinación de guest → cero impacto de seguridad).
+  const isUserStateInit = useUserStore(preferenceSelectors.isPreferenceInit);
 
-  const resolvedUserId = currentUserId || (() => {
-    if (typeof window === 'undefined') return null;
-    try {
-      const saved = localStorage.getItem('dev-user-config');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return parsed.userId || parsed.user_id || null;
-      }
-    } catch { /* ignore */ }
-    return null;
-  })();
-
-  const isGuest =
-    !resolvedUserId ||
-    resolvedUserId === 'visitante@guest.local' ||
-    resolvedUserId === 'guest' ||
-    resolvedUserId === 'anonymous' ||
-    (typeof resolvedUserId === 'string' && resolvedUserId.startsWith('visitor_'));
+  if (!isUserStateInit) {
+    return (
+      <Flexbox className={styles.container} gap={16}>
+        <CircleLoading />
+      </Flexbox>
+    );
+  }
 
   if (isGuest) {
     return (
@@ -95,16 +97,16 @@ const FileGuestGate = memo<{ children: ReactNode }>(({ children }) => {
         </div>
         <Flexbox gap={10} horizontal style={{ flexWrap: 'wrap', justifyContent: 'center', marginTop: 8 }}>
           <Button
-            href={getAppLoginUrl()}
+            href={getLoginUrl()}
             icon={<Sparkles size={15} />}
             size="large"
             style={{ fontWeight: 600 }}
-            target="_parent"
+            target="_self"
             type="primary"
           >
             Crear cuenta gratis
           </Button>
-          <Button href={getAppLoginUrl()} size="large" target="_parent">
+          <Button href={getLoginUrl()} size="large" target="_self">
             Iniciar sesion
           </Button>
         </Flexbox>

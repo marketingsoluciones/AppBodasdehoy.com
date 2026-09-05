@@ -578,6 +578,27 @@ describe('chatMessage actions', () => {
         expect(result.current.data).toEqual(messages);
       });
     });
+
+    it('should NOT overwrite local messages when fetch returns empty (fix render-en-blanco)', async () => {
+      const sessionId = 'session-id';
+      const topicId = 'topic-id';
+      const mapKey = messageMapKey(sessionId, topicId);
+      // Pre-cargar el map con un mensaje optimista (como tras enviar un mensaje).
+      const optimistic = [{ id: 'opt-1', content: 'Hola', role: 'user' }] as any;
+      act(() => {
+        useChatStore.setState({ messagesMap: { [mapKey]: optimistic } });
+      });
+
+      // El fetch del backend devuelve vacío (visitante / topic no persistido aún).
+      (messageService.getMessages as Mock).mockResolvedValue([]);
+
+      renderHook(() => useChatStore().useFetchMessages(true, sessionId, topicId));
+
+      // El mensaje local NO debe borrarse por el fetch vacío.
+      await waitFor(() => {
+        expect(useChatStore.getState().messagesMap[mapKey]).toEqual(optimistic);
+      });
+    });
   });
 
   describe('internal_toggleMessageLoading', () => {

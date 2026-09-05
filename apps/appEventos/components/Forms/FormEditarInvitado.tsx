@@ -1,11 +1,12 @@
 import { Formik, FormikValues, Form } from 'formik';
+import { formikValidateUx } from "./formikValidateUx";
 import { useEffect, useState } from "react";
 import { EventContextProvider } from "../../context";
 import { BorrarInvitado } from "../../hooks/EditarInvitado";
 import InputField from "./InputField";
 import { ImageProfile } from '../../utils/Funciones'
 import { guests, table } from '../../utils/Interfaces';
-import { fetchApiEventos, queries } from '../../utils/Fetching';
+import { fetchApiBodas, queries } from '../../utils/Fetching';
 import { useToast } from '../../hooks/useToast';
 import { capitalize } from '../../utils/Capitalize';
 import SelectField from './SelectField';
@@ -14,6 +15,7 @@ import * as yup from 'yup'
 import useHover from "../../hooks/useHover";
 import { handleMoveGuest } from '../Invitados/GrupoTablas';
 import { useTranslation } from 'react-i18next';
+import { EntityNotesSection } from '../Notes/EntityNotesSection';
 
 interface InitialValues extends Partial<guests> {
   tableNameCeremonia: Partial<table>
@@ -62,19 +64,37 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
       }
     });
 
-    const result: any = await fetchApiEventos({
-      query: queries.createGuests,
+    // EDITAR invitado = actualizarInvitado (api-mcp SDL: agregar/actualizar separados;
+    // agregarInvitadosBatch ignora el _id del cliente → crearía duplicado). Merge por _id.
+    const datos = { ...val }
+    delete datos._id
+    const result: any = await fetchApiBodas({
+      query: queries.editGuests,
       variables: {
         eventID: event._id,
-        invitados_array: [val],
+        guestID: values._id,
+        datos,
       },
     });
+    // fetchApiBodas devuelve null en error GraphQL (NO lanza). Confirmar éxito antes de
+    // actualizar la UI: si no, el cambio se veía local pero NO persistía (se perdía al recargar,
+    // sin ningún aviso de error).
+    if (!result?.success || (result?.errors?.length ?? 0) > 0) {
+      const backendMsg = result?.errors?.[0]?.message;
+      toast("error", `${t("Ha ocurrido un error")}${backendMsg ? `: ${backendMsg}` : ""}`);
+      return;
+    }
     const f1 = event?.invitados_array?.findIndex(elem => elem._id === values._id)
-    event.invitados_array[f1] = { ...invitado, ...values }
+    const updatedInvitado = { ...invitado, ...values }
+    // Sincronizar el invitado actualizado en el estado de forma inmutable.
+    // handleMoveGuest (más abajo) recibe la closure de `event` pero internamente
+    // usa el updater funcional de setEvent, así que verá el estado fresco.
+    setEvent((prev) => ({
+      ...prev,
+      invitados_array: prev.invitados_array.map((inv, i) => i === f1 ? updatedInvitado : inv),
+    }))
     if (initialValues?.tableNameRecepcion?._id === values?.tableNameRecepcion?._id && initialValues?.tableNameCeremonia?._id === values?.tableNameCeremonia?._id) {
-      if (valirChange) {
-        setEvent({ ...event })
-      }
+      // Sin cambios de mesa: el setEvent de arriba ya cubrió el re-render.
     } else {
       if (initialValues?.tableNameRecepcion?._id !== values?.tableNameRecepcion?._id) {
         const f1 = event?.planSpace.findIndex(elem => elem?.title === "recepción")
@@ -109,6 +129,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
 
   return (
     <Formik
+      {...formikValidateUx}
       initialValues={initialValues}
       onSubmit={handleSubmit}
       validationSchema={validationSchema}
@@ -157,7 +178,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                 <div className="md:grid md:grid-cols-9 w-full gap-6 relative  ">
                   <SelectField
                     colSpan={3}
-                    options={event?.grupos_array}
+                    options={event?.grupos_array ?? []}
                     name="rol"
                     label={t("roleguestgroup")}
                   />
@@ -165,12 +186,12 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                     colSpan={2}
                     options={[
                       { _id: null, title: "No Asignado" },
-                      ...event?.planSpace.find(elem => elem?.title === "recepción")?.tables?.reduce((acc, elem) => {
-                        if (elem?.guests.length < elem?.numberChair || values?.tableNameRecepcion?._id === elem?._id) {
+                      ...(event?.planSpace?.find(elem => elem?.title === "recepción")?.tables?.reduce((acc, elem) => {
+                        if ((elem?.guests?.length ?? 0) < elem?.numberChair || values?.tableNameRecepcion?._id === elem?._id) {
                           acc.push({ _id: elem._id, title: elem.title })
                         }
                         return acc
-                      }, [])
+                      }, []) ?? []),
                     ]}
                     name="tableNameRecepcion"
                     label={t("receptiontable")}
@@ -179,19 +200,19 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                     colSpan={2}
                     options={[
                       { _id: null, title: "No Asignado" },
-                      ...event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables?.reduce((acc, elem) => {
-                        if (elem?.guests.length < elem?.numberChair || values?.tableNameRecepcion?._id === elem?._id) {
+                      ...(event?.planSpace?.find(elem => elem?.title === "ceremonia")?.tables?.reduce((acc, elem) => {
+                        if ((elem?.guests?.length ?? 0) < elem?.numberChair || values?.tableNameCeremonia?._id === elem?._id) {
                           acc.push({ _id: elem._id, title: elem.title })
                         }
                         return acc
-                      }, [])
+                      }, []) ?? []),
                     ]}
                     name="tableNameCeremonia"
                     label={t("ceremonytable")}
                   />
                   <SelectField
                     colSpan={2}
-                    options={[...event?.menus_array?.map((item) => item?.nombre_menu), "sin menú"]}
+                    options={[...(event?.menus_array?.map((item) => item?.nombre_menu) ?? []), "sin menú"]}
                     name="nombre_menu"
                     label={t("menu")}
                   />
@@ -250,6 +271,13 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                 </button>
               </div>
             </Form>
+            {invitado?._id && (
+              <EntityNotesSection
+                entityType="INVITADO"
+                entityId={invitado._id}
+                entityName={invitado?.nombre || 'Invitado'}
+              />
+            )}
           </>
         )
       }}

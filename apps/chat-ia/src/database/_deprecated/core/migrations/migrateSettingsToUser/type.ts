@@ -1,6 +1,6 @@
 import { FewShots, LobeAgentTTSConfig, MetaData, STTServer } from '@lobechat/types';
 import type { ThemeMode } from 'antd-style';
-import { LLMParams } from 'model-bank';
+import { LLMParams } from '@lobechat/types';
 
 interface V4LobeAgentConfig {
   autoCreateTopicThreshold: number;

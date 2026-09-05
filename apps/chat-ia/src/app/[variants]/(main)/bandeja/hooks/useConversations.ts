@@ -1,0 +1,212 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { useAuthCheck } from '@/hooks/useAuthCheck';
+
+import { buildHeaders } from '../utils/auth';
+import { classifyOtherChannel, isWhatsAppView } from '../utils/channelClassify';
+import { dedupeFetch } from '../utils/dedupeFetch';
+import { friendlyContactName, inferJidType, safePhoneOrEmpty } from '../utils/jid';
+import { useMessageStream } from './useMessageStream';
+
+export interface Conversation {
+  /** FASE 2 Agentes: agente IA responsable (distinto de assignedToUserId=humano).
+   *  Null-safe hasta que backend lo expone; ya LIVE en api-ia (17-ago). */
+  assignedAgentId?: string | null;
+  assignedAgentName?: string | null;
+  /** ISO de cuando se asigno el responsable. Lo manda api-ia y no se tipaba. */
+  assignedAt?: string | null;
+  /** Como llego a ser responsable: MANUAL | HANDOFF | AUTO
+   *  (api-ia, messages_with_whitelabel_storage.py:78). Necesario para auditar que hace
+   *  la IA en nombre del usuario. */
+  assignmentSource?: string | null;
+  assignedToUserId?: string | null;
+  channel: 'whatsapp' | 'instagram' | 'telegram' | 'email' | 'web' | 'facebook';
+  /** Multicanal (api-ia b6d1823): id de la línea receptora + su tipo.
+   *  channelType: 'WAB' = Meta Business API · 'WEB_QR' = WhatsApp QR (vinculado). */
+  channelId?: string | null;
+  channelType?: 'WAB' | 'WEB_QR' | string | null;
+  contact: {
+    avatar?: string;
+    name: string;
+    phone?: string;
+    username?: string;
+  };
+  id: string;
+  lastMessage: {
+    fromUser: boolean;
+    text: string;
+    timestamp: string;
+  };
+  lastInboundAt?: string;
+  lastOutboundAt?: string;
+  labels?: any[];
+  linkedContactId?: string | null;
+  linkedEventId?: string | null;
+  /** FASE B v2.0 — api-mcp commit 7d52fec (25-jun): RSVP del invitado
+   *  resuelto desde el evento vinculado por teléfono. null si no aplica. */
+  guestStatus?: 'confirmed' | 'pending' | 'declined' | null;
+  /** api-mcp jidType: user | group | newsletter | broadcast | lid | unknown.
+   *  Si != 'user', phoneNumber NO es un teléfono real. */
+  jidType?: string | null;
+  jidRaw?: string | null;
+  status?: string;
+  unreadCount: number;
+  unreadCountForAgent?: number;
+}
+
+export function useConversations(channel: string | null) {
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  const { checkAuth, isGuest } = useAuthCheck();
+  const { isAuthenticated, development } = checkAuth();
+
+  const fetchConversations = useCallback(async () => {
+    if (isGuest) {
+      setConversations([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const proxyBase = '/api/messages';
+      const headers = buildHeaders();
+      const dev = development || 'bodasdehoy';
+
+      // A2-web (CAUSA RAÍZ): el feed (useRecentConversations) clasifica "web" como CAJÓN
+      // por defecto (channel||platform||'web', desconocido→'web') pegando a
+      // `/conversations?development=` SIN filtro. Aquí antes se pegaba con `&channel=web`
+      // + default 'whatsapp' → una conversación sin `channel` aparecía como "web" en el
+      // feed pero se PERDÍA al abrirla (lista vacía + banner WA colado). Fix: MISMO
+      // endpoint que el feed (dedupeFetch coalesce → sin fetch extra, sin el 429 de #286)
+      // + MISMA clasificación de canal (abajo).
+      // isWaView: la vista WhatsApp llega como kind 'whatsapp', como null (feed) o como
+      // channelPARAM 'wa-{id}' (URL del detalle: /bandeja/wa-xxx/conv_yyy). Los tres deben
+      // pegar al endpoint WA y clasificarse como 'whatsapp'. Antes 'wa-xxx' caía al endpoint
+      // de "otros" y filtraba c.channel==='wa-xxx' → SIEMPRE vacío → toda conv WA abierta
+      // desde el detalle quedaba "solo lectura" falsamente (no solo las huérfanas).
+      const isWaView = isWhatsAppView(channel);
+      const fetchUrl = isWaView
+        ? `${proxyBase}/whatsapp/conversations/${dev}`
+        : `${proxyBase}/conversations?development=${dev}`;
+
+      // H2: dedup de GET concurrentes idénticos (feed + detalle piden el mismo recurso).
+      const response = await dedupeFetch(fetchUrl, { headers });
+
+      if (response.ok) {
+        const data = await response.json();
+        const rawList = Array.isArray(data) ? data : data.conversations || [];
+        // N31 CERRADO 24-jun (api-ia commit 665097b normalizó lastMessage).
+        // Mantengo `|| ''` como cinturón-tirantes por canal legacy sin migrar.
+        // N33 activa: parseJid en api-ia sigue pendiente. Defensa vive en
+        // utils/jid.ts (friendlyContactName + classifyJidLike). Ver docs/AUTH-FLOW.md.
+        const normalized: Conversation[] = rawList.map((c: any) => {
+          // api-mcp manda displayName/contactInfo/phoneNumber; api-ia manda
+          // `contact:{name,phone}` (verificado 24-ago contra /api/messages/conversations).
+          // Sin leer su forma, TODA conversación de api-ia se pintaba "Desconocido".
+          const rawPhone = c.phoneNumber ?? c.contact?.phone ?? null;
+          const rawName = c.displayName || c.contactInfo?.name || c.contact?.name || rawPhone || '';
+          const jidType = inferJidType(c.jidType ?? c.jid_type, rawName, rawPhone);
+          // Clasificación IDÉNTICA al feed (useRecentConversations): en vista WA todo es
+          // 'whatsapp'; en vista "otros", desconocido/sin-channel → 'web' (cajón). Esto
+          // hace que la conv sobreviva al abrirla (el filtro de abajo ya cuadra).
+          const kind = isWaView ? 'whatsapp' : classifyOtherChannel(c.channel, c.platform);
+          return {
+            // FASE 2 Agentes: responsable = agente IA (null-safe). Ya LIVE en api-ia.
+            assignedAgentId: c.assignedAgentId ?? c.assigned_agent_id ?? null,
+            assignedAgentName: c.assignedAgentName ?? c.assigned_agent_name ?? null,
+            assignedAt: c.assignedAt ?? c.assigned_at ?? null,
+            assignmentSource: c.assignmentSource ?? c.assignment_source ?? null,
+            assignedToUserId: c.assignedUserId ?? c.assigned_to ?? c.assignedTo ?? null,
+            channel: kind as Conversation['channel'],
+            // Multicanal (api-ia b6d1823): qué línea/tipo recibió el mensaje (QR vs Meta API).
+            channelId: c.channelId ?? c.channel_id ?? null,
+            channelType: c.channelType ?? c.channel_type ?? null,
+            contact: {
+              name: friendlyContactName(rawName, rawPhone, jidType),
+              phone: safePhoneOrEmpty(rawPhone, jidType),
+            },
+            id: c.conversationId || c.id,
+            lastMessage: {
+              fromUser: c.lastMessageFromMe === false,
+              text: c.lastMessage || '',
+              timestamp: c.lastMessageAt || c.updatedAt || new Date().toISOString(),
+            },
+            lastInboundAt: c.lastInboundAt ?? c.last_inbound_at ?? undefined,
+            lastOutboundAt: c.lastOutboundAt ?? c.last_outbound_at ?? undefined,
+            labels: c.labels ?? c.labelIds ?? c.label_ids ?? undefined,
+            linkedContactId: c.linkedContactId ?? c.linked_contact_id ?? null,
+            linkedEventId: c.linkedEventId ?? c.linked_event_id ?? null,
+            // FASE B v2.0 — guestStatus desde api-mcp (commit 7d52fec).
+            guestStatus: (c.guestStatus ?? c.guest_status ?? null) as
+              | 'confirmed'
+              | 'pending'
+              | 'declined'
+              | null,
+            jidType,
+            jidRaw: c.jidRaw ?? c.jid_raw ?? null,
+            status: c.status ?? c.conversationStatus ?? undefined,
+            unreadCount: c.unreadCount || 0,
+            unreadCountForAgent: c.unreadCountForAgent ?? c.unread_count_for_agent ?? undefined,
+          };
+        });
+        // En vista WA devolvemos TODAS las conversaciones WA: el channelParam 'wa-{id}'
+        // identifica la CUENTA, no el canal de cada conv (que es 'whatsapp'); el detalle
+        // localiza la suya por id. En "otros" sí filtramos por el kind clasificado.
+        const filtered = isWaView
+          ? normalized
+          : channel
+            ? normalized.filter((c) => c.channel === channel)
+            : normalized;
+        setConversations(filtered);
+        setError(null);
+      } else if (response.status === 401 || response.status === 403) {
+        setConversations([]);
+        setError(null);
+      } else {
+        setConversations([]);
+        setError(new Error(`Error ${response.status} al cargar conversaciones`));
+      }
+    } catch (err) {
+      setConversations([]);
+      setError(err instanceof Error ? err : new Error('Error de red'));
+    } finally {
+      setLoading(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [channel, isGuest, development]);
+
+  useEffect(() => {
+    fetchConversations();
+  }, [fetchConversations]);
+
+  // SSE realtime: api-ia confirmó /api/messages/stream ACTIVO 24-jun (commit
+  // refactor runtime-only-api-ia). Cuando llega un mensaje nuevo, refrescamos
+  // la lista. Throttle 1.5s para coalescer ráfagas (varios mensajes seguidos).
+  const refetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scheduleRefetch = useCallback(() => {
+    if (refetchTimerRef.current) return; // ya hay refetch pendiente
+    refetchTimerRef.current = setTimeout(() => {
+      refetchTimerRef.current = null;
+      void fetchConversations();
+    }, 1500);
+  }, [fetchConversations]);
+
+  useEffect(() => {
+    return () => {
+      if (refetchTimerRef.current) clearTimeout(refetchTimerRef.current);
+    };
+  }, []);
+
+  useMessageStream({
+    channel: channel || undefined,
+    enabled: isAuthenticated && !isGuest,
+    onMessage: scheduleRefetch,
+  });
+
+  return { conversations, error, isAuthenticated, loading, refetch: fetchConversations };
+}

@@ -1,0 +1,208 @@
+DE: COORD-AppEventos
+PARA: TODOS (api-mcp, api-ia, equipo AppBodas)
+DRI: coord_appeventos
+CANAL: #coordinacion · workspace eventosorganizador.slack.com
+HILO: 1778170638.897419 (hilo único AppBodas)
+ASUNTO: 📋 Estado proyecto chat-ia/AppEventos al 05-jun + pendientes por equipo
+
+
+Resumen ejecutivo del estado de la migración chat-ia/AppEventos al cierre
+de la jornada del 05-jun-2026, con pendientes claros por responsable.
+
+
+═══════════════════════════════════════════════════════════════════
+✅ COMPLETADO HOY (COORD-FRONT)
+═══════════════════════════════════════════════════════════════════
+
+Avance código (16 commits nuevos hoy en branch tj/feat/inbox-fase1):
+
+Migración chat-ia CAPA 2 PASO C (9 servicios cerrados front):
+  ✅ image       commit 4555c969 → /webapi/text-to-image
+  ✅ global      commit 93db95cc → /chat/config?development=X
+  ✅ user        commit 444a756a → /api/auth/{get,save}-user-config
+  ✅ file        commit 7c5066b2 → /api/files/* + /api/storage/r2/*
+  ✅ rag         commit cb554085 → /webapi/files/parse + lobechat-kb/*
+  ✅ generation  commit cb554085 → stubs (sin endpoint api-ia)
+  ✅ plugin      commit 30799792 → opción (c): enabledPlugins[] en userConfig
+  ✅ tool        commit 30799792 → marketplace deprecado
+  ✅ ragEval     commit 93db95cc → BORRADO completo
+
+Pre-trabajo Thread Fase 4 (esperando api-mcp):
+  ✅ services/thread/apiIa.ts NUEVO — proxy REST listo para activar
+     con NEXT_PUBLIC_USE_API_IA_THREAD=true cuando api-ia exponga
+     los 6 endpoints.
+
+Bugs producción detectados y fixeados:
+  ✅ deletepayment shape legacy → fix commit 8880632b
+  ✅ Smoke Cat C 10/10 ops verificadas contra api-mcp prod
+  ✅ Auditoría completa Fetching.ts (110 queries) → 3 bugs más
+     detectados (getUsers, getAllBusiness, borrarItemsGastos*)
+     * borrarItemsGastos resultó falso positivo (sí va por adapter)
+
+Cleanup:
+  ✅ 10 queries código muerto eliminadas de Fetching.ts (-40 líneas)
+  ✅ scripts/smoke-cat-c.sh — herramienta reproducible
+  ✅ scripts/audit-fetching-real.mjs — auditoría programática
+
+Documentos coordinación:
+  ✅ 7 archivos slack-ready/ — mensajes code-ready a backend
+  ✅ slack-copy.sh — copia mensajes al portapapeles directo
+
+
+═══════════════════════════════════════════════════════════════════
+🟦 PENDIENTE — API-MCP (backend GraphQL)
+═══════════════════════════════════════════════════════════════════
+
+PRIORIDAD ALTA (bloquea Fase 4 + apagar apiapp):
+
+  [1] Publicar modelo Thread + 6 resolvers GraphQL con los 4 ajustes
+      confirmados:
+        · enum ThreadType { CONTINUATION, STANDALONE }
+        · enum ThreadStatus { ACTIVE, ARCHIVED, DEPRECATED }
+        · createThreadWithMessage usa SendMessageInput existente
+        · type/status como enum tipado, no String!
+      Recuperar commit 41fe80b + 4 ajustes + push origin/dev.
+      ETA anunciado: 1-2h. Esperando confirmación + notificación a api-ia.
+
+  [2] Confirmar patrón uppercase/lowercase Thread.type/status
+      (idéntico a role: front MINÚSCULAS, api-mcp MAYÚSCULAS, api-ia
+      hace la transformación). Ver memory/project_contrato_role_chat_
+      persistencia.md.
+
+  [3] Publicar updateTasksOrder (última Cat C) — ETA 06-jun anunciado.
+
+PRIORIDAD MEDIA (bugs front detectados hoy):
+
+  [4] getUsers: shape obsoleto (3 call-sites en SocketControlator,
+      Compartir, public-card). api-mcp pide pagination, no uids[]; tipo
+      User no tiene displayName/photoURL/phoneNumber que el front
+      necesita para realtime y compartir.
+      → Recomendación: añadir endpoint getUsersByIds(uids: [ID!]!): [User]
+        con shape de perfil completo.
+
+  [5] getAllBusiness: Unknown type "searchCriteriaBusiness" y
+      "sortCriteriaBusiness". Op existe pero los input types no.
+      → Recomendación: o añadir esos types, o front simplifica a
+        getAllBusinesses(development: String!) y filtra client-side.
+
+  [6] (Opcional) borraPago: ¿debería aceptar categoria_id para coherencia
+      con actualizarGastoPresupuesto que sí lo requiere? Sin urgencia.
+
+PRIORIDAD BAJA (mejoras infra que anunciasteis vosotros):
+
+  [7] Healthcheck /health con ping real Mongo (anunciado hoy)
+  [8] PM2 health_check_url (anunciado mañana)
+  [9] Alerta Slack automática MongoNotConnectedError (próx. semana)
+
+
+═══════════════════════════════════════════════════════════════════
+🟪 PENDIENTE — API-IA (proxy REST FastAPI)
+═══════════════════════════════════════════════════════════════════
+
+PRIORIDAD ALTA (bloquea cerrar Fase 4):
+
+  [1] Preparar los 6 endpoints REST proxy para Thread (cuando api-mcp
+      publique en origin/dev):
+        GET    /chat/topics/{topic_id}/threads
+        POST   /chat/topics/{topic_id}/threads
+        PATCH  /chat/threads/{thread_id}
+        DELETE /chat/threads/{thread_id}?removeChildren=true|false
+        POST   /chat/topics/{topic_id}/threads/with-message
+        DELETE /chat/topics/{topic_id}/threads
+
+  [2] Aplicar transformación uppercase/lowercase en Thread.type/status
+      al proxearlo (idéntico patrón que ya usáis con role).
+
+PRIORIDAD MEDIA (bloquea cerrar CAPA 2 completa):
+
+  [3] Decisión sobre los 3 servicios pendientes:
+        [A] aiProvider     → ¿opción (c) deprecar a userConfig.aiProviders[]?
+        [B] chatGroup      → ¿(a) deprecar order/role, (b) modelar, (c) userConfig?
+        [C] knowledgeBase  → ¿(a) deprecar, (b) CRUD user-scoped, (c) userConfig?
+
+      Si las 3 son (c) → cerramos CAPA 2 entera esta semana con el mismo
+      patrón que aplicamos a plugin (commit 30799792).
+
+PRIORIDAD BAJA:
+
+  [4] Implementar /api/auth/registration-duration (User.createdAt ya
+      existe en api-mcp, confirmado). Mientras tanto el front mantiene
+      el stub TODO en services/user/apiIa.ts.
+
+
+═══════════════════════════════════════════════════════════════════
+🟩 PENDIENTE — COORD-AppEventos (front, lo nuestro)
+═══════════════════════════════════════════════════════════════════
+
+ESPERANDO INPUT/RESPUESTA (no podemos avanzar hasta backend):
+
+  [1] Cuando api-mcp publique Thread → api-ia expone proxy REST →
+      activamos NEXT_PUBLIC_USE_API_IA_THREAD=true + smoke local.
+      Ya tenemos services/thread/apiIa.ts preparado (commit pending).
+
+  [2] Cuando api-ia responda A/B/C sobre aiProvider/chatGroup/KB →
+      replicamos patrón de plugin (~30 min cada uno si son opción c).
+
+  [3] Cuando api-mcp publique updateTasksOrder → añadir 11ª op al
+      smoke-cat-c.sh + re-ejecutar.
+
+ACCIONES HUMANAS NECESARIAS (de TI, JCP):
+
+  [4] Enviar los 7 mensajes que están en slack-ready/ (en orden):
+        ./slack-copy.sh 4  → api-mcp acuse Thread + naming
+        ./slack-copy.sh 5  → api-ia preparar proxy REST
+        ./slack-copy.sh 6  → api-mcp smoke 10/10 + bug fixed
+        ./slack-copy.sh 7  → api-mcp auditoría + 3 bugs
+        (1, 2, 3 ya enviados en rondas anteriores)
+
+  [5] QA UI manual: probar "borrar pago" en alguna boda para validar
+      que el fix borraPago no introdujo regresiones (es flujo poco
+      testeado automáticamente).
+
+  [6] Viernes: apagar droplet apiapp.bodasdehoy.com (requiere acceso
+      admin DigitalOcean/CF, infra).
+
+LO QUE AVANZARÉ MIENTRAS ESPERO (sin input externo):
+
+  [7] CAPA 3 PASO C: cuando los 4 servicios pendientes (thread + A/B/C)
+      estén cerrados, borrar drizzle/pglite/@trpc/* del package.json
+      chat-ia + src/libs/trpc + 25 routers lambda. Esperada reducción
+      -25k módulos, build 10min → 3-4min.
+
+
+═══════════════════════════════════════════════════════════════════
+🎯 RUTA CRÍTICA — apagar apiapp (objetivo viernes)
+═══════════════════════════════════════════════════════════════════
+
+  HOY (jue)    ✅ Smoke Cat C 10/10 verde                COORD
+  HOY (jue)    ⏳ Enviar mensajes 4-7 a Slack            TÚ
+  HOY (jue)    ⏳ Mejorar healthcheck /health Mongo       api-mcp (anunciado)
+  06-jun (vie) ⏳ Publicar updateTasksOrder              api-mcp
+  06-jun (vie) ⏳ Re-smoke con 11 ops                    COORD
+  06-jun (vie) ⏳ QA UI manual fix borraPago              TÚ
+  06-jun (vie) 🎯 APAGAR droplet apiapp.bodasdehoy.com   TÚ (infra)
+
+
+═══════════════════════════════════════════════════════════════════
+📊 ESTADO CAPA 2 PASO C — semana
+═══════════════════════════════════════════════════════════════════
+
+Servicios chat-ia cerrados (10/14):
+  ✅ message, session, topic (CAPA 1)
+  ✅ image, global, user, file, rag, generation, plugin, tool, ragEval BORRADO
+
+Servicios pendientes (4/14):
+  ⏳ thread          → api-mcp publicando ahora (ETA 1-2h)
+  ⏳ aiProvider      → esperando decisión api-ia A/B/C
+  ⏳ chatGroup       → esperando decisión api-ia A/B/C
+  ⏳ knowledgeBase   → esperando decisión api-ia A/B/C
+
+Tras cerrar los 4 → CAPA 3:
+  - Borrar drizzle/pglite/@trpc/* + libs/trpc + 25 routers lambda
+  - Esperada reducción: -25k módulos
+  - Build chat-ia: 10min → 3-4min
+
+
+═══════════════════════════════════════════════════════════════════
+DRI: coord_appeventos · branch tj/feat/inbox-fase1 al día (16 commits)
+═══════════════════════════════════════════════════════════════════

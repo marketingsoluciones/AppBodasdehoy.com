@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { assertNotBlankScreen } from './helpers';
 
 /**
- * Comprueba que muchas rutas cargan sin ErrorBoundary y muestran contenido.
- * Si la ruta tarda más de 20s o devuelve cuerpo vacío → skip informativo.
+ * Comprueba que muchas rutas cargan sin ErrorBoundary, sin pantalla en blanco
+ * y muestran contenido. Si tarda más de 20s o solo muestra "Comprobando sesión…"
+ * indefinidamente → BUG_PRODUCTO (pantalla en blanco / loading infinito).
  */
 const RUTAS: { path: string; textoEsperado?: RegExp }[] = [
   { path: '/' },
@@ -28,20 +30,21 @@ test.describe('Rutas cargan (navegador debe cargar)', () => {
 
   for (const { path, textoEsperado } of RUTAS) {
     test(`${path} carga y muestra contenido`, async ({ page }) => {
-      await page.goto(path, { waitUntil: 'domcontentloaded', timeout: 20_000 }).catch(() => {});
+      // Timeout alto (120s) para tolerar cold-compile de webpack dev en local.
+      // En `next start` (build prod) o tras prewarm las rutas responden en <3s.
+      await page.goto(path, { waitUntil: 'domcontentloaded', timeout: 120_000 }).catch(() => {});
 
-      // Si no cargó (redirect cross-domain o timeout) → skip informativo
-      const text = await page.locator('body').textContent().catch(() => null) ?? '';
-      if (text === null || text.length < 20) {
-        console.log(`ℹ️ ${path}: servidor no accesible o redirect — pass sin crash`);
-        return;
-      }
+      // 1) Asegurar que NO es pantalla en blanco ni loading infinito.
+      //    Si lo es → BUG_PRODUCTO con snippet.
+      await assertNotBlankScreen(page, { waitMs: 5000, minMeaningfulChars: 80 });
 
+      // 2) Asegurar que no hay overlay de ErrorBoundary.
+      const text = (await page.locator('body').textContent().catch(() => '')) ?? '';
       expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
-      if (textoEsperado) {
-        if (!textoEsperado.test(text)) {
-          console.log(`ℹ️ ${path}: texto esperado no encontrado (puede ser estado de carga). Texto: ${text.slice(0, 200)}`);
-        }
+
+      // 3) Texto esperado: log informativo si no matchea (puede ser variante UI/idioma).
+      if (textoEsperado && !textoEsperado.test(text)) {
+        console.log(`ℹ️ ${path}: texto esperado no encontrado. Snippet: ${text.slice(0, 200)}`);
       }
     });
   }

@@ -47,7 +47,10 @@ export const NewCommentsModal: React.FC<CommentsModalProps> = ({
         valor: JSON.stringify(updated),
       },
       domain: config?.domain,
-    }).catch(() => {}); // Fire-and-forget
+    }).catch((error) => {
+      // Fire-and-forget: marca commentsViewers, no bloquea apertura del modal.
+      console.warn('[NewCommentsModal] editTask commentsViewers falló:', error?.message ?? error)
+    });
   }, [isOpen, user?.uid, itinerario?._id, task?._id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-scroll al agregar nuevos comentarios

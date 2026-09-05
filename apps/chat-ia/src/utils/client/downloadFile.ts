@@ -12,9 +12,9 @@ export async function downloadFile(url: string, filename: string): Promise<void>
   const anchor = document.createElement('a');
   anchor.href = objectUrl;
   anchor.download = filename;
-  document.body.appendChild(anchor);
+  document.body.append(anchor);
   anchor.click();
-  document.body.removeChild(anchor);
+  anchor.remove();
 
   URL.revokeObjectURL(objectUrl);
 }

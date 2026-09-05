@@ -1,26 +1,11 @@
-import { enableClerk, enableNextAuth } from '@/const/auth';
 import { DESKTOP_USER_ID } from '@/const/desktop';
 import { isDesktop } from '@/const/version';
 
+// SPRINT-N 2026-05-19 — migración Clerk-out:
+// Eliminados Clerk + NextAuth paths. bodasdehoy usa Firebase via api-ia.
+// getUserAuth ahora retorna noop salvo desktop (Electron) que aún existe.
+
 export const getUserAuth = async () => {
-  if (enableClerk) {
-    const { ClerkAuth } = await import('@/libs/clerk-auth');
-
-    const clerkAuth = new ClerkAuth();
-
-    return await clerkAuth.getAuth();
-  }
-
-  if (enableNextAuth) {
-    const { default: NextAuth } = await import('@/libs/next-auth');
-
-    const session = await NextAuth.auth();
-
-    const userId = session?.user.id;
-
-    return { nextAuth: session, userId };
-  }
-
   if (isDesktop) {
     return { userId: DESKTOP_USER_ID };
   }

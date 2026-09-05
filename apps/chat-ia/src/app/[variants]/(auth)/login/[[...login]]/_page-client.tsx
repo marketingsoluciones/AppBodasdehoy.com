@@ -3,13 +3,14 @@
 import Script from 'next/script';
 import { message } from 'antd';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
 import { LoginForm, SplitLoginPage } from '@bodasdehoy/auth-ui';
 import { useChatStore } from '@/store/chat';
 import { loginWithEmailPassword, loginWithFacebook, loginWithGoogle } from '@/services/firebase-auth';
 import { optimizedApiClient } from '@/utils/api-client-optimized';
 import { registerReferralIfPending, sendAttributionToApi } from '@bodasdehoy/shared';
+import { resolveMcpOrigin } from '@/const/mcpEndpoints';
 
 // ─── Config panel izquierdo (branding de chat-ia) ────────────────────────────
 const CHAT_IA_LEFT_PANEL = {
@@ -74,6 +75,15 @@ function RightPanel() {
   const redirectAfterLogin = searchParams.get('redirect') || null;
   const reason = searchParams.get('reason');
 
+  // BUG-CW-N04: hydration mismatch (#418) — `reason` viene de useSearchParams() y
+  // su valor difiere entre SSR (vacío en prerender estático) y CSR (real). El
+  // <LoginForm sessionExpiredMessage={...}> dependía de `reason`, así que el HTML
+  // del servidor y el primer render cliente diferían. Guard: solo leer `reason`
+  // tras hidratar.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  const reasonAfterMount = mounted ? reason : null;
+
   const [messageApi, contextHolder] = message.useMessage();
   const { setExternalChatConfig, fetchExternalChats } = useChatStore();
 
@@ -89,7 +99,7 @@ function RightPanel() {
     if (redirectAfterLogin && isSafeRedirect(redirectAfterLogin)) {
       window.location.href = redirectAfterLogin;
     } else {
-      router.replace('/chat');
+      router.replace('/asistente');
     }
   };
 
@@ -110,11 +120,64 @@ function RightPanel() {
     if (token) {
       optimizedApiClient.setToken(token, userId, dev);
       localStorage.setItem('jwt_token', token);
-      localStorage.setItem('api2_jwt_token', token);
+      localStorage.setItem('mcp_jwt_token', token);
     }
   };
 
-  const api2Url = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
+  const mcpUrl = resolveMcpOrigin();
+
+  // ── Recuperar contraseña (Firebase nativo, sin redirect a app-dev productivo) ──
+  const handleForgotPassword = async () => {
+    const email = window.prompt('Introduce tu email para recibir un enlace de recuperación de contraseña:');
+    if (!email || !email.includes('@')) return;
+    try {
+      const { getAuth, sendPasswordResetEmail } = await import('firebase/auth');
+      await sendPasswordResetEmail(getAuth(), email.trim());
+      messageApi.success(
+        'Te hemos enviado un enlace para restablecer tu contraseña. Revisa tu correo (incluida la carpeta de spam).',
+      );
+    } catch (err: any) {
+      const code: string = err?.code ?? '';
+      if (code === 'auth/user-not-found') {
+        messageApi.warning('No encontramos una cuenta con ese email.');
+      } else if (code === 'auth/invalid-email') {
+        messageApi.error('Email no válido.');
+      } else if (code === 'auth/too-many-requests') {
+        messageApi.error('Demasiados intentos. Inténtalo de nuevo en unos minutos.');
+      } else {
+        messageApi.error(err?.message || 'No se pudo enviar el enlace. Inténtalo de nuevo.');
+      }
+    }
+  };
+
+  // ── Crear cuenta (registro inline con email+password Firebase) ──
+  const handleRegister = async () => {
+    const email = window.prompt('Email para crear tu cuenta:');
+    if (!email || !email.includes('@')) return;
+    const password = window.prompt('Contraseña (mínimo 6 caracteres):');
+    if (!password || password.length < 6) {
+      messageApi.error('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+    try {
+      const { getAuth, createUserWithEmailAndPassword } = await import('firebase/auth');
+      const cred = await createUserWithEmailAndPassword(getAuth(), email.trim(), password);
+      // Tras crear el user en Firebase, el siguiente login email/password ya
+      // funciona contra api-mcp via exchangeFirebaseTokenForJWT.
+      messageApi.success('Cuenta creada. Iniciando sesión...');
+      await handleEmailLogin(email.trim(), password);
+      void cred;
+    } catch (err: any) {
+      const code: string = err?.code ?? '';
+      if (code === 'auth/email-already-in-use') {
+        messageApi.warning('Ya existe una cuenta con ese email. Inicia sesión normal.');
+      } else if (code === 'auth/weak-password') {
+        messageApi.error('Contraseña demasiado débil. Usa al menos 6 caracteres.');
+      } else {
+        messageApi.error(err?.message || 'No se pudo crear la cuenta.');
+      }
+    }
+  };
 
   // ── Email/password ──
   const handleEmailLogin = async (email: string, password: string) => {
@@ -122,10 +185,10 @@ function RightPanel() {
     if (!result.success) throw new Error(result.errors?.[0] || 'Credenciales incorrectas.');
     saveSession(result.user_id!, result.development, result.token || null, email);
     await setExternalChatConfig(result.user_id!, result.development, result.token || undefined, 'registered');
-    fetchExternalChats().catch(() => {});
+    fetchExternalChats().catch((e) => console.warn('[login] fetchExternalChats falló:', e?.message));
     if (result.token) {
-      registerReferralIfPending(result.token, result.development, api2Url).catch(() => {});
-      sendAttributionToApi(result.token, result.development, api2Url).catch(() => {});
+      registerReferralIfPending(result.token, result.development, mcpUrl).catch((e) => console.warn('[login] registerReferralIfPending falló:', e?.message));
+      sendAttributionToApi(result.token, result.development, mcpUrl).catch((e) => console.warn('[login] sendAttributionToApi falló:', e?.message));
     }
     afterLogin();
   };
@@ -136,13 +199,19 @@ function RightPanel() {
     if (!result) return; // signInWithRedirect en progreso
     if (!result.success) throw new Error(result.errors?.join(', ') || 'Error con Google.');
     const email = result.user?.email || '';
-    const token = localStorage.getItem('api2_jwt_token') || null;
-    saveSession(email, result.development, token, email);
-    await setExternalChatConfig(email, result.development, token || undefined, 'registered');
-    fetchExternalChats().catch(() => {});
+    // BUG-NEW-BUILD32-01 fix (28-jun): pasábamos email como userId →
+    // MessageModel.create() insertaba email en user_id (UUID column) → INSERT
+    // fallaba ("Failed query: insert into messages"). Firebase devuelve uid
+    // (UUID real) — usarlo. Si por alguna razón uid no está, fallback email
+    // (mejor mantener funcional aunque siga el bug, que crash login).
+    const uid = result.user?.uid || email;
+    const token = localStorage.getItem('mcp_jwt_token') || null;
+    saveSession(uid, result.development, token, email);
+    await setExternalChatConfig(uid, result.development, token || undefined, 'registered');
+    fetchExternalChats().catch((e) => console.warn('[login] fetchExternalChats falló:', e?.message));
     if (token) {
-      registerReferralIfPending(token, result.development, api2Url).catch(() => {});
-      sendAttributionToApi(token, result.development, api2Url).catch(() => {});
+      registerReferralIfPending(token, result.development, mcpUrl).catch((e) => console.warn('[login] registerReferralIfPending falló:', e?.message));
+      sendAttributionToApi(token, result.development, mcpUrl).catch((e) => console.warn('[login] sendAttributionToApi falló:', e?.message));
     }
     afterLogin();
   };
@@ -153,13 +222,15 @@ function RightPanel() {
     if (!result) return;
     if (!result.success) throw new Error(result.errors?.join(', ') || 'Error con Facebook.');
     const email = result.user?.email || '';
-    const token = localStorage.getItem('api2_jwt_token') || null;
-    saveSession(email, result.development, token, email);
-    await setExternalChatConfig(email, result.development, token || undefined, 'registered');
-    fetchExternalChats().catch(() => {});
+    // BUG-NEW-BUILD32-01 fix (28-jun): ver handleGoogleLogin arriba.
+    const uid = result.user?.uid || email;
+    const token = localStorage.getItem('mcp_jwt_token') || null;
+    saveSession(uid, result.development, token, email);
+    await setExternalChatConfig(uid, result.development, token || undefined, 'registered');
+    fetchExternalChats().catch((e) => console.warn('[login] fetchExternalChats falló:', e?.message));
     if (token) {
-      registerReferralIfPending(token, result.development, api2Url).catch(() => {});
-      sendAttributionToApi(token, result.development, api2Url).catch(() => {});
+      registerReferralIfPending(token, result.development, mcpUrl).catch((e) => console.warn('[login] registerReferralIfPending falló:', e?.message));
+      sendAttributionToApi(token, result.development, mcpUrl).catch((e) => console.warn('[login] sendAttributionToApi falló:', e?.message));
     }
     afterLogin();
   };
@@ -198,10 +269,10 @@ function RightPanel() {
       if (!res.ok || !result.success) throw new Error(result.detail || 'Código incorrecto.');
       saveSession(result.user_id, development, result.token, result.email ?? undefined);
       await setExternalChatConfig(result.user_id, development, result.token || undefined, 'registered');
-      fetchExternalChats().catch(() => {});
+      fetchExternalChats().catch((e) => console.warn('[login] fetchExternalChats falló:', e?.message));
       if (result.token) {
-        registerReferralIfPending(result.token, development, api2Url).catch(() => {});
-        sendAttributionToApi(result.token, development, api2Url).catch(() => {});
+        registerReferralIfPending(result.token, development, mcpUrl).catch((e) => console.warn('[login] registerReferralIfPending falló:', e?.message));
+        sendAttributionToApi(result.token, development, mcpUrl).catch((e) => console.warn('[login] sendAttributionToApi falló:', e?.message));
       }
       afterLogin();
     } catch (err: any) {
@@ -235,7 +306,7 @@ function RightPanel() {
       await setExternalChatConfig(visitorId, development, undefined, 'visitor');
     } catch { /* continuar sin config */ }
     messageApi.info('Modo visitante activado. Algunas funciones requieren cuenta.');
-    setTimeout(() => router.replace('/chat'), 800);
+    setTimeout(() => router.replace('/asistente'), 800);
   };
 
   // ── Render WhatsApp OTP inline ───────────────────────────────────────────────
@@ -355,8 +426,13 @@ function RightPanel() {
         onGoogleLogin={handleGoogleLogin}
         onVisitor={handleVisitor}
         onWhatsAppLogin={() => { setWaStep('phone'); setWaError(null); }}
+        // QA auditoría 26-jun: chat-ia login carecía de "Olvidé contraseña"
+        // y "Crear cuenta". Cableamos al flow Firebase nativo dentro de
+        // chat-ia (NO redirigimos a app-dev que tiene datos productivos).
+        onForgotPassword={handleForgotPassword}
+        onRegister={handleRegister}
         sessionExpiredMessage={
-          reason === 'session_expired' ? 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.' : null
+          reasonAfterMount === 'session_expired' ? 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.' : null
         }
       />
     </div>
@@ -398,7 +474,7 @@ const SSO_SCRIPT = `
       try { document.cookie = 'dev-user-config=' + encodeURIComponent(JSON.stringify(config)) + '; path=/; max-age=' + (30 * 24 * 60 * 60) + '; SameSite=Lax'; } catch(e) {}
       if (token) {
         try { localStorage.setItem('jwt_token', token); } catch(e) {}
-        try { localStorage.setItem('api2_jwt_token', token); } catch(e) {}
+        try { localStorage.setItem('mcp_jwt_token', token); } catch(e) {}
       }
       var redirectParam = new URLSearchParams(window.location.search).get('redirect');
       var ALLOWED = ['app.bodasdehoy.com','chat.bodasdehoy.com','memories.bodasdehoy.com','editor.bodasdehoy.com',
@@ -412,7 +488,7 @@ const SSO_SCRIPT = `
           isSafe = ALLOWED.some(function(h) { return parsed.hostname === h || parsed.hostname.endsWith('.' + h); });
         } catch(e) { isSafe = redirectParam.startsWith('/'); }
       }
-      window.location.replace(isSafe ? redirectParam : '/chat');
+      window.location.replace(isSafe ? redirectParam : '/asistente');
     })
     .catch(function() {}); // falla → formulario normal
   } catch(e) {}

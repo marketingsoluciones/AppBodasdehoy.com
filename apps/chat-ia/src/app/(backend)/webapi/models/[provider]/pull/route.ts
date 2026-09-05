@@ -1,33 +1,46 @@
-import { ChatCompletionErrorPayload, PullModelParams } from '@lobechat/model-runtime';
-import { ChatErrorType } from '@lobechat/types';
+import { NextResponse } from 'next/server';
 
-import { checkAuth } from '@/app/(backend)/middleware/auth';
-import { initModelRuntimeWithUserPayload } from '@/server/modules/ModelRuntime';
-import { createErrorResponse } from '@/utils/errorResponse';
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
 
-export const POST = checkAuth(async (req, { params, jwtPayload }) => {
+export const POST = async (req: Request, { params }: { params: Promise<{ provider: string }> }) => {
   const { provider } = await params;
+  const backendUrl = resolveServerBackendOrigin();
+
+  if (!backendUrl) {
+    return NextResponse.json(
+      { error: { message: 'Backend IA no configurado', type: 'config_error' } },
+      { status: 500 },
+    );
+  }
 
   try {
-    const agentRuntime = await initModelRuntimeWithUserPayload(provider, jwtPayload);
+    const body = await req.text();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const auth = req.headers.get('Authorization');
+    if (auth) headers['Authorization'] = auth;
+    const cookie = req.headers.get('Cookie');
+    if (cookie) headers['Cookie'] = cookie;
+    const supportKey = req.headers.get('X-Support-Key');
+    if (supportKey) headers['X-Support-Key'] = supportKey;
+    // Unificación secretos api-mcp v2 (29-jun): X-Internal-Secret server-side.
+    if (process.env.INTERNAL_SECRET) headers['X-Internal-Secret'] = process.env.INTERNAL_SECRET;
 
-    const data = (await req.json()) as PullModelParams;
+    const upstream = await fetch(`${backendUrl}/webapi/models/${provider}/pull`, {
+      body,
+      headers,
+      method: 'POST',
+      signal: req.signal,
+    });
 
-    const res = await agentRuntime.pullModel(data, { signal: req.signal });
-    if (res) return res;
-
-    throw new Error('No response');
-  } catch (e) {
-    const {
-      errorType = ChatErrorType.InternalServerError,
-      error: errorContent,
-      ...res
-    } = e as ChatCompletionErrorPayload;
-
-    const error = errorContent || e;
-    // track the error at server side
-    console.error(`Route: [${provider}] ${errorType}:`, error);
-
-    return createErrorResponse(errorType, { error, ...res, provider });
+    return new Response(upstream.body, {
+      headers: { 'Content-Type': upstream.headers.get('content-type') || 'application/json' },
+      status: upstream.status,
+    });
+  } catch (e: any) {
+    console.error(`[models/pull] ❌ proxy error provider="${provider}":`, e?.message);
+    return NextResponse.json(
+      { error: { message: 'No se pudo descargar el modelo', type: 'proxy_error' } },
+      { status: 502 },
+    );
   }
-});
+};

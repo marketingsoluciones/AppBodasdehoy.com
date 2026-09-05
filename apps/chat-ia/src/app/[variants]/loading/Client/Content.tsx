@@ -154,7 +154,7 @@ const Content = memo<ContentProps>(({ loadingStage, setActiveStage }) => {
   }
 
   // ✅ Mostrar indicador mínimo en GoToChat/Initializing/InitUser para evitar pantalla en blanco
-  // mientras el Redirect hace router.replace('/chat')
+  // mientras el Redirect hace router.replace('/asistente')
   if (
     loadingStage === AppLoadingStage.GoToChat ||
     loadingStage === AppLoadingStage.Initializing ||

@@ -1,0 +1,448 @@
+{
+  "_meta": {
+    "description": "Datos simulados para testing de eventosorganizador — basados en estructura real de champagne-events",
+    "developer": "eventosorganizador",
+    "created": "2026-04-16",
+    "emails_sanitizados": true,
+    "nota": "NUNCA usar emails reales de usuarios. Todos los emails apuntan a cuentas de test controladas."
+  },
+  "usuarios_test": {
+    "owner": {
+      "email": "jcc@bodasdehoy.com",
+      "password": "lorca2012M*+",
+      "rol": "CREATOR",
+      "nombre": "Juan Organizador"
+    },
+    "coorg": {
+      "email": "jcc@bodasdehoy.com",
+      "password": "lorca2012M*+",
+      "rol": "COLLABORATOR",
+      "nombre": "María Coordinadora"
+    },
+    "invitado": {
+      "email": "jcc@marketingsoluciones.com",
+      "password": "lorca2012M*+",
+      "rol": "INVITED_GUEST",
+      "nombre": "Carlos Invitado"
+    },
+    "extra": {
+      "email": "jcc@recargaexpress.com",
+      "password": "lorca2012M*+",
+      "rol": "GUEST",
+      "nombre": "Laura Extra"
+    }
+  },
+  "eventos": [
+    {
+      "_original": "boda de carlos → Boda de María y Pablo",
+      "nombre": "Boda de María y Pablo",
+      "tipo": "boda",
+      "fecha": "2026-08-16",
+      "estado": "pendiente",
+      "colores": ["Dorado", "Plata", "Rosado"],
+      "owner_email": "jcc@bodasdehoy.com",
+      "compartido_con": [
+        {
+          "email": "jcc@bodasdehoy.com",
+          "rol": "collaborator",
+          "permisos": [
+            {"title": "resumen", "value": "view"},
+            {"title": "invitados", "value": "edit"},
+            {"title": "mesas", "value": "edit"},
+            {"title": "presupuesto", "value": "view"},
+            {"title": "invitaciones", "value": "edit"},
+            {"title": "itinerario", "value": "edit"},
+            {"title": "servicios", "value": "edit"},
+            {"title": "memories", "value": "view"},
+            {"title": "regalos", "value": "none"}
+          ]
+        }
+      ],
+      "invitados": [
+        {
+          "nombre": "Pablo García",
+          "email": "jcc@bodasdehoy.com",
+          "telefono": "+34611001001",
+          "rol_evento": "novio",
+          "sexo": "hombre",
+          "edad": "adulto",
+          "asistencia": "confirmado",
+          "menu": "adultos",
+          "mesa": "Mesa 1 - Novios",
+          "pases": 0,
+          "alergenos": [],
+          "invitacion_enviada": true
+        },
+        {
+          "nombre": "María López",
+          "email": "jcc@bodasdehoy.com",
+          "telefono": "+34611001002",
+          "rol_evento": "novia",
+          "sexo": "mujer",
+          "edad": "adulto",
+          "asistencia": "confirmado",
+          "menu": "adultos",
+          "mesa": "Mesa 1 - Novios",
+          "pases": 2,
+          "alergenos": [],
+          "invitacion_enviada": true
+        },
+        {
+          "nombre": "Carmen Martínez",
+          "email": "jcc@marketingsoluciones.com",
+          "telefono": "+34611001003",
+          "rol_evento": "amigos de la novia",
+          "sexo": "mujer",
+          "edad": "adulto",
+          "asistencia": "pendiente",
+          "menu": "adultos",
+          "mesa": null,
+          "pases": 0,
+          "alergenos": ["gluten"],
+          "invitacion_enviada": true
+        },
+        {
+          "nombre": "Roberto Sánchez",
+          "email": "jcc@recargaexpress.com",
+          "telefono": "+34611001004",
+          "rol_evento": "amigos de la novia",
+          "sexo": "hombre",
+          "edad": "adulto",
+          "asistencia": "pendiente",
+          "menu": "adultos",
+          "mesa": null,
+          "pases": 0,
+          "alergenos": [],
+          "invitacion_enviada": true
+        },
+        {
+          "nombre": "Ana García Ruiz",
+          "email": "jcc@bodasdehoy.com",
+          "telefono": "+34611001005",
+          "rol_evento": "familia de la novia",
+          "sexo": "mujer",
+          "edad": "adulto",
+          "asistencia": "pendiente",
+          "menu": "adultos",
+          "mesa": "Mesa 2 - Familia",
+          "pases": 0,
+          "alergenos": ["lactosa"],
+          "invitacion_enviada": true
+        }
+      ],
+      "comunicaciones_esperadas": [
+        {
+          "tipo": "email_invitacion",
+          "de": "invitaciones@eventosorganizador.com",
+          "para": "jcc@marketingsoluciones.com",
+          "asunto_contiene": "Invitación",
+          "estado_esperado": "delivered"
+        },
+        {
+          "tipo": "email_invitacion",
+          "de": "invitaciones@eventosorganizador.com",
+          "para": "jcc@recargaexpress.com",
+          "asunto_contiene": "Invitación",
+          "estado_esperado": "delivered"
+        }
+      ]
+    },
+    {
+      "_original": "juanito → Comunión de Alejandro",
+      "nombre": "Comunión de Alejandro",
+      "tipo": "comunión",
+      "fecha": "2026-06-25",
+      "estado": "pendiente",
+      "colores": ["Blanco", "Dorado"],
+      "owner_email": "jcc@bodasdehoy.com",
+      "compartido_con": [],
+      "invitados": [
+        {
+          "nombre": "Alejandro Díaz",
+          "email": "jcc@bodasdehoy.com",
+          "telefono": "+34611002001",
+          "rol_evento": "comulgante",
+          "sexo": "hombre",
+          "edad": "niño",
+          "asistencia": "confirmado",
+          "menu": "niños",
+          "mesa": "Mesa 1 - Familia",
+          "pases": 0,
+          "alergenos": [],
+          "invitacion_enviada": false
+        },
+        {
+          "nombre": "Fernando Díaz",
+          "email": "jcc@bodasdehoy.com",
+          "telefono": "+34611002002",
+          "rol_evento": "padres y hermanos",
+          "sexo": "hombre",
+          "edad": "adulto",
+          "asistencia": "confirmado",
+          "menu": "adultos",
+          "mesa": "Mesa 1 - Familia",
+          "pases": 0,
+          "alergenos": [],
+          "invitacion_enviada": true,
+          "comunicaciones": [
+            {
+              "tipo": "email",
+              "fecha": "2026-06-01",
+              "estado": "delivered",
+              "template": "Plantilla Elegante"
+            },
+            {
+              "tipo": "email",
+              "fecha": "2026-06-10",
+              "estado": "opened",
+              "template": "Plantilla Elegante"
+            }
+          ]
+        },
+        {
+          "nombre": "Isabel Moreno",
+          "email": "jcc@marketingsoluciones.com",
+          "telefono": "+34611002003",
+          "rol_evento": "padrino y madrina",
+          "sexo": "mujer",
+          "edad": "adulto",
+          "asistencia": "pendiente",
+          "menu": "adultos",
+          "mesa": null,
+          "pases": 0,
+          "alergenos": [],
+          "invitacion_enviada": true,
+          "comunicaciones": [
+            {
+              "tipo": "whatsapp",
+              "fecha": "2026-06-01",
+              "estado": "read",
+              "mensajes_intercambiados": 15
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "_original": "comunion1 → Cumpleaños de Sofía",
+      "nombre": "Cumpleaños de Sofía",
+      "tipo": "cumpleaños",
+      "fecha": "2026-12-06",
+      "estado": "pendiente",
+      "colores": ["Celeste", "Rosa"],
+      "owner_email": "jcc@bodasdehoy.com",
+      "compartido_con": [
+        {
+          "email": "jcc@bodasdehoy.com",
+          "rol": "collaborator",
+          "permisos": [
+            {"title": "resumen", "value": "edit"},
+            {"title": "invitados", "value": "edit"},
+            {"title": "mesas", "value": "view"},
+            {"title": "presupuesto", "value": "edit"},
+            {"title": "invitaciones", "value": "none"},
+            {"title": "itinerario", "value": "view"},
+            {"title": "servicios", "value": "edit"},
+            {"title": "memories", "value": "edit"},
+            {"title": "regalos", "value": "view"}
+          ]
+        },
+        {
+          "email": "jcc@marketingsoluciones.com",
+          "rol": "collaborator",
+          "permisos": [
+            {"title": "resumen", "value": "view"},
+            {"title": "invitados", "value": "view"},
+            {"title": "mesas", "value": "none"},
+            {"title": "presupuesto", "value": "none"},
+            {"title": "invitaciones", "value": "none"},
+            {"title": "itinerario", "value": "view"},
+            {"title": "servicios", "value": "none"},
+            {"title": "memories", "value": "view"},
+            {"title": "regalos", "value": "none"}
+          ]
+        }
+      ],
+      "invitados": [
+        {
+          "nombre": "Sofía Ruiz",
+          "email": "jcc@bodasdehoy.com",
+          "telefono": "+34611003001",
+          "rol_evento": "cumpleañera",
+          "sexo": "mujer",
+          "edad": "niño",
+          "asistencia": "confirmado",
+          "menu": "niños",
+          "mesa": "Mesa 1",
+          "pases": 0,
+          "alergenos": [],
+          "invitacion_enviada": false
+        },
+        {
+          "nombre": "Elena Ruiz",
+          "email": "jcc@bodasdehoy.com",
+          "telefono": "+34611003002",
+          "rol_evento": "familia materna",
+          "sexo": "mujer",
+          "edad": "adulto",
+          "asistencia": "pendiente",
+          "menu": "adultos",
+          "mesa": "Mesa 2",
+          "pases": 0,
+          "alergenos": ["frutos secos"],
+          "invitacion_enviada": true
+        },
+        {
+          "nombre": "Miguel Torres",
+          "email": "jcc@marketingsoluciones.com",
+          "telefono": "+34611003003",
+          "rol_evento": "familia materna",
+          "sexo": "hombre",
+          "edad": "adulto",
+          "asistencia": "pendiente",
+          "menu": "adultos",
+          "mesa": null,
+          "pases": 0,
+          "alergenos": [],
+          "invitacion_enviada": true
+        },
+        {
+          "nombre": "Laura Pérez",
+          "email": "jcc@recargaexpress.com",
+          "telefono": "+34611003004",
+          "rol_evento": "amigos",
+          "sexo": "mujer",
+          "edad": "adulto",
+          "asistencia": "pendiente",
+          "menu": "adultos",
+          "mesa": null,
+          "pases": 1,
+          "alergenos": [],
+          "invitacion_enviada": false
+        },
+        {
+          "nombre": "Pedro Navarro",
+          "email": "jcc@bodasdehoy.com",
+          "telefono": "+34611003005",
+          "rol_evento": "amigos",
+          "sexo": "hombre",
+          "edad": "adulto",
+          "asistencia": "pendiente",
+          "menu": "adultos",
+          "mesa": null,
+          "pases": 0,
+          "alergenos": [],
+          "invitacion_enviada": false
+        },
+        {
+          "nombre": "Lucía Martín",
+          "email": "jcc@bodasdehoy.com",
+          "telefono": "+34611003006",
+          "rol_evento": "amigos",
+          "sexo": "mujer",
+          "edad": "niño",
+          "asistencia": "pendiente",
+          "menu": "niños",
+          "mesa": null,
+          "pases": 0,
+          "alergenos": [],
+          "invitacion_enviada": false
+        },
+        {
+          "nombre": "Diego Fernández",
+          "email": "jcc@marketingsoluciones.com",
+          "telefono": "+34611003007",
+          "rol_evento": "amigos",
+          "sexo": "hombre",
+          "edad": "niño",
+          "asistencia": "pendiente",
+          "menu": "niños",
+          "mesa": null,
+          "pases": 0,
+          "alergenos": [],
+          "invitacion_enviada": false
+        },
+        {
+          "nombre": "Patricia López",
+          "email": "jcc@recargaexpress.com",
+          "telefono": "+34611003008",
+          "rol_evento": "amigos",
+          "sexo": "mujer",
+          "edad": "adulto",
+          "asistencia": "pendiente",
+          "menu": "adultos",
+          "mesa": null,
+          "pases": 0,
+          "alergenos": ["mariscos"],
+          "invitacion_enviada": false
+        }
+      ],
+      "presupuesto": {
+        "total_estimado": 3500,
+        "coste_final": 0,
+        "pagado": 500,
+        "moneda": "EUR",
+        "categorias": [
+          {"nombre": "Local", "estimado": 1200, "real": 0},
+          {"nombre": "Catering", "estimado": 1500, "real": 0},
+          {"nombre": "Decoración", "estimado": 400, "real": 0},
+          {"nombre": "Entretenimiento", "estimado": 300, "real": 0},
+          {"nombre": "Fotografía", "estimado": 100, "real": 0}
+        ]
+      }
+    }
+  ],
+  "tests_comunicacion": {
+    "descripcion": "Matriz de comunicación esperada entre usuarios para validar E2E",
+    "flujos": [
+      {
+        "id": "COM-01",
+        "accion": "Owner envía invitación email a Carmen (invitado)",
+        "actor": "jcc@bodasdehoy.com",
+        "destinatario": "jcc@marketingsoluciones.com",
+        "verificar_en_gmail": "to:jcc@marketingsoluciones.com from:eventosorganizador subject:Invitación",
+        "evento": "Boda de María y Pablo"
+      },
+      {
+        "id": "COM-02",
+        "accion": "Owner comparte evento con coorg",
+        "actor": "jcc@bodasdehoy.com",
+        "destinatario": "jcc@bodasdehoy.com",
+        "verificar_en_gmail": "to:jcc@bodasdehoy.com subject:compartido OR subject:invitado",
+        "evento": "Boda de María y Pablo"
+      },
+      {
+        "id": "COM-03",
+        "accion": "Owner asigna tarea a coorg",
+        "actor": "jcc@bodasdehoy.com",
+        "destinatario": "jcc@bodasdehoy.com",
+        "verificar_en_gmail": "to:jcc@bodasdehoy.com subject:tarea OR subject:asignado",
+        "evento": "Boda de María y Pablo"
+      },
+      {
+        "id": "COM-04",
+        "accion": "Coorg comenta en tarea",
+        "actor": "jcc@bodasdehoy.com",
+        "destinatario": "jcc@bodasdehoy.com",
+        "verificar_en_gmail": "to:jcc@bodasdehoy.com subject:comentario",
+        "evento": "Cumpleaños de Sofía"
+      },
+      {
+        "id": "COM-05",
+        "accion": "Invitado confirma RSVP",
+        "actor": "jcc@marketingsoluciones.com",
+        "destinatario": "jcc@bodasdehoy.com",
+        "verificar_en_gmail": "to:jcc@bodasdehoy.com subject:confirmado OR subject:RSVP",
+        "evento": "Boda de María y Pablo"
+      },
+      {
+        "id": "COM-06",
+        "accion": "Digest diario llega al coorg",
+        "actor": "sistema (cron api2)",
+        "destinatario": "jcc@bodasdehoy.com",
+        "verificar_en_gmail": "to:jcc@bodasdehoy.com from:eventosorganizador subject:notificación",
+        "evento": "todos"
+      }
+    ]
+  }
+}

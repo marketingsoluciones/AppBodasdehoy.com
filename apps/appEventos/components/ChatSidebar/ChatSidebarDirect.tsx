@@ -10,9 +10,11 @@
 import { FC, memo, useCallback, useRef, useEffect, useLayoutEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useChatSidebar } from '../../context/ChatSidebarContext';
-import { AuthContextProvider, EventContextProvider } from '../../context';
+import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from '../../context';
+import { usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import type { StoredSession } from '../Copilot/SessionsPanel';
+import { ModuleErrorBoundary } from '../ErrorBoundary';
 
 const CopilotEmbed = dynamic(
   () => import('../Copilot/CopilotEmbed').then((m) => m.CopilotEmbed),
@@ -75,9 +77,20 @@ function truncateLabel(label: string, max = 34) {
 
 const MOBILE_BREAKPOINT = 768;
 
-const ChatSidebarDirect: FC = () => {
+type ChatSidebarDirectProps = {
+  /** Forzar modo overlay (drawer) aunque sea desktop, para no aplastar el contenido. */
+  forceOverlay?: boolean;
+  /** Breakpoint para entrar en overlay automáticamente (px). Default: 768. */
+  overlayBreakpoint?: number;
+};
+
+const ChatSidebarDirect: FC<ChatSidebarDirectProps> = ({ forceOverlay, overlayBreakpoint }) => {
   const { isOpen, width, closeSidebar, setWidth } = useChatSidebar();
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return !!forceOverlay;
+    const bp = typeof overlayBreakpoint === 'number' ? overlayBreakpoint : MOBILE_BREAKPOINT;
+    return !!forceOverlay || window.innerWidth < bp;
+  });
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [editingLabel, setEditingLabel] = useState(false);
@@ -97,16 +110,34 @@ const ChatSidebarDirect: FC = () => {
 
   const authContext = AuthContextProvider();
   const eventContext = EventContextProvider();
+  const { eventsGroup } = EventsGroupContextProvider();
+  const pathname = usePathname();
 
   const user = authContext?.user;
   const config = authContext?.config;
   const verificationDone = authContext?.verificationDone;
   const event = eventContext?.event;
 
+  // CTX-B (lista de eventos "/") vs CTX-A (evento abierto). En la lista NO hay un
+  // evento único: no arrastrar el eventId residual del último abierto → respuestas
+  // incoherentes. Ver docs/ANALISIS-COPILOT-CONTEXTO-EVENTO.
+  const isEventListRoute = pathname === '/';
+
+  // Timeout local del Copilot (2s) para no mantener "Cargando..." cuando Firebase tarda.
+  // El safety global de AuthContext es 10s — demasiado para UX del Copilot. Si verificationDone
+  // no llega en 2s, asumimos guest y montamos el embed (el banner guest y empty state ya lo cubren).
+  const [authTimedOut, setAuthTimedOut] = useState(false);
+  useEffect(() => {
+    if (verificationDone) return;
+    const t = setTimeout(() => setAuthTimedOut(true), 2000);
+    return () => clearTimeout(t);
+  }, [verificationDone]);
+  const authReady = verificationDone || authTimedOut;
+
   // isGuest: true solo si no hay UID de Firebase (usuario no autenticado).
   // No usar user?.email — puede ser null en ciertos flujos de auth y causaría que
   // un usuario registrado aparezca como visitante incorrectamente.
-  const isGuest = !verificationDone ? false : (!user?.uid || !!user?.isAnonymous || user?.displayName === 'guest');
+  const isGuest = !authReady ? false : (!user?.uid || !!user?.isAnonymous || user?.displayName === 'guest');
 
   // Rol del usuario respecto al evento actual
   // owner: es el creador del evento
@@ -131,10 +162,24 @@ const ChatSidebarDirect: FC = () => {
     return ((myDetail?.permissions ?? []) as unknown) as string[];
   }, [userEventRole, event?.detalles_compartidos_array, user?.uid]);
 
+  // Evento activo autoritativo (CTX-A). En la lista de eventos (CTX-B) es null y se
+  // adjunta la lista disponible para que el backend agregue o desambigüe sin usar residual.
+  const activeEventId = isEventListRoute ? null : (event?._id ?? null);
+  const availableEvents = useMemo(
+    () => (Array.isArray(eventsGroup) ? eventsGroup : [])
+      .filter((e: any) => e?._id)
+      .slice(0, 20)
+      .map((e: any) => ({ id: e._id as string, name: (e.nombre ?? '') as string })),
+    [eventsGroup],
+  );
+
   const pageContext = useMemo(() => ({
     userRole: userEventRole,
+    activeEventId,
+    eventScope: (isEventListRoute ? 'all' : 'active') as 'all' | 'active',
+    ...(isEventListRoute && availableEvents.length > 0 && { availableEvents }),
     ...(collaboratorPermissions.length > 0 && { permissions: collaboratorPermissions }),
-  }), [userEventRole, collaboratorPermissions]);
+  }), [userEventRole, collaboratorPermissions, activeEventId, isEventListRoute, availableEvents]);
 
   const stableUserId = user?.email || user?.uid || guestSessionId;
   const defaultSessionId = user?.uid ? `user_${user.uid}` : guestSessionId;
@@ -151,7 +196,18 @@ const ChatSidebarDirect: FC = () => {
       stored = loadSessions(stableUserId);
     }
     setSessions(stored);
-    setActiveSessionId(prev => (stored.some(s => s.id === prev) ? prev : defaultSessionId));
+    // BUG 2 (29-jun): cuando user.uid llega tarde (Firebase hidratación),
+    // activeSessionId estaba inicializado a guestSessionId y el `prev` (guest)
+    // estaba en stored → NUNCA migraba a user_{uid}. Como resultado:
+    // /api/copilot/chat recibía sessionId=guest_* aunque user logged →
+    // backend respondía 402 "Saldo insuficiente" (guest sin verificar saldo).
+    // Fix: si defaultSessionId es user_* y prev es guest_*, forzar transición.
+    setActiveSessionId(prev => {
+      if (defaultSessionId.startsWith('user_') && (prev?.startsWith('guest') || prev?.startsWith('copilot_guest'))) {
+        return defaultSessionId;
+      }
+      return stored.some(s => s.id === prev) ? prev : defaultSessionId;
+    });
   }, [stableUserId, defaultSessionId]);
 
   const handleNewSession = useCallback(() => {
@@ -221,7 +277,9 @@ const ChatSidebarDirect: FC = () => {
   const sessionId = activeSessionId;
   const userId = stableUserId;
   const development = config?.development || 'bodasdehoy';
-  const eventId = event?._id;
+  // En la lista de eventos no hay evento activo → no enviar el id residual (CTX-B).
+  const eventId = isEventListRoute ? undefined : event?._id;
+  const eventNameForContext = isEventListRoute ? undefined : event?.nombre;
 
   const sidebarWidthRef = useRef(width);
   const wasMobileViewportRef = useRef(false);
@@ -230,16 +288,19 @@ const ChatSidebarDirect: FC = () => {
   // ── Mobile detection ────────────────────────────────────────────────────
   const applyViewportMode = useCallback(() => {
     if (typeof window === 'undefined') return;
-    const mobile = window.innerWidth < MOBILE_BREAKPOINT;
-    setIsMobile(mobile);
-    if (mobile) {
+    const bp = typeof overlayBreakpoint === 'number' ? overlayBreakpoint : MOBILE_BREAKPOINT;
+    const shouldOverlay = !!forceOverlay || window.innerWidth < bp;
+    setIsMobile(shouldOverlay);
+    // Solo ajustar width al viewport cuando es móvil real (<=768). En overlay forzado (desktop),
+    // mantenemos el width del sidebar para no pisar la preferencia del usuario.
+    if (window.innerWidth < MOBILE_BREAKPOINT) {
       wasMobileViewportRef.current = true;
       const vw = window.innerWidth;
       if (sidebarWidthRef.current !== vw) setWidth(vw);
     } else if (wasMobileViewportRef.current) {
       wasMobileViewportRef.current = false;
     }
-  }, [setWidth]);
+  }, [forceOverlay, overlayBreakpoint, setWidth]);
 
   useLayoutEffect(() => { applyViewportMode(); }, [applyViewportMode]);
 
@@ -289,10 +350,16 @@ const ChatSidebarDirect: FC = () => {
   }, [setWidth]);
 
   // ── Abrir en nueva pestaña ──────────────────────────────────────────────
+  // BUG-H-04 (informe QA 22-jun): antes priorizaba NEXT_PUBLIC_CHAT sobre
+  // resolveChatOrigin, lo que hacía que en app-dev se abriera chat.bodasdehoy.com
+  // (prod) si el build no inyectaba bien .env.production.local. Ahora
+  // resolveChatOrigin (dinámico, basado en hostname actual) tiene prioridad
+  // y NEXT_PUBLIC_CHAT solo se usa si NO hay hostname utilizable (SSR).
   const copilotUrl = useMemo(() => {
-    if (typeof window === 'undefined') return '';
-    const envUrl = process.env.NEXT_PUBLIC_CHAT;
-    if (envUrl) return envUrl.replace(/\/$/, '');
+    if (typeof window === 'undefined') {
+      const envUrl = process.env.NEXT_PUBLIC_CHAT;
+      return envUrl ? envUrl.replace(/\/$/, '') : '';
+    }
     return resolveChatOrigin(window.location.hostname);
   }, []);
 
@@ -300,11 +367,11 @@ const ChatSidebarDirect: FC = () => {
     const params = new URLSearchParams({ sessionId: sessionId || guestSessionId, userId, development });
     if (user?.email) params.set('email', user.email);
     if (eventId) params.set('eventId', eventId);
-    if (event?.nombre) params.set('eventName', event.nombre);
+    if (eventNameForContext) params.set('eventName', eventNameForContext);
     // Preservar locale español al abrir en nueva pestaña (el middleware usa ?hl como máxima prioridad)
     params.set('hl', 'es-ES');
     window.open(`${copilotUrl}?${params.toString()}`, '_blank', 'noopener,noreferrer');
-  }, [sessionId, guestSessionId, userId, development, user?.email, eventId, event?.nombre, copilotUrl]);
+  }, [sessionId, guestSessionId, userId, development, user?.email, eventId, eventNameForContext, copilotUrl]);
 
   const activeSessionLabel = sessions.find(s => s.id === activeSessionId)?.label || 'Nueva conversación';
 
@@ -352,13 +419,13 @@ const ChatSidebarDirect: FC = () => {
         aria-modal={isOverlay ? true : undefined}
         aria-labelledby={isOverlay ? 'copilot-sidebar-title' : undefined}
         tabIndex={isOverlay ? -1 : undefined}
-        initial={isOverlay ? { x: '-100%' } : { opacity: 0 }}
+        initial={isOverlay ? { x: '100%' } : { opacity: 0 }}
         animate={isOverlay ? { x: 0 } : { opacity: 1 }}
-        exit={isOverlay ? { x: '-100%' } : { opacity: 0 }}
+        exit={isOverlay ? { x: '100%' } : { opacity: 0 }}
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
         className={
           isOverlay
-            ? 'fixed top-0 left-0 h-screen max-h-[100dvh] bg-white shadow-2xl z-50 flex flex-col overscroll-y-contain [-webkit-tap-highlight-color:transparent] pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] outline-none'
+            ? 'fixed top-0 right-0 h-screen max-h-[100dvh] bg-white shadow-2xl z-50 flex flex-col overscroll-y-contain [-webkit-tap-highlight-color:transparent] pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] outline-none'
             : 'h-full max-w-full bg-white shadow-xl flex flex-shrink-0 z-40 min-w-0'
         }
         style={{
@@ -379,7 +446,7 @@ const ChatSidebarDirect: FC = () => {
           <div className="flex items-center px-2 py-1.5 sm:px-3 border-b border-gray-200 bg-white [color-scheme:light] flex-shrink-0 gap-1">
 
             {/* Sparkles */}
-            <IoSparkles className="text-pink-500 text-base shrink-0 mr-0.5" aria-hidden />
+            <IoSparkles className="text-primary text-base shrink-0 mr-0.5" aria-hidden />
 
             {/* Título editable — click para renombrar */}
             <div className="flex-1 min-w-0">
@@ -393,11 +460,11 @@ const ChatSidebarDirect: FC = () => {
                     onBlur={handleConfirmLabel}
                     onKeyDown={e => { if (e.key === 'Enter') handleConfirmLabel(); if (e.key === 'Escape') setEditingLabel(false); }}
                     placeholder="Nombre de la conversación"
-                    className="flex-1 min-w-0 text-sm font-medium bg-gray-100 border-0 rounded px-2 py-0.5 outline-none focus:ring-1 focus:ring-pink-300 text-gray-800"
+                    className="flex-1 min-w-0 text-sm font-medium bg-gray-100 border-0 rounded px-2 py-0.5 outline-none focus:ring-1 focus:ring-primary text-gray-800"
                     autoFocus
                     maxLength={50}
                   />
-                  <button type="button" onMouseDown={handleConfirmLabel} className="p-1 text-pink-500 hover:text-pink-700">
+                  <button type="button" onMouseDown={handleConfirmLabel} className="p-1 text-primary hover:text-primaryOrg">
                     <IoCheckmarkOutline className="w-4 h-4" />
                   </button>
                 </div>
@@ -406,7 +473,7 @@ const ChatSidebarDirect: FC = () => {
                   type="button"
                   id="copilot-sidebar-title"
                   onClick={handleStartEditLabel}
-                  className="w-full text-left text-sm font-medium text-gray-800 truncate leading-snug hover:text-pink-600 transition-colors px-1 py-0.5 rounded hover:bg-gray-50"
+                  className="w-full text-left text-sm font-medium text-gray-800 truncate leading-snug hover:text-primary transition-colors px-1 py-0.5 rounded hover:bg-gray-50"
                   title="Clic para renombrar"
                 >
                   {truncateLabel(activeSessionLabel)}
@@ -419,7 +486,7 @@ const ChatSidebarDirect: FC = () => {
               <button
                 type="button"
                 onClick={() => setDropdownOpen(v => !v)}
-                className={`p-1.5 rounded-lg transition-colors touch-manipulation inline-flex items-center justify-center ${dropdownOpen ? 'bg-pink-100 text-pink-600' : 'hover:bg-gray-100 text-gray-500'}`}
+                className={`p-1.5 rounded-lg transition-colors touch-manipulation inline-flex items-center justify-center ${dropdownOpen ? 'bg-base text-primary' : 'hover:bg-gray-100 text-gray-500'}`}
                 title="Historial de conversaciones"
                 aria-haspopup="listbox"
                 aria-expanded={dropdownOpen}
@@ -449,10 +516,10 @@ const ChatSidebarDirect: FC = () => {
                             key={session.id}
                             role="option"
                             aria-selected={isActive}
-                            className={`flex items-center gap-1 px-3 py-2 cursor-pointer group/item transition-colors ${isActive ? 'bg-pink-50' : 'hover:bg-gray-50'}`}
+                            className={`flex items-center gap-1 px-3 py-2 cursor-pointer group/item transition-colors ${isActive ? 'bg-base' : 'hover:bg-gray-50'}`}
                             onClick={() => handleSelectSession(session.id)}
                           >
-                            <span className={`flex-1 min-w-0 text-xs truncate ${isActive ? 'text-pink-700 font-medium' : 'text-gray-700'}`}>
+                            <span className={`flex-1 min-w-0 text-xs truncate ${isActive ? 'text-primary font-medium' : 'text-gray-700'}`}>
                               {truncateLabel(session.label, 28)}
                             </span>
                             {sessions.length > 1 && (
@@ -482,7 +549,7 @@ const ChatSidebarDirect: FC = () => {
               title="Nueva conversación"
             >
               <IoChatbubbleOutline className="w-4 h-4" />
-              <IoAddOutline className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 text-pink-500 stroke-[3]" />
+              <IoAddOutline className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 text-primary stroke-[3]" />
             </button>
 
             {/* Abrir en nueva pestaña */}
@@ -506,27 +573,53 @@ const ChatSidebarDirect: FC = () => {
             </button>
           </div>
 
+          {/* ── Indicador de contexto ───────────────────────────────────────
+              Coherencia UI ↔ contexto: deja claro de qué evento habla el Copilot.
+              En la lista de eventos (CTX-B) no hay evento único → "todos tus eventos". */}
+          {authReady && !isGuest && (
+            <div className="flex items-center gap-1.5 px-3 py-1 border-b border-gray-100 bg-gray-50 text-[11px] text-gray-500 flex-shrink-0">
+              <span aria-hidden>{isEventListRoute ? '🗂️' : '📅'}</span>
+              {isEventListRoute ? (
+                <span className="truncate">Contexto: todos tus eventos</span>
+              ) : eventNameForContext ? (
+                <span className="truncate">
+                  Contexto: <span className="font-medium text-gray-700">{eventNameForContext}</span>
+                </span>
+              ) : (
+                <span className="truncate">Sin evento seleccionado</span>
+              )}
+            </div>
+          )}
+
           {/* ── Chat embed ──────────────────────────────────────────────── */}
           <div className="flex-1 min-w-0 overflow-hidden">
             {/* Esperar a que auth resuelva antes de montar el embed.
                 Esto evita que el copilot se inicialice como "visitante" si Firebase
                 todavía no ha confirmado el estado de autenticación. */}
-            {!verificationDone ? (
+            {!authReady ? (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#bbb', fontSize: 13 }}>
                 Cargando...
               </div>
             ) : (
-            <CopilotEmbed
-              userId={userId}
-              sessionId={sessionId}
-              development={development}
-              eventId={eventId}
-              eventName={event?.nombre}
-              isGuest={isGuest}
-              pageContext={pageContext}
-              className="w-full h-full"
-              onFirstMessage={handleSessionLabelUpdate}
-            />
+            // BUG QA 10-jul: errores transversales del embed (getThemeColors
+            // TypeError, exportedColors undefined, hydration warnings del
+            // theme antd-style) llegaban a producir stack traces en consola
+            // sin arreglar. Envolvemos en ModuleErrorBoundary: si el embed
+            // crashea, el error queda contenido en un card rojo pequeño y
+            // el resto de la app sigue navegable.
+            <ModuleErrorBoundary label="Copilot">
+              <CopilotEmbed
+                userId={userId}
+                sessionId={sessionId}
+                development={development}
+                eventId={eventId}
+                eventName={eventNameForContext}
+                isGuest={isGuest}
+                pageContext={pageContext}
+                className="w-full h-full"
+                onFirstMessage={handleSessionLabelUpdate}
+              />
+            </ModuleErrorBoundary>
             )}
           </div>
         </div>
@@ -534,7 +627,7 @@ const ChatSidebarDirect: FC = () => {
         {/* Resize handle — solo desktop */}
         {!isMobile && (
           <div
-            className="w-1 cursor-col-resize hover:bg-pink-400 active:bg-pink-600 transition-colors flex-shrink-0"
+            className="w-1 cursor-col-resize hover:bg-primary active:bg-secondary transition-colors flex-shrink-0"
             onMouseDown={handleMouseDown}
           />
         )}

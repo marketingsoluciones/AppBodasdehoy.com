@@ -21,21 +21,27 @@ export const ModalPermissionList: FC<props> = ({ data, setOpenModal, event }) =>
 
     const handleChangePermision = async (values) => {
         try {
-            const f1p = permissions.findIndex(elem => elem.title === values.title)
-            permissions.splice(f1p, 1, { title: values.title, value: values.value })
-            setPermissions([...permissions])
+            // Update inmutable de permissions (sin splice).
+            const newPermissions = permissions.map(p =>
+                p.title === values.title ? { title: values.title, value: values.value } : p
+            )
+            setPermissions(newPermissions)
 
             const f1 = event.detalles_compartidos_array?.findIndex(elem => elem.uid === data?.uid)
-            event.detalles_compartidos_array[f1].permissions = permissions
-            setEvent({ ...event })
+            setEvent((prev) => ({
+                ...prev,
+                detalles_compartidos_array: prev.detalles_compartidos_array.map((dc, i) =>
+                    i !== f1 ? dc : { ...dc, permissions: newPermissions }
+                ),
+            }))
 
             await fetchApiEventos({
                 query: queries.updateCompartitions,
                 variables: {
                     args: {
-                        eventID: event._id,
-                        users: data?.uid,
-                        permissions: values
+                        evento_id: event._id,
+                        usuario_id: data?.uid,
+                        permisos: Array.isArray(values) ? values : [values]
                     }
                 }
             });

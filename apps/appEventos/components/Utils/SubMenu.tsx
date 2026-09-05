@@ -1,39 +1,19 @@
-import { InvitadosIcon, MesaIcon } from "../icons"
-import { GiGrandPiano } from 'react-icons/gi';
-import { BsIntersect } from 'react-icons/bs';
-import { ImInsertTemplate } from 'react-icons/im';
-import { HiDocumentReport, HiTemplate } from 'react-icons/hi';
 import { useTranslation } from "react-i18next";
 
+// Barra de pestañas del módulo Mesas. Rediseño fiel al prototipo (MESAS.dc.html):
+// tabs de SOLO texto (SIN iconos) sobre fondo blanco. La activa en rosa marca
+// (#EF5B94) con subrayado rosa 2.5px; las inactivas en gris #9a9aa2 sin subrayado.
+// Fuente 600 10.5px (spec exacto del proto, líneas 74-76 y B.tabs 712-716).
+// IMPORTANTE: NO cambiar los `title` (son los `itemSelect==` que enrutan el panel
+// en pages/mesas.tsx) ni la altura del contenedor (h-10 alimenta el calc del panel).
 const sutMenus = [
-  {
-    title: "invitados",
-    icon: <InvitadosIcon className="w-6 h-6" />,
-  },
-  {
-    title: "planos",
-    icon: <HiTemplate className="w-6 h-6" />,
-  },
-  {
-    title: "mesas",
-    icon: <MesaIcon className="w-6 h-6" />,
-  },
-  {
-    title: "mobiliario",
-    icon: <GiGrandPiano className="w-6 h-6" />,
-  },
-  /*  {
-     title: "zonas",
-     icon: <BsIntersect className="w-6 h-6" />,
-   },
-   {
-     title: "plantillas",
-     icon: <ImInsertTemplate className="w-6 h-6" />,
-   }, */
-  {
-    title: "resumen",
-    icon: <HiDocumentReport className="w-6 h-6" />,
-  },
+  // `invitados` solo se muestra en móvil (md:hidden); en desktop Invitados es el
+  // bloque colapsable inferior, por eso el proto solo tiene 4 tabs visibles.
+  { title: "invitados" },
+  { title: "planos" },
+  { title: "mesas" },
+  { title: "mobiliario" },
+  { title: "resumen" },
 ]
 
 
@@ -45,16 +25,23 @@ export const SubMenu = ({ itemSelect, setItemSelect }) => {
   }
 
   return (
-    <div className="w-full h-full px-2 py-[1px] flex justify-between">
+    <div className="w-full h-full flex items-stretch px-2 bg-white border-b border-[#f0f0f2]">
       {sutMenus.map((elem: any, idx: number) => {
+        const active = elem.title === itemSelect
         return (
-          <div key={idx} onClick={() => handleClick(elem)} className={`w-1/4 h-full flex flex-col items-center justify-center rounded-lg ${elem.title == itemSelect ? "bg-base text-primary font-semibold" : "bg-primary text-white"} ${elem?.title == "invitados" && "md:hidden"}`}>
-            {elem?.icon}
-            <span className={`capitalize text-[9.5px] leading-none`}>{t(elem?.title)}</span>
-          </div>
+          <button
+            key={idx}
+            type="button"
+            onClick={() => handleClick(elem)}
+            title={t(elem?.title)}
+            className={`flex-1 min-w-0 flex items-center justify-center border-b-[2.5px] -mb-px transition-colors
+              ${active ? "border-[#EF5B94]" : "border-transparent"}
+              ${elem?.title === "invitados" ? "md:hidden" : ""}`}
+          >
+            <span className={`text-[10.5px] font-semibold capitalize leading-none truncate max-w-full ${active ? "text-[#EF5B94]" : "text-[#9a9aa2]"}`}>{t(elem?.title)}</span>
+          </button>
         )
       })}
-
     </div>
   )
 }

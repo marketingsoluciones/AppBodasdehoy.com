@@ -3,12 +3,62 @@
  * Ejemplo: ai-tokens 50000 → "~100 consultas IA"
  */
 
-// Threshold por SKU: ai-tokens necesita uno más alto porque los planes tienen millones de tokens reales.
-// Otros SKUs (events-count, guests-per-event, memories-photos…) usan 999_999 como convención "ilimitado".
 const UNLIMITED_THRESHOLD = 999_999;
-const AI_UNLIMITED_THRESHOLD = 999_999_999; // Solo ENTERPRISE tiene tokens verdaderamente ilimitados
+const AI_UNLIMITED_THRESHOLD = 999_999_999;
 const TOKENS_PER_QUERY = 500;
 const GB_PER_PHOTO = 0.002;
+
+// ========================================
+// Formateadores numéricos es-ES robustos
+// No dependen de Node Intl/ICU completo.
+// Separador de miles: "."  |  Separador decimal: ","
+// ========================================
+
+/**
+ * Añade separadores de miles (punto) a un string de dígitos enteros POSITIVOS.
+ * Iteramos left-to-right y ponemos un punto cada vez que quedan múltiplos de 3 dígitos por delante.
+ */
+function addThousandsDot(intStr: string): string {
+  if (intStr === '' || intStr === '-') return intStr;
+  const negative = intStr.startsWith('-');
+  const abs = negative ? intStr.slice(1) : intStr;
+  let out = '';
+  for (let i = 0; i < abs.length; i++) {
+    out += abs[i];
+    const remaining = abs.length - 1 - i;
+    if (remaining > 0 && remaining % 3 === 0) out += '.';
+  }
+  return negative ? '-' + out : out;
+}
+
+/**
+ * Entero con separador de miles es-ES.
+ * @example formatEsInteger(10000) → "10.000"
+ * @example formatEsInteger(42) → "42"
+ */
+export function formatEsInteger(n: number): string {
+  if (!Number.isFinite(n)) return String(n);
+  return addThousandsDot(String(Math.trunc(n)));
+}
+
+/**
+ * Decimal con separador de miles es-ES + coma decimal.
+ * @example formatEsDecimal(9, 2) → "9,00"
+ * @example formatEsDecimal(1234.56, 2) → "1.234,56"
+ * @example formatEsDecimal(0.5, 2) → "0,50"
+ */
+export function formatEsDecimal(n: number, decimals = 2): string {
+  if (!Number.isFinite(n)) return String(n);
+  const negative = n < 0;
+  const factor = 10 ** decimals;
+  const scaled = Math.round(Math.abs(n) * factor);
+  const raw = String(scaled).padStart(decimals + 1, '0');
+  const intPartRaw = decimals === 0 ? raw : raw.slice(0, raw.length - decimals);
+  const fracPartRaw = decimals === 0 ? '' : raw.slice(raw.length - decimals);
+  const intPart = addThousandsDot(intPartRaw);
+  const fracPart = fracPartRaw ? ',' + fracPartRaw : '';
+  return (negative ? '-' : '') + intPart + fracPart;
+}
 
 /**
  * Devuelve true si la cuota de un SKU debe tratarse como ilimitada.
@@ -73,15 +123,13 @@ export function humanizeQuota(sku: string, quota: number): string {
   const units = SKU_UNITS[sku];
   if (!units) return `${quota}`;
 
-  // ai-tokens se convierten a consultas (~500 tokens/consulta)
   if (sku === 'ai-tokens') {
     const queries = Math.round(quota / TOKENS_PER_QUERY);
-    return `~${queries.toLocaleString('es-ES')} ${queries === 1 ? units[0] : units[1]}`;
+    return `~${formatEsInteger(queries)} ${queries === 1 ? units[0] : units[1]}`;
   }
 
-  // storage-gb se puede mostrar como fotos equivalentes si es útil
   const unit = quota === 1 ? units[0] : units[1];
-  return `${quota.toLocaleString('es-ES')} ${unit}`;
+  return `${formatEsInteger(quota)} ${unit}`;
 }
 
 /**
@@ -102,7 +150,7 @@ export function humanizeUsage(sku: string, used: number, limit: number): string 
     const units = SKU_UNITS[sku];
     const displayUsed = sku === 'ai-tokens' ? Math.round(used / TOKENS_PER_QUERY) : used;
     const unit = units ? (displayUsed === 1 ? units[0] : units[1]) : '';
-    return `${displayUsed.toLocaleString('es-ES')} ${unit}`.trim();
+    return `${formatEsInteger(displayUsed)} ${unit}`.trim();
   }
 
   const displayUsed = sku === 'ai-tokens' ? Math.round(used / TOKENS_PER_QUERY) : used;
@@ -110,7 +158,7 @@ export function humanizeUsage(sku: string, used: number, limit: number): string 
   const units = SKU_UNITS[sku];
   const unit = units ? (displayLimit === 1 ? units[0] : units[1]) : '';
 
-  return `${displayUsed.toLocaleString('es-ES')}/${displayLimit.toLocaleString('es-ES')} ${unit}`.trim();
+  return `${formatEsInteger(displayUsed)}/${formatEsInteger(displayLimit)} ${unit}`.trim();
 }
 
 /**

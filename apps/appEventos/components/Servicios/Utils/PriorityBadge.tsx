@@ -20,9 +20,9 @@ export const PriorityBadge: React.FC<PriorityBadgeProps> = ({
         return {
           icon: <AlertCircle className="w-3 h-3" />,
           text: 'Alta',
-          bgColor: 'bg-[#fff0f0]',
-          textColor: 'text-[#ff2525]',
-          borderColor: 'border-[#ffa7a7]'
+          bgColor: 'bg-red-50',
+          textColor: 'text-red-700',
+          borderColor: 'border-red-200'
         };
       case 'media':
         return {

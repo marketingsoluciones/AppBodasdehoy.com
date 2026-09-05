@@ -1,11 +1,12 @@
 import { Form, Formik, FormikValues, useField } from "formik";
+import { formikValidateUx } from "./formikValidateUx";
 import { FC, HtmlHTMLAttributes } from "react";
 import { AuthContextProvider, EventContextProvider } from "../../context";
 import { WarningIcon } from "../icons";
 import InputField from "./InputField";
 import SelectField from "./SelectField";
 import * as yup from "yup";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { ImageProfile } from "../../utils/Funciones";
 import useHover from "../../hooks/useHover";
 import { phoneUtil } from "../../utils/Authentication";
@@ -62,7 +63,7 @@ const FormAcompañante: FC<propsFormAcompañante> = ({ state, set, guestFather }
           asistencia: values.asistencia
         }
       ];
-      const result = await fetchApiEventos({
+      const result = await fetchApiBodas({
         query: queries.createGuests,
         variables: {
           eventID: event._id,
@@ -72,7 +73,7 @@ const FormAcompañante: FC<propsFormAcompañante> = ({ state, set, guestFather }
       if (result) {
         setEvent({
           ...event,
-          invitados_array: (result as any)?.invitados_array || event.invitados_array
+          invitados_array: (result as any)?.evento?.invitados_array || event.invitados_array
         });
         set(!state);
       }
@@ -83,6 +84,7 @@ const FormAcompañante: FC<propsFormAcompañante> = ({ state, set, guestFather }
 
   return (
     <Formik
+      {...formikValidateUx}
       initialValues={initialValues}
       onSubmit={handleSubmit}
       validationSchema={validationSchema}

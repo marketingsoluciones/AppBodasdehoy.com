@@ -1,3 +1,16 @@
+> [!WARNING]
+> **DOCUMENTO OBSOLETO — no usar como referencia (marcado el 27-ago-2026).**
+>
+> Describe `apps/copilot`, una carpeta que ya no existe: la app se llama `apps/chat-ia` y
+> la bandeja vive en `apps/chat-ia/src/app/[variants]/(main)/bandeja`. Los endpoints y el
+> reparto entre api-ia y api-mcp han cambiado varias veces desde mayo de 2026.
+>
+> Estado real de los canales, verificado el 27-ago contra api-ia:
+> WhatsApp mensajes ✅ (api-ia) · sesión/QR en api-mcp · Instagram ✅ · Facebook ✅ ·
+> Telegram ❌ 501 · Email ❌ 501/404 · Chat Web ❌ 404.
+>
+> Se conserva por su valor histórico.
+
 # Coordinación vía Slack con api-ia – Mensajería (WhatsApp, Telegram, inbox)
 
 Texto listo para copiar y enviar por Slack al equipo api-ia (por ejemplo en #copilot-api-ia), para que coordinen con sus probadores, prueben todo el flujo de mensajería y revisen lo planificado/implementado.
@@ -35,6 +48,6 @@ Gracias.
 
 - **Backend:** api-ia (APIs de mensajería ya desarrolladas).
 - **Front:** Solo consume; no gestiona mensajería. Copilot llama a:
-  - **GraphQL** (vía proxy same-origin a BACKEND_URL/graphql): getSessions, sendMessage, getMessages, getSession.
-  - **REST** (directo a NEXT_PUBLIC_BACKEND_URL): GET/POST /api/messages/conversations y POST /api/messages/send.
+  - **GraphQL** (vía proxy same-origin a API_IA_URL/graphql): getSessions, sendMessage, getMessages, getSession.
+  - **REST** (directo a NEXT_PUBLIC_API_IA_URL): GET/POST /api/messages/conversations y POST /api/messages/send.
 - **Objetivo:** Que probadores de api-ia (y vosotros) verifiquen end-to-end y nos digan si algo falla o falta en contrato (headers, formato, rutas).

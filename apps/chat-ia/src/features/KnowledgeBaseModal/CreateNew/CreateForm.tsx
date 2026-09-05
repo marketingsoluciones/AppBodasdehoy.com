@@ -21,14 +21,21 @@ const CreateForm = memo<CreateFormProps>(({ onClose, onSuccess }) => {
     try {
       const id = await createNewKnowledgeBase(values);
       setLoading(false);
+
+      // Cerrar el modal PRIMERO y diferir la navegación al siguiente tick: si
+      // navegamos en el mismo tick, el re-render pierde la referencia del modal
+      // (instance.current) antes de que destroy() complete su animación y el
+      // modal queda huérfano montado (bug "el modal no se cierra", informe 13-jun).
       onClose?.();
 
-      // Call onSuccess callback if provided, otherwise navigate directly
-      if (onSuccess) {
-        onSuccess(id);
-      } else {
-        window.location.href = `/knowledge/bases/${id}`;
-      }
+      setTimeout(() => {
+        // Call onSuccess callback if provided, otherwise navigate directly
+        if (onSuccess) {
+          onSuccess(id);
+        } else {
+          window.location.href = `/knowledge/bases/${id}`;
+        }
+      }, 0);
     } catch (e) {
       console.error(e);
       setLoading(false);

@@ -1,0 +1,192 @@
+═══════════════════════════════════════════════════════════════════════════════
+RESPUESTA INFORME QA CONSOLIDADO (3ª + 6ª ronda)
+DE: COORD-AppEventos · 23-jun-2026
+═══════════════════════════════════════════════════════════════════════════════
+
+Gracias por el informe. Resumen de acciones:
+
+  ✅ 2 fixes nuevos aplicados + desplegados (N21 + N22)
+  ⚠️ 2 aclaraciones de falsos positivos (chat-dev pendiente / N06)
+  📌 Guía para detectar BUILD_ID sin acceso a /_next/BUILD_ID
+
+═══════════════════════════════════════════════════════════════════════════════
+✅ FIXES NUEVOS DESPLEGADOS — app-dev BUILD_ID `VKtntow_ejYMa42tojCao`
+═══════════════════════════════════════════════════════════════════════════════
+
+BUG-CW-N22 (que reportasteis como nuevo) — Logo abre www.bodasdehoy.com producción
+  ──────────────────────────────────────────────────────────
+  CONFIRMACIÓN: tenéis razón. El fix anterior de N20 (commit 4887975f)
+  tocó el LOGO de NavigationMobile (el bottom-nav con 5 botones),
+  pero este es OTRO logo distinto — el del header superior
+  (apps/appEventos/components/DefaultLayout/Navigation.tsx).
+  Bug separado, no regresión.
+
+  Causa raíz: en whitelabel `bodasdehoy`, `config.pathDomain` viene como
+  "https://www.bodasdehoy.com". El onClick hacía `window.open(path, '_blank')`
+  cuando path empezaba por http(s) → sacaba al usuario de app-dev.
+
+  Fix aplicado: si pathDomain apunta al mismo origin → router.push interno.
+  Si apunta a otro origin (producción/tenant distinto) → router.push("/")
+  al home de la app actual. NUNCA window.open externo desde el logo.
+
+BUG-CW-N21 (que reportasteis como nuevo) — Modal presupuesto oculto bajo navbar
+  ──────────────────────────────────────────────────────────
+  Archivo: apps/appEventos/components/Presupuesto/PresupuestoInitModal.tsx
+
+  Causa raíz: el modal usaba `items-center justify-center` sin
+  `overflow-y-auto`. En viewports donde la altura del modal excede la
+  del viewport (~880px de alto desktop, mobile vertical), el contenido
+  superior (header con título y X) quedaba fuera de pantalla y tapado
+  por la navbar sticky. Además z-50 colisionaba con menús laterales
+  que también usan z-50, dejando ambigüedad de stacking.
+
+  Fix aplicado:
+    · z-[60] (por encima de menús z-50 y de la navbar).
+    · items-start en mobile, items-center desde sm: en adelante.
+    · overflow-y-auto + py-8: si el modal es más alto que el viewport,
+      scrollea internamente y mantiene la X siempre alcanzable.
+    · my-auto en el contenido para mantener centrado cuando cabe.
+
+  REPROBAR:
+    1. Viewport 880px desktop, /presupuesto en evento sin categorías.
+    2. Modal "¿Cómo quieres empezar?" debe aparecer con la X visible
+       arriba a la derecha (sin solapar navbar).
+    3. Click backdrop, Escape, y click en X deben todos cerrar.
+    4. Cambiar viewport a 390px (mobile) — modal debe seguir accesible,
+       con scroll interno si su altura excede el viewport.
+
+═══════════════════════════════════════════════════════════════════════════════
+⚠️ ACLARACIONES DE FALSOS POSITIVOS
+═══════════════════════════════════════════════════════════════════════════════
+
+(1) BLOQUES B y C — chat-dev YA está desplegado
+  ──────────────────────────────────────────────────────────
+  Reportasteis: "BUILD chat-dev V25QUtu91boZPpSqjPCWb sin los commits de fix"
+  REAL: chat-dev sirve `_uW7J7DxEZUdp6D0SzWz5` desde 2026-06-23 ~11:55.
+  HEAD del build: 211a2b4b (incluye N04 + N12 + N14 + N16 + perf polling x6).
+
+  Por qué os salía "indeterminado":
+    El path /_next/BUILD_ID NO está expuesto públicamente (es interno).
+    El BUILD_ID real va EMBEBIDO en el HTML de las páginas:
+
+      · appEventos (Pages Router): buscar `buildId":"<ID>"` en el JSON
+        de `__NEXT_DATA__` del HTML inicial.
+        $ curl -s https://app-dev.bodasdehoy.com/ | grep -oE 'buildId":"[^"]+"'
+
+      · chat-ia (App Router): el HTML inicial NO expone buildId, pero
+        los chunks JS sí lo referencian. Buscar match del BUILD_ID
+        esperado en los chunks:
+        $ curl -s https://chat-dev.bodasdehoy.com/chat | grep -F -c -e "_uW7J7DxEZUdp6D0SzWz5"
+        (devuelve 1 si está sirviendo ese build, 0 si no)
+
+  BUILD_IDs activos para esta ronda:
+    · app-dev:    VKtntow_ejYMa42tojCao  ← NUEVO con N21 + N22 (recién)
+    · chat-dev:   _uW7J7DxEZUdp6D0SzWz5  ← desde las 11:55, con N04 + N12 + ...
+
+  Podéis testear AHORA todos los Bloques B y C en chat-dev — incluye los
+  commits cbae8bea, fb80548e y 4887975f que mencionasteis como pendientes.
+
+(2) BUG-CW-N06 — borrarGasto NO falla en la UI real
+  ──────────────────────────────────────────────────────────
+  Reportasteis: "borrarGasto NOT IN schema, proxy-bodas/graphql → 400"
+
+  Investigación: el fix N06 que apliqué (commit 56cdb596) cambió
+  `borraGasto`→`borrarGasto` en apps/appEventos/utils/Fetching.ts (línea
+  1468). PERO en `apps/appEventos/utils/apiMcpAdapter.ts:120` hay un
+  ADAPTER que intercepta esa mutation:
+
+    borrarGasto: {
+      canonicalQuery: `mutation(...) {
+        eliminarGastoPresupuesto(...) { ... }   // ← nombre REAL en api-mcp
+      }`,
+      mapVariables: (v) => ({ evento_id, categoria_id, gasto_id }),
+      mapResponse: (p) => presupuestoSuperset(p),
+    }
+
+  Flujo real al borrar un gasto desde la UI:
+    UI → fetchApiEventos({ query: queries.borrarGasto }) →
+    extractGraphqlField(query) detecta "borrarGasto" →
+    MCP_ADAPTERS["borrarGasto"] EXISTE →
+    fetchApiBodas con el canonicalQuery (eliminarGastoPresupuesto) →
+    api-mcp resuelve, devuelve presupuesto actualizado → OK ✅
+
+  Vuestro test directo a `/api/proxy-bodas/graphql` con mutation
+  `borrarGasto` falla a propósito — ese endpoint legacy NO tiene la
+  mutation porque su nombre canonical en api-mcp es
+  `eliminarGastoPresupuesto`. Sin pasar por el adapter, no se traduce.
+
+  PROCEDIMIENTO CORRECTO para validar N06:
+    1. Login + entrar a /presupuesto del evento "Boda Isabel & Raúl".
+    2. Asegurar que hay al menos 1 categoría con al menos 1 gasto.
+    3. En la UI, borrar el gasto desde el botón ×/papelera.
+    4. DevTools Network → buscar el POST GraphQL.
+       Debe ir a /api/proxy-bodas/graphql con query
+       `eliminarGastoPresupuesto` (NO `borrarGasto`).
+    5. Response debe ser 200 con `success: true`.
+    6. El gasto desaparece de la UI sin errores en consola.
+
+  CONCLUSIÓN: N06 está RESUELTO en la UI. El "fail" del test directo
+  contra el endpoint no representa el flujo real del producto.
+
+(3) BUG-CW-N09 / N10 — sessionCookie inválida bloquea crear evento
+  ──────────────────────────────────────────────────────────
+  El fix de N09 (EOF en el query crearEvento) sigue válido. Pero no
+  podéis ejecutarlo end-to-end hasta que se resuelva N10 (la
+  sessionCookie cross-domain). Eso es bug de auth (Verificator + Firebase),
+  NO de la mutation.
+
+  Acción: investigaré N10 en sesión dedicada. Mientras tanto:
+    · TEST DIRECTO del query (sin UI): podéis mandar el mutation
+      `crearEvento` directo a /api/proxy-bodas/graphql desde Postman
+      con un JWT válido — eso valida que el EOF está corregido.
+      Si responde 200 (aunque sea con success:false por permisos),
+      el EOF está resuelto.
+
+═══════════════════════════════════════════════════════════════════════════════
+📌 ESTADO ACTUAL DE BLOQUES — 6ª RONDA
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────┬──────────────────┬────────────────────────────┐
+│ Bloque                      │ Estado           │ BUILD_ID                   │
+├─────────────────────────────┼──────────────────┼────────────────────────────┤
+│ A: appEventos mobile + a11y │ ✅ Listo testear │ VKtntow_ejYMa42tojCao      │
+│ B: chat-ia mobile + a11y    │ ✅ Listo testear │ _uW7J7DxEZUdp6D0SzWz5      │
+│ C: chat-ia perf polling     │ ✅ Listo testear │ _uW7J7DxEZUdp6D0SzWz5      │
+│ D: memories HeroAlbum       │ ✅ Validado      │ (memories-dev)             │
+│ E: backlog (N04+N12+N13)    │ ✅ Listo testear │ ambos                      │
+│ NUEVOS: N21 + N22           │ ✅ Listo testear │ VKtntow_ejYMa42tojCao      │
+└─────────────────────────────┴──────────────────┴────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+📂 PENDIENTES DE OTRAS RONDAS
+═══════════════════════════════════════════════════════════════════════════════
+
+  BUG-CW-N10 ❌ sessionCookie inválida — investigación auth cross-domain (TODO)
+  BUG-CW-N11 ❌ /resumen y /lista-de-regalos 404 — TODO investigar rutas
+  BUG-CW-N15 🚫 Badge 63 ≠ 0 — escalado a api-mcp (whitelabel filter)
+  BUG-CW-N17 🚫 Sidebar chat-ia sin labels — pendiente decisión UX
+  BUG-CW-N18 🚫 i18n sin CDN — escalado a infra
+
+═══════════════════════════════════════════════════════════════════════════════
+🚀 PRÓXIMA TANDA DE QA RECOMENDADA
+═══════════════════════════════════════════════════════════════════════════════
+
+PRIORIDAD 1:
+  1. Re-test BLOQUE A en app-dev (BUILD VKtntow_ejYMa42tojCao):
+     - N20: logo bottom-nav mobile (era el de NavigationMobile)
+     - N22: logo header desktop/mobile (nuevo fix)
+     - N21: modal presupuesto en 880px y 390px
+  2. Test BLOQUES B + C en chat-dev (BUILD _uW7J7DxEZUdp6D0SzWz5)
+  3. Test BLOQUE E en ambos (N04 + N12 + N13)
+
+PRIORIDAD 2:
+  4. Reproducir N10 (sessionCookie) con steps reproducibles
+     → necesito stack completo para investigar.
+  5. Confirmar si /resumen y /lista-de-regalos son rutas planeadas o
+     navegación obsoleta (N11).
+
+Comentarios o bloqueos, en este mismo hilo.
+
+═══════════════════════════════════════════════════════════════════════════════
+FIN
+═══════════════════════════════════════════════════════════════════════════════

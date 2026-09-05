@@ -23,6 +23,7 @@ import {
   loginAndSelectEvent,
   loginAndSelectEventByName,
   waitForCopilotReady,
+  navigateToModule,
 } from './helpers';
 import { TEST_CREDENTIALS, TEST_URLS } from './fixtures';
 
@@ -204,7 +205,7 @@ test.describe('Preguntas al evento Raúl Isabel', () => {
       console.log(`ℹ️ Usando primer evento disponible en lugar de "${EVENTO_RAUL_ISABEL}"`);
     }
 
-    await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await navigateToModule(page, 'invitados');
     await waitForAppReady(page, 15_000);
 
     const reply = await openCopilotAndSend(
@@ -231,7 +232,7 @@ test.describe('Preguntas al evento Raúl Isabel', () => {
       return;
     }
 
-    await page.goto(`${BASE_URL}/resumen-evento`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await navigateToModule(page, 'resumen');
     await waitForAppReady(page, 15_000);
 
     const reply = await openCopilotAndSend(
@@ -271,7 +272,7 @@ test.describe('Filtros — preguntas que activan filter_view', () => {
       return;
     }
 
-    await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await navigateToModule(page, 'invitados');
     await waitForAppReady(page, 15_000);
 
     const reply = await openCopilotAndSend(
@@ -311,7 +312,7 @@ test.describe('Filtros — preguntas que activan filter_view', () => {
       return;
     }
 
-    await page.goto(`${BASE_URL}/resumen-evento`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await navigateToModule(page, 'resumen');
     await waitForAppReady(page, 15_000);
 
     const reply = await openCopilotAndSend(
@@ -346,7 +347,7 @@ test.describe('Filtros — preguntas que activan filter_view', () => {
       return;
     }
 
-    await page.goto(`${BASE_URL}/itinerario`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await navigateToModule(page, 'itinerario');
     await waitForAppReady(page, 15_000);
 
     const reply = await openCopilotAndSend(

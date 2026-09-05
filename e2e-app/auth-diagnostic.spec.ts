@@ -130,7 +130,7 @@ test.describe('APP-DEV: Login email/password', () => {
 
     await loginEmail(page, CREDS.email, CREDS.password)
     // Esperar redirección post-login
-    await page.waitForURL(url => !url.includes('/login'), { timeout: 15000 })
+    await page.waitForURL(url => !url.href.includes('/login'), { timeout: 15000 })
     await waitForVerification(page)
 
     // Cookies presentes
@@ -162,7 +162,7 @@ test.describe('APP-DEV: Login email/password', () => {
     })
 
     await loginEmail(page, CREDS.email, CREDS.password)
-    await page.waitForURL(url => !url.includes('/login'), { timeout: 15000 })
+    await page.waitForURL(url => !url.href.includes('/login'), { timeout: 15000 })
 
     // Máximo 1 visita a /login durante todo el flujo
     expect(loginPageCount).toBeLessThanOrEqual(1)
@@ -213,7 +213,7 @@ test.describe('APP-DEV: SSO cross-domain desde chat-dev', () => {
     await context.clearCookies()
     await page.goto(`${CHAT_DEV}/login`, { waitUntil: 'networkidle' })
     await loginEmail(page, CREDS.email, CREDS.password)
-    await page.waitForURL(url => !url.includes('/login'), { timeout: 15000 })
+    await page.waitForURL(url => !url.href.includes('/login'), { timeout: 15000 })
 
     // idTokenV0.1.0 debe existir en .bodasdehoy.com (accesible desde app-dev)
     const chatCookies = await context.cookies()
@@ -237,14 +237,14 @@ test.describe('APP-DEV: Logout', () => {
     await context.clearCookies()
     await page.goto(`${APP_DEV}/login?local-login=1`, { waitUntil: 'networkidle' })
     await loginEmail(page, CREDS.email, CREDS.password)
-    await page.waitForURL(url => !url.includes('/login'), { timeout: 15000 })
+    await page.waitForURL(url => !url.href.includes('/login'), { timeout: 15000 })
     await waitForVerification(page)
 
     // Logout via menú
     await page.locator('[data-testid="profile-menu-trigger"]').click()
     await page.waitForTimeout(500)
     await page.locator('text=Cerrar Sesión').click()
-    await page.waitForURL(url => url.includes('/login') || url.includes('?end=true'), { timeout: 10000 })
+    await page.waitForURL(url => url.href.includes('/login') || url.href.includes('?end=true'), { timeout: 10000 })
 
     // Cookies deben estar limpias
     const cookiesAfter = await context.cookies()
@@ -257,7 +257,7 @@ test.describe('APP-DEV: Logout', () => {
     await context.clearCookies()
     await page.goto(`${APP_DEV}/login?local-login=1`, { waitUntil: 'networkidle' })
     await loginEmail(page, CREDS.email, CREDS.password)
-    await page.waitForURL(url => !url.includes('/login'), { timeout: 15000 })
+    await page.waitForURL(url => !url.href.includes('/login'), { timeout: 15000 })
     await waitForVerification(page)
 
     // Verificar que dev-user-config tiene datos
@@ -268,7 +268,7 @@ test.describe('APP-DEV: Logout', () => {
     await page.locator('[data-testid="profile-menu-trigger"]').click()
     await page.waitForTimeout(500)
     await page.locator('text=Cerrar Sesión').click()
-    await page.waitForURL(url => url.includes('/login') || url.includes('?end=true'), { timeout: 10000 })
+    await page.waitForURL(url => url.href.includes('/login') || url.href.includes('?end=true'), { timeout: 10000 })
 
     // localStorage limpio
     const lsAfter = await getLocalStorageKeys(page, ['dev-user-config', 'jwt_token', 'user_email'])
@@ -281,7 +281,7 @@ test.describe('APP-DEV: Logout', () => {
     await context.clearCookies()
     await page.goto(`${APP_DEV}/login?local-login=1`, { waitUntil: 'networkidle' })
     await loginEmail(page, CREDS.email, CREDS.password)
-    await page.waitForURL(url => !url.includes('/login'), { timeout: 15000 })
+    await page.waitForURL(url => !url.href.includes('/login'), { timeout: 15000 })
     await waitForVerification(page)
 
     // Obtener nombre de usuario logueado
@@ -292,7 +292,7 @@ test.describe('APP-DEV: Logout', () => {
     await page.locator('[data-testid="profile-menu-trigger"]').click()
     await page.waitForTimeout(500)
     await page.locator('text=Cerrar Sesión').click()
-    await page.waitForURL(url => url.includes('/login') || url.includes('?end=true'), { timeout: 10000 })
+    await page.waitForURL(url => url.href.includes('/login') || url.href.includes('?end=true'), { timeout: 10000 })
     await page.waitForTimeout(1000)
 
     // El avatar/foto del usuario NO debe estar visible después del logout
@@ -305,20 +305,20 @@ test.describe('APP-DEV: Logout', () => {
     await context.clearCookies()
     await page.goto(`${APP_DEV}/login?local-login=1`, { waitUntil: 'networkidle' })
     await loginEmail(page, CREDS.email, CREDS.password)
-    await page.waitForURL(url => !url.includes('/login'), { timeout: 15000 })
+    await page.waitForURL(url => !url.href.includes('/login'), { timeout: 15000 })
 
     // Logout
     await page.locator('[data-testid="profile-menu-trigger"]').click()
     await page.waitForTimeout(500)
     await page.locator('text=Cerrar Sesión').click()
-    await page.waitForURL(url => url.includes('/login') || url.includes('?end=true') || !url.includes('bodasdehoy'), { timeout: 10000 })
+    await page.waitForURL(url => url.href.includes('/login') || url.href.includes('?end=true') || !url.href.includes('bodasdehoy'), { timeout: 10000 })
 
     // Intentar acceder a página protegida: debe redirigir a login
     await page.goto(`${APP_DEV}/invitados`, { waitUntil: 'networkidle' })
     await waitForVerification(page, 8000)
 
     const url = page.url()
-    const isProtected = url.includes('/login') ||
+    const isProtected = url.href.includes('/login') ||
       await page.locator('text=datos ficticios').isVisible().catch(() => false) ||
       await page.locator('text=Crear cuenta gratis').first().isVisible().catch(() => false)
 
@@ -335,7 +335,7 @@ test.describe('CHAT-DEV: Login y logout', () => {
     await context.clearCookies()
     await page.goto(`${CHAT_DEV}/login`, { waitUntil: 'networkidle' })
     await loginEmail(page, CREDS.email, CREDS.password)
-    await page.waitForURL(url => !url.includes('/login'), { timeout: 20000 })
+    await page.waitForURL(url => !url.href.includes('/login'), { timeout: 20000 })
 
     expect(page.url()).toContain('chat-dev.bodasdehoy.com')
     expect(page.url()).not.toContain('/login')
@@ -346,7 +346,7 @@ test.describe('CHAT-DEV: Login y logout', () => {
     await context.clearCookies()
     await page.goto(`${CHAT_DEV}/login`, { waitUntil: 'networkidle' })
     await loginEmail(page, CREDS.email, CREDS.password)
-    await page.waitForURL(url => !url.includes('/login'), { timeout: 20000 })
+    await page.waitForURL(url => !url.href.includes('/login'), { timeout: 20000 })
 
     // Verificar dev-user-config post-login
     const lsBefore = await getLocalStorageKeys(page, ['dev-user-config'])
@@ -374,7 +374,7 @@ test.describe('Persistencia de sesión', () => {
     await context.clearCookies()
     await page.goto(`${APP_DEV}/login?local-login=1`, { waitUntil: 'networkidle' })
     await loginEmail(page, CREDS.email, CREDS.password)
-    await page.waitForURL(url => !url.includes('/login'), { timeout: 15000 })
+    await page.waitForURL(url => !url.href.includes('/login'), { timeout: 15000 })
     await waitForVerification(page)
 
     // Refresh
@@ -393,7 +393,7 @@ test.describe('Persistencia de sesión', () => {
     const page1 = await context.newPage()
     await page1.goto(`${APP_DEV}/login?local-login=1`, { waitUntil: 'networkidle' })
     await loginEmail(page1, CREDS.email, CREDS.password)
-    await page1.waitForURL(url => !url.includes('/login'), { timeout: 15000 })
+    await page1.waitForURL(url => !url.href.includes('/login'), { timeout: 15000 })
     await waitForVerification(page1)
 
     // Abrir segunda pestaña
@@ -415,7 +415,7 @@ test.describe('UI: Panel Copilot no bloquea formularios', () => {
     await context.clearCookies()
     await page.goto(`${APP_DEV}/login?local-login=1`, { waitUntil: 'networkidle' })
     await loginEmail(page, CREDS.email, CREDS.password)
-    await page.waitForURL(url => !url.includes('/login'), { timeout: 15000 })
+    await page.waitForURL(url => !url.href.includes('/login'), { timeout: 15000 })
     await waitForVerification(page)
     await page.goto(`${APP_DEV}/invitados`, { waitUntil: 'networkidle' })
 
@@ -472,7 +472,7 @@ test.describe('Diagnóstico de cookies', () => {
 
     // PASO 3: Post-login
     await page.click('button[type="submit"]')
-    await page.waitForURL(url => !url.includes('/login'), { timeout: 15000 })
+    await page.waitForURL(url => !url.href.includes('/login'), { timeout: 15000 })
     await waitForVerification(page)
     cookies = await context.cookies()
     const importantCookies = ['sessionBodas', 'idTokenV0.1.0', 'guestBodas']
@@ -490,7 +490,7 @@ test.describe('Diagnóstico de cookies', () => {
     await page.locator('[data-testid="profile-menu-trigger"]').click()
     await page.waitForTimeout(500)
     await page.locator('text=Cerrar Sesión').click()
-    await page.waitForURL(url => url.includes('/login') || url.includes('?end=true'), { timeout: 10000 })
+    await page.waitForURL(url => url.href.includes('/login') || url.href.includes('?end=true'), { timeout: 10000 })
     await page.waitForTimeout(1000)
 
     cookies = await context.cookies()

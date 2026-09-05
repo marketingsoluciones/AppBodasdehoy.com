@@ -15,6 +15,7 @@
 | **https://chat-test.bodasdehoy.com** | ❌ ERR (no llega al túnel) |
 | **https://chat-test.eventosorganizador.com** | ✅ 200 (mismo túnel) |
 | **https://api-ia.bodasdehoy.com/health** | ✅ 200 (remoto) |
+| **https://api3-ia.eventosorganizador.com/health** | ✅ (remoto) |
 
 **Conclusión:** Los servicios locales están bien. Aunque el **túnel esté corriendo** en esta máquina (lobe-chat-harbor, 4 conexiones), si app-test/chat-test.bodasdehoy.com siguen en **ERR** es porque **en Cloudflare** el tráfico de **bodasdehoy.com** no está asociado a este túnel: hay que revisar **DNS (CNAME)** y **Public Hostnames** para que apunten al túnel `30fdf520-9577-470f-a224-4cda1e5eb3f0.cfargotunnel.com`. Ver **[RESOLVER-URLS-Y-REVERSE-CLOUDFLARE.md](./RESOLVER-URLS-Y-REVERSE-CLOUDFLARE.md)**.
 
@@ -48,6 +49,7 @@ Según `~/.cloudflared/config.yml`:
 | auth-test.bodasdehoy.com | http://localhost:8000 | (no comprobado) |
 | api-ia.bodasdehoy.com | http://164.92.81.153:8030 | (remoto) |
 | api-ia.eventosorganizador.com | http://164.92.81.153:8030 | (remoto) |
+| api3-ia.eventosorganizador.com | http://159.69.180.113:8030 | (remoto) |
 | backend-chat-test.bodasdehoy.com | http://164.92.81.153:8030 | (remoto) |
 | backend-chat-test.eventosorganizador.com | http://164.92.81.153:8030 | (remoto) |
 | crm-leads.eventosorganizador.com | http://localhost:3002 | (no comprobado) |

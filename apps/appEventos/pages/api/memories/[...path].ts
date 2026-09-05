@@ -1,8 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
+// Estándar 2026: SOLO las 2 vars canónicas de IA (server + client). Sin aliases
+// MEMORIES_* (retirados) ni duplicados. Memories es un sub-router de api-ia.
 const MEMORIES_API_BASE =
-  process.env.NEXT_PUBLIC_MEMORIES_API_URL ||
-  process.env.MEMORIES_API_URL ||
+  process.env.API_IA_URL ||
+  process.env.NEXT_PUBLIC_API_IA_URL ||
   'https://api-ia.bodasdehoy.com';
 
 /**

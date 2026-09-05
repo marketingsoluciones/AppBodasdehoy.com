@@ -8,8 +8,8 @@ import { buildAuthHeaders } from '../utils/authToken';
 
 // Usar URL de producción si está disponible, sino localhost
 export const BACKEND_URL = 
-  process.env.NEXT_PUBLIC_BACKEND_URL || 
-  process.env.BACKEND_URL || 
+  process.env.NEXT_PUBLIC_API_IA_URL || 
+  process.env.API_IA_URL || 
   (typeof window !== 'undefined' ? 'https://api-ia.bodasdehoy.com' : 'http://localhost:8030');
 
 export interface TestQuestion {

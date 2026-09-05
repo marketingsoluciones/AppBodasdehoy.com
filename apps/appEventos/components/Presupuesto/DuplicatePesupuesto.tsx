@@ -35,16 +35,20 @@ export const DuplicatePresupuesto = ({ setModal, showModalDuplicate }) => {
 
         try {
             const eventoSeleccionado = eventsGroup.find((element) => element.nombre === selectedOption)
-            const result = await fetchApiEventos({
+            const result: any = await fetchApiEventos({
                 query: queries.duplicatePresupuesto,
                 variables: {
-                    eventID: eventoSeleccionado._id,
-                    eventDestinationID: event._id
+                    evento_id: eventoSeleccionado._id,
+                    nuevo_evento_id: event._id
                 },
                 domain: config.domain
-            }) as estimate
-            event.presupuesto_objeto = result
-            setEvent({ ...event })
+            })
+            if (result?.evento?.presupuesto_objeto) {
+                setEvent((prev) => ({
+                    ...prev,
+                    presupuesto_objeto: result.evento.presupuesto_objeto as estimate,
+                }))
+            }
             toast("success", t("successful"));
             setModal(false)
         } catch (error) {

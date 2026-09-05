@@ -10,7 +10,7 @@ export const DetailContext = createContext<DetailContextConfig>({});
 
 export const DetailProvider = memo<{ children: ReactNode; config?: DetailContextConfig }>(
   ({ children, config = {} }) => {
-    return <DetailContext value={config}>{children}</DetailContext>;
+    return <DetailContext.Provider value={config}>{children}</DetailContext.Provider>;
   },
 );
 
