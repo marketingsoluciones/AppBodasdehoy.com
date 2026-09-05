@@ -3,7 +3,7 @@
 import { Icon } from '@lobehub/ui';
 import { TabBar, type TabBarProps } from '@lobehub/ui/mobile';
 import { createStyles } from 'antd-style';
-import { Bot, Compass, FolderClosed, Globe, Images, Inbox, LayoutGrid, MessageSquare, Settings, User } from 'lucide-react';
+import { Bot, Compass, FolderClosed, Globe, Images, Inbox, LayoutGrid, MessageSquare, Settings, User, UserPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { rgba } from 'polished';
 import { memo, useMemo, useState } from 'react';
@@ -167,8 +167,9 @@ const NavBar = memo(() => {
           // R1 nomenclatura: la mensajería unificada se llama "Bandeja".
           title: 'Bandeja',
         },
-        // Discover/Market - Marketplace de agentes y plugins
-        showMarket && {
+        // Discover/Market — solo registrados (P0 fricción 5, 5-sep: al visitante no le
+        // sirve el marketplace de agentes que no puede usar).
+        showMarket && isLoggedIn && {
           icon: (active: boolean) => (
             <Icon className={active ? styles.active : undefined} icon={Compass} />
           ),
@@ -178,7 +179,9 @@ const NavBar = memo(() => {
           },
           title: t('tab.discover'),
         },
-        {
+        // "Yo" y "Más" solo para registrados. Un visitante debe ver lo básico (Asistente)
+        // + la puerta a registrarse (menú mínimo, feedback JCP 5-sep).
+        isLoggedIn && {
           icon: (active: boolean) => (
             <Icon className={active ? styles.active : undefined} icon={User} />
           ),
@@ -188,13 +191,24 @@ const NavBar = memo(() => {
           },
           title: t('tab.me'),
         },
-        {
+        isLoggedIn && {
           icon: (active: boolean) => (
             <Icon className={active ? styles.active : undefined} icon={LayoutGrid} />
           ),
           key: 'more',
           onClick: () => setMoreOpen(true),
           title: 'Más',
+        },
+        // Visitante: CTA de registro prominente (menú mínimo + capta data, KPI del negocio).
+        !isLoggedIn && {
+          icon: (active: boolean) => (
+            <Icon className={active ? styles.active : undefined} icon={UserPlus} />
+          ),
+          key: 'register',
+          onClick: () => {
+            router.push('/login?q=register');
+          },
+          title: 'Registrarse',
         },
       ].filter(Boolean) as TabBarProps['items'],
     [t, showMarket, isGuest, isLoggedIn, isServerMode, inboxUnread, router, styles.active],
