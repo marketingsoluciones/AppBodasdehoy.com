@@ -282,16 +282,21 @@ const Facturacion = () => {
     }, [])
 
     useEffect(() => {
-        const data = dataFetch?.results?.map(elem => {
-            const price = elem?.prices?.find(el => data?.currency
-                ? el?.currency === data.currency
+        // FIX crash Facturación (QA EV-07): el `.find` referenciaba `data` DENTRO de la propia
+        // definición de `const data` → TDZ ("Cannot access 'data' before initialization") que
+        // tumbaba la página entera. La moneda a comparar es la que devuelve la API (dataFetch.currency),
+        // no el array que se está construyendo. Renombro el local para eliminar el shadow del state.
+        const mapped = dataFetch?.results?.map(elem => {
+            const price = elem?.prices?.find(el => dataFetch?.currency
+                ? el?.currency === dataFetch.currency
                 : el?.currency === currency)
             return { ...elem, prices: [price] }
         })
-        const dataSort = data?.sort((a, b) => {
+        const dataSort = mapped?.sort((a, b) => {
             if (a.usage !== b.usage) {
                 return b.usage - a.usage
             }
+            return 0
         })
         setData(dataSort)
     }, [user, dataFetch, currency])
