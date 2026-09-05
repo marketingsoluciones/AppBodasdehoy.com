@@ -845,6 +845,9 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
 
     // ── Rediseño studio MÓVIL: toolbar fiel al HTML (selector + Nuevo + título/fecha + vista Tarjeta/Esquema + FAB) ──
     if (isStudio && isMobile) {
+        // En Tareas la vista MÓVIL la pinta TareasStudioMovil (solo tarjetas), con su
+        // propia cabecera y sin selector de vista. Esta barra no se muestra allí.
+        if (isTareas) return null;
         const verOptionsM = [
             { v: "cards", label: t("card", { defaultValue: "Tarjeta" }), icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 10h18" /></svg> },
             isTareas
