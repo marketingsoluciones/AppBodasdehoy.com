@@ -807,12 +807,12 @@ function WeddingCreatorContent() {
                   </span>
                 )}
                 <button
-                  className="rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200"
+                  className="shrink-0 rounded-md bg-gray-100 px-2.5 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200 sm:px-3"
                   onClick={() => window.location.reload()}
                   title="Reiniciar editor"
                   type="button"
                 >
-                  🔄 Reiniciar
+                  🔄<span className="hidden sm:inline"> Reiniciar</span>
                 </button>
               </div>
             </div>
