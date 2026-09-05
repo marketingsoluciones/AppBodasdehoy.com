@@ -33,6 +33,9 @@ interface BoardViewProps {
   setTempPastedAndDropFiles?: any;
   deleteTask: (task: Task, itinerario: Itinerary) => void;
   optionsItineraryButtonBox: OptionsSelect[] | undefined;
+  /** "Expandir" gobernado desde arriba (ItineraryPanel ensancha su tarjeta). */
+  expandida?: boolean;
+  onToggleExpandida?: () => void;
   
 }
 
