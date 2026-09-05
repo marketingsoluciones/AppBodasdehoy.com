@@ -940,8 +940,9 @@ export const NewTableView: React.FC<TableProps & { expandida?: boolean; onToggle
                             maxWidth: (isStudio && expandida) ? undefined : cell.column.maxWidth
                           }}
                         >
-                          {/* Barra de acciones flotante - Solo en la primera columna */}
-                          {cellIndex === 0 && hoveredRow === row.original._id && (
+                          {/* Barra de acciones flotante (hover): fuera del diseño studio.
+                              Las acciones viven en la tarjeta de detalle al abrir la fila. */}
+                          {!isStudio && cellIndex === 0 && hoveredRow === row.original._id && (
                             <div
                               className="absolute -top-0 left-0 z-50 pointer-events-none"
                               style={{ transform: 'translateY(-100%)' }}
