@@ -41,6 +41,7 @@ import useSWR from 'swr';
 import { handleCopyLink, cleanResponsables } from "../../Servicios/VistaTarjeta/TaskNewUtils";
 import { IconArray } from "../../Servicios/VistaTabla/NewSelectIcon";
 import { isStudioPathname } from "../../../utils/studioPaths";
+import TareasStudioMovil from "../../Servicios/VistaTarjeta/TareasStudioMovil";
 
 interface props {
   itinerario: Itinerary
@@ -870,6 +871,22 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   }, [selectTask, currentItinerario])
 
   return (
+    <>
+    {/* MÓVIL de Tareas (solo tarjetas), fiel a tareasmovil.html. Escritorio: hidden md:flex. */}
+    {isStudioIti && isTareas && (
+      <TareasStudioMovil
+        itinerario={itinerario}
+        tasks={tasks || []}
+        expandedTasks={expandedTasks}
+        toggleTaskExpand={toggleTaskExpand}
+        handleUpdate={handleUpdate}
+        handleTaskUpdate={handleTaskUpdate}
+        handleTaskCreate={handleTaskCreate}
+        deleteTask={deleteTask}
+        title={title}
+        event={event}
+      />
+    )}
     <div
       style={isStudioIti && isTareas ? {
         background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16,
@@ -880,7 +897,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         // lo desplazaba a la izquierda. Basta con el ancho.
         ...((tablaExpandida || tableroExpandido) ? { width: "94vw", maxWidth: "94vw" } : {}),
       } : undefined}
-      className={`w-full flex-1 flex flex-col ${isStudioIti && view === "table" ? "overflow-visible" : `overflow-auto ${isStudioIti ? "iti-hidescroll" : ""}`}`}>
+      className={`w-full flex-1 flex flex-col ${isStudioIti && isTareas ? "hidden md:flex" : ""} ${isStudioIti && view === "table" ? "overflow-visible" : `overflow-auto ${isStudioIti ? "iti-hidescroll" : ""}`}`}>
       {isStudioIti && <style dangerouslySetInnerHTML={{ __html: ".iti-hidescroll{scrollbar-width:none;-ms-overflow-style:none;}.iti-hidescroll::-webkit-scrollbar{display:none;width:0;height:0;}" }} />}
       <InfoLateral ubication="left" infoOptions={infoLeftOptions} />
       <InfoLateral ubication="right" infoOptions={[]} />
@@ -1190,6 +1207,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       </Modal>
       }
     </div>
+    </>
   )
 }
 
