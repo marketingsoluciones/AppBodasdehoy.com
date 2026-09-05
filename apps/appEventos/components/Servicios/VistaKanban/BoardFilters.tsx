@@ -11,6 +11,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { Task } from '../../../utils/Interfaces';
+import { isStudioPathname } from '../../../utils/studioPaths';
 
 interface BoardFiltersProps {
   activeFilters: Record<string, any>;
@@ -130,7 +131,10 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
   ).length;
 
   return (
-    <div className="bg-white border-b border-gray-200 p-4">
+    <div
+      style={(typeof window !== "undefined" && isStudioPathname(window.location.pathname) && new URLSearchParams(window.location.search).get("studio") !== "legacy")
+        ? { background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, padding: 18, fontFamily: "'Poppins',sans-serif" } : undefined}
+      className={(typeof window !== "undefined" && isStudioPathname(window.location.pathname) && new URLSearchParams(window.location.search).get("studio") !== "legacy") ? "" : "bg-white border-b border-gray-200 p-4"}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
           <Filter className="w-5 h-5 text-gray-500" />
