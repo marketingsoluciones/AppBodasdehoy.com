@@ -29,6 +29,7 @@ import { getStorage, ref, listAll, deleteObject } from "firebase/storage";
 import { deleteAllFiles, deleteRecursive } from "../../Utils/storages";
 import { SimpleDeleteConfirmation } from "../../Utils/SimpleDeleteConfirmation";
 import { EntityNotesSection } from "../../Notes/EntityNotesSection";
+import StudioNotesSection from "../../Presupuesto/StudioNotesSection";
 import { isStudioPathname } from '../../../utils/studioPaths';
 import { createPortal } from 'react-dom';
 
@@ -366,11 +367,12 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 view="kanban"
                 handleUpdate={handleUpdate}
               />
-              <EntityNotesSection
-                entityType="TASK"
-                entityId={localTask._id}
-                entityName={localTask.descripcion || 'Tarea'}
-              />
+              {/* Notas internas con el MISMO aspecto que en Resumen (StudioNotesSection).
+                  Antes usaba EntityNotesSection, sin el diseño studio. Mismo backend
+                  (useCRMNotes, entityType TASK). Fuera de studio, la versión anterior. */}
+              {isStudio
+                ? <StudioNotesSection entityType="TASK" entityId={localTask._id} entityName={localTask.descripcion || 'Tarea'} />
+                : <EntityNotesSection entityType="TASK" entityId={localTask._id} entityName={localTask.descripcion || 'Tarea'} />}
             </div>
           </div>
         </div>
