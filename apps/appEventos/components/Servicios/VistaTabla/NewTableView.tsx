@@ -974,8 +974,8 @@ export const NewTableView: React.FC<TableProps & { expandida?: boolean; onToggle
                             value={cell.value}
                             task={row.original}
                             onUpdate={(value) => handleCellUpdate(rowIndex, cell.column.id, value)}
-                            isEditing={editingCell?.row === rowIndex && editingCell?.column === cell.column.id}
-                            onStartEdit={() => setEditingCell({ row: rowIndex, column: cell.column.id })}
+                            isEditing={isStudio ? false : (editingCell?.row === rowIndex && editingCell?.column === cell.column.id)}
+                            onStartEdit={isStudio ? () => { } : () => setEditingCell({ row: rowIndex, column: cell.column.id })}
                             onStopEdit={() => setEditingCell(null)}
                             onCommentsClick={() => {
                               if (modalType) {

@@ -381,8 +381,12 @@ export const NewTableCell: React.FC<TableCellProps> = ({ column, value, task, on
       onMouseEnter={() => setShowEditControls(true)}
       onMouseLeave={() => setShowEditControls(false)}
     >
-      <div className="flex-1 min-w-0 w-full">
+      {/* En studio la celda es SOLO LECTURA: una capa transparente encima captura y
+          desactiva la edición inline, así el clic abre el detalle (onRowOpen de la fila)
+          en vez de abrir el selector de la celda. */}
+      <div className="flex-1 min-w-0 w-full relative">
         {renderCellContent()}
+        {isStudio && <div className="absolute inset-0" style={{ cursor: "pointer" }} />}
       </div>
 
       {/* Controles de edición inline */}
@@ -412,7 +416,7 @@ export const NewTableCell: React.FC<TableCellProps> = ({ column, value, task, on
       )} */}
 
       {/* Indicador de edición */}
-      {!isEditing && canEdit && showEditControls && column.type !== 'comments' && column.type !== 'tips' && column.type !== 'tags' && column.type !== 'responsable' && column.type !== 'attachments' && (
+      {!isStudio && !isEditing && canEdit && showEditControls && column.type !== 'comments' && column.type !== 'tips' && column.type !== 'tags' && column.type !== 'responsable' && column.type !== 'attachments' && (
         <div className="absolute right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
           <Edit3 className="w-3 h-3 text-gray-400" />
         </div>
