@@ -33,12 +33,7 @@ const MOBILE_NAV_ROUTES = new Set([
 const Layout = memo(({ children }: PropsWithChildren) => {
   const showMobileWorkspace = useShowMobileWorkspace();
   const pathname = usePathname();
-  // P0 móvil (5-sep): en /asistente la barra inferior se ocultaba dentro del chat
-  // (showMobileWorkspace=true por defecto) → el usuario quedaba ATRAPADO en el chat sin poder
-  // navegar. La mostramos también en el chat del asistente para que la app siempre sea
-  // navegable. El resto de rutas mantiene el comportamiento previo (bandeja tiene su propia barra).
-  const showNav =
-    MOBILE_NAV_ROUTES.has(pathname) && (pathname === '/asistente' || !showMobileWorkspace);
+  const showNav = !showMobileWorkspace && MOBILE_NAV_ROUTES.has(pathname);
 
   // QA 30-jun: ver Desktop/index.tsx — defensa frente a featureFlags=undefined.
   const featureFlags = useServerConfigStore(featureFlagsSelectors) || {};
