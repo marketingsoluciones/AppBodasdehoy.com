@@ -13,6 +13,8 @@ import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfi
 import NavBar from './NavBar';
 
 const CloudBanner = dynamic(() => import('@/features/AlertBanner/CloudBanner'));
+// P0 fricción 3 (5-sep): nudge de registro persistente para visitantes (captar data = KPI).
+const GuestRegisterBanner = dynamic(() => import('@/features/GuestRegisterBanner'), { ssr: false });
 const MOBILE_NAV_ROUTES = new Set([
   '/asistente',
   '/discover',
@@ -50,6 +52,7 @@ const Layout = memo(({ children }: PropsWithChildren) => {
   return (
     <>
       {showCloudPromotion && <CloudBanner mobile />}
+      <GuestRegisterBanner />
       {children}
       {showNav && <NavBar />}
     </>
