@@ -122,6 +122,9 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   // Detalle de una fila de la TABLA: al pulsarla se abre su tarjeta con un banner
   // "Volver a la vista Tabla", en vez de editar en la celda (fiel a tareasvistatabla).
   const [tablaDetalle, setTablaDetalle] = useState<string | null>(null)
+  // "Expandir" del tablero: como en la Tabla, el ensanchado va en la TARJETA (ItineraryPanel),
+  // no dentro de BoardView, cuyo padre está limitado y cortaba la 4ª columna.
+  const [tableroExpandido, setTableroExpandido] = useState(false)
 
   const isStudioIti = searchParams.get("studio") !== "legacy"
     && (typeof window !== "undefined" && isStudioPathname(window.location.pathname))
@@ -875,7 +878,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         // El contenedor de BoddyIter es flex con items-center, así que YA centra al hijo:
         // el marginLeft negativo de Presupuesto —pensado para un contenedor de bloque—
         // lo desplazaba a la izquierda. Basta con el ancho.
-        ...(tablaExpandida ? { width: "94vw", maxWidth: "94vw" } : {}),
+        ...((tablaExpandida || tableroExpandido) ? { width: "94vw", maxWidth: "94vw" } : {}),
       } : undefined}
       className={`w-full flex-1 flex flex-col ${isStudioIti && view === "table" ? "overflow-visible" : `overflow-auto ${isStudioIti ? "iti-hidescroll" : ""}`}`}>
       {isStudioIti && <style dangerouslySetInnerHTML={{ __html: ".iti-hidescroll{scrollbar-width:none;-ms-overflow-style:none;}.iti-hidescroll::-webkit-scrollbar{display:none;width:0;height:0;}" }} />}
@@ -961,6 +964,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
               ? (<div className="w-full flex-1">
                 <PermissionTaskWrapper isTaskVisible={true}>
                   <BoardView
+                    expandida={tableroExpandido}
+                    onToggleExpandida={() => setTableroExpandido((v) => !v)}
                     data={tasks}
                     event={event as EventInterface}
                     setEvent={setEvent}

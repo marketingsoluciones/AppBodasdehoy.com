@@ -36,7 +36,7 @@ interface BoardViewProps {
   
 }
 
-export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, selectTask, setSelectTask, onTaskUpdate, onTaskDelete, onTaskCreate, setEvent, tempPastedAndDropFiles, setTempPastedAndDropFiles, deleteTask, optionsItineraryButtonBox }) => {
+export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, selectTask, setSelectTask, onTaskUpdate, onTaskDelete, onTaskCreate, setEvent, tempPastedAndDropFiles, setTempPastedAndDropFiles, deleteTask, optionsItineraryButtonBox , expandida: expandidaProp, onToggleExpandida }) => {
 
   const { config } = AuthContextProvider();
   const { t } = useTranslation();
@@ -47,7 +47,9 @@ export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, s
   const [showFilters, setShowFilters] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showTaskDetail, setShowTaskDetail] = useState<{ show: boolean; task?: Task }>({ show: false });
-  const [expandido, setExpandido] = useState(false);
+  const [expandidoLocal, setExpandidoLocal] = useState(false);
+  const expandido = expandidaProp ?? expandidoLocal;
+  const toggleExpandido = onToggleExpandida ?? (() => setExpandidoLocal((v) => !v));
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showSubTaskModal, setShowSubTaskModal] = useState<{ show: boolean; parentTaskId?: string; }>({ show: false });
@@ -352,7 +354,7 @@ export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, s
 
   return (
     <div
-      style={isStudio ? { background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, padding: "14px 18px 18px", display: "flex", flexDirection: "column", gap: 12, fontFamily: "'Poppins',sans-serif", transition: "width .3s ease", ...(expandido ? { width: "94vw", maxWidth: "94vw" } : {}) } : undefined}
+      style={isStudio ? { background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, padding: "14px 18px 18px", display: "flex", flexDirection: "column", gap: 12, fontFamily: "'Poppins',sans-serif" } : undefined}
       className={isStudio ? "" : "h-[calc(100vh-270px)] flex flex-col bg-gray-50 "}>
       {/* Header del tablero */}
       <BoardHeader
@@ -373,7 +375,7 @@ export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, s
         onShowShortcuts={() => setShowShortcuts(true)}
         onAddTask={() => handleTaskCreate({ descripcion: t('Nueva tarea'), estado: 'pending', prioridad: 'media' } as any)}
         expanded={expandido}
-        onToggleExpand={() => setExpandido((v) => !v)}
+        onToggleExpand={toggleExpandido}
         totalTasks={data?.length ?? 0}
       />
 
