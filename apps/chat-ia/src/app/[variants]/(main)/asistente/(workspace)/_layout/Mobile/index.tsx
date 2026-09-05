@@ -22,7 +22,14 @@ const Layout = ({ children, conversation, portal }: LayoutProps) => {
       <Suspense fallback={null}>
         <PendingIntentModal />
       </Suspense>
-      <MobileContentLayout data-testid="chat-shell" header={<ChatHeader />} style={{ overflowY: 'hidden' }}>
+      {/* P0 móvil (5-sep): withNav reserva el alto de la barra inferior (que ahora se muestra
+          también en el chat del asistente) para que el compose no quede tapado por ella. */}
+      <MobileContentLayout
+        data-testid="chat-shell"
+        header={<ChatHeader />}
+        style={{ overflowY: 'hidden' }}
+        withNav
+      >
         {conversation}
         {children}
       </MobileContentLayout>
