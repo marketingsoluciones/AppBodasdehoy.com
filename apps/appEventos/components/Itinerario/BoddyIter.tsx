@@ -418,8 +418,8 @@ export const BoddyIter = () => {
     return (
         <PermissionWrapper>
             <div
-                className={`${isTareasStudio ? "bg-transparent gap-3.5" : "bg-white rounded-t-lg"} ${(view === "cards" || isTareasStudio) ? "max-w-[1050px] mx-auto" : "w-auto"
-                    } ${(studioIter && view === "table" && pathSliceIter === "itinerario") || isTareasStudio ? "md:min-h-[calc(100vh-244px)]" : "md:h-[calc(100vh-244px)] overflow-hidden"} flex flex-col items-center mt-3 relative`}
+                className={`${isTareasStudio ? "bg-transparent md:gap-3.5" : "bg-white rounded-t-lg"} ${(view === "cards" || isTareasStudio) ? "max-w-[1050px] mx-auto" : "w-auto"
+                    } ${(studioIter && view === "table" && pathSliceIter === "itinerario") || isTareasStudio ? "md:min-h-[calc(100vh-244px)]" : "md:h-[calc(100vh-244px)] overflow-hidden"} flex flex-col items-center ${isTareasStudio ? "mt-0 md:mt-3" : "mt-3"} relative`}
             >
                 {
                     modal.state &&

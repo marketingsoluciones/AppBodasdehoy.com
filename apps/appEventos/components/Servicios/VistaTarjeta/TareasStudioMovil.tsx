@@ -62,7 +62,7 @@ export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks,
   const iniciales = (resp: string) => (resp || "?").charAt(0).toUpperCase();
 
   return (
-    <div className="md:hidden" style={{ background: "#F6F5F7", minHeight: "100%", fontFamily: "'Poppins',sans-serif", position: "relative", paddingBottom: 96 }}>
+    <div className="md:hidden" style={{ background: "#F6F5F7", minHeight: "100%", fontFamily: "'Poppins',sans-serif", position: "relative", paddingBottom: 96, overflowX: "hidden" }}>
       <style dangerouslySetInnerHTML={{ __html: ".tm-hs{scrollbar-width:none;-ms-overflow-style:none;}.tm-hs::-webkit-scrollbar{display:none;height:0;}" }} />
 
       {/* HEADER MÓDULO */}
@@ -135,10 +135,10 @@ export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks,
           return (
             <div key={tk._id}>
               {cabecera}
-              <div style={{ background: "#fff", border: "1px solid #F3B6CE", borderTop: "none", borderRadius: "0 0 15px 15px", marginTop: -1, padding: "14px 15px 15px" }}>
+              <div style={{ background: "#fff", border: "1px solid #F3B6CE", borderTop: "none", borderRadius: "0 0 15px 15px", marginTop: -1, padding: "14px 15px 15px", minWidth: 0, overflow: "hidden" }}>
                 {/* slider de estados */}
                 <div style={{ font: "600 10.5px Poppins", color: "#a0a0a8", letterSpacing: ".5px", textTransform: "uppercase", marginBottom: 7 }}>{t("Estado")}</div>
-                <div className="tm-hs" style={{ display: "flex", gap: 7, margin: "0 -15px 13px", overflowX: "auto", padding: "2px 15px" }}>
+                <div className="tm-hs" style={{ display: "flex", gap: 7, marginBottom: 13, overflowX: "auto", padding: "2px 0", maxWidth: "100%" }}>
                   {TASK_STATUSES.map((s: any) => {
                     const on = s.value === st.value;
                     const [f, b] = EST_MOV[String(s.value)] ?? EST_MOV.pending;
