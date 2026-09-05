@@ -60,6 +60,9 @@ interface props {
   setOrderAndDirection?: Dispatch<SetStateAction<SelectModeSortType>>
   allExpanded?: boolean
   onToggleExpandAll?: () => void
+  itineraries?: Itinerary[]
+  setItinerario?: (it: Itinerary) => void
+  onCreateItinerario?: () => void
 }
 
 export interface EditTastk {
@@ -85,7 +88,7 @@ export type TempPastedAndDropFile = {
 
 export const Details = undefined
 
-export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle, view, handleDeleteItinerario, handleUpdateTitle, title, setTitle, selectTask, setSelectTask, orderAndDirection, expandedTasks, toggleTaskExpand, setOrderAndDirection, allExpanded, onToggleExpandAll }) => {
+export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle, view, handleDeleteItinerario, handleUpdateTitle, title, setTitle, selectTask, setSelectTask, orderAndDirection, expandedTasks, toggleTaskExpand, setOrderAndDirection, allExpanded, onToggleExpandAll, itineraries, setItinerario, onCreateItinerario }) => {
   const { t } = useTranslation();
   const { config, user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
@@ -885,6 +888,9 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         deleteTask={deleteTask}
         title={title}
         event={event}
+        itineraries={itineraries}
+        onSelectItinerario={setItinerario}
+        onCreateItinerario={onCreateItinerario}
       />
     )}
     <div

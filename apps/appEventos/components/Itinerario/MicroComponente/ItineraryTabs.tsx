@@ -1,6 +1,7 @@
 import { Dispatch, FC, LegacyRef, MouseEvent, SetStateAction, useEffect, useRef, useState } from "react"
 import { Event, Itinerary, SelectModeSortType, Task } from "../../../utils/Interfaces"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
+import { createItinerarioList } from "../../../utils/itinerarioActions"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { ViewItinerary } from "../../../pages/invitados"
 import { ItineraryTabsMenu } from "./ItineraryTabsMenu"
@@ -318,161 +319,10 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             }
         }
     }, [event, setEvent])
+    // Única fuente de verdad: el cuerpo vive en utils/itinerarioActions.createItinerarioList
+    // (mismo flujo que usa el selector MÓVIL de Tareas). Ver ese archivo.
     const handleCreateItinerario = async () => {
-        const safeItins = Array.isArray(event?.itinerarios_array) ? event.itinerarios_array : []
-        const pathSlice = window?.location?.pathname.slice(1)
-        if (safeItins.filter(elem => elem?.tipo === pathSlice).length > 15) {
-            toast("warning", t("maxLimitedItineraries"));
-            return
-        }
-        // BUG-IT-01 (informe QA 22-jun): si event.fecha es null/undefined o no
-        // parseable, new Date(parseInt(undefined)) = Invalid Date → API 400.
-        // Usar la fecha del evento si es válida, si no fallback a "hoy".
-        const fechaParsed = event?.fecha ? parseInt(String(event.fecha)) : NaN
-        const f = !isNaN(fechaParsed) && fechaParsed > 0
-            ? new Date(fechaParsed)
-            : new Date()
-        const baseDate = isNaN(f.getTime()) ? new Date() : f
-        const y = baseDate.getUTCFullYear()
-        const m = baseDate.getUTCMonth()
-        const d = baseDate.getUTCDate()
-        try {
-            const r: any = await fetchApiEventos({
-                query: queries.createItinerario,
-                variables: {
-                    evento_id: event._id,
-                    itinerario: {
-                        title: t("unnamed"),
-                        dateTime: new Date(y, m, d, 8, 0),
-                        tipo: pathSlice
-                    }
-                },
-                domain: config.domain
-            })
-            const result: Itinerary = r?.itinerario || r
-            // BUG-IT-01: si el API devuelve null/error, abortar sin romper
-            // (antes intentaba result._id → crash "Cannot read properties of null").
-            if (!result || !result._id) {
-                toast("error", t("Error al crear itinerario"))
-                console.warn("[ItineraryTabs] createItinerario devolvió result null/sin _id", r)
-                return
-            }
-            const safeList = Array.isArray(event?.listIdentifiers) ? [...event.listIdentifiers] : []
-            const fListIdentifiers = safeList.findIndex(elem => elem?.table === pathSlice)
-            const sameTipo = Array.isArray(event?.itinerarios_array)
-                ? event.itinerarios_array.filter(elem => elem?.tipo === pathSlice)
-                : []
-
-            let nextList = safeList
-            let nextItinerarios = Array.isArray(event?.itinerarios_array) ? [...event.itinerarios_array] : []
-
-            if (sameTipo.length) {
-                const lastListIdentifiers = fListIdentifiers >= 0 ? { ...safeList[fListIdentifiers] } : null
-                const f1 = lastListIdentifiers?.end_Id
-                    ? nextItinerarios.findIndex(elem => elem._id === lastListIdentifiers.end_Id)
-                    : -1
-                if (f1 > -1 && lastListIdentifiers) {
-                    nextItinerarios[f1] = { ...nextItinerarios[f1], next_id: result._id }
-                    updatedNextId(nextItinerarios[f1])
-                    nextList = safeList.map((li, i) =>
-                        i === fListIdentifiers ? { ...li, end_Id: result._id } : li
-                    )
-                    updatedListIdentifiers({ ...event, listIdentifiers: nextList })
-                } else {
-                    nextList = [...safeList, {
-                        end_Id: result._id,
-                        start_Id: result._id,
-                        table: pathSlice,
-                    }]
-                }
-            } else if (fListIdentifiers < 0) {
-                nextList = [...safeList, {
-                    start_Id: result._id,
-                    end_Id: result._id,
-                    table: pathSlice,
-                }]
-            } else {
-                nextList = safeList.map((li, i) =>
-                    i === fListIdentifiers ? { ...li, start_Id: result._id, end_Id: result._id } : li
-                )
-            }
-
-            // Tarea inicial al crear itinerario/servicio.
-            // Itinerario: fecha del evento a las 06:00 en event.timeZone.
-            let initialTasks: Task[] = Array.isArray(result.tasks) ? [...result.tasks] : []
-            try {
-                const isItinerario = pathSlice === "itinerario"
-                const fecha6 = eventDateAtHourZ(event?.fecha, 6, 0)
-                const createResult: any = await fetchApiEventos({
-                    query: queries.createTask,
-                    variables: {
-                        evento_id: event._id,
-                        development: config.development || "bodasdehoy",
-                        task: {
-                            itinerario_id: result._id,
-                            descripcion: isItinerario ? "Tarea nueva" : "Servicio nuevo",
-                            ...(isItinerario && {
-                                fecha: fecha6.toISOString(),
-                                hora: "06:00",
-                                horaActiva: true,
-                                duracion: 30,
-                                spectatorView: true,
-                            }),
-                        },
-                    },
-                    domain: config.domain,
-                })
-                const createdTask = (createResult?.task || createResult) as Task
-                if (createdTask?._id) {
-                    const taskFecha = createdTask.fecha
-                        ? new Date(createdTask.fecha as string | Date)
-                        : fecha6
-                    const task: Task = {
-                        ...createdTask,
-                        fecha: taskFecha,
-                        ...(isItinerario
-                            ? {
-                                horaActiva: true,
-                                spectatorView: true,
-                                duracion: createdTask.duracion ?? 30,
-                            }
-                            : {}),
-                        estatus: true,
-                    }
-                    initialTasks = [...initialTasks, task]
-                    setSelectTask(task._id)
-                    fetchApiEventos({
-                        query: queries.editTask,
-                        variables: {
-                            evento_id: event._id,
-                            itinerario_id: result._id,
-                            task_id: task._id,
-                            development: config.development || "bodasdehoy",
-                            updates: { estatus: true },
-                        },
-                    }).catch((e) => console.warn('[ItineraryTabs] editTask estatus falló:', e?.message ?? e))
-                }
-            } catch (taskErr: any) {
-                console.warn('[ItineraryTabs] createTask inicial falló:', taskErr?.message ?? taskErr)
-            }
-
-            const newItinerario = {
-                ...result,
-                tasks: initialTasks,
-                viewers: result.viewers ?? [],
-            }
-            nextItinerarios = [...nextItinerarios, newItinerario]
-            setEvent((prev) => ({
-                ...prev,
-                listIdentifiers: nextList,
-                itinerarios_array: nextItinerarios,
-            }))
-            setItinerario({ ...newItinerario })
-            localStorage.setItem(`E_${event._id}_${pathSlice}`, result._id)
-        } catch (error: any) {
-            console.warn('[ItineraryTabs] handleCreateItinerario error:', error?.message ?? error)
-            toast("error", t("Error al crear itinerario"))
-        }
+        await createItinerarioList({ event, setEvent, setItinerario, setSelectTask, config, t, toast })
     }
     const handleSelectItinerario = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: Itinerary) => {
         localStorage.setItem(`E_${event._id}_${window?.location?.pathname.slice(1)}`, item._id)

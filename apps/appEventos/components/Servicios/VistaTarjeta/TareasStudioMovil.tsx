@@ -29,6 +29,9 @@ interface Props {
   deleteTask: (task: Task, itinerario: Itinerary) => void;
   title: string;
   event: any;
+  itineraries?: Itinerary[];
+  onSelectItinerario?: (it: Itinerary) => void;
+  onCreateItinerario?: () => void;
 }
 
 // Paleta de estados del HTML móvil: [texto, fondo].
@@ -40,11 +43,13 @@ const EST_MOV: Record<string, [string, string]> = {
 };
 const PRIO_MOV: Record<string, string> = { alta: "#D83E7C", media: "#8F6E14", baja: "#2FB37E" };
 
-export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks, toggleTaskExpand, handleUpdate, handleTaskUpdate, handleTaskCreate, deleteTask, title, event }) => {
+export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks, toggleTaskExpand, handleUpdate, handleTaskUpdate, handleTaskCreate, deleteTask, title, event, itineraries, onSelectItinerario, onCreateItinerario }) => {
   const { t } = useTranslation();
   const { utcDateFormated2Digits, timeFormated } = useDateTime();
   const [q, setQ] = useState("");
   const [openMenu, setOpenMenu] = useState(false);
+  const [listMenu, setListMenu] = useState(false);
+  const listas = Array.isArray(itineraries) ? itineraries : [];
 
   const lista = Array.isArray(tasks) ? tasks : [];
   const term = q.trim().toLowerCase();
@@ -83,6 +88,32 @@ export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks,
           <input id="tm-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Buscar tareas…", { defaultValue: "Buscar tareas…" })} style={{ border: "none", outline: "none", font: "400 12.5px Poppins", color: "#3A3A42", width: "100%", background: "transparent" }} />
         </div>
       </div>
+
+      {/* SELECTOR DE LISTA + NUEVA (misma lógica que el escritorio, vía props) */}
+      {(onSelectItinerario || onCreateItinerario) && (
+        <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 8, padding: "12px 16px 0", zIndex: 15 }}>
+          <div onClick={() => setListMenu((v) => !v)} style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, background: "#fff", border: "1px solid #f0f0f2", boxShadow: "0 3px 10px rgba(0,0,0,.04)", borderRadius: 12, padding: "11px 14px", cursor: "pointer" }}>
+            <span style={{ font: "600 13px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{itinerario?.title || t("Seleccionar lista", { defaultValue: "Seleccionar lista" })}</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2.2} strokeLinecap="round" style={{ flex: "none", transform: listMenu ? "rotate(180deg)" : "none", transition: "transform .18s" }}><path d="M6 9l6 6 6-6" /></svg>
+          </div>
+          {onCreateItinerario && (
+            <button onClick={() => { setListMenu(false); onCreateItinerario(); }} style={{ display: "flex", alignItems: "center", gap: 5, padding: "11px 14px", borderRadius: 12, border: "1px solid #f0f0f2", boxShadow: "0 3px 10px rgba(0,0,0,.04)", background: "#fff", color: "#EF5B94", cursor: "pointer", font: "600 12px Poppins", flex: "none" }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Nueva", { defaultValue: "Nueva" })}
+            </button>
+          )}
+          {listMenu && (
+            <>
+              <div onClick={() => setListMenu(false)} style={{ position: "fixed", inset: 0, zIndex: 18 }} />
+              <div style={{ position: "absolute", left: 16, right: 16, top: "calc(100% + 6px)", background: "#fff", borderRadius: 13, border: "1px solid #f0f0f2", boxShadow: "0 14px 40px rgba(0,0,0,.14)", padding: 6, zIndex: 20, maxHeight: 280, overflowY: "auto" }}>
+                {listas.length === 0 && <div style={{ padding: "11px 13px", font: "500 12px Poppins", color: "#a0a0a8" }}>{t("Sin listas", { defaultValue: "Sin listas" })}</div>}
+                {listas.map((item, idx) => (
+                  <div key={item?._id || idx} onClick={() => { setListMenu(false); onSelectItinerario?.(item); }} style={{ padding: "11px 13px", borderRadius: 9, font: "600 12.5px Poppins", color: itinerario?._id === item?._id ? "#D83E7C" : "#3A3A42", background: itinerario?._id === item?._id ? "#FCE7F0" : "transparent", cursor: "pointer" }}>{item?.title}</div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {/* TÍTULO + PROGRESO */}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "18px 16px 4px" }}>

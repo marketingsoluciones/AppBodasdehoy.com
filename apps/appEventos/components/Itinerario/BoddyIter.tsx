@@ -6,6 +6,7 @@ import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider }
 import { Event, Itinerary, SelectModeSortType } from "../../utils/Interfaces"
 import { ViewItinerary } from "../../pages/invitados";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { createItinerarioList } from "../../utils/itinerarioActions";
 import { useToast } from "../../hooks/useToast";
 import { Modal } from "../Utils/Modal";
 import { DeleteConfirmation } from "../Utils/DeleteConfirmation";
@@ -406,6 +407,15 @@ export const BoddyIter = () => {
     // Scoped a "itinerario" (servicios conserva su vista). Rollback ?studio=legacy.
     const studioIter = searchParams.get("studio") !== "legacy"
     const pathSliceIter = typeof window !== "undefined" ? window.location.pathname.slice(1) : "itinerario"
+    const itinerariosDelTipo = Array.isArray(event?.itinerarios_array)
+        ? event.itinerarios_array.filter((el: any) => el?.tipo === pathSliceIter)
+        : []
+    const handleCreateItinerarioMovil = () =>
+        createItinerarioList({ event, setEvent, setItinerario, setSelectTask, config, t, toast })
+    const handleSelectItinerarioMovil = (item: Itinerary) => {
+        if (typeof window !== "undefined") localStorage.setItem(`E_${event._id}_${pathSliceIter}`, item._id)
+        setItinerario(item)
+    }
     const isEmptyTipo = !(Array.isArray(event?.itinerarios_array) && event.itinerarios_array.some((el: any) => el?.tipo === pathSliceIter))
     if (studioIter && event?._id && pathSliceIter === "itinerario" && isEmptyTipo) {
         return (
@@ -476,6 +486,9 @@ export const BoddyIter = () => {
                                 setOrderAndDirection={setOrderAndDirection}
                                 allExpanded={allExpanded}
                                 onToggleExpandAll={toggleExpandAll}
+                                itineraries={itinerariosDelTipo}
+                                setItinerario={handleSelectItinerarioMovil}
+                                onCreateItinerario={handleCreateItinerarioMovil}
                             /> : <ViewWihtoutData isOwner={isOwner} />}
                         </ModuleErrorBoundary>
                         : <div className="h-full">
