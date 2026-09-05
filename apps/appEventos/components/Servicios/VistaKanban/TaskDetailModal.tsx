@@ -29,6 +29,8 @@ import { getStorage, ref, listAll, deleteObject } from "firebase/storage";
 import { deleteAllFiles, deleteRecursive } from "../../Utils/storages";
 import { SimpleDeleteConfirmation } from "../../Utils/SimpleDeleteConfirmation";
 import { EntityNotesSection } from "../../Notes/EntityNotesSection";
+import { isStudioPathname } from '../../../utils/studioPaths';
+import { createPortal } from 'react-dom';
 
 interface TaskDetailModalProps {
   task: Task;
@@ -311,19 +313,25 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     }
   };
 
-  return (
+  const isStudio = typeof window !== "undefined"
+    && isStudioPathname(window.location.pathname)
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
+
+  const modalInner = (
     <>
       <ClickAwayListener onClickAway={onClose}>
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10"
+          style={isStudio ? { background: "rgba(40,40,46,.45)" } : undefined}
+          className={isStudio ? "fixed inset-0 flex items-center justify-center z-[200] p-4" : "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10"}
           onClick={onClose}
         >
           <div
-            className="bg-white rounded-lg shadow-2xl w-full max-w-6xl max-h-screen h-auto md:mx-4 flex flex-col sm:max-h-[90vh]"
+            style={isStudio ? { borderRadius: 18, boxShadow: "0 30px 80px rgba(0,0,0,.3)", maxHeight: "90vh", fontFamily: "'Poppins',sans-serif" } : undefined}
+            className={isStudio ? "bg-white w-full max-w-5xl flex flex-col overflow-hidden" : "bg-white rounded-lg shadow-2xl w-full max-w-6xl max-h-screen h-auto md:mx-4 flex flex-col sm:max-h-[90vh]"}
             onClick={handleContentClick}
           >
-            {/* Header del modal */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+            {/* Header del modal — oculto en studio: TaskFullView ya trae el título editable */}
+            <div className={isStudio ? "hidden" : "flex items-center justify-between px-6 py-4 border-b border-gray-200"}>
               <div className="flex items-center space-x-4">
                 <h2 className="text-xl font-semibold text-gray-800">
                   {t('Detalle de Tarea')}
@@ -407,6 +415,11 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       )}
     </>
   );
+
+  // En studio, portal a body: centra el modal respecto al viewport aunque el tablero
+  // esté expandido (width/transform en un ancestro rompería position:fixed).
+  if (isStudio && typeof document !== "undefined") return createPortal(modalInner, document.body);
+  return modalInner;
 };
 
 export default TaskDetailModal;
