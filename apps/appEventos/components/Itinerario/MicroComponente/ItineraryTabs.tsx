@@ -717,7 +717,11 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             // "Tabla" apunta a newTable: es la tabla del diseño (10 columnas, barra propia
             // y pie de recuento). El valor "table" renderiza otro componente distinto.
             { v: isTareas ? "newTable" : "table", label: t("Tabla", { defaultValue: "Tabla" }), icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg> },
-            { v: "schema", label: t("schema", { defaultValue: "Esquema" }), icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><circle cx="6" cy="6" r="2" /><circle cx="6" cy="18" r="2" /><path d="M11 6h9M11 18h9M6 8v8" /></svg> },
+            // En Tareas la 3ª vista es el TABLERO (kanban, boardView); en Itinerario sigue
+            // siendo "Esquema" (schema).
+            isTareas
+              ? { v: "boardView", label: t("Tablero", { defaultValue: "Tablero" }), icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><rect x="3" y="4" width="7" height="16" rx="1.5" /><rect x="14" y="4" width="7" height="10" rx="1.5" /></svg> }
+              : { v: "schema", label: t("schema", { defaultValue: "Esquema" }), icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><circle cx="6" cy="6" r="2" /><circle cx="6" cy="18" r="2" /><path d="M11 6h9M11 18h9M6 8v8" /></svg> },
         ]
         const activeVer = verOptions.find(o => o.v === view) || verOptions[0]
         const selectTab = (item: Itinerary) => {
@@ -843,7 +847,9 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
     if (isStudio && isMobile) {
         const verOptionsM = [
             { v: "cards", label: t("card", { defaultValue: "Tarjeta" }), icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 10h18" /></svg> },
-            { v: "schema", label: t("schema", { defaultValue: "Esquema" }), icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><circle cx="6" cy="6" r="2" /><circle cx="6" cy="18" r="2" /><path d="M11 6h9M11 18h9M6 8v8" /></svg> },
+            isTareas
+              ? { v: "boardView", label: t("Tablero", { defaultValue: "Tablero" }), icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><rect x="3" y="4" width="7" height="16" rx="1.5" /><rect x="14" y="4" width="7" height="10" rx="1.5" /></svg> }
+              : { v: "schema", label: t("schema", { defaultValue: "Esquema" }), icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><circle cx="6" cy="6" r="2" /><circle cx="6" cy="18" r="2" /><path d="M11 6h9M11 18h9M6 8v8" /></svg> },
         ]
         const activeVerM = verOptionsM.find(o => o.v === view) || verOptionsM[0]
         return (

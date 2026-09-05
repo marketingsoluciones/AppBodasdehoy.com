@@ -17,6 +17,7 @@ import { BoardHeader } from './BoardHeader';
 import { ShortcutsModal } from '../Utils/ShortcutsModal';
 import { BoardDragOverlay } from './BoardDragOverlay';
 import { BoardColumn } from './BoardColumn';
+import { isStudioPathname } from '../../../utils/studioPaths';
 
 interface BoardViewProps {
   data: Task[];
@@ -46,6 +47,7 @@ export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, s
   const [showFilters, setShowFilters] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showTaskDetail, setShowTaskDetail] = useState<{ show: boolean; task?: Task }>({ show: false });
+  const [expandido, setExpandido] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showSubTaskModal, setShowSubTaskModal] = useState<{ show: boolean; parentTaskId?: string; }>({ show: false });
@@ -344,8 +346,14 @@ export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, s
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [toggleGlobalCollapse, handleManualSave]);
 
+  const isStudio = typeof window !== "undefined"
+    && isStudioPathname(window.location.pathname)
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
+
   return (
-    <div className="h-[calc(100vh-270px)] flex flex-col bg-gray-50 ">
+    <div
+      style={isStudio ? { background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, padding: "14px 18px 18px", display: "flex", flexDirection: "column", gap: 12, fontFamily: "'Poppins',sans-serif", transition: "width .3s ease", ...(expandido ? { width: "94vw", maxWidth: "94vw" } : {}) } : undefined}
+      className={isStudio ? "" : "h-[calc(100vh-270px)] flex flex-col bg-gray-50 "}>
       {/* Header del tablero */}
       <BoardHeader
         itinerario={itinerario}
@@ -363,6 +371,10 @@ export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, s
         onManualSave={handleManualSave}
         onExport={exportData}
         onShowShortcuts={() => setShowShortcuts(true)}
+        onAddTask={() => handleTaskCreate({ descripcion: t('Nueva tarea'), estado: 'pending', prioridad: 'media' } as any)}
+        expanded={expandido}
+        onToggleExpand={() => setExpandido((v) => !v)}
+        totalTasks={data?.length ?? 0}
       />
 
       {/* Filtros expandibles */}
@@ -376,7 +388,7 @@ export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, s
       )}
 
       {/* Tablero principal */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden">
+      <div className={isStudio ? "" : "flex-1 overflow-x-auto overflow-y-hidden"}>
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
@@ -384,7 +396,9 @@ export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, s
           onDragEnd={handleDragEnd}
           onDragOver={handleDragOver}
         >
-          <div className="flex justify-center h-full p-4 space-x-4" style={{ minWidth: 'fit-content' }}>
+          <div
+            className={isStudio ? "" : "flex justify-center h-full p-4 space-x-4"}
+            style={isStudio ? { display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, alignItems: "start" } : { minWidth: 'fit-content' }}>
             <SortableContext
               items={boardState.columnOrder}
               strategy={horizontalListSortingStrategy}
