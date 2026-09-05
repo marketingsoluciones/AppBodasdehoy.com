@@ -3,10 +3,10 @@
 import { Icon } from '@lobehub/ui';
 import { TabBar, type TabBarProps } from '@lobehub/ui/mobile';
 import { createStyles } from 'antd-style';
-import { Compass, Inbox, MessageSquare, User } from 'lucide-react';
+import { Bot, Compass, FolderClosed, Globe, Images, Inbox, LayoutGrid, MessageSquare, Settings, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { rgba } from 'polished';
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { MOBILE_TABBAR_HEIGHT } from '@/const/layoutTokens';
@@ -22,11 +22,60 @@ const useStyles = createStyles(({ css, token }) => ({
       fill: ${rgba(token.colorPrimary, 0.33)};
     }
   `,
+  backdrop: css`
+    position: fixed;
+    z-index: 900;
+    inset: 0;
+    background: ${rgba('#000', 0.45)};
+  `,
   container: css`
     position: fixed;
     z-index: 100;
     inset-block-end: 0;
     inset-inline: 0 0;
+  `,
+  item: css`
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    padding: 14px 20px;
+    border-radius: 12px;
+    color: ${token.colorText};
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    &:active {
+      background: ${token.colorFillSecondary};
+    }
+    svg {
+      color: ${token.colorPrimary};
+    }
+  `,
+  sheet: css`
+    position: fixed;
+    z-index: 901;
+    inset-inline: 0 0;
+    inset-block-end: 0;
+    padding: 8px 12px calc(20px + env(safe-area-inset-bottom));
+    border-start-start-radius: 18px;
+    border-start-end-radius: 18px;
+    background: ${token.colorBgContainer};
+    box-shadow: 0 -8px 30px ${rgba('#000', 0.18)};
+  `,
+  sheetHandle: css`
+    width: 40px;
+    height: 4px;
+    margin: 8px auto 10px;
+    border-radius: 3px;
+    background: ${token.colorBorder};
+  `,
+  sheetTitle: css`
+    padding: 2px 8px 10px;
+    color: ${token.colorTextTertiary};
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   `,
 }));
 
@@ -35,6 +84,20 @@ const NavBar = memo(() => {
   const { styles } = useStyles();
   const activeKey = useActiveTabKey();
   const router = useRouter();
+  // P0 móvil (5-sep): en móvil se perdía el acceso al resto de la app (Agentes, Momentos,
+  // Documentos, Editor de webs, Ajustes). "Más" abre una hoja con TODAS esas secciones.
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreSections = useMemo(
+    () =>
+      [
+        isLoggedIn && { href: '/agentes', icon: Bot, title: 'Agentes' },
+        { href: '/memories', icon: Images, title: 'Momentos' },
+        { href: '/files', icon: FolderClosed, title: 'Documentos' },
+        { href: '/wedding-creator', icon: Globe, title: 'Web de boda' },
+        { href: '/settings', icon: Settings, title: 'Ajustes y saldo' },
+      ].filter(Boolean) as Array<{ href: string; icon: typeof Bot; title: string }>,
+    [isLoggedIn],
+  );
 
   const { showMarket } = useServerConfigStore(featureFlagsSelectors);
   const isGuest = useDomainGuestUser();
@@ -114,17 +177,49 @@ const NavBar = memo(() => {
           },
           title: t('tab.me'),
         },
+        {
+          icon: (active: boolean) => (
+            <Icon className={active ? styles.active : undefined} icon={LayoutGrid} />
+          ),
+          key: 'more',
+          onClick: () => setMoreOpen(true),
+          title: 'Más',
+        },
       ].filter(Boolean) as TabBarProps['items'],
     [t, showMarket, isGuest, isLoggedIn, isServerMode, inboxUnread, router, styles.active],
   );
 
   return (
-    <TabBar
-      activeKey={activeKey}
-      className={styles.container}
-      height={MOBILE_TABBAR_HEIGHT}
-      items={items}
-    />
+    <>
+      <TabBar
+        activeKey={activeKey}
+        className={styles.container}
+        height={MOBILE_TABBAR_HEIGHT}
+        items={items}
+      />
+      {moreOpen && (
+        <>
+          <div className={styles.backdrop} onClick={() => setMoreOpen(false)} />
+          <div className={styles.sheet}>
+            <div className={styles.sheetHandle} />
+            <div className={styles.sheetTitle}>Ir a…</div>
+            {moreSections.map((s) => (
+              <div
+                className={styles.item}
+                key={s.href}
+                onClick={() => {
+                  setMoreOpen(false);
+                  router.push(s.href);
+                }}
+              >
+                <Icon icon={s.icon} size={20} />
+                {s.title}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </>
   );
 });
 
