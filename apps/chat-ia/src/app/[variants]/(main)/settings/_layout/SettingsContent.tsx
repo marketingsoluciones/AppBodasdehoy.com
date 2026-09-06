@@ -138,7 +138,7 @@ const SettingsContent = ({ mobile, activeTab, showLLM = true }: SettingsContentP
           <button
             onClick={() => router.push('/')}
             style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #F7628C 0%, #D6497A 100%)',
               border: 'none',
               borderRadius: 8,
               color: 'white',

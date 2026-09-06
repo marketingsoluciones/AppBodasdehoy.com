@@ -301,7 +301,7 @@ const AutoRechargeCard = memo<AutoRechargeCardProps>(
                   disabled={saving || !threshold || !amount}
                   onClick={handleSave}
                   style={{
-                    background: saving ? '#e5e7eb' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: saving ? '#e5e7eb' : 'linear-gradient(135deg, #F7628C 0%, #D6497A 100%)',
                     border: 'none',
                     borderRadius: 8,
                     color: saving ? '#9ca3af' : 'white',

@@ -78,10 +78,56 @@ const QuotaBanner = memo(() => {
   const aiLimit = plan.product_limits?.find?.((l) => l.sku === 'ai-tokens');
   if (!aiLimit || isUnlimited('ai-tokens', aiLimit.free_quota)) return null;
 
+  // Wallet (una sola vez): fondos disponibles y si el saldo permite pago por uso.
+  // availableFunds = saldo positivo, o el crédito restante si el saldo es negativo.
+  const availableFunds = totalBalance >= 0 ? totalBalance : Math.max(0, creditLimit + totalBalance);
+  // FIX saldo (6-sep, JCP): "teniendo saldo dice plan agotado". El usuario puede seguir
+  // consultando (pago por uso) si el plan tiene overage con crédito, O si tiene saldo real (>0).
+  // Antes el bloque DIARIO bloqueaba en rojo sin mirar el saldo → falso "agotado".
+  const canPayPerUse = !isCreditExhausted && (aiLimit.overage_enabled || totalBalance > 0);
+
   // --- Límite diario ---
   if (aiLimit.daily_quota) {
     const todayTokens = todayStats?.totalTokens ?? 0;
     const dailyCheck = canAccessDaily('ai-tokens', todayTokens, plan);
+    if (dailyCheck && !dailyCheck.allowed && canPayPerUse) {
+      // Límite diario alcanzado PERO hay saldo → pago por uso (verde), no bloqueo.
+      return (
+        <Flexbox
+          align="center"
+          gap={8}
+          horizontal
+          style={{
+            background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+            border: '1px solid #86efac',
+            borderRadius: 8,
+            fontSize: 13,
+            marginBottom: 6,
+            padding: '6px 12px',
+          }}
+        >
+          <Zap size={14} style={{ color: '#16a34a', flexShrink: 0 }} />
+          <span style={{ color: '#15803d', flex: 1 }}>
+            Límite diario alcanzado · usando tu saldo: €{availableFunds.toFixed(2)}
+          </span>
+          <Link
+            href="/settings/billing/planes"
+            style={{
+              border: '1px solid #16a34a',
+              borderRadius: 6,
+              color: '#16a34a',
+              fontSize: 12,
+              fontWeight: 600,
+              padding: '3px 10px',
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Ampliar plan
+          </Link>
+        </Flexbox>
+      );
+    }
     if (dailyCheck && !dailyCheck.allowed) {
       return (
         <Flexbox
@@ -104,7 +150,7 @@ const QuotaBanner = memo(() => {
           <Link
             href="/settings/billing/planes"
             style={{
-              background: '#667eea',
+              background: '#F7628C',
               borderRadius: 6,
               color: 'white',
               fontSize: 12,
@@ -174,12 +220,10 @@ const QuotaBanner = memo(() => {
   // remaining: queries left (each ~500 tokens). 0 means effectively exhausted even if percent is 99.x%
   const remaining = Math.max(0, Math.round((aiLimit.free_quota - currentTokens) / 500));
   const isEffectivelyExhausted = percent >= 100 || remaining === 0;
-  // isPayPerUse: plan exhausted AND overage enabled AND wallet has credit → user pays per query
-  const isPayPerUse = isEffectivelyExhausted && aiLimit.overage_enabled && !isCreditExhausted;
-  // isBlocked: exhausted and cannot continue (no overage, or overage but no credit)
+  // isPayPerUse: plan agotado y el saldo/overage permite seguir → pago por uso (misma regla que el diario)
+  const isPayPerUse = isEffectivelyExhausted && canPayPerUse;
+  // isBlocked: agotado y sin forma de continuar (ni overage con crédito ni saldo)
   const isBlocked = isEffectivelyExhausted && !isPayPerUse;
-  // Available funds: positive balance OR remaining credit limit
-  const availableFunds = totalBalance >= 0 ? totalBalance : Math.max(0, creditLimit + totalBalance);
 
   if (isBlocked) {
     return (
@@ -204,7 +248,7 @@ const QuotaBanner = memo(() => {
           <Link
             href="/settings/billing/packages"
             style={{
-              background: '#667eea',
+              background: '#F7628C',
               borderRadius: 6,
               color: 'white',
               fontSize: 12,
@@ -219,9 +263,9 @@ const QuotaBanner = memo(() => {
           <Link
             href="/settings/billing/planes"
             style={{
-              border: '1px solid #667eea',
+              border: '1px solid #F7628C',
               borderRadius: 6,
-              color: '#667eea',
+              color: '#F7628C',
               fontSize: 12,
               fontWeight: 600,
               padding: '4px 12px',

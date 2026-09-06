@@ -183,7 +183,7 @@ const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(
     const secondary =
       branding?.color_secondary ||
       (typeof theme.colorInfo === 'string' ? theme.colorInfo : undefined) ||
-      '#764ba2';
+      '#D6497A';
 
     if (hydrating) {
       return (

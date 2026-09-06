@@ -38,7 +38,7 @@ import RechargeModal from '@/components/Wallet/RechargeModal';
 
 const useStyles = createStyles(({ css, token }) => ({
   actionButton: css`
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #F7628C 0%, #D6497A 100%);
     border: none;
     border-radius: 8px;
     color: white;
@@ -66,7 +66,7 @@ const useStyles = createStyles(({ css, token }) => ({
     padding: 20px;
   `,
   cardHighlight: css`
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #F7628C 0%, #D6497A 100%);
     border-radius: 12px;
     color: white;
     padding: 24px;
@@ -299,7 +299,7 @@ const BillingPage = memo(() => {
           <button
             onClick={() => router.push('/')}
             style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #F7628C 0%, #D6497A 100%)',
               border: 'none',
               borderRadius: 8,
               color: 'white',
@@ -426,7 +426,7 @@ const BillingPage = memo(() => {
             <button
               className={styles.actionButton}
               onClick={() => setShowRechargeModal(true)}
-              style={{ background: 'white', color: '#667eea', marginTop: 4 }}
+              style={{ background: 'white', color: '#F7628C', marginTop: 4 }}
             >
               <Flexbox align="center" gap={6} horizontal>
                 <CreditCard size={15} />

@@ -912,8 +912,8 @@ user_id: effectiveUserId,
               }
               if (config.colors) {
                 const root = document.documentElement;
-                root.style.setProperty('--primary-color', config.colors.primary || '#667eea');
-                root.style.setProperty('--secondary-color', config.colors.secondary || '#764ba2');
+                root.style.setProperty('--primary-color', config.colors.primary || '#F7628C');
+                root.style.setProperty('--secondary-color', config.colors.secondary || '#D6497A');
                 root.style.setProperty('--background-color', config.colors.background || '#ffffff');
                 root.style.setProperty('--text-color', config.colors.text || '#1a202c');
                 root.style.setProperty('--accent-color', config.colors.accent || '#ff69b4');
@@ -949,8 +949,8 @@ user_id: effectiveUserId,
             }
             if (config.colors) {
               const root = document.documentElement;
-              root.style.setProperty('--primary-color', config.colors.primary || '#667eea');
-              root.style.setProperty('--secondary-color', config.colors.secondary || '#764ba2');
+              root.style.setProperty('--primary-color', config.colors.primary || '#F7628C');
+              root.style.setProperty('--secondary-color', config.colors.secondary || '#D6497A');
               root.style.setProperty('--background-color', config.colors.background || '#ffffff');
               root.style.setProperty('--text-color', config.colors.text || '#1a202c');
               root.style.setProperty('--accent-color', config.colors.accent || '#ff69b4');
@@ -976,8 +976,8 @@ user_id: effectiveUserId,
               }
               if (config.colors) {
                 const root = document.documentElement;
-                root.style.setProperty('--primary-color', config.colors.primary || '#667eea');
-                root.style.setProperty('--secondary-color', config.colors.secondary || '#764ba2');
+                root.style.setProperty('--primary-color', config.colors.primary || '#F7628C');
+                root.style.setProperty('--secondary-color', config.colors.secondary || '#D6497A');
                 root.style.setProperty('--background-color', config.colors.background || '#ffffff');
                 root.style.setProperty('--text-color', config.colors.text || '#1a202c');
                 root.style.setProperty('--accent-color', config.colors.accent || '#ff69b4');

@@ -49,8 +49,8 @@ const useStyles = createStyles(({ css, token }) => ({
     color: #f59e0b;
   `,
   iconGuest: css`
-    background: linear-gradient(135deg, #667eea22, #764ba244);
-    color: #667eea;
+    background: linear-gradient(135deg, #F7628C22, #D6497A44);
+    color: #F7628C;
   `,
   title: css`
     color: ${token.colorText};

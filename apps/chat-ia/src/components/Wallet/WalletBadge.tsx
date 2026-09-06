@@ -30,7 +30,7 @@ const WalletBadge = memo<WalletBadgeProps>(({ onClick, showDetails = false, size
         gap={6}
         horizontal
         style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'linear-gradient(135deg, #F7628C 0%, #D6497A 100%)',
           borderRadius: 20,
           color: 'white',
           cursor: 'pointer',
@@ -81,7 +81,7 @@ const WalletBadge = memo<WalletBadgeProps>(({ onClick, showDetails = false, size
           ? 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)'
           : isLowBalance
             ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
-            : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            : 'linear-gradient(135deg, #F7628C 0%, #D6497A 100%)',
         border: 'none',
         borderRadius: 20,
         color: 'white',

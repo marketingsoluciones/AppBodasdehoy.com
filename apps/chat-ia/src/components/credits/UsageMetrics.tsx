@@ -16,7 +16,7 @@ const useStyles = createStyles(({ css, token }) => ({
     padding: 20px;
   `,
   metricCard: css`
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #F7628C 0%, #D6497A 100%);
     border-radius: 12px;
     color: white;
     padding: 20px;
@@ -86,10 +86,10 @@ const UsageMetrics = memo<UsageMetricsProps>(({ usageStats, previousPeriod }) =>
         {usageStats.ai_tokens && (
           <Card className={styles.card} style={{ flex: 1, minWidth: 200 }}>
             <Statistic
-              prefix={<Brain size={20} style={{ color: '#667eea' }} />}
+              prefix={<Brain size={20} style={{ color: '#F7628C' }} />}
               title="Tokens IA"
               value={usageStats.ai_tokens.total?.toLocaleString() || 0}
-              valueStyle={{ color: '#667eea', fontSize: 24 }}
+              valueStyle={{ color: '#F7628C', fontSize: 24 }}
             />
             {(() => {
               const totalAiCost = usageStats.ai_tokens.by_model?.reduce((sum, m) => sum + (m.cost || 0), 0) || 0;
@@ -105,10 +105,10 @@ const UsageMetrics = memo<UsageMetricsProps>(({ usageStats, previousPeriod }) =>
         {usageStats.images && (usageStats.images.total ?? 0) > 0 && (
           <Card className={styles.card} style={{ flex: 1, minWidth: 200 }}>
             <Statistic
-              prefix={<Image size={20} style={{ color: '#764ba2' }} />}
+              prefix={<Image size={20} style={{ color: '#D6497A' }} />}
               title="Imágenes"
               value={usageStats.images.total}
-              valueStyle={{ color: '#764ba2', fontSize: 24 }}
+              valueStyle={{ color: '#D6497A', fontSize: 24 }}
             />
             {(() => {
               const totalImageCost = usageStats.images.by_provider?.reduce((sum, p) => sum + (p.cost || 0), 0) || 0;

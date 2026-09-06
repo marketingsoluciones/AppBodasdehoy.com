@@ -50,7 +50,7 @@ const useStyles = createStyles(({ css, token }) => ({
     gap: 8px;
   `,
   summaryCard: css`
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #F7628C 0%, #D6497A 100%);
     border-radius: 12px;
     color: white;
     padding: 24px;
@@ -213,8 +213,8 @@ const BalanceChart = memo<{ currency: string; transactions: WalletTransaction[] 
           <AreaChart data={chartData} margin={{ bottom: 0, left: 0, right: 8, top: 8 }}>
             <defs>
               <linearGradient id="balanceGrad" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="5%" stopColor="#667eea" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#667eea" stopOpacity={0} />
+                <stop offset="5%" stopColor="#F7628C" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#F7628C" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid stroke="rgba(0,0,0,0.06)" strokeDasharray="3 3" />
@@ -240,7 +240,7 @@ const BalanceChart = memo<{ currency: string; transactions: WalletTransaction[] 
               dataKey="balance"
               fill="url(#balanceGrad)"
               name="Saldo"
-              stroke="#667eea"
+              stroke="#F7628C"
               strokeWidth={2}
               type="monotone"
             />

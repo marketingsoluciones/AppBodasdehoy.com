@@ -99,8 +99,8 @@ const ConsumptionChart = memo<ConsumptionChartProps>(({ usageStats, period = 'TH
                   }) as any}
                 />
                 <Legend />
-                <Bar dataKey="tokens" fill="#667eea" name="Tokens" />
-                <Bar dataKey="cost" fill="#764ba2" name="Costo (€)" />
+                <Bar dataKey="tokens" fill="#F7628C" name="Tokens" />
+                <Bar dataKey="cost" fill="#D6497A" name="Costo (€)" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -187,7 +187,7 @@ const ConsumptionChart = memo<ConsumptionChartProps>(({ usageStats, period = 'TH
               <YAxis />
               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               <Tooltip formatter={((value: number) => formatCurrency(value)) as any} />
-              <Bar dataKey="costo" fill="#667eea" />
+              <Bar dataKey="costo" fill="#F7628C" />
             </BarChart>
           </ResponsiveContainer>
         </div>

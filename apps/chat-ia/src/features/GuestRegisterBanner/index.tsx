@@ -24,7 +24,7 @@ const useStyles = createStyles(({ css, token }) => ({
     align-items: center;
     padding: 8px 12px;
     color: #fff;
-    background: linear-gradient(90deg, ${token.colorPrimary}, ${token.magenta6 || token.colorPrimary});
+    background: linear-gradient(90deg, ${token.colorPrimary}, ${token.colorPrimaryActive || token.colorPrimary});
   `,
   close: css`
     display: flex;

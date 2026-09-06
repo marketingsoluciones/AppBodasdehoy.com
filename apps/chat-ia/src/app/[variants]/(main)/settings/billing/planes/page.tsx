@@ -73,7 +73,7 @@ const useStyles = createStyles(({ css, token }) => ({
     font-size: 13px;
   `,
   highlightCard: css`
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #F7628C 0%, #D6497A 100%);
     border: none;
     border-radius: 16px;
     color: white;
@@ -439,7 +439,7 @@ const PlanCard = memo<{
               {f.included ? (
                 <Check
                   className={styles.featureIcon}
-                  color={isHighlighted ? 'rgba(255,255,255,0.7)' : '#667eea'}
+                  color={isHighlighted ? 'rgba(255,255,255,0.7)' : '#F7628C'}
                   size={14}
                 />
               ) : (
@@ -587,7 +587,7 @@ const PlanesPage = memo(() => {
       {/* Header */}
       <Flexbox align="center" gap={12}>
         <Flexbox align="center" gap={8} horizontal>
-          <Sparkles color="#667eea" size={28} />
+          <Sparkles color="#F7628C" size={28} />
           <h1 style={{ fontSize: 28, fontWeight: 800, margin: 0 }}>Elige tu plan</h1>
         </Flexbox>
         {/* Social proof */}

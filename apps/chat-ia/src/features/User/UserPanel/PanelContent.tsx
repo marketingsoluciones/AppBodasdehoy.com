@@ -72,7 +72,7 @@ const PanelContent = memo<{ closePopover: () => void }>(({ closePopover }) => {
               paddingBlock={12}
               paddingInline={16}
               style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #F7628C 0%, #D6497A 100%)',
                 borderRadius: '8px',
                 color: 'white',
                 marginBottom: 8,
@@ -98,7 +98,7 @@ const PanelContent = memo<{ closePopover: () => void }>(({ closePopover }) => {
                 paddingBlock={12}
                 paddingInline={16}
                 style={{
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  background: 'linear-gradient(135deg, #F7628C 0%, #D6497A 100%)',
                   borderRadius: '8px',
                   color: 'white',
                   cursor: 'pointer',

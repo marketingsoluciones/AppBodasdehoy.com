@@ -38,7 +38,7 @@ const PlanBadge = memo(() => {
   const label = isTrial
     ? trialDaysLeft > 0 ? `Trial · ${trialDaysLeft}d` : 'Trial expirado'
     : `Plan ${tier}`;
-  const color = isTrial ? (trialDaysLeft <= 3 ? '#f59e0b' : '#667eea') : '#9ca3af';
+  const color = isTrial ? (trialDaysLeft <= 3 ? '#f59e0b' : '#F7628C') : '#9ca3af';
 
   return (
     <Link href="/settings/billing/planes" style={{ textDecoration: 'none' }}>
@@ -169,7 +169,7 @@ const BottomActions = memo(() => {
           <ActionIcon
             icon={LogIn}
             size={ICON_SIZE}
-            style={{ color: '#667eea' }}
+            style={{ color: '#F7628C' }}
             title="Iniciar sesión / Registrarse"
             tooltipProps={{ placement: 'right' }}
           />

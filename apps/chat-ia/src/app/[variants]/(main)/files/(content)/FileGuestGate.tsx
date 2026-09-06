@@ -38,9 +38,9 @@ const useStyles = createStyles(({ css, token }) => ({
   `,
   icon: css`
     align-items: center;
-    background: linear-gradient(135deg, #667eea22, #764ba244);
+    background: linear-gradient(135deg, #F7628C22, #D6497A44);
     border-radius: 50%;
-    color: #667eea;
+    color: #F7628C;
     display: flex;
     height: 80px;
     justify-content: center;

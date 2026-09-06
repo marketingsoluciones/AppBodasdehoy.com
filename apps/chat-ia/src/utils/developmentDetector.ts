@@ -36,7 +36,9 @@ export interface DevelopmentConfig {
  * bodasdehoy tiene branding chat-ia distinto del theme general (web).
  */
 const COLOR_OVERRIDES: Record<string, Partial<DevelopmentConfig['colors']>> = {
-  bodasdehoy: { accent: '#ff69b4', primary: '#667eea', secondary: '#764ba2' },
+  // FIX marca (6-sep, JCP): el chat-ia de bodasdehoy salía MORADO (#667eea/#764ba2), que NO es
+  // la marca. La marca es el rosa #F7628C (developments.ts theme.primaryColor). Alineado a rosa.
+  bodasdehoy: { accent: '#ff69b4', primary: '#F7628C', secondary: '#D6497A' },
 };
 
 const DEFAULT_API_BACKEND = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';

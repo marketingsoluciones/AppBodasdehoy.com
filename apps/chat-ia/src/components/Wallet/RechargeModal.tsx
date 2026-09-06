@@ -108,7 +108,7 @@ const RechargeModal = memo<RechargeModalProps>(({ isOpen, onClose, balanceCheck,
         {/* Header */}
         <Flexbox horizontal justify="space-between" style={{ marginBottom: 20 }}>
           <Flexbox align="center" gap={8} horizontal>
-            <CreditCard size={24} style={{ color: '#667eea' }} />
+            <CreditCard size={24} style={{ color: '#F7628C' }} />
             <h2 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>Recargar Wallet</h2>
           </Flexbox>
           <button
@@ -195,7 +195,7 @@ const RechargeModal = memo<RechargeModalProps>(({ isOpen, onClose, balanceCheck,
                 style={{
                   background:
                     selectedAmount === amount && !customAmount
-                      ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                      ? 'linear-gradient(135deg, #F7628C 0%, #D6497A 100%)'
                       : 'var(--lobe-color-fill-tertiary, #f5f5f5)',
                   border: 'none',
                   borderRadius: 8,
@@ -288,7 +288,7 @@ const RechargeModal = memo<RechargeModalProps>(({ isOpen, onClose, balanceCheck,
               background:
                 loading || finalAmount < 5
                   ? '#d1d5db'
-                  : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  : 'linear-gradient(135deg, #F7628C 0%, #D6497A 100%)',
               border: 'none',
               borderRadius: 8,
               color: 'white',
