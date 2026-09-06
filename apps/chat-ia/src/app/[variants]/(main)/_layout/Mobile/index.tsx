@@ -38,6 +38,21 @@ const MOBILE_NAV_ROUTES = new Set([
   '/settings',
 ]);
 
+// Secciones con navegación: la barra inferior persiste en TODAS sus sub-rutas (P0 nav 6-sep).
+// Cualquier pantalla que empiece por uno de estos prefijos mantiene la barra → siempre hay salida.
+const NAV_SECTION_PREFIXES = [
+  '/asistente',
+  '/discover',
+  '/me',
+  '/pendientes',
+  '/bandeja',
+  '/agentes',
+  '/memories',
+  '/files',
+  '/wedding-creator',
+  '/settings',
+];
+
 const Layout = memo(({ children }: PropsWithChildren) => {
   const showMobileWorkspace = useShowMobileWorkspace();
   const pathname = usePathname();
@@ -46,7 +61,15 @@ const Layout = memo(({ children }: PropsWithChildren) => {
   // navegar al resto de la app. La mostramos también en el chat del asistente. El resto de
   // rutas mantiene el comportamiento previo (p.ej. bandeja tiene su propia barra inferior).
   const isAsistente = pathname === '/asistente';
-  const showNav = MOBILE_NAV_ROUTES.has(pathname) && (isAsistente || !showMobileWorkspace);
+  // P0 navegabilidad (6-sep, JCP): "al meterte en los submenús se pierde la navegación".
+  // Causa: el set MOBILE_NAV_ROUTES exigía match EXACTO de pathname → las sub-rutas profundas
+  // (p.ej. /settings/billing/planes, /settings/advanced, /me/profile) se quedaban SIN barra
+  // inferior y sin salida global. Solución: la barra persiste en TODAS las sub-rutas de las
+  // secciones con navegación (match por prefijo), garantizando siempre una vía de vuelta.
+  const inNavSection =
+    MOBILE_NAV_ROUTES.has(pathname) ||
+    NAV_SECTION_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  const showNav = inNavSection && (isAsistente || !showMobileWorkspace);
 
   // QA 30-jun: ver Desktop/index.tsx — defensa frente a featureFlags=undefined.
   const featureFlags = useServerConfigStore(featureFlagsSelectors) || {};

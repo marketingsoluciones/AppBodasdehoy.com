@@ -167,6 +167,20 @@ const NavBar = memo(() => {
           // R1 nomenclatura: la mensajería unificada se llama "Bandeja".
           title: 'Bandeja',
         },
+        // "Yo" (elemento principal del usuario) va CENTRADO en la barra (JCP 6-sep): con sesión
+        // en server mode quedan 5 pestañas y "Yo" cae en la posición central (Asistente ·
+        // Bandeja · Yo · Discover · Más). "Yo" y "Más" solo para registrados; el visitante ve
+        // lo básico (Asistente) + la puerta a registrarse (menú mínimo, feedback JCP 5-sep).
+        isLoggedIn && {
+          icon: (active: boolean) => (
+            <Icon className={active ? styles.active : undefined} icon={User} />
+          ),
+          key: SidebarTabKey.Me,
+          onClick: () => {
+            router.push('/me');
+          },
+          title: t('tab.me'),
+        },
         // Discover/Market — solo registrados (P0 fricción 5, 5-sep: al visitante no le
         // sirve el marketplace de agentes que no puede usar).
         showMarket && isLoggedIn && {
@@ -178,18 +192,6 @@ const NavBar = memo(() => {
             router.push('/discover');
           },
           title: t('tab.discover'),
-        },
-        // "Yo" y "Más" solo para registrados. Un visitante debe ver lo básico (Asistente)
-        // + la puerta a registrarse (menú mínimo, feedback JCP 5-sep).
-        isLoggedIn && {
-          icon: (active: boolean) => (
-            <Icon className={active ? styles.active : undefined} icon={User} />
-          ),
-          key: SidebarTabKey.Me,
-          onClick: () => {
-            router.push('/me');
-          },
-          title: t('tab.me'),
         },
         isLoggedIn && {
           icon: (active: boolean) => (
