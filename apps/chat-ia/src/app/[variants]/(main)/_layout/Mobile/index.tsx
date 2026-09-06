@@ -30,6 +30,12 @@ const MOBILE_NAV_ROUTES = new Set([
   '/bandeja',
   // Rediseño Fase B: /agentes (Cowork) también necesita NavBar móvil.
   '/agentes',
+  // P0 fricción 2 (5-sep): las secciones del menú "Más" no tenían NavBar → al entrar te
+  // quedabas SIN navegación ("no puedes volver atrás"). Añadidas para que la barra persista.
+  '/memories',
+  '/files',
+  '/wedding-creator',
+  '/settings',
 ]);
 
 const Layout = memo(({ children }: PropsWithChildren) => {
