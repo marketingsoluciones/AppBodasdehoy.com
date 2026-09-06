@@ -4,12 +4,27 @@ import { createStyles } from 'antd-style';
 import { memo } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
+import { BrandLogo } from '@bodasdehoy/shared/components';
+
+import { useLoginModal } from '@/contexts/LoginModalContext';
 import { useDeveloperBranding } from '@/hooks/useDeveloperBranding';
+import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
 import { useChatStore } from '@/store/chat';
 import { resolveDisplayBrandName } from '@/utils/brandingDisplay';
 import { resolveActiveDeveloperForBranding } from '@/utils/developmentDetector';
 
 const useStyles = createStyles(({ css }) => ({
+  guestCta: css`
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.15;
+    opacity: 0.95;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  `,
   root: css`
     min-width: 0;
     flex: 1;
@@ -48,10 +63,19 @@ export const DeveloperSessionBrand = memo<DeveloperSessionBrandProps>(({ classNa
   const { styles, cx } = useStyles();
   const { branding, loading } = useDeveloperBranding();
   const storeDevelopment = useChatStore((s) => s.development);
+  const { openLoginModal } = useLoginModal();
+  const isDomainGuest = useDomainGuestUser();
   const slug = resolveActiveDeveloperForBranding(storeDevelopment);
 
   const title = resolveDisplayBrandName(branding?.name, branding?.developer || slug);
-  const subtitle = `IA · ${slug}`;
+  // P0 coherencia de sesión (QA 15-ago): NO usar !isLoginWithAuth. Ese flag es el auth
+  // NATIVO de LobeChat, que para usuarios Bodas SSO es false hasta que EventosAutoAuth lo
+  // resuelve → durante toda esa ventana la marca mostraba "Usuario no registrado / 🔐 Inicia
+  // sesión / Regístrate" a usuarios YA autenticados (flash de invitado en /asistente que
+  // veía QA). useDomainGuestUser es la detección canónica cookie-aware (fast-path SSO): un
+  // guest REAL sigue saliendo como visitante; un usuario SSO no.
+  const isVisitor = isDomainGuest;
+  const subtitle = isVisitor ? `Usuario no registrado · IA · ${slug}` : `IA · ${slug}`;
 
   if (loading && !branding) {
     return (
@@ -93,7 +117,9 @@ export const DeveloperSessionBrand = memo<DeveloperSessionBrandProps>(({ classNa
           src={logoUrl}
           width={28}
         />
-      ) : null}
+      ) : (
+        <BrandLogo development={slug} size={28} />
+      )}
       <Flexbox gap={2} justify={'center'} style={{ flex: 1, minWidth: 0 }}>
         <div className={styles.title} title={`${title} — ${subtitle}`}>
           {title}
@@ -101,6 +127,20 @@ export const DeveloperSessionBrand = memo<DeveloperSessionBrandProps>(({ classNa
         <div className={styles.subtitle} title={subtitle}>
           {subtitle}
         </div>
+        {isVisitor && (
+          <div
+            className={styles.guestCta}
+            onClick={() => openLoginModal('header_brand')}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') openLoginModal('header_brand');
+            }}
+            role="button"
+            tabIndex={0}
+            title="Inicia sesión o crea tu cuenta"
+          >
+            🔐 Inicia sesión / Regístrate
+          </div>
+        )}
       </Flexbox>
     </Flexbox>
   );

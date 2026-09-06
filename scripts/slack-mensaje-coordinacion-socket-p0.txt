@@ -1,0 +1,24 @@
+De: Front App Bodasdehoy (repo AppBodasdehoy.com)
+Para: #copilot-api-ia + Infra + MCP (reenvio GraphQL/deploy → #api-ia-api2-sync)
+
+_(Mensaje *solo* socket. Para socket + MCP + R2 + P1 en un bloque: `scripts/slack-mensaje-coordinacion-cierre-p0-todos-equipos.txt`.)_
+
+*Coordinación P0 — Socket App eventos (estado repo 2026-04)*
+
+*BASE acordada (DoD §9, origen solo — el cliente añade `/socket.io/`):*
+`https://api-ia.bodasdehoy.com`
+
+*Cerrado en código (no pide más trabajo front en contrato):* cliente ya emite `app:message`; spec única `scripts/SOCKET-EVENTOS-ESPECIFICACION-COMPLETA.txt` §12 al día con esa BASE.
+
+*Pedimos una línea cada stream (LISTO | EN CURSO | BLOQUEADO + evidencia o ETA):*
+
+• *Infra:* DNS/TLS + proxy → `GET …/socket.io/?EIO=4&transport=polling` sin 502; mismo host que health si aplica.
+• *api-ia:* deploy ASGI `main:asgi_application` detrás de esa URL + `ALLOWED_ORIGINS` incluye orígenes reales de app (dev/staging/prod según probéis).
+• *Front / quien despliegue appEventos:* `NEXT_PUBLIC_SOCKET_URL=https://api-ia.bodasdehoy.com` en el build del entorno de prueba + redeploy.
+• *MCP (si sigue abierto):* deploy `55f6af6` + enum `getMySubscription.status` → aviso en *#api-ia-api2-sync*.
+
+*Siguiente paso conjunto:* smoke dos navegadores mismo `event_id` (plantilla `scripts/SOCKET-APP-EVENTOS-UAT-CONVOCATORIA.txt`; guion api-ia `docs/SOCKET_APP_EVENTOS_PLAN_UAT_MULTIEQUIPO.md`).
+
+Checklist medible: `scripts/OPERATIVO-CHECKLIST.txt`
+
+Gracias.

@@ -1,8 +1,14 @@
-import { AgentRuntimeError, ChatCompletionErrorPayload } from '@lobechat/model-runtime';
-import { ChatErrorType, TracePayload, TraceTagMap, UIChatMessage } from '@lobechat/types';
+import {
+  AgentRuntimeError,
+  ChatCompletionErrorPayload,
+  ChatErrorType,
+  TracePayload,
+  TraceTagMap,
+  UIChatMessage,
+} from '@lobechat/types';
 import { PluginRequestPayload, createHeadersWithPluginSettings } from '@lobehub/chat-plugin-sdk';
 import { merge } from 'lodash-es';
-import { ModelProvider } from 'model-bank';
+import { ModelProvider } from '@lobechat/types';
 
 import { enableAuth } from '@/const/auth';
 import { DEFAULT_AGENT_CONFIG } from '@/const/settings';
@@ -438,9 +444,7 @@ class ChatService {
       }
     }
     
-    if (development) {
-      userContextHeaders['X-Development'] = development;
-    }
+    userContextHeaders['X-Development'] = development || 'bodasdehoy';
     if (eventId) {
       userContextHeaders['X-Event-ID'] = eventId;
     }
@@ -483,6 +487,17 @@ class ChatService {
         ...(finalPayload as any).metadata,
         development: development || undefined,
         eventId: eventId || undefined,
+        // [P0] api-ia lee el evento activo en metadata.pageContext.activeEventId (ANIDADO),
+        // no en metadata.eventId (plano). Sin esto el asistente pedía "selecciona un evento"
+        // aunque hubiera evento activo (desajuste de shape). eventId plano queda de fallback.
+        pageContext: {
+          ...((finalPayload as any).metadata?.pageContext),
+          activeEventId: eventId || undefined,
+          availableEvents: (userEvents || [])
+            .map((e: any) => ({ id: e._id || e.id || e.id_evento, name: e.nombre || e.titulo || e.name }))
+            .filter((e: any) => e.id),
+          eventScope: eventId ? 'active' : 'all',
+        },
         userId: currentUserId || undefined,
       };
     }

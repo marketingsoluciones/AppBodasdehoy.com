@@ -28,6 +28,10 @@ import FormTask from '../../Forms/FormTask';
 import { getStorage, ref, listAll, deleteObject } from "firebase/storage";
 import { deleteAllFiles, deleteRecursive } from "../../Utils/storages";
 import { SimpleDeleteConfirmation } from "../../Utils/SimpleDeleteConfirmation";
+import { EntityNotesSection } from "../../Notes/EntityNotesSection";
+import StudioNotesSection from "../../Presupuesto/StudioNotesSection";
+import { isStudioPathname } from '../../../utils/studioPaths';
+import { createPortal } from 'react-dom';
 
 interface TaskDetailModalProps {
   task: Task;
@@ -206,9 +210,8 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
             fetchApiEventos({
               query: queries.deleteTask,
               variables: {
-                eventID: event._id,
-                itinerarioID: itinerario._id,
-                taskID: values._id,
+                task_id: values._id,
+                development: config.development || "bodasdehoy",
               },
               domain: config.domain
             }).then(() => {
@@ -291,14 +294,18 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         domain: config.domain,
       }).then((result) => {
         const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario?._id);
-        const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === task?._id);
-        if (fieldName === 'spectatorView') {
-          event.itinerarios_array[f1].tasks[f2].spectatorView = value;
-          setEvent({ ...event });
-        } else {
-          event.itinerarios_array[f1].tasks[f2][fieldName] = value;
-          setEvent({ ...event });
-        }
+        // Update inmutable: actualiza el field en el task identificado por _id.
+        setEvent((prev) => ({
+          ...prev,
+          itinerarios_array: prev.itinerarios_array.map((it, i) =>
+            i !== f1 ? it : {
+              ...it,
+              tasks: it.tasks.map(tk =>
+                tk._id !== task?._id ? tk : { ...tk, [fieldName]: value }
+              ),
+            }
+          ),
+        }));
       });
       !['horaActiva'].includes(fieldName) && (fieldName === 'duracion' ? value !== 0 : true) && toast("success", t("Campo actualizado"));
     } catch (error) {
@@ -307,19 +314,25 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     }
   };
 
-  return (
+  const isStudio = typeof window !== "undefined"
+    && isStudioPathname(window.location.pathname)
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
+
+  const modalInner = (
     <>
       <ClickAwayListener onClickAway={onClose}>
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10"
+          style={isStudio ? { background: "rgba(40,40,46,.45)" } : undefined}
+          className={isStudio ? "fixed inset-0 flex items-center justify-center z-[200] p-4" : "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10"}
           onClick={onClose}
         >
           <div
-            className="bg-white rounded-lg shadow-2xl w-full max-w-6xl max-h-screen h-auto md:mx-4 flex flex-col sm:max-h-[90vh]"
+            style={isStudio ? { borderRadius: 18, boxShadow: "0 30px 80px rgba(0,0,0,.3)", maxHeight: "90vh", fontFamily: "'Poppins',sans-serif" } : undefined}
+            className={isStudio ? "bg-white w-full max-w-5xl flex flex-col overflow-hidden" : "bg-white rounded-lg shadow-2xl w-full max-w-6xl max-h-screen h-auto md:mx-4 flex flex-col sm:max-h-[90vh]"}
             onClick={handleContentClick}
           >
-            {/* Header del modal */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+            {/* Header del modal — oculto en studio: TaskFullView ya trae el título editable */}
+            <div className={isStudio ? "hidden" : "flex items-center justify-between px-6 py-4 border-b border-gray-200"}>
               <div className="flex items-center space-x-4">
                 <h2 className="text-xl font-semibold text-gray-800">
                   {t('Detalle de Tarea')}
@@ -354,6 +367,12 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 view="kanban"
                 handleUpdate={handleUpdate}
               />
+              {/* Notas internas con el MISMO aspecto que en Resumen (StudioNotesSection).
+                  Antes usaba EntityNotesSection, sin el diseño studio. Mismo backend
+                  (useCRMNotes, entityType TASK). Fuera de studio, la versión anterior. */}
+              {isStudio
+                ? <StudioNotesSection entityType="TASK" entityId={localTask._id} entityName={localTask.descripcion || 'Tarea'} />
+                : <EntityNotesSection entityType="TASK" entityId={localTask._id} entityName={localTask.descripcion || 'Tarea'} />}
             </div>
           </div>
         </div>
@@ -377,8 +396,9 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         <SimpleDeleteConfirmation
           loading={loading}
           setModal={setModal}
+          title={modal.title}
           handleDelete={() => deleteTask(modal.values, modal.itinerario)}
-          message={<p className="text-azulCorporativo mx-8 text-center capitalize">Estas seguro de borrar <span className='font-semibold'>{modal.title}</span></p>}
+          message={t('warningdeletetask', 'Si borras esta tarea no la podrás recuperar.')}
         />
       )}
 
@@ -397,6 +417,11 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       )}
     </>
   );
+
+  // En studio, portal a body: centra el modal respecto al viewport aunque el tablero
+  // esté expandido (width/transform en un ancestro rompería position:fixed).
+  if (isStudio && typeof document !== "undefined") return createPortal(modalInner, document.body);
+  return modalInner;
 };
 
 export default TaskDetailModal;

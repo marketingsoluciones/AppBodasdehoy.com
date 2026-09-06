@@ -1,0 +1,534 @@
+═══════════════════════════════════════════════════════════════════════════════
+PLAN MAESTRO REDISEÑO chat-ia
+Fecha: 2026-06-27 · Autor: COORD-AppEventos
+SCOPE: SOLO apps/chat-ia (NO appEventos, NO memories-web, NO editor-web)
+═══════════════════════════════════════════════════════════════════════════════
+
+## TL;DR
+
+Reorganización del producto chat-ia en torno a 3 ejes:
+
+  EJE 1. PERFORMANCE: 1 SSE singleton + cache compartido + sync multi-device
+  EJE 2. UX: eliminar duplicación Bandeja A vs B sin perder funcionalidad
+  EJE 3. CONCEPTO: distinguir CHAT IA vs CONVERSACIÓN MENSAJERÍA + multi-canal
+
+Apps actuales que comparten infra:
+  · chat-ia (PRINCIPAL — este plan)
+  · appEventos (link entrante via SSO)
+  · memories-web (link entrante via SSO)
+  · editor-web (link entrante via SSO)
+
+Tiempo estimado total: 4-6 sprints (variable según opción rediseño elegida).
+
+═══════════════════════════════════════════════════════════════════════════════
+PLAN A — SSE SINGLETON + MULTI-DEVICE SYNC + CACHE
+═══════════════════════════════════════════════════════════════════════════════
+
+PROBLEMA REAL CONFIRMADO
+─────────────────────────────────────────────────────────────────────────────
+
+QA + análisis Bandeja /chat vs /messages detectó:
+  · 4 conexiones SSE simultáneas a /api/messages/stream
+  · 5x GET /whatsapp/session, 3x GET /conversations duplicados
+  · Notificaciones potencialmente disparadas 4 veces
+  · Memory leak de SSE no cerrados al cambiar de ruta
+  · Múltiples instancias del mismo store sin sync
+
+CAUSAS RAÍZ
+─────────────────────────────────────────────────────────────────────────────
+
+  1. useUnifiedFeed.ts abre EventSource directo
+  2. useMessageStream.ts abre OTRO EventSource al mismo endpoint
+  3. useRecentConversations.ts hace fetch sin SWR cache compartido
+  4. useConversations.ts duplica el fetch
+  5. useWhatsAppSession.ts llamadas redundantes a /session
+  6. Bandeja A en /chat sidebar usa hooks independientes de Bandeja B
+
+PROPUESTA ARQUITECTURA 3 CAPAS
+─────────────────────────────────────────────────────────────────────────────
+
+CAPA 1 — Backend api-ia (cambios mínimos, lo principal ya existe)
+  Endpoint: GET /api/messages/stream (YA EXISTE)
+  Nuevo: Redis Pub/Sub o similar pub/sub interno
+    · Webhooks externos (WhatsApp, FB, IG, web chat) publican en
+      canales `tenant:{development}:conv:{conv_id}`
+    · SSE handler subscribe a los canales que el user tiene permiso
+  Filtrado server-side por:
+    · auth JWT
+    · scope evento (linkedEventId) o brand (development)
+    · viewer permissions de la conversación
+  Eventos:
+    {type: "new_message", convId, message: {...}}
+    {type: "conv_updated", convId, fields: {...}}
+    {type: "notification", notif: {...}}
+    {type: "typing", convId, userId, ttl: 3000}
+    {type: "read_receipt", convId, msgId, readByUserId}
+
+CAPA 2 — Frontend store unificado (NUEVO)
+  Archivo: apps/chat-ia/src/store/bandeja/index.ts
+
+  interface BandejaStore {
+    // Datos
+    conversations: Record<string, Conversation>;
+    notifications: Notification[];
+    unreadCounts: { byChannel: Record<string, number>, total: number };
+    typingByConv: Record<string, { userId: string; expiresAt: number }[]>;
+
+    // SSE singleton
+    _sseConnection: EventSource | null;
+    _sseRetryTimer: ReturnType<typeof setTimeout> | null;
+
+    // BroadcastChannel singleton (cross-tab sync)
+    _broadcastChannel: BroadcastChannel | null;
+    _isLeaderTab: boolean;
+
+    // Actions
+    initBandeja: () => Promise<void>;  // 1 fetch inicial REST
+    initSSE: () => void;               // singleton
+    closeSSE: () => void;
+    sendMessage: (convId: string, content: string) => Promise<void>;
+    markAsRead: (convId: string, msgId: string) => Promise<void>;
+    // ... etc
+  }
+
+  Comportamiento:
+    · initBandeja() corre 1 SOLA VEZ al login (REST + cache SWR 30s)
+    · initSSE() abre 1 EventSource singleton, todos los componentes
+      consumen del store NO abren sus propios SSE
+    · BroadcastChannel "bandeja-events" sincroniza tabs del mismo browser
+    · Leader election: localStorage.setItem("bandeja-leader", tabId)
+      con timestamp. Si timestamp > 5s atrás, otra tab toma el rol.
+    · Retry SSE con exponential backoff (1s, 2s, 4s ... max 60s)
+    · Si user offline: cola de mensajes pendientes en localStorage,
+      al volver online → POST /messages/batch + resync via REST
+
+CAPA 3 — Migration plan
+  Sustituir hooks existentes uno por uno por selectores del nuevo store:
+    useUnifiedFeed → useBandejaStore(items)
+    useRecentConversations → useBandejaStore(conversations)
+    useConversations → useBandejaStore(conversations[channel])
+    useMessageStream → useBandejaStore(messagesOf(convId))
+    useWhatsAppSession → useBandejaStore(waSession[development])
+
+  Backward compat:
+    Mantener los hooks viejos como wrappers temporales que delegan al
+    store, marcados @deprecated. Migrar componente por componente.
+    Eliminar wrappers cuando 0 callsites.
+
+COMPONENTES NUEVOS
+─────────────────────────────────────────────────────────────────────────────
+
+  store/bandeja/index.ts          — Zustand singleton
+  store/bandeja/sseClient.ts      — EventSource manager
+  store/bandeja/broadcastSync.ts  — BroadcastChannel cross-tab
+  store/bandeja/leaderElection.ts — Heartbeat localStorage
+  store/bandeja/types.ts
+  store/bandeja/selectors.ts
+  store/bandeja/actions.ts
+
+  hooks/useBandeja.ts             — Hook ergonómico (wrapper)
+
+ESTIMACIÓN PLAN A
+─────────────────────────────────────────────────────────────────────────────
+  · Store base + SSE singleton: 2 días
+  · BroadcastChannel cross-tab: 1 día
+  · Migration hooks viejos → store: 2 días
+  · Smoke tests + E2E multi-tab: 1 día
+  TOTAL: ~6 días-persona
+
+═══════════════════════════════════════════════════════════════════════════════
+PLAN B — INVENTARIO FUNCIONALIDAD + ELIMINACIÓN BANDEJA A
+═══════════════════════════════════════════════════════════════════════════════
+
+REGLA DE ORO ANTES DE BORRAR
+─────────────────────────────────────────────────────────────────────────────
+
+Memoria nuestra: REGLA 0 NO PERDER FUNCIONALIDAD.
+Antes de eliminar Bandeja A (tab sidebar /chat) hacer inventario EXHAUSTIVO
+de lo que hace HOY + verificar contra versiones anteriores en git history.
+
+INVENTARIO A REALIZAR
+─────────────────────────────────────────────────────────────────────────────
+
+[INV-1] Lista de features Bandeja A actual (lo visible en UI):
+  · Botón "📥 Bandeja" en SubTabs sidebar /chat
+  · Filtros canal: Todo / WA / Web (3 vs los 7 de Bandeja B)
+  · Agrupación: Mis asignadas / Sin asignar / Cerradas
+  · Sin ScopeSelector (no filtra por evento)
+  · ¿Hay acciones rápidas? (asignar, cerrar conv desde sidebar)
+  · ¿Hay vista compacta vs expandida?
+
+[INV-2] Hooks y stores que solo usa Bandeja A:
+  Grep: apps/chat-ia/src/app/[variants]/(main)/chat/@session/features/
+        SessionListContent/SubTabs/Bandeja*
+  Identificar imports únicos.
+
+[INV-3] Comparación contra versiones anteriores (git):
+  · git log --all -- 'apps/chat-ia/.../SubTabs/Bandeja*'
+  · Revisar commits últimos 6 meses por features que añadimos y luego
+    quitamos sin querer
+  · Si encontramos comentarios "// TODO: traer feature X de Bandeja A
+    a Bandeja B" → completar primero
+
+[INV-4] Features que Bandeja B (/messages) NO tiene aún:
+  Diff visual + funcional A vs B:
+    A tiene → B no tiene:
+      [LISTAR]
+    A no tiene → B tiene:
+      [LISTAR]
+
+  Antes de eliminar A, migrar a B los items "A tiene → B no".
+
+[INV-5] Telemetría real (si Sentry/GA disponibles):
+  · % usuarios que usan Bandeja A vs Bandeja B
+  · Tiempo medio en cada una
+  · Tasa de uso filtros únicos de A (Mis asignadas / Sin asignar /
+    Cerradas) — si nadie los usa, no migrar
+
+[INV-6] Componentes UI que SOLO viven en Bandeja A:
+  Hacer screenshot inventario de toda la UI A (cards, badges, micro
+  interacciones) para no perder ideas visuales en el rediseño.
+
+ENTREGABLE INVENTARIO
+─────────────────────────────────────────────────────────────────────────────
+
+Documento: docs/INVENTARIO-BANDEJA-A-2026-06-27.code.txt
+  · Tabla features con check de "ya está en B / migrar / decisión"
+  · Hooks y stores únicos identificados
+  · Telemetría
+  · Screenshots de UI
+  · Decisión final por feature: MIGRAR / DEPRECAR / FUSIONAR
+
+Tras inventario y migración:
+  · Borrar src/app/[variants]/(main)/chat/@session/features/SubTabs/Bandeja*
+  · Sustituir botón "📥 Bandeja" en sidebar por <Link href="/messages">
+  · Smoke: ningún componente importa de paths borrados
+
+ESTIMACIÓN PLAN B
+─────────────────────────────────────────────────────────────────────────────
+  · Inventario: 1 día
+  · Migración features faltantes a B: 1-3 días según hallazgos
+  · Eliminación + smoke: 0.5 día
+  TOTAL: ~3-5 días-persona
+
+═══════════════════════════════════════════════════════════════════════════════
+PLAN C — REDISEÑO GLOBAL chat-ia
+═══════════════════════════════════════════════════════════════════════════════
+
+PROBLEMA CONCEPTUAL ACTUAL
+─────────────────────────────────────────────────────────────────────────────
+
+La palabra "chat" se usa para 2 cosas distintas:
+  1. CHAT IA — conversación user ↔ agente IA (lo que LobeChat hacía)
+  2. CHAT MENSAJERÍA — conversación user ↔ otro humano (WhatsApp, etc.)
+
+Esto confunde a:
+  · Usuarios ("¿dónde está la bandeja del Facebook?")
+  · Devs ("¿el endpoint /chat es para IA o para mensajería?")
+  · Stakeholders ("estamos hablando de chat o de bandeja?")
+
+NOMENCLATURA PROPUESTA (negocio + producto)
+─────────────────────────────────────────────────────────────────────────────
+
+  PALABRA NUEVA            SIGNIFICADO
+  ──────────────────────  ──────────────────────────────────────────
+  ASISTENTE                Sustituye "Chat IA". Es tu agente IA.
+                          Ruta: /asistente (antes /chat)
+
+  CONVERSACIÓN             Mensaje con otro humano vía cualquier canal.
+                          La unidad atómica del mensaje persona ↔ persona.
+                          Plural: "Conversaciones".
+
+  BANDEJA                  Inbox unificado de todas las conversaciones.
+                          Ruta: /bandeja (antes /messages).
+
+  CANAL                    Origen del mensaje: WhatsApp, Email, Web Chat,
+                          Facebook, Instagram, Llamada, SMS, etc.
+
+  HILO                     Mensajes encadenados dentro de una conversación.
+                          NO confundir con "Topic" del asistente IA.
+
+  AGENTE                   2 acepciones (a clarificar en UI):
+                          a) Agente IA: tu IA. Sigues hilo de conversación
+                             con TU agente IA.
+                          b) Agente humano: quien atiende conversaciones
+                             desde tu equipo (organizador, planner, etc.)
+
+  CONTACTO                 Persona única identificada en CRM. Puede
+                          aparecer en N conversaciones cross-canal +
+                          cross-evento.
+
+ANALOGÍAS DE OTROS PRODUCTOS DEL SECTOR
+─────────────────────────────────────────────────────────────────────────────
+
+  Intercom usa: "Inbox" + "Conversations" + "Operator" (IA)
+  Front usa:    "Inbox" + "Conversations" + "Front" (asistente IA)
+  Crisp usa:    "Inbox" + "Conversations" + "MagicReply" (IA)
+  Zendesk usa:  "Tickets" (más enterprise)
+  Helpscout:    "Mailbox" + "Conversations"
+  Tidio usa:    "Conversations" + "Lyro" (IA)
+
+  Patrón sector: Inbox(=Bandeja) + Conversations(=Conversaciones) +
+                  nombre propio para IA.
+
+MODELO CONCEPTUAL NUEVO (entidades + relaciones)
+─────────────────────────────────────────────────────────────────────────────
+
+  ┌────────────────────────────────────────────────────────────────┐
+  │  WHITELABEL (Bodas de Hoy, champagne-events, ...)              │
+  └───────┬────────────────────────────────────────────────────────┘
+          │ 1:N
+          ▼
+  ┌────────────────────────────────────────────────────────────────┐
+  │  EVENTO (Boda Isabel y Raúl, ...) [opcional]                  │
+  └───────┬────────────────────────────────────────────────────────┘
+          │ 1:N (opcional, puede ser null)
+          ▼
+  ┌────────────────────────────────────────────────────────────────┐
+  │  CONVERSACIÓN                                                  │
+  │   · channel: whatsapp | email | web | facebook | sms | call    │
+  │   · linkedEventId: string | null  ← clave para scope           │
+  │   · linkedContactId: string                                    │
+  │   · scope: "evento" | "marca" | "soporte"                      │
+  └───────┬────────────────────────────────────────────────────────┘
+          │
+          │ N:1
+          ▼
+  ┌────────────────────────────────────────────────────────────────┐
+  │  CONTACTO (entidad CRM única)                                  │
+  │   · email, phone, fb_id, ig_id ...                            │
+  │   · roles[]: ["invitado_evento_X", "lead_marca", ...]         │
+  └────────────────────────────────────────────────────────────────┘
+          ▲
+          │ 1:N relaciones por evento
+          │
+  ┌────────────────────────────────────────────────────────────────┐
+  │  ROLES sobre eventos:                                          │
+  │   · INVITADO de evento X (con tabla en boda)                   │
+  │   · PROVEEDOR de evento Y                                     │
+  │   · ORGANIZADOR de evento Z                                    │
+  │   · LEAD de la marca (sin evento todavía)                     │
+  │   · COLABORADOR_AGENCIA                                       │
+  └────────────────────────────────────────────────────────────────┘
+
+CASO REAL que el usuario mencionó:
+  Carmen llama por WhatsApp al número corporativo de Bodas de Hoy.
+
+  Sistema actúa:
+    1. Crea CONVERSACIÓN nueva, canal=whatsapp, linkedEventId=null
+    2. Busca CONTACTO existente con phone=+34... Si NO existe → crea
+       nuevo (rol=lead_marca, sin evento).
+    3. La conv aparece en BANDEJA con scope=marca (no evento).
+    4. Más tarde se descubre que Carmen es INVITADA de Boda Isabel & Raúl:
+       · Sistema mantiene contacto único Carmen
+       · Conv WhatsApp se mantiene scope=marca (la inició como lead)
+       · Conv NUEVA cuando Carmen interactúe sobre la boda concreta
+         (ej. confirmar asistencia vía link RSVP) → linkedEventId=Boda...
+    5. UI muestra "Carmen" con tabs:
+       · Marca (1 conv abierta)
+       · Boda Isabel & Raúl (1 conv RSVP)
+       · Cualquier otro evento donde aparezca
+
+UI CONSECUENCIA
+─────────────────────────────────────────────────────────────────────────────
+
+  /bandeja ScopeSelector:
+
+    [▼ Soporte general]
+        Atención al cliente
+          · WhatsApp corporativo (3 nuevas)
+          · Facebook página marca (1)
+          · Email contacto@bodasdehoy.com (5)
+          · Web chat público (0)
+
+        ─────────────────────
+
+        EVENTOS ACTIVOS
+        · Boda Isabel & Raúl (12 conversaciones)
+        · Aniversario González (3)
+        · ...
+
+  Click en evento → filtra solo convs con linkedEventId=ese evento
+  Click en "Soporte" → solo convs marca/lead (sin evento)
+  Default vista → Bandeja unificada cross-scope (orden temporal)
+
+  Cada conv card muestra:
+    · Avatar contacto
+    · Nombre contacto
+    · Last message preview
+    · Badge canal (bottom-left)
+    · Badge RSVP (bottom-right, SOLO si linkedEventId no null)
+    · Badge prioridad / asignación
+
+═══════════════════════════════════════════════════════════════════════════════
+ANÁLISIS COMPETENCIA — sector multi-messaging
+═══════════════════════════════════════════════════════════════════════════════
+
+EMPRESAS REFERENCIA + LO QUE HACEN BIEN
+─────────────────────────────────────────────────────────────────────────────
+
+[INTERCOM]
+  + Inbox unificado top-class. Filtros por canal + tag + asignado
+  + Operator AI integrado en cada conversación con un "Suggested reply"
+  + Macros / quick-replies por equipo
+  + Métricas SLA visibles
+  - Caro, enterprise
+  TODO COPIAR: filtros lógicos, asignación por reglas
+
+[FRONT]
+  + Mejor inbox compartido equipo del mercado
+  + Discusión interna sobre conversaciones (notas privadas con @menciones)
+  + Plantillas dinámicas con variables
+  + Workflow automation visual
+  TODO COPIAR: notas privadas (ya tenemos con CRM_Note), assignment
+  rules visuales
+
+[CRISP]
+  + Magic chat sencillo, focused PYMES
+  + Co-browsing (compartir pantalla con cliente desde el chat)
+  + Multi-canal con vista unificada
+  - Light en analytics
+  TODO COPIAR: vista compacta, simplicidad onboarding
+
+[ZENDESK]
+  + Estándar enterprise para tickets
+  + Sistema de macros + workflows muy potente
+  + Reportería extensa
+  - Pesado, curva aprendizaje
+  TODO COPIAR: SLA timers visibles, escalación automática
+
+[HELPSCOUT]
+  + Inbox limpio, UX zen
+  + Saved replies con folders
+  + Beacon (chat widget) excelente
+  TODO COPIAR: UX limpia, foco en email + chat
+
+[TIDIO]
+  + Foco ecommerce + chat web + WhatsApp
+  + Lyro AI muy bien integrado
+  + Pricing PYME-friendly
+  TODO COPIAR: integración Lyro (puede dar ideas para nuestro Asistente)
+
+[GHL — GoHighLevel]
+  + Reference para agencia/whitelabel multi-cliente
+  + Universal Inbox: WhatsApp + SMS + Email + IG + FB + voicemail
+  + Pipelines + CRM nativo
+  + Voice agent integrado
+  TODO COPIAR: voice + SMS + voicemail integrados al mismo inbox,
+  pipelines con etapas
+
+[WHATSAPP BUSINESS PLATFORM]
+  + API oficial Meta para empresas
+  + Plantillas pre-aprobadas
+  + Sessions de 24h
+  TODO COPIAR: ya lo usamos; mantener compatibility
+
+PATRÓN COMÚN del sector
+─────────────────────────────────────────────────────────────────────────────
+
+  Vista lista conversaciones (izquierda) + thread (centro) + sidebar
+  info contacto (derecha). 99% de productos siguen este patrón. Nuestro
+  rediseño debe respetarlo.
+
+  Canales se diferencian con BADGES no con listas separadas.
+  Scope (evento/marca/etc) es un FILTRO no una vista distinta.
+
+  IA aparece como sugerencia EN la conversación (no como app aparte).
+
+═══════════════════════════════════════════════════════════════════════════════
+PLAN DE REDISEÑO — modo de trabajo
+═══════════════════════════════════════════════════════════════════════════════
+
+OPCIÓN A — Componente a componente (incremental, riesgo bajo)
+─────────────────────────────────────────────────────────────────────────────
+
+  Sprint 1 (1 sem): Bandeja unificada — store + SSE singleton + cache
+                    sin tocar UI
+  Sprint 2 (1 sem): Eliminar Bandeja A tras inventario
+  Sprint 3 (1 sem): Renombrar /chat → /asistente + /messages → /bandeja
+                    (con redirects 301)
+  Sprint 4 (1 sem): Modelo Contacto + roles cross-evento (DB + API)
+  Sprint 5 (1 sem): UI ScopeSelector mejorado + filtros canal
+  Sprint 6 (1 sem): Iconografía nueva + microinteracciones
+  Sprint 7+ (1 sem): Polish + analytics + métricas SLA
+
+  Pros: cada sprint es deployable independiente, riesgo controlado
+  Cons: tarda 7+ semanas en ver "el después" completo
+
+OPCIÓN B — Rediseño global con prototipo paralelo (riesgo medio)
+─────────────────────────────────────────────────────────────────────────────
+
+  Paso 1: Diseñador (humano o IA) hace mockups Figma de cómo quedaría
+          la app COMPLETA tras rediseño. 3-5 días.
+  Paso 2: Front (yo) implementa un nuevo grupo (group) en Next.js
+          (main-v2) con todas las rutas nuevas + nuevos componentes,
+          SIN tocar el (main) actual. Esto es "behind feature flag".
+  Paso 3: Activar /v2 para usuarios beta. Mantener /v1 paralelo.
+  Paso 4: Telemetría compara v1 vs v2 (engagement, tickets).
+  Paso 5: Si v2 gana → swap default. Si v1 gana → ajustar v2 hasta que
+          gane o descartar.
+
+  Pros: ves el "después" completo antes de borrar lo viejo, A/B testing real
+  Cons: doble carga de mantenimiento durante el periodo paralelo
+
+OPCIÓN C — Mock interactivo en Storybook + Figma (más rápido para validar)
+─────────────────────────────────────────────────────────────────────────────
+
+  Paso 1: Figma con todas las pantallas rediseñadas (1 semana diseñador)
+  Paso 2: Storybook con componentes nuevos vivos (1 semana front)
+  Paso 3: Usuario clickea por el Storybook, prueba el flujo SIN datos
+          reales, valida UX
+  Paso 4: Decisión "Adelante" → empezar opción A o B con confianza
+
+  Pros: validación temprana sin tocar producción, barato
+  Cons: solo valida UX, no integración real con backend
+
+RECOMENDACIÓN
+─────────────────────────────────────────────────────────────────────────────
+
+OPCIÓN B (rediseño paralelo) es la mejor para tu caso porque:
+  · Quieres ver "antes y después" de la app
+  · Quieres PROBAR opciones antes de comprometer
+  · El rediseño es grande (nomenclatura + modelo conceptual + UI)
+
+Pero antes hacer OPCIÓN C abreviada:
+  · 2-3 días de mockup HTML estático del "después"
+  · Tú lo ves, eliges 1 dirección
+  · Después empezamos B con esa dirección clara
+
+═══════════════════════════════════════════════════════════════════════════════
+INVENTARIO DE FUNCIONALIDAD EXISTENTE chat-ia
+═══════════════════════════════════════════════════════════════════════════════
+
+(Se completa con un script de auditoría — entregable separado)
+
+FEATURES VISIBLES EN UI ACTUAL:
+  · /chat — asistente IA con sesiones + topics
+  · /messages — bandeja conversaciones multicanal (B)
+  · /chat/@session/SubTabs Bandeja A — duplicada (a eliminar)
+  · /memories — álbumes (link a memories-web)
+  · /wedding-creator — link a editor-web
+  · /settings — config user, agent, integraciones, billing, llm (redirect)
+  · /tasks — redirige a /messages (intencional)
+  · /labs — feature flags experimentales
+  · /me — perfil
+
+INTEGRACIONES BACKEND:
+  · api-ia (REST, chat, drafts, ia-config, providers, messages stream)
+  · api-mcp (GraphQL, CRM_Note, eventos, users, conversations)
+  · Firebase Auth + OAuth Google/Facebook + WhatsApp OTP
+  · SSO cookie cross-app .bodasdehoy.com
+
+CANALES DE MENSAJERÍA YA SOPORTADOS:
+  · WhatsApp (Meta WAB API)
+  · Web chat (widget)
+  · Email (placeholder, pendiente Brevo/SES integración)
+  · Instagram (placeholder)
+  · Facebook (placeholder)
+  · Telegram (placeholder)
+  · SMS (NO existe)
+  · Llamadas teléfono (NO existe)
+
+═══════════════════════════════════════════════════════════════════════════════
+FIN — listo para revisión + decisión user
+═══════════════════════════════════════════════════════════════════════════════

@@ -1,24 +1,11 @@
-import {
-  AGENT_RUNTIME_ERROR_SET,
-  ChatCompletionErrorPayload,
-  ModelRuntime,
-} from '@lobechat/model-runtime';
-import { ChatErrorType } from '@lobechat/types';
-
-import { checkAuth } from '@/app/(backend)/middleware/auth';
 import { getSupportKey } from '@/const/supportKeys';
-import { createTraceOptions, initModelRuntimeWithUserPayload } from '@/server/modules/ModelRuntime';
-import { ChatStreamPayload } from '@/types/openai/chat';
-import { createErrorResponse } from '@/utils/errorResponse';
-import { getTracePayload } from '@/utils/trace';
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
 
 export const maxDuration = 300;
 
 // Configuración del backend - Siempre usa api-ia.bodasdehoy.com (no hay backend local)
 const getPythonBackendUrl = (): string => {
-  return process.env.PYTHON_BACKEND_URL
-    || process.env.NEXT_PUBLIC_BACKEND_URL
-    || 'https://api-ia.bodasdehoy.com';
+  return resolveServerBackendOrigin();
 };
 
 // Cache de URL para evitar recalcular en cada request
@@ -158,10 +145,6 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
   // Usar URL cacheada o calcular
   const currentBackendUrl = cachedBackendUrl || (cachedBackendUrl = getPythonBackendUrl());
 
-  if (process.env.USE_PYTHON_BACKEND === 'false') {
-    return null;
-  }
-
   if (!currentBackendUrl) {
     return null;
   }
@@ -223,23 +206,30 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
       }
     });
 
-    // Inyectar X-Support-Key para que api-ia pueda resolver la API key del developer vía api2
+    // Unificación secretos api-mcp v2 (29-jun): X-Internal-Secret server-side
+    // para AUTH servicio→servicio. api-ia acepta en su inbound centralizado.
+    if (process.env.INTERNAL_SECRET && !headers['X-Internal-Secret']) {
+      headers['X-Internal-Secret'] = process.env.INTERNAL_SECRET;
+    }
+    // X-Support-Key per-tenant (whitelabel): identidad de tenant, NO auth.
+    // api-ia lo usa para resolver la API key del developer vía MCP. Distinto
+    // del INTERNAL_SECRET unificado — mantener.
     if (!headers['X-Support-Key'] && !headers['x-support-key']) {
       const dev = req.headers.get('x-development') || 'bodasdehoy';
       headers['X-Support-Key'] = getSupportKey(dev);
     }
 
     // Extraer JWT de cookie si no hay Authorization
-    // Prioridad: 1) cookie api2_jwt (dedicada)
-    //            2) cookie dev-user-config.token (api2 JWT guardado tras login)
+    // Prioridad: 1) cookie mcp_jwt (dedicada)
+    //            2) cookie dev-user-config.token (JWT de MCP guardado tras login)
     // ⚠️ idTokenV0.1.0 NO se usa aquí: es Firebase ID token para SSO cross-app,
-    //    NO un api2 JWT — enviarlo a api-ia causaría fallo de verificación JWT.
+    //    NO un JWT de MCP — enviarlo a api-ia causaría fallo de verificación JWT.
     if (!headers['Authorization'] && !headers['authorization']) {
       try {
         const cookieHeader = req.headers.get('cookie') || '';
 
-        // 1) Cookie dedicada api2_jwt
-        const jwtMatch = cookieHeader.match(/api2_jwt=([^;]+)/);
+        // 1) Cookie dedicada mcp_jwt
+        const jwtMatch = cookieHeader.match(/mcp_jwt=([^;]+)/);
         if (jwtMatch) {
           const jwt = decodeURIComponent(jwtMatch[1]);
           if (jwt && jwt.startsWith('eyJ')) {
@@ -247,7 +237,7 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
           }
         }
 
-        // 2) Fallback: dev-user-config.token (api2 JWT)
+        // 2) Fallback: dev-user-config.token (JWT de MCP)
         if (!headers['Authorization']) {
           const match = cookieHeader.match(/dev-user-config=([^;]+)/);
           if (match) {
@@ -324,7 +314,7 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
           let reset_at: string | undefined;
           try {
             // El body puede venir como SSE: "data: {...}\n\ndata: [DONE]" o JSON plano
-            const cleanText = errorText.replace(/^data:\s*/gm, '').replace(/\[DONE\]/g, '').trim();
+            const cleanText = errorText.replaceAll(/^data:\s*/gm, '').replaceAll('[DONE]', '').trim();
             const parsed = JSON.parse(cleanText.split('\n')[0] || cleanText);
             const detail = parsed?.detail;
             // Aceptar campos en top-level o anidados en detail (FastAPI HTTPException)
@@ -345,15 +335,7 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
         }
 
         if (backendResponse.status === 402) {
-          const allowNegative = process.env.ALLOW_NEGATIVE_BALANCE === 'true';
-          if (allowNegative) {
-            // Modo saldo negativo: pasar al runtime nativo de LobeChat como fallback.
-            // El runtime nativo usará OPENAI_API_KEY del servidor (variable de entorno).
-            // El frontend detectará negativeBalanceMode: true y mostrará el banner de deuda.
-            console.warn(`⚠️ [402] Saldo insuficiente — modo deuda activo, fallback a runtime nativo para ${provider}`);
-            return null; // Cae al runtime nativo con OPENAI_API_KEY del servidor
-          }
-          // Modo estricto (por defecto): NO hacer fallback al runtime nativo
+          // Saldo insuficiente — siempre devolver error (api-ia es única fuente, sin fallback nativo).
           let message = 'Saldo insuficiente. Recarga tu cuenta para continuar usando el asistente.';
           let screen_type: string | undefined;
           let recharge_url: string | undefined;
@@ -417,16 +399,11 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
           );
         }
 
-        // Para otros errores 4xx/5xx del backend, reenviar la respuesta tal cual
-        // en lugar de hacer fallback al runtime nativo (que bypassearía validaciones del backend)
-        if (backendResponse.status >= 400) {
-          return new Response(errorText || JSON.stringify({ error: { status: backendResponse.status, type: 'backend_error' } }), {
-            headers: { 'Content-Type': backendResponse.headers.get('content-type') || 'application/json' },
-            status: backendResponse.status,
-          });
-        }
-
-        return null; // Fallback a lógica original solo si no hay error de backend
+        // Otros errores 4xx/5xx — reenviar la respuesta tal cual
+        return new Response(errorText || JSON.stringify({ error: { status: backendResponse.status, type: 'backend_error' } }), {
+          headers: { 'Content-Type': backendResponse.headers.get('content-type') || 'application/json' },
+          status: backendResponse.status,
+        });
       }
 
       // Transformar SSE del backend a formato OpenAI-compatible que LobeChat espera.
@@ -520,11 +497,12 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
 'add_note': 'lobe-crm-actions____add_note____builtin',
                         
 
-// CRM Actions
-'create_lead': 'lobe-crm-actions____create_lead____builtin',
-                        
 
 'complete_task': 'lobe-crm-actions____complete_task____builtin',
+                        
+
+// CRM Actions
+'create_lead': 'lobe-crm-actions____create_lead____builtin',
                         'create_task': 'lobe-crm-actions____create_task____builtin',
                         
 
@@ -572,12 +550,15 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
                         
 
 
+'get_tasks': 'lobe-crm-actions____get_tasks____builtin',
+                        
+
+
 'list_campaigns': 'lobe-crm____list_campaigns____builtin',
                         
-
+                        
 
 'list_contacts': 'lobe-crm____list_contacts____builtin',
-                        
                         
 // CRM Data
 'list_leads': 'lobe-crm____list_leads____builtin',
@@ -587,12 +568,10 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
 'search_crm': 'lobe-crm____search_crm____builtin',
                         
 'send_message': 'lobe-crm-actions____send_message____builtin',
-                        
-'update_lead_status': 'lobe-crm-actions____update_lead_status____builtin',
 
+                        'update_lead_status': 'lobe-crm-actions____update_lead_status____builtin',
                         'update_opportunity_stage': 'lobe-crm-actions____update_opportunity_stage____builtin',
                         'update_task': 'lobe-crm-actions____update_task____builtin',
-                        'get_tasks': 'lobe-crm-actions____get_tasks____builtin',
                       };
                       let translatedData = rawData;
                       try {
@@ -759,68 +738,21 @@ export const POST = async (req: Request, { params }: { params: Promise<{ provide
     const visitorLimitResponse = checkVisitorLimit(req);
     if (visitorLimitResponse) return visitorLimitResponse;
 
-    // Intentar proxy al backend Python primero
+    // Proxy a api-ia (única fuente, sin fallback nativo).
     const proxyResponse = await proxyToPythonBackend(req.clone(), provider);
     if (proxyResponse) {
       return proxyResponse;
     }
 
-    // Si USE_PYTHON_BACKEND está activo (no 'false'), el proxy DEBERÍA haber respondido.
-    // Si retornó null inesperadamente (error en SSE, catch interno, etc.), NO hacer fallback
-    // al ModelRuntime de LobeChat — eso requiere OPENAI_API_KEY y muestra "auto API Key is incorrect".
-    // En su lugar, devolver un error descriptivo para que el usuario sepa qué pasó.
-    if (process.env.USE_PYTHON_BACKEND !== 'false') {
-      console.error(`[chat-proxy] ❌ proxyToPythonBackend retornó null inesperadamente (provider="${provider}"). El backend Python está activo pero el proxy falló sin respuesta.`);
-      return new Response(
-        JSON.stringify({
-          body: { message: 'El asistente IA no está disponible en este momento. Intenta de nuevo en unos segundos.', type: 'service_unavailable' },
-          errorType: 'ServiceUnavailable',
-        }),
-        { headers: { 'Content-Type': 'application/json' }, status: 503 },
-      );
-    }
-
-    // Fallback: usar lógica original con checkAuth (solo cuando USE_PYTHON_BACKEND=false explícito)
-    return checkAuth(async (authReq: Request, { jwtPayload, createRuntime }) => {
-      const bodyText = await authReq.text();
-
-      try {
-        let modelRuntime: ModelRuntime;
-        if (createRuntime) {
-          modelRuntime = createRuntime(jwtPayload);
-        } else {
-          modelRuntime = await initModelRuntimeWithUserPayload(provider, jwtPayload);
-        }
-
-        const data = JSON.parse(bodyText) as ChatStreamPayload;
-        delete (data as any).original_provider;
-        delete (data as any).originalProvider;
-
-        const tracePayload = getTracePayload(authReq);
-        let traceOptions = {};
-        if (tracePayload?.enabled) {
-          traceOptions = createTraceOptions(data, { provider, trace: tracePayload });
-        }
-
-        return await modelRuntime.chat(data, {
-          user: jwtPayload.userId,
-          ...traceOptions,
-          signal: authReq.signal,
-        });
-      } catch (e) {
-        const {
-          errorType = ChatErrorType.InternalServerError,
-          error: errorContent,
-          ...res
-        } = e as ChatCompletionErrorPayload;
-
-        const error = errorContent || e;
-        const logMethod = AGENT_RUNTIME_ERROR_SET.has(errorType as string) ? 'warn' : 'error';
-        console[logMethod](`Route: [${provider}] ${errorType}:`, error);
-
-        return createErrorResponse(errorType, { error, ...res, provider });
-      }
-    })(req, { params });
+    // proxy devolvió null (error inesperado: URL inválida, SSE roto, catch interno, etc.)
+    console.error(`[chat-proxy] ❌ proxyToPythonBackend retornó null inesperadamente (provider="${provider}").`);
+    return new Response(
+      JSON.stringify({
+        body: { message: 'El asistente IA no está disponible en este momento. Intenta de nuevo en unos segundos.', type: 'service_unavailable' },
+        errorType: 'ServiceUnavailable',
+      }),
+      { headers: { 'Content-Type': 'application/json' }, status: 503 },
+    );
   } catch (error: any) {
     console.error(`❌ [502] Error no manejado en /webapi/chat: ${error?.message}`, error?.stack?.slice(0, 500));
 

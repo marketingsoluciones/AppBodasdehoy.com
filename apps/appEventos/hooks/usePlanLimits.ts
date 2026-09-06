@@ -15,6 +15,7 @@ import {
   type SubscriptionTier,
   TIER_LABELS,
 } from '@bodasdehoy/shared/plans';
+import { resolveApiBodasGraphqlUrl } from '../utils/apiEndpoints';
 
 // ========================================
 // TYPES
@@ -61,7 +62,7 @@ export interface UsePlanLimitsReturn {
 // API2 GraphQL
 // ========================================
 
-const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
+const API_MCP_URL = resolveApiBodasGraphqlUrl();
 
 async function graphqlQuery<T>(query: string, variables?: Record<string, unknown>, token?: string | null, development?: string): Promise<T> {
   const headers: Record<string, string> = {
@@ -70,7 +71,7 @@ async function graphqlQuery<T>(query: string, variables?: Record<string, unknown
   };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const res = await fetch(API2_URL, {
+  const res = await fetch(API_MCP_URL, {
     method: 'POST',
     headers,
     body: JSON.stringify({ query, variables }),
@@ -124,14 +125,15 @@ export function usePlanLimits(): UsePlanLimitsReturn {
     async function load() {
       try {
         // Fetch public plans
-        const plansData = await graphqlQuery<{ getSubscriptionPlans: SubscriptionPlanData[] }>(
+        const plansData = await graphqlQuery<{ getSubscriptionPlans?: SubscriptionPlanData[] }>(
           GET_PUBLIC_PLANS,
           { development },
           null,
           development
         );
         if (cancelled) return;
-        setAllPlans(plansData.getSubscriptionPlans ?? []);
+        const publicPlans = plansData?.getSubscriptionPlans ?? [];
+        setAllPlans(publicPlans);
 
         // Fetch user subscription if authenticated
         if (isAuthenticated) {
@@ -160,11 +162,17 @@ export function usePlanLimits(): UsePlanLimitsReturn {
 
         // Fallback: Free plan
         if (!cancelled) {
-          const freePlan = plansData.getSubscriptionPlans?.find((p) => p.tier === 'FREE') ?? null;
+          const freePlan = publicPlans.find((p) => p.tier === 'FREE') ?? null;
           setPlan(freePlan);
         }
       } catch (err) {
-        console.error('[usePlanLimits] Error:', err);
+        const shouldLog =
+          process.env.NODE_ENV === 'development' &&
+          typeof window !== 'undefined' &&
+          window.localStorage.getItem('debug_plan_limits') === 'true';
+        if (shouldLog) {
+          console.error('[usePlanLimits] Error:', err);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }

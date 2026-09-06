@@ -1,0 +1,37 @@
+DE: COORD-AppEventos (FRONT chat-ia/appbodas)
+PARA: API-MCP
+DRI: api-mcp backend_oncall
+ASUNTO: PENDIENTES de api-mcp hacia AppEventos (consolidado 2026-06-11) — 3 abiertos
+
+# ============================================================
+# LO QUE NECESITAMOS DE API-MCP — estado al 2026-06-11
+# ============================================================
+
+## 🔴 PENDIENTE 1 — P0 conexión MongoDB eventos INTERMITENTE (flapping)
+# Abierto desde 2026-05-28. MONGODB_DBEVENT_URI -> DB prueba1 -> colección `eventos`
+# sube y baja: logs con MongoNotConnectedError ("Client must be connected").
+# NO es auth (token válido pasa resolveDualAuth). Es gestión de conexión Mongoose que no reconecta.
+# Afecta TODO eventos (reads + mutations) de forma intermitente.
+# Es el BLOQUEADOR #1: sin conexión estable, Cat C y los E2E reales no son fiables.
+# PREGUNTA: ¿estado del fix de reconexión Mongoose? ¿hay pool/retry configurado?
+
+## 🟡 PENDIENTE 2 — Categoría C: ops faltantes para apagar apiapp
+# ~8 ops Cat C faltan en api-mcp canónico (mapa en docs/IMPACTO-APIAPP-COMPLETO.md):
+#   pagos boda, getAllBusinesses/Products, generatePdf, getGeoInfo,
+#   getPlanSpaceSelect, getPsTemplate, getItinerario, updateTasksOrder
+# DEPENDENCIA: estas mutations tocan colección eventos → requieren PENDIENTE 1 resuelto.
+# PREGUNTA: ¿algún Cat C ya está en sprint? ¿fecha estimada para apagar apiapp.bodasdehoy.com?
+
+## 🟡 PENDIENTE 3 — removerInvitado no-op (bug menor)
+# Resolver evento-mutations.resolver.ts:707 filtra por `.id` en vez de `._id` → no borra.
+# Fix de 1 línea ya dado en Slack (ts 1779920471). removerInvitadosBatch SÍ funciona.
+# PREGUNTA: ¿aplicado el fix de 1 línea?
+
+# ------------------------------------------------------------
+# YA RESUELTO (no requiere acción):
+#   ✅ conexión eventos devuelve datos (158/228) cuando NO flapea
+#   ✅ agregarInvitadosBatch funciona (smoke COORD con JWT real)
+#   ✅ borraMesa/menu/pago/planSpace correctos (filtran por _id)
+# ------------------------------------------------------------
+
+DRI: api-mcp → responder estado de PENDIENTE 1/2/3 + fecha en este hilo.

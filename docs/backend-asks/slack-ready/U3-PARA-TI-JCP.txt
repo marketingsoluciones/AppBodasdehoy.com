@@ -1,0 +1,95 @@
+═══════════════════════════════════════════════════════════════════
+PARA TI (JCP) — lo que NECESITAS HACER TÚ hoy/mañana
+═══════════════════════════════════════════════════════════════════
+
+Coord-Front (yo) ha dejado todo lo programable cerrado. Lo que sigue
+son acciones HUMANAS que solo tú puedes hacer:
+
+
+───────────────────────────────────────────────────────────────────
+🔴 HOY — 3 mensajes Slack a enviar (15 minutos)
+───────────────────────────────────────────────────────────────────
+
+Los 3 mensajes URGENTES están listos para copy-paste:
+
+  ./slack-copy.sh U1     → URGENTE api-mcp (Thread + updateTasksOrder + bugs)
+  ./slack-copy.sh U2     → URGENTE api-ia  (ABC + proxy Thread + naming)
+
+Cada mensaje pide UNA respuesta corta:
+  - api-mcp: 3 líneas (¿aplicáis uppercase/lowercase? + hora push Thread
+    + ETA exacta updateTasksOrder)
+  - api-ia:  4 letras (decisión ABC + uppercase/lowercase sí/no)
+
+Con esas respuestas, yo desbloqueo todo del lado COORD-FRONT.
+
+PASOS:
+  1. cd ~/Projects/AppBodasdehoy.com/docs/backend-asks/slack-ready
+  2. ./slack-copy.sh U1
+  3. Cmd+Tab a Slack → canal #coordinacion (C0AV8EV5495)
+     → hilo 1778170638.897419 → "Reply in thread" → Cmd+V → Enter
+  4. ./slack-copy.sh U2
+  5. Repite paso 3 con el segundo
+
+
+───────────────────────────────────────────────────────────────────
+🟡 MAÑANA (06-jun) — QA UI manual del fix borraPago (10 min)
+───────────────────────────────────────────────────────────────────
+
+HOY arreglé un bug ANTIGUO en producción (commit 8880632b):
+  - queries.deletepayment enviaba categoria_id que api-mcp rechazaba
+  - Resultado: borrar un pago "desaparecía" en UI pero NO se borraba
+    de verdad en backend (silent fail)
+
+NECESITAMOS verificar manualmente que el fix funciona:
+
+  1. Login con bodasdehoy.com@gmail.com en https://app-dev.bodasdehoy.com
+  2. Entra a una boda (ej: "Boda Isabel & Raúl")
+  3. Ve a "Presupuesto" → cualquier gasto con pagos registrados
+  4. Pulsa el botón borrar de un pago concreto
+  5. Refresca la página (F5)
+  6. ✅ Verificar que el pago YA NO está
+     ❌ Si el pago sigue apareciendo → el fix no funcionó (avisarme)
+
+
+───────────────────────────────────────────────────────────────────
+🟢 VIERNES — apagar droplet apiapp.bodasdehoy.com (acción infra)
+───────────────────────────────────────────────────────────────────
+
+Solo si TODO esto está verde:
+  ✅ Smoke Cat C 11/11 (incluyendo updateTasksOrder publicado mañana)
+  ✅ QA UI manual borraPago OK (paso anterior)
+  ✅ Playwright E2E suite sin regresiones
+
+Pasos:
+  1. DigitalOcean dashboard → droplet apiapp.bodasdehoy.com
+  2. Antes de apagar: revisar logs últimas 24h para verificar
+     que ningún cliente sigue llamando (debería estar a 0).
+  3. Apagar (NO destruir, dejar 7 días por si hay rollback).
+  4. Cloudflare DNS: quitar el A record de apiapp.bodasdehoy.com
+     (o dejarlo apuntando a un 502 explícito).
+  5. NEXT_PUBLIC_BASE_URL en .env.production del front:
+     → cambiar de https://apiapp.bodasdehoy.com a la URL del media
+       host nuevo (ya documentado en
+       memory/project_arquitectura_imagenes_2026.md)
+
+
+───────────────────────────────────────────────────────────────────
+ESTADO TRAS HACER ESTAS 3 COSAS
+───────────────────────────────────────────────────────────────────
+
+  ✅ apiapp.bodasdehoy.com apagado (1 servidor menos que pagar)
+  ✅ CAPA 2 chat-ia cerrada al 100% (depende de A/B/C de api-ia)
+  ✅ Thread funcionando vía api-mcp + api-ia proxy (Fase 4 cerrada)
+  ✅ Bug borraPago verificado fixed en producción
+  → Siguiente hito: CAPA 3 (borrar drizzle/pglite/@trpc/* del front)
+
+
+───────────────────────────────────────────────────────────────────
+RESUMEN ULTRA-CORTO
+───────────────────────────────────────────────────────────────────
+
+HOY:    Cmd+V × 2 mensajes Slack (U1 + U2). 15 min.
+MAÑANA: clicar 1 pago en presupuesto y refrescar. 10 min.
+VIERNES: apagar 1 droplet. 5 min.
+
+Total: ~30 min de tu tiempo distribuidos en 3 días.

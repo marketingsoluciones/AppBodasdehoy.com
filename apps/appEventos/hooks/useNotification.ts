@@ -1,7 +1,10 @@
 import { useTranslation } from "react-i18next";
 import { AuthContextProvider, EventContextProvider } from "../context";
-import { fetchApiBodas, queries } from "../utils/Fetching";
+import { queries } from "../utils/Fetching";
 import { useToast } from "./useToast";
+import { resolveApiBodasGraphqlUrl } from "../utils/apiEndpoints";
+import axios from "axios";
+import Cookies from "js-cookie";
 
 enum types {
   event, shop, guest, invitation, user
@@ -14,15 +17,45 @@ interface Notification {
   focused?: string
 }
 
+/**
+ * Hook para enviar notificaciones a otros usuarios.
+ *
+ * Usa una instancia de axios SIN el interceptor global de 401/403,
+ * porque si el token Firebase expira justo al enviar la notificación,
+ * el interceptor global dispara handleSessionExpired() y cierra la sesión
+ * del usuario que acaba de comentar (logout silencioso).
+ *
+ * Las notificaciones son fire-and-forget: si fallan, no deben afectar
+ * la sesión ni el flujo principal.
+ */
+const notifAxios = axios.create();
+
 export const useNotification = () => {
   const { user, config } = AuthContextProvider()
   const { event } = EventContextProvider()
   const toast = useToast()
   const { t } = useTranslation()
 
-
   const notification = ({ message, uids, type, focused }: Notification) => {
-    fetchApiBodas({
+    // El backend espera focused = evento_id (ObjectId de MongoDB).
+    // Los callers pasan un path como "/servicios?event=XXX&task=YYY",
+    // pero el resolver usa focused para buscar el evento en BD.
+    // Usamos event._id del contexto; si no hay, intentamos extraer del path.
+    const eventoId = event?._id || focused?.match(/event=([a-f0-9]{24})/)?.[1] || focused;
+
+    const idToken = Cookies.get("idTokenV0.1.0");
+    const development = config?.development || "bodasdehoy";
+    // Estándar 2026: usar el resolver canónico (no process.env directo).
+    // resolveApiBodasGraphqlUrl ya devuelve /api/proxy-bodas/graphql en localhost.
+    const url = resolveApiBodasGraphqlUrl();
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      Development: development,
+    };
+    if (idToken) headers.Authorization = `Bearer ${idToken}`;
+
+    notifAxios.post(url, {
       query: queries.createNotifications,
       variables: {
         args: {
@@ -30,14 +63,31 @@ export const useNotification = () => {
           message,
           uids,
           ...(type === "user" && { fromUid: user?.uid }),
-          focused
+          focused: eventoId
         }
-      },
-      development: config.development,
-      type: "json"
-    }).then(result => {
-      result?.total === 1 && toast("success", t(`Notificación enviada`))
-      result?.total > 1 && toast("success", t(`Notificaciones enviadas`))
+      }
+    }, { headers }).then(res => {
+      const result = res?.data?.data ? Object.values(res.data.data)[0] as any : null;
+      if (!result || typeof result.total !== "number") {
+        console.warn("[useNotification] respuesta inesperada de createNotifications:", result)
+        toast("error", t(`No se pudo enviar la notificación`))
+        return
+      }
+      if (result.total === 0) {
+        toast("error", t(`No se pudo enviar la notificación`))
+        return
+      }
+      if (result.total === 1) toast("success", t(`Notificación enviada`))
+      else toast("success", t(`Notificaciones enviadas`))
+    }).catch(err => {
+      // No disparar logout — las notificaciones no son críticas
+      const status = err?.response?.status;
+      if (status === 401 || status === 403) {
+        console.warn("[useNotification] auth error en createNotifications (no logout):", status)
+      } else {
+        console.error("[useNotification] error createNotifications:", err)
+      }
+      toast("error", t(`No se pudo enviar la notificación`))
     })
   };
 

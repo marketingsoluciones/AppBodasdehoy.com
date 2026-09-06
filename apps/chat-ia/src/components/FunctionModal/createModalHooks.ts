@@ -1,6 +1,6 @@
 import { App } from 'antd';
 import { ModalFuncProps } from 'antd/es/modal/interface';
-import { MutableRefObject, ReactNode, RefObject, useRef } from 'react';
+import { MutableRefObject, ReactNode, useRef } from 'react';
 
 import { closeIcon, useStyles } from './style';
 
@@ -21,12 +21,12 @@ const createModal = <T>(params: CreateModalProps | PropsFunc<T>) => {
   const useModal = () => {
     const { styles } = useStyles();
     const { modal } = App.useApp();
-    const instanceRef = useRef<ModalInstance>(null);
+    const instanceRef = useRef<ModalInstance | undefined>(undefined);
 
     const open = (outProps?: T) => {
       const props =
         typeof params === 'function'
-          ? params(instanceRef as RefObject<ModalInstance>, outProps)
+          ? params(instanceRef, outProps)
           : params;
 
       instanceRef.current = modal.confirm({

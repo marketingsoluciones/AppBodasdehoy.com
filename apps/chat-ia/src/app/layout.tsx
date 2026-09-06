@@ -17,10 +17,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {GTM_ID && (
           <noscript>
             <iframe
-              src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
               height="0"
-              width="0"
+              src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
               style={{ display: 'none', visibility: 'hidden' }}
+              width="0"
             />
           </noscript>
         )}

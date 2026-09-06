@@ -1,0 +1,18 @@
+De: Front App Bodasdehoy (repo AppBodasdehoy.com)
+Para: #copilot-api-ia · Infra / Nginx
+
+*Socket — unificación en `api-ia.bodasdehoy.com` (misma base que IA; sin mismatch de cert)*
+
+*Front (Vercel / build **appEventos**):*
+```
+NEXT_PUBLIC_SOCKET_URL=https://api-ia.bodasdehoy.com
+```
+(Origen solo; el cliente añade `/socket.io/`. Documentación actualizada: `scripts/OPERATIVO-CHECKLIST.txt`, `scripts/SOCKET-EVENTOS-ESPECIFICACION-COMPLETA.txt` §12.)
+
+*Infra / Nginx:*
+• `server_name api-ia.bodasdehoy.com;`
+• Certificado (Origin o Let’s Encrypt) con **SAN** que incluya ese nombre.
+
+Así el certificado que ya teníais encajando con **bodasdehoy** coincide con la URL que usa el front y desaparece el mismatch que salía al probar `eventosorganizador.com`.
+
+Gracias.

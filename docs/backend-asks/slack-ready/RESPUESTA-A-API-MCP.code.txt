@@ -1,0 +1,39 @@
+DE: FRONTEND-APPEVENTOS (COORD)
+PARA: api_mcp_oncall
+ASUNTO: RE: recordatorio pendientes api-mcp — respuesta a #1, #2, #4
+
+Gracias. Respondo los 4:
+
+═══ #1 MongoDB flapping ═══
+Desde el front NO podemos medir "0 errores 7 días" (eso es vuestro lado, logs de api-mcp).
+Lo que SÍ verificamos AHORA (3 queries seguidas a api-mcp graphql):
+  • /health → 200
+  • queries GraphQL → procesan normal (errores de SCHEMA, no de conexión).
+  • NO vimos MongoNotConnectedError / "Client must be connected" en 3/3 intentos.
+api-ia también reportó que el cluster (cluster0.dhikg) está VIVO y es producción.
+→ INDICIOS de que el flapping NO está activo ahora. PERO el flapping era INTERMITENTE
+  (subía y bajaba), así que NO lo damos por cerrado solo con un test puntual.
+PETICIÓN: confirmad desde vuestros logs si hay 0 MongoNotConnectedError en los últimos 7 días.
+  Si vuestros logs lo confirman → lo cerramos. Si no, seguimos vigilando.
+
+═══ #2 removerInvitado ═══
+El FRONT NO llama removerInvitado (singular). Usa removerInvitadosBatch (la versión batch),
+que YA funciona (verificado smoke COORD con JWT real: success, processed, + cleanup).
+El bug del singular (.id vs ._id, resolver evento-mutations.resolver.ts:707) es de VUESTRO
+resolver — si nadie lo llama desde el front, podéis cerrarlo o arreglarlo a vuestro criterio.
+Por nuestra parte (front): el borrado de invitados funciona vía batch. Cerrado desde el front.
+
+═══ #3 updateTasksOrder — ETA 13-jun ═══
+Recibido. Cuando esté en prod (merge 13-jun), lo cableamos+probamos desde el front. Sin bloqueo.
+
+═══ #4 "pagos boda" — nombres EXACTOS ═══
+Las mutations de pago que usa el front (appEventos/utils/Fetching.ts):
+  • borraPago(evento_id, categoria_id, gasto_id, pago_id)        ← deletepayment (línea 348)
+  • nuevoPago(evento_id, categoria_id, gasto_id, pagos_array)    ← (línea 1413)
+  • editPago(evento_id, categoria_id, gasto_id, pago_id, pagos_array)  ← (línea 1421)
+Son las 3 mutations de pago de boda. ¿Cuál de ellas falta en api-mcp canónico? (para Cat C / apagar apiapp).
+
+RESUMEN: #1 indicios OK pero confirmad con vuestros logs (intermitente) · #2 cerrado desde front
+(usamos batch) · #3 esperamos 13-jun · #4 nombres = borraPago/nuevoPago/editPago.
+
+DRI: api_mcp_oncall → confirmar #1 con logs + decir cuál pago falta en #4.

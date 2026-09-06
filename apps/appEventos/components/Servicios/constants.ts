@@ -19,7 +19,7 @@ export const COLUMN_CONFIG: Record<string, {
     colorConfig: {
       bg: 'bg-gray-50',
       border: 'border-gray-300',
-      text: 'text-white'
+      text: 'text-gray-700'
     },
     icon: React.createElement(Circle, { className: "w-4 h-4" }),
     color: 'bg-gray-50 border-gray-300'
@@ -27,32 +27,32 @@ export const COLUMN_CONFIG: Record<string, {
   in_progress: {
     title: 'En Curso',
     colorConfig: {
-      bg: 'bg-pink-50',
-      border: 'border-pink-300',
-      text: 'text-white'
+      bg: 'bg-base',
+      border: 'border-primary',
+      text: 'text-primary'
     },
     icon: React.createElement(Clock, { className: "w-4 h-4" }),
-    color: 'bg-pink-50 border-pink-300'
+    color: 'bg-base border-primary'
   },
   completed: {
     title: 'Completado',
     colorConfig: {
-      bg: 'bg-[#eeffee]',
-      border: 'border-[#7bff7b]',
-      text: 'text-white'
+      bg: 'bg-emerald-50',
+      border: 'border-emerald-300',
+      text: 'text-emerald-700'
     },
     icon: React.createElement(CheckCircle2, { className: "w-4 h-4" }),
-    color: 'bg-[#eeffee] border-[#7bff7b]'
+    color: 'bg-emerald-50 border-emerald-300'
   },
   blocked: {
     title: 'Bloqueado',
     colorConfig: {
-      bg: 'bg-[#fff0f0]',
-      border: 'border-[#ffa7a7]',
-      text: 'text-white'
+      bg: 'bg-red-50',
+      border: 'border-red-300',
+      text: 'text-red-700'
     },
     icon: React.createElement(XCircle, { className: "w-4 h-4" }),
-    color: 'bg-[#fff0f0] border-[#ffa7a7]'
+    color: 'bg-red-50 border-red-300'
   }
 };
 
@@ -72,7 +72,7 @@ export const DEFAULT_COLUMNS: Record<string, Omit<BoardColumn, 'tasks'>> = {
   in_progress: {
     id: 'in_progress',
     title: 'En Curso',
-    color: 'bg-pink-50 border-pink-300',
+    color: 'bg-base border-primary',
     colorConfig: COLUMN_CONFIG.in_progress.colorConfig,
     icon: COLUMN_CONFIG.in_progress.icon,
     isCollapsed: false,
@@ -83,23 +83,23 @@ export const DEFAULT_COLUMNS: Record<string, Omit<BoardColumn, 'tasks'>> = {
   completed: {
     id: 'completed',
     title: 'Completado',
-    color: 'bg-[#eeffee] border-[#7bff7b]',
+    color: 'bg-emerald-50 border-emerald-300',
     colorConfig: COLUMN_CONFIG.completed.colorConfig,
     icon: COLUMN_CONFIG.completed.icon,
     isCollapsed: false,
     isHidden: false,
     order: 2,
-    bgColor: 'bg-[#00b341]',
+    bgColor: 'bg-emerald-600',
   },
   blocked: {
     id: 'blocked',
     title: 'Bloqueado',
-    color: 'bg-[#fff0f0] border-[#ffa7a7]',
+    color: 'bg-red-50 border-red-300',
     colorConfig: COLUMN_CONFIG.blocked.colorConfig,
     icon: COLUMN_CONFIG.blocked.icon,
     isCollapsed: false,
     isHidden: false,
     order: 3,
-    bgColor: 'bg-[#ff2525]',
+    bgColor: 'bg-red-600',
   }
 };

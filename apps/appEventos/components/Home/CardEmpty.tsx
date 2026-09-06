@@ -25,7 +25,6 @@ const CardEmpty: FC<propsCadEmpty> = ({ set, state }) => {
 
   return (
     <div
-      //@ts-ignore
       ref={hoverRef}
       onClick={() => ConditionalAction()}
       className={`w-72 h-36 rounded-xl flex flex-col items-center justify-center cursor-pointer shadow-lg bg-base border border-gray-100 transition ${isHovered

@@ -1,0 +1,327 @@
+================================================================================
+  ESPECIFICACIÓN ÚNICA — Socket.IO en App Eventos (Bodasdehoy monorepo)
+  Código fuente: apps/appEventos/api.js, context/SocketContext.tsx,
+  components/DefaultLayout/SocketControlator.tsx, Invitaciones/Test.tsx,
+  components/InfoDevelopment.js
+  Documento único: casos de uso, payloads y comportamiento esperado (cliente
+  actual + contrato para servidor compatible).
+================================================================================
+
+--------------------------------------------------------------------------------
+1. PROPÓSITO
+--------------------------------------------------------------------------------
+  Sincronizar en tiempo casi real: (a) colaboración sobre el *mismo evento*
+  (datos del evento, plano/mesas), (b) estado de comunicaciones (envío email/
+  WhatsApp), (c) avisos genéricos (*notification*), (d) sesión WhatsApp (QR,
+  conexión) en pantalla de invitaciones.
+
+  El *cliente* ya está implementado. Quien despliegue el *servidor* Socket.IO
+  debe respetar los nombres de evento, el sobre `auth` y los cuerpos descritos
+  aquí para que la app actual funcione sin cambios.
+
+--------------------------------------------------------------------------------
+2. CONEXIÓN TÉCNICA (obligatoria para el servidor)
+--------------------------------------------------------------------------------
+  • Cliente: `socket.io-client` v4, `Manager(BASE).socket("/")` (namespace por
+    defecto `/`).
+  • BASE (HTTP o HTTPS, *sin* sufijo `/graphql`):
+      - Si existe `NEXT_PUBLIC_SOCKET_URL` (trim no vacío) → esa URL.
+      - Si no → `NEXT_PUBLIC_BASE_API_BODAS` (normalizada en código).
+  • Handshake `auth` (objeto fijo que envía el cliente al conectar):
+      `token`:   `"Bearer " + <JWT Firebase>`  ó  `"anonymous"`
+      `development`: string whitelabel (p. ej. `bodasdehoy`)
+      `father`: string o null (query `?father=` de la URL)
+      `origin`: `window.origin` del navegador
+  • El servidor debe aceptar conexiones con `anonymous` para rutas públicas
+    donde el contexto de React usa `displayName === "anonymous"`.
+
+--------------------------------------------------------------------------------
+3. NOMBRES DE EVENTO SOCKET.IO (wire level)
+--------------------------------------------------------------------------------
+  El cliente *siempre* registra listeners sobre el socket devuelto por Manager:
+  • Entrada: `app:message`, `notification`, y logs de `connect` /
+    `reconnect_attempt` (solo cliente).
+  • Salida (emisión desde el cliente hacia el servidor): el nombre del paquete
+    emitido es **siempre** la cadena literal **`app:message`** (no se usan otros
+    nombres para los flujos de negocio del `SocketControlator`).
+
+  El *servidor* debe:
+  • Reemitir/broadcast a los miembros de la sala los mismos nombres `app:message`
+    y `notification` que quiera que el cliente procese.
+  • No exigir nombres adicionales para el flujo principal descrito en §5–§7.
+
+--------------------------------------------------------------------------------
+4. SOBRE COMÚN DE CADA `app:message` (emisión cliente → servidor)
+--------------------------------------------------------------------------------
+  Campos usados por el código (pueden existir otros ignorados por el cliente):
+    `event`:   string | null   — id del evento o null en join inicial
+    `emit`:    string          — uid Firebase del emisor (o uid anónimo si aplica)
+    `receiver`: string | null — a menudo el mismo `event._id` como “sala”
+    `type`:    string          — discrimina el caso de uso (ver §5)
+    `payload`: { action: string, value: any }
+
+  El servidor puede usar `receiver` + `type` + `payload.action` para enrutar a
+  sala `event:<id>` o similar; el cliente *no* documenta aquí el nombre interno
+  de sala del servidor, solo los datos que manda.
+
+--------------------------------------------------------------------------------
+5. CASOS DE USO — COLABORACIÓN EVENTO / PLANO (SocketControlator)
+--------------------------------------------------------------------------------
+
+  UC-01 — Unirse a la sala del evento (join)
+  ------------------------------------------
+  Disparador (cliente):
+    • Al cambiar `event._id` en el contexto React **o** al dispararse
+      `reconet` (nueva conexión / reconnect del socket).
+  Emisión:
+    socket.emit("app:message", {
+      event: null,
+      emit: <user.uid>,
+      receiver: null,
+      type: "joinRoom",
+      payload: { action: "add", value: <event._id> }
+    })
+  Comportamiento esperado del servidor:
+    • Asociar el `socket.id` del cliente a la sala lógica del evento `value`.
+    • A partir de aquí, los mensajes `app:message` dirigidos a ese evento
+      deben llegar a este socket.
+  Comportamiento esperado del cliente tras éxito:
+    • No hay mutación de estado local específica del join; los siguientes
+      mensajes entrantes actualizarán datos.
+
+  UC-02 — Salir de sala (solo dev / pruebas)
+  ------------------------------------------
+  Disparador: botones en `InfoDevelopment.js` (no flujo productivo habitual).
+  Emisión:
+    socket.emit("app:message", {
+      emit: <user.uid>,
+      receiver: null,
+      type: "joinRoom",
+      payload: { action: "del", value: <event._id> }
+    })
+  Servidor: quitar socket de la sala del evento.
+
+  UC-03 — Sincronizar plano activo (planSpace / mesas)
+  ----------------------------------------------------
+  Disparador (cliente):
+    • Cada vez que cambia el objeto `planSpaceActive` en el contexto, *salvo*
+      que el flag interno `valirRemotePlanSpaceActive` sea true (indica que el
+      cambio viene de un mensaje remoto: se evita bucle).
+  Emisión:
+    socket.emit("app:message", {
+      event: <event._id>,
+      emit: <user.uid>,
+      receiver: <event._id>,
+      type: "planSpaceActive",
+      payload: { action: "setPlanSpaceActive", value: <objeto planSpaceActive> }
+    })
+  Contenido de `value`:
+    • Objeto *completo* tal como vive en React (estructura de plano/mesas en
+      app). Puede ser grande; no es un “solo id”.
+  Recepción (otro cliente o el mismo tras broadcast):
+    Mensaje entrante `app:message` con:
+      `payload.action === "setPlanSpaceActive"`
+      `payload.value` = mismo tipo de objeto.
+    Comportamiento cliente:
+      • Si `value._id === planSpaceSelect` (plano seleccionado en UI) →
+        `setPlanSpaceActive(value)`.
+      • Sustituye el elemento correspondiente dentro de `event.planSpace` y
+        hace `setEvent`.
+
+  UC-04 — Anunciar cambios en el documento del evento (emit mínimo)
+  ------------------------------------------------------------------
+  Disparador (cliente):
+    • Cada vez que el objeto `event` del contexto cambia (cualquier edición
+      local), *salvo* si:
+        - `valirRemoteEvent` o `valirRemotePlanSpaceActive` es true (cambio
+          originado por socket remoto), o
+        - `senderPlanSpaceActive` es true (se acaba de emitir plano remoto).
+    • Tras emitir, incrementa contador interno `countEvent` (límite suave < 5
+      en efecto de re-ejecución).
+  Emisión:
+    socket.emit("app:message", {
+      event: <event._id>,
+      emit: <user.uid>,
+      receiver: <event._id>,
+      type: "event",
+      payload: { action: "setEvent", value: <event._id> }   // solo string id
+    })
+  Punto crítico:
+    • El *emit* lleva **únicamente el id** del evento, no el documento completo.
+    • El *receptor* en `SocketControlator` trata `payload.value` como **objeto
+      Event completo** (campos anidados, invitados, itinerarios, etc.).
+  Comportamiento esperado del servidor (elija una estrategia y documente la
+  misma para el equipo):
+    A) Al recibir `setEvent` con solo id: el servidor obtiene el documento
+       actualizado (BD/API), y el *broadcast* a la sala incluye `payload.value`
+       = objeto Event completo; **o**
+    B) Otro cliente enriquecido reenvía el objeto completo (menos habitual).
+    Si el servidor reemite solo el id, **el cliente actual fallará** al hacer
+    spread de campos del evento.
+
+  UC-05 — Recibir actualización de evento (usuario autenticado)
+  --------------------------------------------------------------
+  Entrada: `app:message` con `payload.action === "setEvent"`.
+  `payload.value` debe ser objeto Event. El cliente:
+    • Normaliza `fecha` a string epoch ms.
+    • Si el usuario está en `compartido_array`, ajusta permisos y llama
+      `fetchApiBodas(getUsers)` para hidratar `detalles_compartidos_array` y
+      `detalles_usuario_id`.
+    • Preserva `galerySvgs` locales fusionando `eventOld`.
+    • `setEvent` final.
+
+  UC-06 — Recibir actualización de evento (usuario anónimo)
+  ---------------------------------------------------------
+  Misma entrada `setEvent` con objeto Event completo.
+  Comportamiento distinto:
+    • Recorta a un único itinerario/tarea alineado con el evento ya abierto en
+      pantalla (lógica de comentarios / uids).
+    • Opcionalmente `fetchApiBodas(getUsers)` para comentarios.
+    • `setEvent` con estructura reducida pensada para vista pública.
+
+  UC-07 — Estado de comunicación (email / WhatsApp envío)
+  --------------------------------------------------------
+  Entrada: `app:message` con `payload.action === "setStatusComunicacion"`.
+  `payload.value` obligatorio:
+    {
+      invitado_id: string,
+      message_id: string,
+      status: string,
+      timestamp: string | number (parseable a fecha)
+    }
+  Comportamiento cliente:
+    • Localiza invitado y mensaje en `event.invitados_array[].comunicaciones_array[]`.
+    • Añade entrada en `statuses` deduplicando por nombre+timestamp y
+      consolidando por nombre.
+
+--------------------------------------------------------------------------------
+6. CASOS DE USO — WHATSAPP (Invitaciones/Test.tsx)
+--------------------------------------------------------------------------------
+  Ámbito: solo cuando `optionSelect === "whatsapp"`.
+  El componente registra `socket.on("app:message", handleMessage)`.
+
+  UC-10 — QR de sesión WhatsApp
+  -----------------------------
+  Entrada: `payload.action === "qrCode"` → `payload.value` = datos del QR
+  (formato que ya envía vuestro backend de WhatsApp). Cliente: muestra QR,
+  gestiona loading.
+
+  UC-11 — Sesión conectada
+  -------------------------
+  Entrada: `payload.action === "connected"` → `payload.value` = objeto sesión.
+  Cliente: limpia QR, marca loading, `setCheckingConnection(true)`.
+
+  UC-12 — Sesión / plantilla eliminada
+  ------------------------------------
+  Entrada: `payload.action === "whatsapp_deleted"`.
+  Cliente: limpia QR, sesión, teléfono, errores, loading.
+
+  El servidor (o microservicio WhatsApp) debe emitir `app:message` hacia el
+  mismo socket autenticado que abrió la pantalla, con esas `action` exactas.
+
+--------------------------------------------------------------------------------
+7. CASO — NOTIFICACIONES GENÉRICAS
+--------------------------------------------------------------------------------
+  UC-20 — `notification`
+  -----------------------
+  Entrada: evento Socket.IO `notification` con cuerpo `msg` libre.
+  Comportamiento cliente (`SocketControlator`):
+    • `notifications.total += 1`
+    • Antepone `msg` a `notifications.results`.
+  Servidor: puede usarse para avisos globales no ligados a un payload `action`.
+
+--------------------------------------------------------------------------------
+8. RAMA `cms:message` (código presente; cable actual dudoso)
+--------------------------------------------------------------------------------
+  En `SocketControlator` existen reacciones si `received.channel === "cms:message"`
+  (`clickCard`, `setRoute`, `setEventId`), pero el listener del socket solo
+  hace `setReceived({ channel: "app:message"|"notification", ... })`. Por tanto,
+  con el listener *actual*, esas ramas **no se alimentan desde el socket**
+  salvo que otro trozo de código asigne `received` distinto (no ocurre hoy).
+  Tratar como *legacy / preparado para futuro* o alinear servidor+cliente si el
+  producto necesita CMS por socket.
+
+--------------------------------------------------------------------------------
+9. FLAGS ANTIRREBOTE (por qué no siempre se emite)
+--------------------------------------------------------------------------------
+  • `valirRemoteEvent`, `valirRemotePlanSpaceActive`: se ponen a true al
+    principio del efecto que procesa `received`; al procesar un remoto se evita
+    re-emitir el mismo cambio al servidor (bucle infinito A→B→A).
+  • `senderPlanSpaceActive`: evita que el efecto de `event` dispare `setEvent`
+    justo después de un push de plano remoto.
+  • `reconet`: se actualiza en `connect` y `reconnect_attempt` para forzar de
+    nuevo `joinRoom` (UC-01).
+
+--------------------------------------------------------------------------------
+10. COMPORTAMIENTO QUE DEBE GARANTIZAR EL SERVIDOR (resumen contrato)
+--------------------------------------------------------------------------------
+  1) Aceptar `auth` descrito en §2.
+  2) Tras UC-01, enrutar `app:message` con el mismo `receiver`/`event` a todos
+     los sockets de la sala del evento.
+  3) Para UC-04/UC-05/UC-06: **nunca** reemitir solo el id como único `value` en
+     `setEvent` hacia clientes que usan este `SocketControlator`; debe ir el
+     documento Event coherente con BD.
+  4) Para UC-03: reemitir el objeto de plano tal cual o versión compatible.
+  5) Para UC-07 y UC-10–12: respetar `payload.action` y formas de `value`.
+  6) `notification`: entregar cuerpo que la UI pueda mostrar (texto, enlace, etc.).
+
+--------------------------------------------------------------------------------
+11. CHECKLIST DE COMPATIBILIDAD (sí / no antes de dar por válido el servidor)
+--------------------------------------------------------------------------------
+  [ ] Conexión anónima + autenticada con el mismo host BASE.
+  [ ] `joinRoom` add asocia a sala por `payload.value`.
+  [ ] Broadcast `setEvent` incluye objeto Event completo.
+  [ ] Broadcast `setPlanSpaceActive` con objeto plano.
+  [ ] `setStatusComunicacion` con los cuatro campos.
+  [ ] WhatsApp: `qrCode`, `connected`, `whatsapp_deleted` funcionan en UI test.
+  [ ] `notification` incrementa lista en layout default.
+
+--------------------------------------------------------------------------------
+12. IMPLANTACIÓN DEL SERVIDOR (noticia Slack #copilot-api-ia, 2026-04-18)
+--------------------------------------------------------------------------------
+  El equipo **api-ia** publicó que el **servidor** Socket.IO v4 compatible con
+  este contrato está **implementado en código** en su repo (backend): ASGI
+  `main:asgi_application`, `python-socketio`, handshake §2, salas `event:<id>`,
+  `joinRoom` add/del, relay `app:message` + alias legacy `"undefined"`,
+  relay `notification`, broadcast con `skip_sid` al emisor, JWT con `exp`
+  (flag `APP_EVENTOS_SOCKET_VERIFY_EXP` para pruebas locales), hidratación
+  opcional cuando `setEvent` llega solo con id (`APP_EVENTOS_SOCKET_HYDRATE_SETEVENT`
+  + `getEventoById` / `execute_get_event_details`). Pruebas citadas en Slack:
+  `pytest tests/test_app_eventos_socketio.py` (+ hidratación + integración).
+
+  **BASE pública acordada (Ops / api-ia, DoD §9 — misma marca que IA):**
+    https://api-ia.bodasdehoy.com
+  • Misma base que el backend IA para evitar **mismatch certificado/DNS** al
+    usar otro host (p. ej. eventosorganizador.com). **Front:** `NEXT_PUBLIC_SOCKET_URL`
+    = ese origen. **Nginx:** `server_name api-ia.bodasdehoy.com;` + certificado
+    (Origin o LE) con **SAN** que incluya ese nombre.
+  • Es el **origen** HTTPS del `Manager` Socket.IO (sin `/graphql`; **no** añadir
+    `/socket.io` en la variable: el cliente lo resuelve solo, ver §2 y `api.js`).
+  • Infra: el mismo host debe servir Engine.IO en `/socket.io/` (polling +
+    upgrade WebSocket); el proxy no debe devolver 502 ni cortar timeouts de
+    long-polling. Health HTTP en el mismo host si aplica (p. ej. `GET /health`).
+  • Front: `NEXT_PUBLIC_SOCKET_URL` recomendado = esa BASE (trim no vacío); si
+    no va definida, fallback `NEXT_PUBLIC_BASE_API_BODAS` (§2).
+  • api-ia: `ALLOWED_ORIGINS` debe incluir **todos** los orígenes desde los que
+    cargue la app (dev / staging / prod). Detalle en repo api-ia
+    `docs/SOCKET_APP_EVENTOS_OPS_Y_URL.md` (si existe) o `services/app_eventos_socketio.py`.
+  • Smoke mínimo post-deploy: dos navegadores, mismo `event_id`, UC-01
+    `joinRoom`, cambio plano/evento visible vía `app:message`, `notification`
+    con usuario ya en sala (plan UAT: `SOCKET_APP_EVENTOS_PLAN_UAT_MULTIEQUIPO.md`).
+
+  **Sigue P0 hasta evidencia:** DNS/TLS + proxy vivos, build con env aplicada,
+  consola sin `connect_error` recurrente, y (resto producto) deploy API2
+  `55f6af6` (Ops) si sigue abierto en checklist.
+
+--------------------------------------------------------------------------------
+13. DÓNDE SIGUE EL RESTO (operativo / dueños)
+--------------------------------------------------------------------------------
+  Checklist P0 producto: scripts/OPERATIVO-CHECKLIST.txt (parte superior).
+  Rol / despliegue: scripts/SOCKET-APP-EVENTOS-DUENO.txt
+
+  Los archivos SOCKET-CUANDO-QUE-DATOS.txt quedó como puntero; el detalle de
+  casos de uso sigue siendo **este archivo**.
+
+================================================================================
+  Fin especificación. Mantener al día si cambia SocketControlator / api.js.
+================================================================================

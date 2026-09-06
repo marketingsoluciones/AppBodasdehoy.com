@@ -1,0 +1,85 @@
+================================================================================
+  META ÚNICA — Operativo app eventos + chat (cerrar [ ] en orden)
+================================================================================
+  LÍNEA 1 — FRONT (primero; terminal *primer plano*, no background, para ver
+  salida al vuelo): deploy **appEventos** + **chat-ia** + smoke Copilot 1 msg |
+  reglas Cursor `scripts/cursor-global-rule-mcp-slack.txt` | reclamo otros
+  `scripts/slack-mensaje-reclamo-pendiente-otros-equipos.txt` | verificar repo:
+  `pnpm --filter @bodasdehoy/appEventos lint` y `pnpm --filter @bodasdehoy/appEventos build`
+  (Opcional chat-ia: `pnpm --filter @bodasdehoy/chat-ia run type-check` — en local
+  puede fallar si faltan tipos `@clerk/*`; el build en Vercel suele llevar deps.)
+
+--------------------------------------------------------------------------------
+  SOLO FRONT (detalle; el resto P0 es seguimiento — no re-asignar a front)
+--------------------------------------------------------------------------------
+  *Código ya listo:* contrato socket cliente, `NEXT_PUBLIC_SOCKET_URL` en
+  `.env.development.local.example`. `getMySubscription.status`: no pedir `status`
+  hasta deploy verificado del backend (fix enum `SubscriptionStatus`).
+
+  [ ] *P1:* deploy **appEventos** + **chat-ia** (último main/preview o prod) +
+      *smoke* Copilot: 1 mensaje logueado (evidencia: URL deploy o captura).
+  [ ] *P2 por dev:* pegar `scripts/cursor-global-rule-mcp-slack.txt` en Cursor
+      → Settings → Rules → User rules (marcar hecho por persona).
+  [ ] *Env socket (cuando Infra+api-ia digan LISTO en BASE):* en Vercel (o build
+      de prueba) añadir `NEXT_PUBLIC_SOCKET_URL=https://api-ia.bodasdehoy.com`
+      solo en el proyecto **appEventos** → redeploy — medir consola sin
+      `connect_error` 60 s.
+  [ ] *Post deploy MCP enum LISTO:* reactivar el campo `status` en `getMySubscription`
+      (cliente) + redeploy appEventos (+ chat-ia si aplica).
+
+  *No ejecutamos nosotros:* DNS/TLS, `ALLOWED_ORIGINS` en api-ia, deploy MCP,
+  R2 en backend — *reclamar en Slack* con mensaje corto:
+  `scripts/slack-mensaje-reclamo-pendiente-otros-equipos.txt` (+ anti-bucle:
+  `scripts/LIDERES-DRI-Y-ANTIBUCLE.txt`).
+
+--------------------------------------------------------------------------------
+  P0 — otros equipos (Infra / api-ia / MCP)
+--------------------------------------------------------------------------------
+  *Socket — BASE acordada (api-ia Ops, DoD §9):*
+    https://api-ia.bodasdehoy.com
+  (origen solo; cliente añade `/socket.io/`. Detalle §12 últimos párrafos en
+  SOCKET-EVENTOS-ESPECIFICACION-COMPLETA.txt.)
+
+  *Noticias Slack #copilot-api-ia:* api-ia GraphQL `status` cerrado en código;
+  servidor Socket.IO v4 en repo api-ia. *P0 restante:* Infra (DNS/TLS/proxy sin
+  502) + build App con `NEXT_PUBLIC_SOCKET_URL` a esa BASE + CORS `ALLOWED_ORIGINS`
+  en api-ia + smoke dos clientes. MCP deploy `55f6af6` si sigue abierto.
+
+  Alcance: *Front* = env + redeploy. *Infra* = DNS/TLS/proxy al ASGI api-ia.
+  *api-ia* = imagen `main:asgi_application` + CORS.
+
+  P0  [ ] Socket: BASE viva arriba; `NEXT_PUBLIC_SOCKET_URL` en el entorno/build
+        de prueba = misma BASE (o fallback explícito acordado).
+        Medible: GET …/socket.io/?EIO=4&transport=polling ≠ 502; 60s en app
+        logueada → sin ERR_NAME_NOT_RESOLVED; `connect` + al menos un
+        `app:message` OK; api-ia `ALLOWED_ORIGINS` incluye origen de la app.
+  P0  [ ] MCP: enum getMySubscription.status en prod. Medible: query con
+        `status` no falla. Front: reactivar campo `status` en query + redeploy.
+  P0  [ ] R2 CRM bodasdehoy: uploadCRMEntityFile OK. Medible: 1 subida OK o
+        ticket con 4 datos si KO.
+
+  P1  [ ] api-ia: bugs ~24 feb cerrados o ticket+ETA.
+
+  P2  [ ] Reglas Cursor por dev (opcional).
+
+================================================================================
+  Socket — especificación detallada (un solo documento)
+================================================================================
+  Casos de uso, payloads, comportamiento cliente y contrato servidor:
+  **scripts/SOCKET-EVENTOS-ESPECIFICACION-COMPLETA.txt**
+
+  UAT colaborativa (plantilla Slack + testigo): scripts/SOCKET-APP-EVENTOS-UAT-CONVOCATORIA.txt
+
+  Dueño rol servidor: scripts/SOCKET-APP-EVENTOS-DUENO.txt
+  DRI / Slack: scripts/LIDERES-DRI-Y-ANTIBUCLE.txt
+  Mensajes Slack listos #copilot-api-ia / hilo backend (#api-ia-api2-sync):
+    • *Socket unificado bodasdehoy.com* (Front env + Nginx/SAN):
+      scripts/slack-mensaje-socket-front-nginx-bodasdehoy.txt
+    • *Reclamo* pendiente otros (socket + MCP + R2, tono firme):
+      scripts/slack-mensaje-reclamo-pendiente-otros-equipos.txt
+    • Solo socket P0: scripts/slack-mensaje-coordinacion-socket-p0.txt
+    • Todos los equipos (plantilla larga): scripts/slack-mensaje-coordinacion-cierre-p0-todos-equipos.txt
+
+  *Orden sugerido de cierre:* (1) Socket URL+CORS+env+smoke mínimo → (2) MCP
+  enum + aviso LISTO → front flag status + redeploy → (3) R2 CRM → (4) P1
+  bugs api-ia + deploy/smoke front. Hilo maestro backend: #api-ia-api2-sync.

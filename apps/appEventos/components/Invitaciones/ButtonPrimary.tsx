@@ -3,12 +3,20 @@ import { FC, ReactNode } from 'react';
 interface pros extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
   className?: string;
+  variant?: 'default' | 'gray';
 }
 
-const ButtonPrimary: FC<pros> = ({ children, className, ...props }) => {
+const variantClasses: Record<NonNullable<pros['variant']>, string> = {
+  default:
+    'bg-white text-primary border border-primary hover:font-semibold hover:bg-primary hover:text-white',
+  gray:
+    'bg-gray-200 text-[#6b6b72] border border-gray-200 font-semibold hover:bg-[#ececf0]',
+};
+
+const ButtonPrimary: FC<pros> = ({ children, className = '', variant = 'default', ...props }) => {
   return (
     <button
-      className={`${className ? className : ""} focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display  text-[10px] md:text-sm rounded-lg transition border border-primary capitalize ${props.disabled ? "opacity-65" : "hover:font-semibold hover:bg-primary hover:text-white"}`}
+      className={`focus:outline-none px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-center font-display text-[10px] md:text-sm rounded-lg transition capitalize ${variantClasses[variant]} ${props.disabled ? 'opacity-65' : ''} ${className}`}
       {...props}
     >
       {children}
@@ -16,4 +24,4 @@ const ButtonPrimary: FC<pros> = ({ children, className, ...props }) => {
   );
 };
 
-export default ButtonPrimary; 
+export default ButtonPrimary;

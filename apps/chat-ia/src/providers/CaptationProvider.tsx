@@ -1,9 +1,13 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { createContext, memo, ReactNode, useCallback, useContext, useState } from 'react';
 
-import RegisterPromptModal from '@/components/RegisterPromptModal';
 import { CaptationResponse } from '@/hooks/useAuthCheck';
+
+const RegisterPromptModal = dynamic(() => import('@/components/RegisterPromptModal'), {
+  ssr: false,
+});
 
 interface CaptationContextType {
   hideCaptationModal: () => void;

@@ -1,4 +1,4 @@
-import { IEditor, SlashOptions } from '@lobehub/editor';
+import type { IEditor, SlashOptions } from '@lobehub/editor';
 import type { ChatInputProps } from '@lobehub/editor/react';
 import type { MenuProps } from '@lobehub/ui/es/Menu';
 

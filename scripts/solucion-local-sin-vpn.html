@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 SOLUCIÓN LOCAL SIN VPN - Champagne Events</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #f5f5dc 0%, #d4b483 100%);
+            color: #5d4037;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(93, 64, 55, 0.2);
+            border: 2px solid #d4b483;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #d4b483;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            color: #8b4513;
+            margin-bottom: 10px;
+        }
+        
+        .header .subtitle {
+            font-size: 1.2rem;
+            color: #a0522d;
+            opacity: 0.9;
+        }
+        
+        .problem-box {
+            background: #fff8e1;
+            border-left: 5px solid #ff9800;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+        }
+        
+        .problem-box h3 {
+            color: #e65100;
+            margin-bottom: 10px;
+        }
+        
+        .solution-box {
+            background: #e8f5e9;
+            border-left: 5px solid #4caf50;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+        }
+        
+        .solution-box h3 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+        
+        .step {
+            background: white;
+            border: 2px solid #d4b483;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .step:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(93, 64, 55, 0.15);
+        }
+        
+        .step-number {
+            display: inline-block;
+            background: #8b4513;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .step-title {
+            display: inline-block;
+            font-size: 1.4rem;
+            color: #5d4037;
+            vertical-align: middle;
+        }
+        
+        .step-content {
+            margin-top: 20px;
+            padding-left: 55px;
+        }
+        
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-size: 0.95rem;
+        }
+        
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px 5px;
+            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.3);
+        }
+        
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(139, 69, 19, 0.4);
+            background: linear-gradient(135deg, #a0522d 0%, #8b4513 100%);
+        }
+        
+        .button-primary {
+            background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+            box-shadow: 0 5px 15px rgba(46, 125, 50, 0.3);
+        }
+        
+        .button-primary:hover {
+            background: linear-gradient(135deg, #2e7d32 0%, #4caf50 100%);
+            box-shadow: 0 8px 20px rgba(46, 125, 50, 0.4);
+        }
+        
+        .button-secondary {
+            background: linear-gradient(135deg, #2196f3 0%, #0d47a1 100%);
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
+        }
+        
+        .button-secondary:hover {
+            background: linear-gradient(135deg, #0d47a1 0%, #2196f3 100%);
+            box-shadow: 0 8px 20px rgba(33, 150, 243, 0.4);
+        }
+        
+        .verification-box {
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+        
+        .verification-box h3 {
+            color: #1565c0;
+            margin-bottom: 15px;
+        }
+        
+        .checklist {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .checklist li {
+            padding: 10px 0;
+            border-bottom: 1px solid #bbdefb;
+            display: flex;
+            align-items: center;
+        }
+        
+        .checklist li:last-child {
+            border-bottom: none;
+        }
+        
+        .checklist input[type="checkbox"] {
+            margin-right: 15px;
+            width: 20px;
+            height: 20px;
+            accent-color: #4caf50;
+        }
+        
+        .alert {
+            background: #ffebee;
+            border: 2px solid #f44336;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #c62828;
+        }
+        
+        .alert h4 {
+            color: #b71c1c;
+            margin-bottom: 10px;
+        }
+        
+        .success {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #2e7d32;
+        }
+        
+        .success h4 {
+            color: #1b5e20;
+            margin-bottom: 10px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #d4b483;
+            color: #8b4513;
+            font-size: 0.9rem;
+        }
+        
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+            justify-content: center;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .step-content {
+                padding-left: 0;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .button {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 SOLUCIÓN LOCAL SIN VPN</h1>
+            <div class="subtitle">Champagne Events - Bypass que SÍ funciona en LOCAL</div>
+        </div>
+        
+        <div class="problem-box">
+            <h3>❌ PROBLEMA ACTUAL:</h3>
+            <p><strong>No se abre app-test.champagne-events.com.mx</strong> - Error de conectividad/VPN</p>
+            <p>No puedes ver los eventos ni probar la funcionalidad</p>
+        </div>
+        
+        <div class="solution-box">
+            <h3>✅ SOLUCIÓN DEFINITIVA:</h3>
+            <p><strong>Usar servidor LOCAL (localhost:3220) con configuración ESPECIAL</strong></p>
+            <p>Forzar el bypass para que funcione en localhost modificando temporalmente el código</p>
+        </div>
+        
+        <div class="step">
+            <div class="step-number">1</div>
+            <div class="step-title">Arrancar servidor local</div>
+            <div class="step-content">
+                <p>Abre terminal y ejecuta:</p>
+                <div class="code-block">
+cd /Users/juancarlosparra/Projects/AppBodasdehoy.com<br>
+pnpm dev
+                </div>
+                <p>Espera a que arranque (verás "ready" en terminal)</p>
+                <div class="button-group">
+                    <button class="button button-primary" onclick="copyToClipboard('cd /Users/juancarlosparra/Projects/AppBodasdehoy.com && pnpm dev')">
+                        📋 Copiar comando
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-title">Forzar bypass en localhost</div>
+            <div class="step-content">
+                <p>El problema: AuthContext solo permite bypass en entornos test</p>
+                <p>Solución: Modificar temporalmente el código para permitir bypass en localhost</p>
+                
+                <div class="alert">
+                    <h4>⚠️ IMPORTANTE:</h4>
+                    <p>Esta modificación es TEMPORAL solo para testing. Después hay que revertir.</p>
+                </div>
+                
+                <p><strong>Opción A (RECOMENDADA): Usar este script:</strong></p>
+                <div class="code-block">
+// Guarda este código como: fix-local-bypass.js
+const fs = require('fs');
+const path = './apps/appEventos/context/AuthContext.tsx';
+
+const content = fs.readFileSync(path, 'utf8');
+
+// Buscar la línea que verifica isTestEnv
+const searchLine = 'const isTestEnv = window.location.hostname.includes(\'chat-test\') ||';
+const replaceLine = 'const isTestEnv = window.location.hostname.includes(\'chat-test\') || window.location.hostname.includes(\'localhost\') || window.location.hostname.includes(\'127.0.0.1\') ||';
+
+const newContent = content.replace(searchLine, replaceLine);
+
+fs.writeFileSync(path, newContent);
+console.log('✅ AuthContext modificado para permitir bypass en localhost');
+                </div>
+                
+                <div class="button-group">
+                    <button class="button button-secondary" onclick="copyToClipboard(`const fs = require('fs');\nconst path = './apps/appEventos/context/AuthContext.tsx';\n\nconst content = fs.readFileSync(path, 'utf8');\n\nconst searchLine = 'const isTestEnv = window.location.hostname.includes(\\'chat-test\\') ||';\nconst replaceLine = 'const isTestEnv = window.location.hostname.includes(\\'chat-test\\') || window.location.hostname.includes(\\'localhost\\') || window.location.hostname.includes(\\'127.0.0.1\\') ||';\n\nconst newContent = content.replace(searchLine, replaceLine);\n\nfs.writeFileSync(path, newContent);\nconsole.log('✅ AuthContext modificado para permitir bypass en localhost');`)">
+                        📋 Copiar código fix
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-title">Activar bypass local</div>
+            <div class="step-content">
+                <p>Una vez modificado el AuthContext, usa esta URL:</p>
+                <div class="code-block">
+http://localhost:3220/api/dev/bypass?email=test-owner@champagne-events.com.mx&development=champagne-events&uid=TEST_OWNER_UID_001
+                </div>
+                
+                <div class="button-group">
+                    <a href="http://localhost:3220/api/dev/bypass?email=test-owner@champagne-events.com.mx&development=champagne-events&uid=TEST_OWNER_UID_001" 
+                       class="button button-primary" target="_blank">
+                        🚀 Abrir Bypass Local
+                    </a>
+                    <button class="button button-secondary" onclick="copyToClipboard('http://localhost:3220/api/dev/bypass?email=test-owner@champagne-events.com.mx&development=champagne-events&uid=TEST_OWNER_UID_001')">
+                        📋 Copiar URL
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="step">
+            <div class="step-number">4</div>
+            <div class="step-title">Verificar que funciona</div>
+            <div class="step-content">
+                <p>Después de abrir el bypass, en consola (F12) ejecuta:</p>
+                <div class="code-block">
+// Verificar bypass activado
+console.log('=== VERIFICACIÓN LOCAL ===');
+console.log('dev_bypass:', localStorage.getItem('dev_bypass'));
+console.log('dev_bypass_email:', localStorage.getItem('dev_bypass_email'));
+console.log('__dev_domain:', localStorage.getItem('__dev_domain'));
+
+// Verificar entorno
+console.log('Hostname:', window.location.hostname);
+console.log('isTestEnv (modificado):', window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1'));
+
+// Refrescar página
+console.log('✅ Ahora refresca la página (F5) para que AuthContext detecte el bypass');
+                </div>
+                
+                <div class="button-group">
+                    <button class="button" onclick="copyToClipboard(`console.log('=== VERIFICACIÓN LOCAL ===');\nconsole.log('dev_bypass:', localStorage.getItem('dev_bypass'));\nconsole.log('dev_bypass_email:', localStorage.getItem('dev_bypass_email'));\nconsole.log('__dev_domain:', localStorage.getItem('__dev_domain'));\n\nconsole.log('Hostname:', window.location.hostname);\nconsole.log('isTestEnv (modificado):', window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1'));\n\nconsole.log('✅ Ahora refresca la página (F5) para que AuthContext detecte el bypass');`)">
+                        📋 Copiar código verificación
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="verification-box">
+            <h3>📋 CHECKLIST DE VERIFICACIÓN</h3>
+            <ul class="checklist">
+                <li>
+                    <input type="checkbox" id="check1">
+                    <label for="check1">Servidor local corriendo (localhost:3220)</label>
+                </li>
+                <li>
+                    <input type="checkbox" id="check2">
+                    <label for="check2">AuthContext modificado (isTestEnv incluye localhost)</label>
+                </li>
+                <li>
+                    <input type="checkbox" id="check3">
+                    <label for="check3">Bypass ejecutado (URL con parámetros correctos)</label>
+                </li>
+                <li>
+                    <input type="checkbox" id="check4">
+                    <label for="check4">localStorage configurado (dev_bypass = 'true')</label>
+                </li>
+                <li>
+                    <input type="checkbox" id="check5">
+                    <label for="check5">Página refrescada (F5)</label>
+                </li>
+                <li>
+                    <input type="checkbox" id="check6">
+                    <label for="check6">Usuario logueado (Test Owner visible)</label>
+                </li>
+                <li>
+                    <input type="checkbox" id="check7">
+                    <label for="check7">Eventos visibles

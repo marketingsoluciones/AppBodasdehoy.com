@@ -115,9 +115,10 @@ const ServicesVew = (props) => {
           </div>
           <div className='flex-1 md:flex-none md:w-[35%] h-[100%] flex flex-row-reverse md:flex-row items-center '>
             <img
-              src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i320}` : defaultImagenes[event?.tipo?.toLowerCase()]}
+              src={event?.imgEvento?.i320 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${event.imgEvento.i320}`)}` : defaultImagenes[event?.tipo?.toLowerCase()]}
               className=" h-[90%] object-cover object-top rounded-md border-1 border-gray-600  hidden md:block"
               alt={event?.nombre}
+              onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[event?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
             />
             <div className='hidden md:flex flex-col font-display font-semibold text-md text-gray-500 px-2 md:pt-2 gap-2'>
               <span className='text-sm translate-y-2 text-primary text-[12px] first-letter:capitalize'>{event?.tipo}</span>
@@ -245,7 +246,7 @@ export async function getServerSideProps(context) {
       try {
         const data = await fetchApiBodasServer({
           query: queries?.getUsers,
-          variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
+          variables: { ids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid), development: development || 'bodasdehoy' },
           development,
         });
         users = Array.isArray(data?.getUsers) ? data.getUsers : [];
@@ -254,7 +255,7 @@ export async function getServerSideProps(context) {
           error_2 = error
           const dataRetry = await fetchApiBodasServer({
             query: queries?.getUsers,
-            variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
+            variables: { ids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid), development: development || 'bodasdehoy' },
             development,
           });
           users = Array.isArray(dataRetry?.getUsers) ? dataRetry.getUsers : [];

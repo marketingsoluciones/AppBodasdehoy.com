@@ -56,7 +56,9 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
       };
       delete dataSend.hora;
       delete dataSend.duracionUnidad;
-      fetchApiEventos({
+      // await: sin él, si fetchApiEventos rechaza (error), el .then se salta y el catch
+      // NO lo captura (promesa async sin await) → fallo silencioso (ni éxito ni error).
+      await fetchApiEventos({
         query: queries.editTask,
         variables: {
           eventID: event._id,
@@ -69,9 +71,15 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
       })
         .then(() => {
           const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerarioID)
-          const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id)
-          event.itinerarios_array[f1].tasks[f2] = dataSend
-          setEvent({ ...event })
+          setEvent((prev) => ({
+            ...prev,
+            itinerarios_array: prev.itinerarios_array.map((it, i) =>
+              i !== f1 ? it : {
+                ...it,
+                tasks: it.tasks.map(tk => tk._id !== values._id ? tk : dataSend),
+              }
+            ),
+          }))
           toast("success", t("Item guardado con exito"))
           setShowEditTask({ state: false })
         })

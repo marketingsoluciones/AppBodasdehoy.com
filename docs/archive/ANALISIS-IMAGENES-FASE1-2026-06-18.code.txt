@@ -1,0 +1,293 @@
+═══════════════════════════════════════════════════════════════════
+ ANÁLISIS SISTEMA IMÁGENES — 18/06/2026 · FASE 1 (mapeo código)
+ Repo: AppBodasdehoy.com  ·  rama: tj/refactor/adelgazar-chat-ia
+ BUILD app-dev hoy: RBA6A5TigrPXwKXP8SWqM
+═══════════════════════════════════════════════════════════════════
+
+
+───────────────────────────────────────────────────────────────────
+ RESUMEN: 5 PATRONES DISTINTOS COEXISTEN EN EL FRONT
+───────────────────────────────────────────────────────────────────
+
+PATRÓN A — createURL(slug) usa media-apiapp (vía resolveImagesOrigin)
+  5 sitios: PerfilFoto.tsx (x2), ModuloSubida.tsx (x2)
+  URL final: https://media-apiapp.eventosorganizador.com/<slug>
+  Estado HOY: 🔴 502 — host caído
+
+PATRÓN B — /api/proxy-image?url=https://api-mcp.eventosorganizador.com/<slug>
+  6 sitios: Home Card, BlockTitle, BlockPrincipal, ItinerarioPDF,
+            EnhancedBlockTitle, public-card
+  URL final: api-mcp.eventosorganizador.com/<slug>  (NO usa .env)
+  Estado HOY: ❓ NO PROBADO — api-mcp probablemente no sirve /uploads/
+
+PATRÓN C — `${resolveApiBodasOrigin()}${slug}` (sin /api/proxy-image)
+  2 sitios: WhatsappBusinessEditor, WhatsappBusinessPreview
+  URL final: api-mcp.eventosorganizador.com<slug>  (OJO sin barra)
+  Estado HOY: ❓ NO PROBADO
+
+PATRÓN D — `${apiAppImgBase}${slug}` (= resolveApiBodasOrigin → api-mcp)
+  1 sitio: public-itinerary
+  URL final: api-mcp.eventosorganizador.com/<slug>
+  Estado HOY: ❓ NO PROBADO
+
+PATRÓN E — imgEventoUrl directo (URL absoluta que da api-mcp)
+  5 sitios: pages/e/[eventId], buscador-mesa, manifest, public/event
+  URL final: la que devuelva el resolver de api-mcp
+  Estado HOY: 🔴 Depende del resolver de api-mcp
+
+NOTA: el proxy /api/proxy-image tiene WHITELIST de hosts:
+  ✅ api-mcp.eventosorganizador.com
+  ✅ www.theweddingplanner.mx, i.ibb.co
+  ✅ firebasestorage.googleapis.com, *.firebasestorage.app
+  ✅ *.r2.dev, *.r2.cloudflarestorage.com
+  ❌ media-apiapp.eventosorganizador.com NO ESTÁ
+  ❌ media.eventosorganizador.com NO ESTÁ
+
+
+───────────────────────────────────────────────────────────────────
+ LAS 3 FUENTES DE STORAGE EN CÓDIGO
+───────────────────────────────────────────────────────────────────
+
+FUENTE 1 — R2 Cloudflare (singleUpload api-mcp) — imágenes NUEVAS
+  Cableado: Fetching.ts:495, ModuloSubida.tsx:57
+  Devuelve: publicUrls{original, optimized800w, optimized400w, thumbnail}
+  URLs absolutas R2 (passthrough en createURL gracias al regex /^https?:/)
+  Call-sites consumers: FormAddPago, FormEditarPago, PerfilFoto,
+                        ModuloSubida, BlockSobreMiEvento
+  Estado: ✅ código intacto · ❓ runtime no probado
+
+FUENTE 2 — /uploads/ legacy (apiapp disco) — imágenes VIEJAS
+  BD guarda slug relativo: "/uploads/6hex/foo-i1024.webp"
+  Front prefija con DOS hosts según el patrón:
+    · createURL → media-apiapp.eventosorganizador.com (PATRÓN A)
+    · hardcoded → api-mcp.eventosorganizador.com (PATRONES B/C/D)
+  Estado: 🔴 media-apiapp.* devuelve 502
+
+FUENTE 3 — Firebase Storage per-tenant — SOLO attachments tareas
+  11 buckets por tenant:
+    bodasdehoy-1063.appspot.com, eventosplanificador-74e59.appspot.com,
+    vivetuboda-l.appspot.com, champagne-events-mx.appspot.com,
+    annloevents-app.firebasestorage.app,
+    miamorcitocorazon-planificador.firebasestorage.app,
+    eventosintegrados-app.firebasestorage.app,
+    ohmaratilano-app.firebasestorage.app,
+    corporativozr-app.firebasestorage.app,
+    theweddingplanner-app.firebasestorage.app, ...
+  Path BD: solo metadata {name, size}, sin URL
+  Front construye: ref(storage, `${taskId}//${name}`)  ← doble slash intencional
+  Call-sites (8): ItineraryPanel, ItinerarioGeneralTable, ItineraryColumns,
+                  InputAttachments, AttachmentsEditor, TaskDetailModal,
+                  ExtraTableView, InputCommentsOld
+  Estado: ✅ Solo para attachments, NO para imgEvento
+
+
+───────────────────────────────────────────────────────────────────
+ 4 HIPÓTESIS QUE EXPLICAN POR QUÉ EL SISTEMA FUNCIONABA ANTES
+───────────────────────────────────────────────────────────────────
+
+H1: Sistema funcionaba porque api-mcp tenía Nginx proxy a /uploads/
+    A favor: PATRÓN B (6 sitios) lo asume directo
+    Cómo confirmar: curl api-mcp.eventosorganizador.com/uploads/<slug> con slug real
+
+H2: Sistema funcionaba porque media-apiapp.* estaba UP, createURL cubría todo
+    A favor: PATRÓN A es el "oficial", los otros eran fallback
+    Cómo confirmar: levantar media-apiapp o ver Cloudflare config
+
+H3: El resolver imgEventoUrl de api-mcp devolvía URL absoluta del lugar correcto
+    A favor: PATRÓN E confía en eso
+    Cómo confirmar: probar imgEventoUrl con evento que tenga imagen real
+
+H4: Cada patrón funcionaba en su contexto (PerfilFoto vía media-apiapp,
+    Home Card vía api-mcp). Coexistían sin conflicto.
+    A favor: diversidad histórica, ningún sitio reportaba fallo
+    Cómo confirmar: inspeccionar UI en runtime con un usuario real
+
+
+═══════════════════════════════════════════════════════════════════
+ PRUEBAS PARA EJECUTAR (copy-paste a terminal)
+═══════════════════════════════════════════════════════════════════
+
+
+───────────────────────────────────────────────────────────────────
+ PRUEBA 1 — ¿api-mcp sirve /uploads/<slug>? (descarta H1)
+───────────────────────────────────────────────────────────────────
+
+# Reemplaza <SLUG> por un path real tipo: 6abc12/foo-i1024.webp
+# Si no tienes uno, prueba con paths generic primero:
+
+curl -s -o /dev/null -w "api-mcp/uploads/ → HTTP %{http_code}\n" \
+  --max-time 8 \
+  https://api-mcp.eventosorganizador.com/uploads/
+
+curl -s -o /dev/null -w "api-mcp/uploads/test.webp → HTTP %{http_code}\n" \
+  --max-time 8 \
+  https://api-mcp.eventosorganizador.com/uploads/test.webp
+
+# Si conoces un slug real:
+SLUG="6abc12/foo-i1024.webp"   # reemplaza por uno real
+curl -s -o /dev/null -w "api-mcp/$SLUG → HTTP %{http_code}\n" \
+  --max-time 8 \
+  "https://api-mcp.eventosorganizador.com/$SLUG"
+
+# Esperado:
+#   200 → H1 confirmada: api-mcp SÍ sirve /uploads/
+#   404/502 → H1 descartada: api-mcp NUNCA fue host de imágenes legacy
+
+
+───────────────────────────────────────────────────────────────────
+ PRUEBA 2 — ¿media.eventosorganizador.com (sin -apiapp) sirve imágenes?
+───────────────────────────────────────────────────────────────────
+
+curl -s -o /dev/null -w "media.eventos/ → HTTP %{http_code}\n" \
+  --max-time 8 https://media.eventosorganizador.com/
+
+curl -s -o /dev/null -w "media.eventos/uploads/ → HTTP %{http_code}\n" \
+  --max-time 8 https://media.eventosorganizador.com/uploads/
+
+# Con slug real (reemplazar):
+SLUG="6abc12/foo-i1024.webp"
+curl -s -o /dev/null -w "media.eventos/$SLUG → HTTP %{http_code}\n" \
+  --max-time 8 \
+  "https://media.eventosorganizador.com/$SLUG"
+
+# Esperado:
+#   200 → este es el host correcto, .env debería apuntar aquí
+#   404 → existe pero no sirve este path
+#   502 → mismo problema que media-apiapp
+
+
+───────────────────────────────────────────────────────────────────
+ PRUEBA 3 — Comparativa de los DOS subdominios (vs el del .env)
+───────────────────────────────────────────────────────────────────
+
+for HOST in media.eventosorganizador.com media-apiapp.eventosorganizador.com; do
+  echo "─── $HOST ───"
+  echo -n "  /            → "; curl -s -o /dev/null -w "%{http_code}\n" --max-time 5 "https://$HOST/"
+  echo -n "  /uploads/    → "; curl -s -o /dev/null -w "%{http_code}\n" --max-time 5 "https://$HOST/uploads/"
+  echo -n "  /test.png    → "; curl -s -o /dev/null -w "%{http_code}\n" --max-time 5 "https://$HOST/test.png"
+  echo ""
+done
+
+# Si media.* da 200/404 y media-apiapp.* da 502:
+#   → media.* es el host vivo, hay que cambiar .env de appEventos
+
+
+───────────────────────────────────────────────────────────────────
+ PRUEBA 4 — ¿imgEventoUrl en BD para un evento con imagen real?
+───────────────────────────────────────────────────────────────────
+
+# Necesita login real. Sin auth los eventos visibles son test/zombies.
+# Si tienes un eventId real con imagen:
+
+EVENT_ID="<id_evento_real_con_imagen>"   # reemplaza
+
+cat > /tmp/qimg.json <<EOF
+{"query":"{getEventoById(id:\"$EVENT_ID\"){_id nombre imgEvento imgEventoUrl imgEventoSizes{i1024 i800 i640 i320}}}"}
+EOF
+
+curl -s --max-time 10 -X POST https://api-mcp.eventosorganizador.com/graphql \
+  -H "Content-Type: application/json" \
+  -H "Development: bodasdehoy" \
+  -H "Authorization: Bearer <TU_JWT>" \
+  --data @/tmp/qimg.json
+
+# Interesa ver:
+#   imgEvento     → el slug raw guardado en BD (probablemente "6abc.../foo-i1024.webp")
+#   imgEventoUrl  → URL ABSOLUTA que el resolver de api-mcp construye
+#   imgEventoSizes.i1024 → tamaño grande, slug
+
+
+───────────────────────────────────────────────────────────────────
+ PRUEBA 5 — ¿singleUpload R2 funciona end-to-end? (FUENTE 1)
+───────────────────────────────────────────────────────────────────
+
+# Necesita JWT real y un eventId. Sube 1px PNG dummy.
+# Verifica que devuelve publicUrls con URL absoluta R2 que da 200.
+
+# Crear un PNG mínimo
+printf '\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\rIDATx\x9cc\xf8\xcf\xc0\x00\x00\x00\x03\x00\x01\x18\xdd\x8d\xb4\x00\x00\x00\x00IEND\xaeB`\x82' > /tmp/tiny.png
+
+EVENT_ID="<id_evento_real>"   # reemplaza
+JWT="<tu_jwt>"                # reemplaza
+
+curl -s --max-time 30 -X POST \
+  -H "Authorization: Bearer $JWT" \
+  -H "x-apollo-operation-name: singleUpload" \
+  -F operations='{"query":"mutation($file:Upload!,$development:String!,$eventId:ID!,$category:String){singleUpload(file:$file,development:$development,eventId:$eventId,category:$category){success errors{message} file{_id publicUrls{original optimized800w optimized400w thumbnail}}}}","variables":{"file":null,"development":"bodasdehoy","eventId":"'$EVENT_ID'","category":"imgEvento"}}' \
+  -F map='{"0":["variables.file"]}' \
+  -F 0=@/tmp/tiny.png \
+  https://api-mcp.eventosorganizador.com/graphql
+
+# Si devuelve publicUrls.original con https://... → FUENTE 1 OK
+# Si devuelve UNAUTHENTICATED → falta JWT real
+# Si devuelve "R2 config not found" → bucket per-tenant no configurado en api-mcp
+
+
+───────────────────────────────────────────────────────────────────
+ PRUEBA 6 — ¿Firebase Storage per-tenant accesible?  (FUENTE 3)
+───────────────────────────────────────────────────────────────────
+
+# Listar el bucket bodasdehoy:
+curl -s -o /dev/null -w "bodasdehoy-1063 bucket → %{http_code}\n" \
+  --max-time 8 \
+  "https://firebasestorage.googleapis.com/v0/b/bodasdehoy-1063.appspot.com/o"
+
+# Esperado: 200 con lista JSON
+# 403 → reglas no permiten listar sin auth (normal)
+# 404 → bucket no existe
+
+
+═══════════════════════════════════════════════════════════════════
+ ÁRBOL DE DECISIÓN POST-PRUEBAS
+═══════════════════════════════════════════════════════════════════
+
+CASO 1: PRUEBA 3 muestra que media.eventos sí responde (200/404 vs 502)
+  → ACCIÓN: cambiar NEXT_PUBLIC_IMAGES_BASE_URL en .env.local + .env.production.local
+            de https://media-apiapp.eventosorganizador.com
+            a   https://media.eventosorganizador.com
+  → Rebuild appEventos
+  → Verificar imágenes vuelven (PATRÓN A funciona)
+
+CASO 2: PRUEBA 1 muestra que api-mcp sí sirve /uploads/<slug>
+  → ACCIÓN: el problema es solo el .env apuntando al host equivocado.
+            Cambiar NEXT_PUBLIC_IMAGES_BASE_URL a:
+              https://api-mcp.eventosorganizador.com
+  → Esto alinea PATRONES A + B + C + D + E al MISMO host
+  → Rebuild appEventos
+
+CASO 3: NI media.* NI api-mcp sirven /uploads/
+  → El VPS apiapp (137.184.148.28) sí debe estar sirviendo.
+  → Pedir SSH al VPS para diagnosticar Nginx + path /uploads/
+  → Decisión: levantar el servicio O migrar las URLs a R2
+
+CASO 4: Todo funciona excepto que tu evento de prueba tiene imgEvento null
+  → No hay bug, el evento simplemente no tiene imagen subida.
+  → Probar con OTRO evento o pedir a usuario real un eventId con imagen.
+
+
+═══════════════════════════════════════════════════════════════════
+ LO QUE NECESITO DE TI PARA SEGUIR CON FASES 2-5
+═══════════════════════════════════════════════════════════════════
+
+OPCIÓN (a) — Un slug real
+  Si recuerdas/encuentras una URL/path tipo /uploads/6abc12/foo-i1024.webp
+  que sepas que cargaba antes en cualquier pantalla.
+  Ejecutar PRUEBAS 1+2+3 con ese SLUG real.
+
+OPCIÓN (b) — Autorizar SSH read-only al VPS apiapp
+  Comandos read-only que correría:
+    ls -la /root/api-bodas/public/uploads/ | head -20
+    find /root/api-bodas/public/uploads -name "*.webp" | wc -l
+    cat /etc/nginx/sites-enabled/* 2>/dev/null
+    systemctl status nginx
+    systemctl status api-bodas  # (o como se llame el proceso Node)
+
+OPCIÓN (c) — Tu cookie de sesión en app-dev + un eventId con imagen
+  DevTools → Application → Cookies → idTokenV0.1.0
+  + un eventId real (no test/zombie) que tenga imagen subida
+  Ejecutar PRUEBAS 4 y 5 con auth real.
+
+
+═══════════════════════════════════════════════════════════════════
+ FIN ANÁLISIS FASE 1
+═══════════════════════════════════════════════════════════════════

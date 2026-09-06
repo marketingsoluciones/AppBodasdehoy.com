@@ -46,37 +46,63 @@ const onUp = (item: GalerySvg) => {
 
 interface propsDragTable {
   item: GalerySvg
+  /** Si se pasa, se renderiza como TARJETA con icono + nombre debajo (menú Mobiliario fiel
+   * al HTML). Los hooks de drag (#dragN/#icon/js-dragDefault/handlers) NO cambian. */
+  label?: string
 }
-const DragTable: FC<propsDragTable> = ({ item }) => {
-
-  return (
-    <div className="w-14 h-14 static border-[1px] border-gray-300 hover:border-gray-400 rounded-lg">
-      <div id={`icon${item.title}_${item.tipo}`} className="hidden">
-        <div className="bg-gray-100 opacity-80 rounded-lg w-16 h-16 flex justify-center items-center">
-          <SvgWrapper
-            width={"75%"}
-            height={"75%"}
-            autoScale={true}
-          >
-            {item.icon}
-          </SvgWrapper>
-          <PlusIcon className={`absolute inset-0 m-auto text-primary w-3 h-3`} />
-        </div>
+const DragTable: FC<propsDragTable> = ({ item, label }) => {
+  // Handlers de drag (crean el espejo dragM y lo limpian). Comunes a ambos modos.
+  // + click-para-agregar: el drop de interact.js sobre el canvas con zoom/pan es
+  // frágil; un clic simple añade el elemento al centro del plano (fallback fiable).
+  // mesas.tsx escucha 'mesas-add-element'. Solo para mobiliario (element/text).
+  const dragHandlers = {
+    onMouseDown: (e: MouseEvent<HTMLDivElement>) => { onMouseDown(e, item) },
+    onMouseUp: () => { onUp(item) },
+    onTouchStart: (e: TouchEvent<HTMLDivElement>) => { onTouchStart(e, item) },
+    onTouchEnd: () => { onUp(item) },
+    onClick: () => {
+      if (item.tipo === 'element' || item.tipo === 'text') {
+        window.dispatchEvent(new CustomEvent('mesas-add-element', { detail: { modelo: item.title, tipo: item.tipo } }))
+      }
+    },
+  }
+  // Espejo oculto que se clona al arrastrar (común a ambos modos).
+  const mirror = (
+    <div id={`icon${item.title}_${item.tipo}`} className="hidden">
+      <div className="bg-gray-100 opacity-80 rounded-lg w-16 h-16 flex justify-center items-center">
+        <SvgWrapper width={"75%"} height={"75%"} autoScale={true}>{item.icon}</SvgWrapper>
+        <PlusIcon className={`absolute inset-0 m-auto text-primary w-3 h-3`} />
       </div>
+    </div>
+  )
+
+  // Modo TARJETA (menú Mobiliario, fiel al HTML): TODA la tarjeta es el área arrastrable
+  // (js-dragDefault + #dragN + handlers en el CONTENEDOR). Antes el área era solo el icono
+  // de 28px → agarrando la tarjeta/nombre no arrastraba (Texto/Árbol/etc.).
+  if (label) {
+    return (
+      <div
+        id={`dragN${item.title}_${item.tipo}`}
+        {...dragHandlers}
+        className="js-dragDefault w-full flex flex-col items-center gap-1.5 py-3 px-1 bg-[#faf9fb] border-[1.5px] border-[#f0f0f2] hover:border-[#e2e2e6] rounded-[12px] transition-colors cursor-grab"
+      >
+        {mirror}
+        <div className="w-7 h-7 flex justify-center items-center text-[#EF5B94]">
+          <SvgWrapper width={"100%"} height={"100%"} autoScale={true}>{item.icon}</SvgWrapper>
+        </div>
+        <span className="text-[10px] font-semibold text-[#3A3A42] text-center leading-tight">{label}</span>
+      </div>
+    )
+  }
+
+  // Modo icono (original — sin cambios).
+  return (
+    <div className="w-14 h-14 static bg-[#faf9fb] border-[1.5px] border-[#f0f0f2] hover:border-[#e2e2e6] rounded-[12px] transition-colors">
+      {mirror}
       <div className="w-full h-full flex-col justify-center items-center cursor-pointer relative">
         <div className="w-full h-full flex transform hover:scale-105 transition justify-center items-center relative">
-          <div id={`dragN${item.title}_${item.tipo}`} className="js-dragDefault w-full h-12 flex justify-center items-center"
-            onMouseDown={(e) => { onMouseDown(e, item) }}
-            onMouseUp={() => { onUp(item) }}
-            onTouchStart={(e) => { onTouchStart(e, item) }}
-            onTouchEnd={() => { onUp(item) }} >
-            <SvgWrapper
-              width={"85%"}
-              height={"85%"}
-              autoScale={true}
-            >
-              {item.icon}
-            </SvgWrapper>
+          <div id={`dragN${item.title}_${item.tipo}`} {...dragHandlers} className="js-dragDefault w-full h-12 flex justify-center items-center">
+            <SvgWrapper width={"85%"} height={"85%"} autoScale={true}>{item.icon}</SvgWrapper>
             {item.tipo === "table" && <PlusIcon className={`absolute inset-0 m-auto text-primary w-3 h-3 `} />}
           </div>
         </div>

@@ -1,0 +1,89 @@
+DE: COORD-AppEventos
+PARA: API-MCP
+DRI: api_mcp_oncall
+CANAL: #coordinacion · workspace eventosorganizador.slack.com
+HILO: 1778170638.897419
+ASUNTO: 📋 Pendientes FINALES de api-mcp tras CAPA 2 cerrada
+
+
+Excelente trabajo cerrando CAPA 2. He integrado todo lo que confirmasteis
+hoy + arreglado bugs producción detectados via smoke. Smoke Cat C 11/11
+verde, branch tj/feat/inbox-fase1 con 24 commits hoy.
+
+Os quedan SOLO 2 gaps menores (no bloquean apagar apiapp ni Fase 3 front):
+
+
+═══════════════════════════════════════════════════════════
+🟡 [1] getUsersByIds — tipo User incompleto
+═══════════════════════════════════════════════════════════
+
+El endpoint funciona (devuelve { id, email }) pero el tipo User no tiene
+los campos que el front necesita para la UX completa:
+
+  • displayName
+  • photoURL
+  • phoneNumber
+  • onLine { status, dateConection }
+
+Mientras tanto el front degrada graceful con alias `displayName:email`
+en la query GraphQL (commit 5221cde1). UX afectada hoy:
+
+  • SocketControlator.tsx: realtime sin nombre/avatar de usuarios conectados
+  • Compartir evento (AddUserToEvent.tsx): muestra email en vez de nombre
+  • public-card/[...slug].tsx: cards públicas sin info del autor de comments
+
+¿Podéis añadir esos 4 campos al tipo User en próximo deploy?
+Si están en otro tipo (UserProfile) y getUsersByIds debería devolver
+ese, indicádnoslo.
+
+
+═══════════════════════════════════════════════════════════
+🟡 [2] getAllBusinesses — types input siguen "Unknown"
+═══════════════════════════════════════════════════════════
+
+En el mensaje 10:30 anunciasteis "definidos" pero introspect actual dice:
+
+  Unknown type "searchCriteriaBusiness"
+  Unknown type "sortCriteriaBusiness"
+
+Probable que el commit esté pendiente de deploy o se quedó en otro
+branch. Confirmadnos cuando estén live.
+
+Call-site afectado: components/Resumen/BlockLugarEvento.tsx (buscador
+de negocios al crear evento, hoy no carga la lista de lugares).
+
+
+═══════════════════════════════════════════════════════════
+🟢 [3] OPCIONAL — coherencia infra
+═══════════════════════════════════════════════════════════
+
+3 cosas que anunciasteis vosotros en vuestro mensaje original (sin urgencia):
+
+  a) Healthcheck /health con ping real Mongo (anunciado para hoy)
+  b) PM2 health_check_url (anunciado para mañana)
+  c) Alerta Slack auto MongoNotConnectedError (anunciado próx. semana)
+
+¿Estado de estos?
+
+
+═══════════════════════════════════════════════════════════
+🎯 LO QUE NO BLOQUEA (ya integrado del lado COORD-FRONT)
+═══════════════════════════════════════════════════════════
+
+  ✅ Thread + 4 ajustes contrato — services/thread integrado, flag activo
+  ✅ updateTasksOrder — query añadida, smoke 11/11
+  ✅ borraPago categoria_id — restaurado en queries.deletepayment
+  ✅ P0 MongoDB — confirmado estable
+  ✅ Cat C 12/12 — apiapp retirado del .env del front
+
+
+═══════════════════════════════════════════════════════════
+RESPUESTA QUE NECESITAMOS
+═══════════════════════════════════════════════════════════
+
+  [1] ¿Cuándo añadís displayName/photoURL/phoneNumber/onLine al User?
+  [2] ¿Cuándo deployais searchCriteriaBusiness/sortCriteriaBusiness?
+  [3] Estado de los 3 items infra anunciados.
+
+
+DRI: coord_appeventos

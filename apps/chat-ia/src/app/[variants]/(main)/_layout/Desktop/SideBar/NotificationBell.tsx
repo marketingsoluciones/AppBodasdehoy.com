@@ -12,18 +12,18 @@ import {
   getUnreadNotificationsCount,
   markAllNotificationsAsRead,
   markNotificationAsRead,
-} from '@/services/api2/notifications';
+} from '@/services/mcpApi/notifications';
 
 function getNotificationUrl(n: AppNotification): string | null {
   const focused = n.focused ?? '';
-  if (focused.startsWith('/messages') || focused.startsWith('/chat/') || focused.startsWith('/settings')) {
+  if (focused.startsWith('/bandeja') || focused.startsWith('/chat/') || focused.startsWith('/settings')) {
     return focused.split('?')[0]; // strip query params for chat-ia navigation
   }
-  if (focused.startsWith('/tasks')) return '/messages'; // /tasks redirige a /messages
-  if (n.type === 'whatsapp_message') return '/messages';
-  if (n.type === 'task_reminder') return '/messages';
+  if (focused.startsWith('/tasks')) return '/bandeja?view=esperan'; // /tasks legacy → vista "Esperan respuesta"
+  if (n.type === 'whatsapp_message') return '/bandeja';
+  if (n.type === 'task_reminder') return '/bandeja';
   if (n.type === 'access_revoked' || n.type === 'permission_updated') return '/settings';
-  if (focused) return '/messages'; // appEventos link — redirect to bandeja
+  if (focused) return '/bandeja'; // appEventos link — redirect to bandeja
   return null;
 }
 
@@ -31,7 +31,8 @@ function getExternalUrl(_n: AppNotification): string | null {
   return null;
 }
 
-const ICON_SIZE = { blockSize: 40, size: 22, strokeWidth: 2 };
+// BUG-CW-N16 (informe QA 23-jun 5ª ronda): blockSize 40 < 44 mínimo iOS HIG.
+const ICON_SIZE = { blockSize: 44, size: 22, strokeWidth: 2 };
 const POLL_INTERVAL = 60_000; // 60s
 
 const TYPE_LABEL: Record<string, string> = {
@@ -69,13 +70,34 @@ const NotificationBell = memo(() => {
     return lower === 'guest' || lower === 'anonymous' || lower.includes('@guest.') || lower.startsWith('visitor_');
   });
 
-  // Poll unread count
+  // Poll unread count — pausa en background (perf mobile, BUG-CW-N18 5ª ronda).
   useEffect(() => {
     if (isGuestUser) return;
-    const fetch = () => getUnreadNotificationsCount().then(setUnread);
-    fetch();
-    const id = setInterval(fetch, POLL_INTERVAL);
-    return () => clearInterval(id);
+    const fetchCount = () => getUnreadNotificationsCount().then(setUnread).catch(() => {});
+    fetchCount();
+    if (typeof document === 'undefined') return;
+
+    let id: ReturnType<typeof setInterval> | null = null;
+    const start = () => {
+      if (id) return;
+      id = setInterval(() => {
+        if (!document.hidden) fetchCount();
+      }, POLL_INTERVAL);
+    };
+    const stop = () => {
+      if (id) { clearInterval(id); id = null; }
+    };
+    const onVisibility = () => {
+      if (document.hidden) stop();
+      else { fetchCount(); start(); }
+    };
+
+    if (!document.hidden) start();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      stop();
+    };
   }, [isGuestUser]);
 
   // Load full list when panel opens
@@ -250,7 +272,7 @@ const NotificationBell = memo(() => {
                       <span style={{ color: '#9ca3af', fontSize: 11 }}>{timeAgo(n.createdAt ?? 0)}</span>
                       {isClickable && (
                         <span style={{ color: '#ec4899', fontSize: 11, fontWeight: 500 }}>
-                          {url === '/messages' ? '→ Bandeja' : url === '/settings' ? '→ Config' : url?.startsWith('/chat/') ? '→ Conversación' : '→ Ver en app'}
+                          {url === '/bandeja' ? '→ Bandeja' : url === '/settings' ? '→ Config' : url?.startsWith('/chat/') ? '→ Conversación' : '→ Ver en app'}
                         </span>
                       )}
                     </div>

@@ -10,6 +10,7 @@ import { getStorage, ref, uploadBytesResumable, deleteObject } from "firebase/st
 import { FileData, Task } from "../../utils/Interfaces";
 import { customAlphabet } from "nanoid";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { validateFiles, ALL_FILES_ACCEPT } from "@bodasdehoy/shared/upload";
 
 interface props extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
@@ -35,7 +36,14 @@ const InputAttachments: FC<Partial<props>> = ({ label, task, itinerarioID, class
 
   const handleOnChange = (e: ChangeEvent<HTMLInputElement>) => {
     try {
-      const files = [...Array.from(e.target.files)]
+      // Validar TODOS antes de añadir a la lista. Tope por categoría dinámico
+      // (50MB fotos, 5GB vídeos, 100MB docs, 500MB archives, 100MB audio).
+      const { valid, rejected } = validateFiles(e.target.files);
+      if (rejected.length) {
+        console.warn('[InputAttachments] archivos rechazados:', rejected.map(r => `${r.file.name}: ${r.error}`));
+      }
+      const files = valid.map(v => v.file);
+      if (files.length === 0) return;
       let attachments: FileData[] = [...field.value, ...files.map((elem: File): FileData => { return { _id: undefined, name: elem.name, size: elem.size } })]
       helpers.setValue([...attachments])
       files.map((elem) => {
@@ -58,9 +66,17 @@ const InputAttachments: FC<Partial<props>> = ({ label, task, itinerarioID, class
               .then(() => {
                 helpers.setValue([...attachments])
                 const f1 = event.itinerarios_array.findIndex(elm => elm._id === itinerarioID)
-                const f2 = event.itinerarios_array[f1].tasks.findIndex(elm => elm._id === task._id)
-                event.itinerarios_array[f1].tasks[f2].attachments = [...attachments]
-                setEvent({ ...event })
+                setEvent((prev) => ({
+                  ...prev,
+                  itinerarios_array: prev.itinerarios_array.map((it, i) =>
+                    i !== f1 ? it : {
+                      ...it,
+                      tasks: it.tasks.map(tk =>
+                        tk._id !== task._id ? tk : { ...tk, attachments: [...attachments] }
+                      ),
+                    }
+                  ),
+                }))
               })
           })
       })
@@ -73,9 +89,13 @@ const InputAttachments: FC<Partial<props>> = ({ label, task, itinerarioID, class
     const storageRef = ref(storage, `${task._id}//${elem.name}`)
     deleteObject(storageRef)
       .then(() => { })
-      .catch(() => { })
-    const f1 = field.value.findIndex(el => el.name === elem.name)
-    field.value.splice(f1, 1)
+      .catch((error) => {
+        // Cleanup best-effort: si el blob no estaba (ya borrado, race con otro borrado),
+        // no rompemos la UI — el adjunto se quita igual del estado y del backend abajo.
+        console.warn('[InputAttachments] deleteObject falló (cleanup best-effort):', error?.code ?? error?.message ?? error)
+      })
+    // Filtrar el attachment borrado del array de field.value (inmutable).
+    const newAttachments = field.value.filter(el => el.name !== elem.name)
     fetchApiEventos({
       query: queries.editTask,
       variables: {
@@ -83,15 +103,23 @@ const InputAttachments: FC<Partial<props>> = ({ label, task, itinerarioID, class
         itinerarioID,
         taskID: task._id,
         variable: "all",
-        valor: JSON.stringify({ ...task, attachments: field.value })
+        valor: JSON.stringify({ ...task, attachments: newAttachments })
       },
       domain: config.domain
     }).then(() => {
-      helpers.setValue([...field.value])
+      helpers.setValue(newAttachments)
       const f1 = event.itinerarios_array.findIndex(elm => elm._id === itinerarioID)
-      const f2 = event.itinerarios_array[f1].tasks.findIndex(elm => elm._id === task._id)
-      event.itinerarios_array[f1].tasks[f2].attachments = [...field.value]
-      setEvent({ ...event })
+      setEvent((prev) => ({
+        ...prev,
+        itinerarios_array: prev.itinerarios_array.map((it, i) =>
+          i !== f1 ? it : {
+            ...it,
+            tasks: it.tasks.map(tk =>
+              tk._id !== task._id ? tk : { ...tk, attachments: newAttachments }
+            ),
+          }
+        ),
+      }))
     })
   }
 
@@ -129,9 +157,9 @@ const InputAttachments: FC<Partial<props>> = ({ label, task, itinerarioID, class
           type="file"
           multiple
           name="attachments"
+          accept={ALL_FILES_ACCEPT}
           onChange={(e) => handleOnChange(e)}
           className="hidden"
-          //accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           disabled={false}
         />
       </div>

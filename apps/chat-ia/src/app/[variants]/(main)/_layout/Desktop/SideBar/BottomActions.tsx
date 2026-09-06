@@ -1,7 +1,7 @@
 import { ActionIcon, ActionIconProps } from '@lobehub/ui';
 import { FlaskConical, Github, LogIn } from 'lucide-react';
 import Link from 'next/link';
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
@@ -14,11 +14,19 @@ import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { useBilling } from '@/hooks/useBilling';
 import { usagePercent, usageColor } from '@bodasdehoy/shared/plans';
 
+// BUG-CW-N16 (informe QA 23-jun 5ª ronda): blockSize 36 era peor que el 40
+// de TopActions. Apple HIG mínimo 44x44px. Subido a 44.
 const ICON_SIZE: ActionIconProps['size'] = {
-  blockSize: 36,
-  size: 20,
+  blockSize: 44,
+  size: 22,
   strokeWidth: 1.5,
 };
+
+// Rediseño nav (QA 15-ago, caso 6): GitHub y Laboratorio son entradas del fork
+// LobeChat fuera del objetivo del producto — llenaban el rail de opciones. Se ocultan
+// (rutas siguen accesibles por URL). Reversible poniendo esto a true. Mismo patrón que
+// SHOW_LOBECHAT_EXTRAS en TopActions.
+const SHOW_LOBECHAT_EXTRAS = false;
 
 /** Plan tier badge — nudges FREE/TRIAL users to upgrade */
 const PlanBadge = memo(() => {
@@ -43,8 +51,14 @@ const PlanBadge = memo(() => {
           cursor: 'pointer',
           fontSize: 10,
           fontWeight: 600,
+          // MOB-16 QA #34 (29-jun): el badge tenía whiteSpace:'nowrap' que en
+          // sidebar mobile (rail estrecho ~56px) extendía el texto fuera del
+          // contenedor y solapaba los iconos abajo. Fix: maxWidth 100% + truncate.
+          maxWidth: '100%',
+          overflow: 'hidden',
           padding: '3px 8px',
           textAlign: 'center',
+          textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
         }}
         title="Ver planes disponibles"
@@ -64,7 +78,7 @@ const QuotaMiniBar = memo(() => {
 
   if (loading || !plan) return null;
 
-  const aiLimit = plan.product_limits.find((l) => l.sku === 'ai-tokens');
+  const aiLimit = plan.product_limits?.find?.((l) => l.sku === 'ai-tokens');
   if (!aiLimit || aiLimit.free_quota >= 999_999) return null;
 
   const currentTokens = usageStats?.totalTokens ?? 0;
@@ -121,20 +135,36 @@ const BottomActions = memo(() => {
   const { needsRelogin } = useAuthCheck();
   const isServerMode = process.env.NEXT_PUBLIC_SERVICE_MODE === 'server';
 
+  // P0 coherencia de sesión (QA 17-ago): el servidor renderiza SIN sesión cliente →
+  // isGuest=true en SSR → antes pintaba el icono "Iniciar sesión" en el HTML SSR, que el
+  // Service Worker cacheaba y servía en navegación directa. Con mounted-gate NO renderizamos
+  // el CTA de invitado hasta montar (SSR y primer render cliente coinciden → sin mismatch);
+  // tras montar, si de verdad es invitado, aparece. (El bloque de wallet ya está gateado por
+  // !isGuestOrExpired, que en SSR es false, así que no se pinta de más.)
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   // Sesión expirada: tratamos igual que guest — sin billing/plan hasta re-login
   const isGuestOrExpired = isGuest || needsRelogin;
 
   return (
     <Flexbox gap={8}>
-      {/* Wallet + Quota + Plan badge solo para usuarios con sesión activa válida */}
+      {/* Wallet + Quota + Plan badge solo para usuarios con sesión activa válida.
+          MOB-16 QA #34 (29-jun): añadido maxWidth + overflow al contenedor
+          para que el contenido nunca exceda el ancho del rail (sidebar mobile
+          es ~56px). Cada hijo se trunca con ellipsis si es muy largo. */}
       {isServerMode && !isGuestOrExpired && (
-        <Flexbox align="center" gap={4}>
+        <Flexbox
+          align="center"
+          gap={4}
+          style={{ maxWidth: '100%', overflow: 'hidden' }}
+        >
           <WalletWidget size="small" />
           <QuotaMiniBar />
           <PlanBadge />
         </Flexbox>
       )}
-      {isGuestOrExpired && (
+      {mounted && isGuestOrExpired && (
         <Link aria-label="Iniciar sesión" href="/login">
           <ActionIcon
             icon={LogIn}
@@ -145,7 +175,7 @@ const BottomActions = memo(() => {
           />
         </Link>
       )}
-      {!hideGitHub && (
+      {SHOW_LOBECHAT_EXTRAS && !hideGitHub && (
         <Link aria-label={'GitHub'} href={GITHUB} target={'_blank'}>
           <ActionIcon
             icon={Github}
@@ -155,14 +185,16 @@ const BottomActions = memo(() => {
           />
         </Link>
       )}
-      <Link aria-label={t('labs')} href={'/labs'} suppressHydrationWarning>
-        <ActionIcon
-          icon={FlaskConical}
-          size={ICON_SIZE}
-          title={t('labs')}
-          tooltipProps={{ placement: 'right' }}
-        />
-      </Link>
+      {SHOW_LOBECHAT_EXTRAS && (
+        <Link aria-label={t('labs')} href={'/labs'} suppressHydrationWarning>
+          <ActionIcon
+            icon={FlaskConical}
+            size={ICON_SIZE}
+            title={t('labs')}
+            tooltipProps={{ placement: 'right' }}
+          />
+        </Link>
+      )}
     </Flexbox>
   );
 });

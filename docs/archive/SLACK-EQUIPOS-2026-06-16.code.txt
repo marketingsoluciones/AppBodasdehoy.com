@@ -1,0 +1,121 @@
+═══════════════════════════════════════════════════════════════════════════
+ MENSAJES SLACK — 16/06/2026 · formato oficial DE/PARA/DRI · con PRUEBAS
+ Cada bloque entre las líneas === se copia y pega tal cual en el hilo.
+═══════════════════════════════════════════════════════════════════════════
+
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║  BLOQUE 1 — PARA API-IA                                                     ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+DE: FRONTEND-AppEventos (COORD)
+PARA: API-IA (api_ia_oncall)
+DRI: api_ia_oncall
+ASUNTO: 🔴 Copiloto en bucle de herramientas (caso de uso principal roto) + ✅ vuestros 6 fixes validados
+
+🔴 BLOQUEADOR #1 — COPILOTO NO DEVUELVE DATOS DEL EVENTO
+Repro:
+  1. Login en chat-dev como bodasdehoy.com@gmail.com
+  2. Preguntar al copiloto: "¿Cuántos eventos tengo y cómo se llaman?" o "Lista mis eventos"
+Resultado actual:
+  "No pude completar la consulta porque la operación create_event está fallando ahora mismo."
+  (variante: "la consulta requirió demasiados pasos")
+  → Para LISTAR invoca create_event (herramienta de CREAR = equivocada), y esa op falla → bucle.
+Resultado esperado:
+  Listar los eventos del usuario.
+Prueba que aísla la causa:
+  - Generación de texto pura SÍ funciona: "escríbeme una invitación de boda" → responde bien.
+  - El mensaje "requirió demasiados pasos / create_event está fallando" NO existe en el código del
+    front (grep negativo). Lo genera vuestro orquestador de agentes (tool-routing MCP).
+Petición: revisar por qué el tool-routing elige create_event para un listado y por qué no converge.
+
+✅ VALIDADO por API (vuestros fixes funcionan):
+  - createEvento: mutation{ createEvento(input:{}){ _id } } → ya NO da "is not a constructor",
+    da validación normal de campos. ✅ Bug A resuelto.
+  - getAllUserRelatedEventsByEmail(... pagination:{page:1,limit:5}) → responde sin
+    INTERNAL_SERVER_ERROR. ✅ Bug B resuelto.
+  - oauth-url facebook/instagram → 200/200. ✅
+  - wallet_getBalance → el JWT ya valida. ✅
+  ⚠️ getUserSubscription: con JWT de test da "No autorizado" → confirmadlo vosotros con user real.
+
+DRI: api_ia_oncall
+
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║  BLOQUE 2 — PARA API-MCP                                                    ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+DE: FRONTEND-AppEventos (COORD)
+PARA: API-MCP (api_mcp_oncall)
+DRI: api_mcp_oncall
+ASUNTO: 🔴 Crear evento real + dataset de prueba en DEV (bloquean el testing funcional)
+
+🔴 #1 — CREAR EVENTO: ¿crea de verdad o solo valida?
+Repro (QA, app-dev):
+  Dashboard → Crear evento → Nombre "Boda Ana y Carlos", Tipo Boda, Fecha 15/09/2026, Europe/Madrid
+Resultado actual: "El servidor rechazó la creación del evento" (+ el botón se bloquea tras el error).
+Prueba COORD por API:
+  mutation{ createEvento(input:{}){ _id } } → ya NO crashea (Bug A "is not a constructor" resuelto),
+  pero responde validación: Field "EventoInput.nombre" of required type "String!" was not provided.
+Petición: confirmad que createEvento con input COMPLETO y un usuario REAL crea el evento
+  (no solo que valida la firma). El QA lo vio rechazar con datos válidos.
+
+🔴 #2 — DATASET DE PRUEBA EN DEV (bloquea TODO el testing funcional)
+Prueba:
+  getAllUserRelatedEventsByEmail(email:"bodasdehoy.com@gmail.com", development:"bodasdehoy",
+    pagination:{page:1,limit:50}){ total } → total=0
+  Los 3 usuarios (bodasdehoy.com@gmail.com, jcc@bodasdehoy.com, jcc@marketingsoluciones.com) → 0 eventos.
+  La boda "Isabel y Raúl" NO existe en DEV.
+Impacto: imposible probar invitados, presupuesto, mesas, invitaciones, itinerario.
+Petición: cargar ≥1 evento por usuario en DEV (con invitados/mesas/presupuesto), incluida Isabel&Raúl.
+
+🟢 #3 (info, no acción) — socket.io
+  api-mcp/socket.io/?EIO=4 → 404. NO hace falta desplegarlo: el front YA apunta a api-ia
+  (api-ia/socket.io → handshake sid válido). El QA veía 404 porque el front (lógica heredada)
+  apuntaba a api-mcp; corregido a api-ia en el build sEqHJ1mz.
+
+DRI: api_mcp_oncall
+
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║  BLOQUE 3 — PARA QA / AUDITOR                                               ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+DE: FRONTEND-AppEventos (COORD)
+PARA: QA / Auditor
+DRI: QA
+ASUNTO: ✅ Re-probar builds nuevos (hard-refresh) + 2 cosas de VUESTRO entorno
+
+BUILDS NUEVOS — hard-refresh (Cmd+Shift+R) o incógnito:
+  chat-dev = 5wsjra7gP3q6NSug5UN-l
+  app-dev  = sEqHJ1mzc6csR7znSlCgx
+
+✅ CERRADO en estos builds (re-verificar):
+  - Bandeja de mensajería: ya NO crashea (4 accesos a .name sin guard, todos blindados).
+  - Lista lateral + búsqueda ⌘K: ya no se queda en esqueleto por crash del filtro.
+  - socket.io 404: el front apunta a api-ia (handshake sid válido) → realtime restaurado.
+  - WhatsApp leer (9 msgs con header X-Development), enviar, eventos firma, saldo, /messages redirect.
+
+⚠️ 2 COSAS DE VUESTRO ENTORNO (no es bug del front):
+  1. LOGIN FIREBASE falla con auth/network-request-failed. Evidencia: NO hay peticiones a
+     identitytoolkit.googleapis.com en la red durante el login. OAuth SÍ funciona.
+     → vuestro entorno bloquea Google Identity Toolkit. Permitir saliente a
+       identitytoolkit.googleapis.com + securetoken.googleapis.com.
+  2. app-dev.bodasdehoy.com bloqueado para la herramienta → habilitar el dominio en la extensión /
+     claude.ai Admin → Capabilities, para auditar eventos/SSO/realtime entre 2 usuarios.
+
+🔴 SIGUE ABIERTO (backend, NO front):
+  - Copiloto "create_event para listar / demasiados pasos" → api-ia (tool-routing).
+  - Crear evento real + dataset de prueba en DEV → api-mcp.
+
+DRI: QA
+
+
+═══════════════════════════════════════════════════════════════════════════
+ RESUMEN — quién bloquea qué (verificado en vivo 16-jun 14:41)
+═══════════════════════════════════════════════════════════════════════════
+  🔴 Copiloto tool-routing (no devuelve datos)  → API-IA   → caso de uso principal
+  🔴 createEvento crea de verdad + dataset DEV  → API-MCP  → testing funcional
+  ⚠️ login Firebase (red) + habilitar app-dev   → QA       → su auditoría (no producción)
+  ✅ FRONT (Bandeja/socket/eventos/saldo/…)     → cerrado y desplegado (builds nuevos)
+═══════════════════════════════════════════════════════════════════════════

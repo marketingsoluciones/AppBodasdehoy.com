@@ -61,6 +61,8 @@ const MessageContent = memo<MessageContentProps>(
       updateMessageContent(id, value);
     };
     const onEditingChange = (edit: boolean) => toggleMessageEditing(id, edit);
+    const value = message ? String(message) : '';
+    const hasCodeFence = value.includes('```');
 
     const content = (
       <EditableMessage
@@ -68,13 +70,13 @@ const MessageContent = memo<MessageContentProps>(
         editButtonSize={'small'}
         editing={editing}
         fontSize={fontSize}
-        fullFeaturedCodeBlock
+        fullFeaturedCodeBlock={hasCodeFence}
         markdownProps={markdownProps}
         onChange={onChange}
         onEditingChange={onEditingChange}
         openModal={mobile ? editing : undefined}
         text={text}
-        value={message ? String(message) : ''}
+        value={value}
       />
     );
     const messageContent = renderMessage ? renderMessage(content) : content;

@@ -96,9 +96,11 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
               markdownWriter: (mention) =>
                 `<mention name="${mention.label}" id="${mention.metadata.id}" />`,
               onSelect: (editor, option) => {
+                // @lobehub/editor's ISlashMenuOption no expone `label` en types pero existe en runtime
+                const opt = option as { label?: string; metadata?: Record<string, unknown> };
                 editor.dispatchCommand(INSERT_MENTION_COMMAND, {
-                  label: String(option.label),
-                  metadata: option.metadata,
+                  label: String(opt.label ?? ''),
+                  metadata: opt.metadata ?? {},
                 });
               },
               renderComp: expand
@@ -135,6 +137,7 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
       }}
       placeholder={<Placeholder />}
       slashOption={{
+        // @lobehub/editor's ISlashOption no expone `icon` en types — soportado en runtime
         items: [
           {
             icon: Table2Icon,
@@ -143,7 +146,7 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
             onSelect: (editor) => {
               editor.dispatchCommand(INSERT_TABLE_COMMAND, { columns: '3', rows: '3' });
             },
-          },
+          } as any,
         ],
         renderComp: expand
           ? undefined

@@ -16,6 +16,7 @@ import {
 import { TableColumn } from './NewTypes';
 import { ColumnConfigModal } from './NewColumnMenu';
 import { useTranslation } from 'react-i18next';
+import { isStudioPathname } from '../../../utils/studioPaths';
 
 interface TableHeaderProps {
   title: string;
@@ -33,6 +34,9 @@ interface TableHeaderProps {
   onToggleColumn: (columnId: string) => void;
   onFiltersToggle: () => void;
   filtersActive: boolean;
+  /** "Expandir tabla" del HTML: la lleva a ancho completo para verla de lado a lado. */
+  expanded?: boolean;
+  onExpandToggle?: () => void;
 }
 
 export const TableHeader: React.FC<TableHeaderProps> = ({
@@ -50,13 +54,90 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
   hiddenColumns,
   onToggleColumn,
   onFiltersToggle,
-  filtersActive
+  filtersActive,
+  expanded = false,
+  onExpandToggle,
 }) => {
   const [showColumnConfig, setShowColumnConfig] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const { t } = useTranslation();
 
   const visibleColumnsCount = columns.filter(col => !hiddenColumns.includes(col.id) && col.id !== 'actions').length;
+
+  // Barra de tareasvistatabla.html: UNA sola fila, sin título (el nombre de la lista ya
+  // está en el rectángulo de arriba). Izquierda: buscador + filtros + columnas + recuento.
+  // Derecha: "Añadir tarea" + importar + exportar. Mismos manejadores de siempre.
+  const isStudio = typeof window !== "undefined"
+    && isStudioPathname(window.location.pathname)
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
+
+  const btnIco: React.CSSProperties = {
+    width: 36, height: 36, borderRadius: 10, border: "1.5px solid #E7E7EA", background: "#fff",
+    color: "#8a8a90", display: "flex", alignItems: "center", justifyContent: "center",
+    cursor: "pointer", padding: 0, flex: "none",
+  };
+
+  if (isStudio) {
+    return (
+      <>
+        {showColumnConfig && (
+          <ColumnConfigModal
+            columns={columns}
+            hiddenColumns={hiddenColumns}
+            onToggleColumn={onToggleColumn}
+            onClose={() => setShowColumnConfig(false)}
+          />
+        )}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 10px 12px", flexWrap: "wrap", fontFamily: "'Poppins',sans-serif" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "0 14px", height: 36, minWidth: 220, background: "#fff" }}>
+              <Search className="w-[14px] h-[14px]" style={{ color: "#8a8a90", flex: "none" }} />
+              <input
+                type="text"
+                value={searchValue}
+                onChange={(e) => onSearchChange(e.target.value)}
+                placeholder={t('Buscar tareas…', { defaultValue: 'Buscar tareas…' })}
+                style={{ border: "none", outline: "none", font: "400 12.5px Poppins", color: "#3A3A42", width: "100%", background: "transparent" }}
+              />
+            </div>
+            <button onClick={onFiltersToggle} title={t('Filtros', { defaultValue: 'Filtros' })} style={{ ...btnIco, borderColor: filtersActive ? "#EF5B94" : "#E7E7EA", color: filtersActive ? "#EF5B94" : "#8a8a90" }}>
+              <Filter className="w-[15px] h-[15px]" />
+            </button>
+            <button onClick={() => setShowColumnConfig(true)} title={t('Configurar columnas', { defaultValue: 'Configurar columnas' })} style={btnIco}>
+              <Eye className="w-[15px] h-[15px]" />
+            </button>
+            <span style={{ font: "400 12px Poppins", color: "#a0a0a8", whiteSpace: "nowrap" }}>
+              {totalItems} {t('tareas')}{selectedItems > 0 ? ` · ${selectedItems} ${t('seleccionadas', { defaultValue: 'seleccionadas' })}` : ""}
+            </span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <button onClick={onAddTask} style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 18px", borderRadius: 12, background: "#EF5B94", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 5px 14px rgba(239,91,148,.28)", whiteSpace: "nowrap" }}>
+              <Plus className="w-[13px] h-[13px]" />
+              {t('Añadir tarea', { defaultValue: 'Añadir tarea' })}
+            </button>
+            <button onClick={onImport} title={t('Importar', { defaultValue: 'Importar' })} style={btnIco}>
+              <Upload className="w-[15px] h-[15px]" />
+            </button>
+            <button onClick={onExport} title={t('Exportar', { defaultValue: 'Exportar' })} style={btnIco}>
+              <Download className="w-[15px] h-[15px]" />
+            </button>
+            {onExpandToggle && (
+              <button
+                onClick={onExpandToggle}
+                title={expanded ? t('Contraer tabla', { defaultValue: 'Contraer tabla' }) : t('Expandir tabla', { defaultValue: 'Expandir tabla' })}
+                style={{ ...btnIco, borderColor: expanded ? "#EF5B94" : "#E7E7EA", color: expanded ? "#EF5B94" : "#8a8a90" }}
+              >
+                {expanded
+                  ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M3 8h5V3M21 8h-5V3M3 16h5v5M21 16h-5v5" /></svg>
+                  : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" /></svg>}
+              </button>
+            )}
+          </div>
+        </div>
+      </>
+    );
+  }
+
 
   return (
     <>

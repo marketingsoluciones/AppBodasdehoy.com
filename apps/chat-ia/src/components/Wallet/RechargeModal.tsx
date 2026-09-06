@@ -4,7 +4,7 @@ import { CreditCard, Loader2, Lock, X } from 'lucide-react';
 import { memo, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
-import { BalanceCheck } from '@/services/api2/wallet';
+import { BalanceCheck } from '@/services/mcpApi/wallet';
 
 export interface RechargeModalProps {
   allowDebtMode?: boolean;
@@ -51,7 +51,17 @@ const RechargeModal = memo<RechargeModalProps>(({ isOpen, onClose, balanceCheck,
       const result = await onRecharge(finalAmount);
 
       if (!result.success) {
-        const errorMsg = result.error || 'Error al crear sesión de pago';
+        // BUG QA 10-jul #7: React #31 "Objects are not valid as a React child".
+        // Si el backend devuelve `error_message` como objeto (ej. GraphQL wrapper),
+        // el render `{error}` en línea 252 crasheaba la app. Normalizar SIEMPRE
+        // a string antes de setState.
+        const rawErr: unknown = result.error;
+        const errorMsg =
+          typeof rawErr === 'string'
+            ? rawErr
+            : rawErr
+              ? JSON.stringify(rawErr)
+              : 'Error al crear sesión de pago';
         console.error('❌ [RechargeModal] Error:', errorMsg);
         setError(errorMsg);
         setLoading(false);

@@ -777,10 +777,12 @@ export class DiscoverService {
     if (withReadme) {
       log('getProviderDetail: fetching readme for provider=%s', identifier);
       try {
-        const normalizedLocale = normalizeLocale(locale);
+        // SPRINT-BG: zh-CN locale eliminado de chat-ia (solo es-ES/en-US/pt-BR).
+        // Siempre cargar README default (en-US LobeChat upstream).
+        normalizeLocale(locale);
         const readmeUrl = urlJoin(
           'https://raw.githubusercontent.com/lobehub/lobe-chat/refs/heads/main/docs/usage/providers',
-          normalizedLocale === 'zh-CN' ? `${identifier}.zh-CN.mdx` : `${identifier}.mdx`,
+          `${identifier}.mdx`,
         );
         log('getProviderDetail: readme URL=%s', readmeUrl);
         const res = await fetch(readmeUrl, {

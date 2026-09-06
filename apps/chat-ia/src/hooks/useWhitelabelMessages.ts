@@ -125,7 +125,7 @@ export const useWhitelabelMessages = (): UseWhitelabelResult => {
     let promise = pendingConfigFetches.get(developer);
     if (!promise) {
       // En el navegador usar same-origin para evitar CORS con api-ia
-      const backendUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_BACKEND_URL || '');
+      const backendUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_IA_URL || '');
       const url = backendUrl ? `${backendUrl}/api/config/${developer}` : `/api/config/${developer}`;
 
       promise = fetch(url)

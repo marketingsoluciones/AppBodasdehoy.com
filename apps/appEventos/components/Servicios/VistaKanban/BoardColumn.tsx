@@ -22,8 +22,8 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { BoardColumn as IBoardColumn } from '../types';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
-import { AuthContextProvider } from '../../../context'; // Importar el contexto de autenticación
-import { EventContextProvider } from '../../../context/EventContext'; // Importar el contexto de evento
+import { useServicePermissions } from '../../../hooks/useServicePermissions';
+import { isStudioPathname } from "../../../utils/studioPaths";
 
 interface BoardColumnProps {
   column: IBoardColumn;
@@ -58,8 +58,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const { t } = useTranslation();
-  const { user } = AuthContextProvider(); // Obtener el usuario actual
-  const { event } = EventContextProvider(); // Obtener el evento actual
+  const { canViewTask } = useServicePermissions(itinerario?.viewers ?? [])
 
   // Configurar droppable para recibir tareas
   const { setNodeRef: setDroppableNodeRef, isOver } = useDroppable({
@@ -163,25 +162,38 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
       case 'in_progress':
         return 'bg-primary';
       case 'completed':
-        return 'bg-[#00b341]';
+        return 'bg-emerald-600';
       case 'blocked':
-        return 'bg-[#ff2525]';
+        return 'bg-red-600';
       default:
         return 'bg-gray-600';
     }
   };
 
-  // Filtrar tareas según permisos de visualización
-  // Si el usuario es el propietario, ve todas las tareas. Si no, solo las que tienen spectatorView !== false
-  const filteredTasks = column.tasks.filter(task => {
-    if (user && event && user.uid === event.usuario_id) return true; // El propietario ve todas
-    return task.spectatorView !== false; // Otros solo ven si spectatorView está activo
-  });
+  // Rediseño studio (fiel a tareasvistatablero.html): columna blanca con borde superior de
+  // color por estado. Los ids de columna ya coincidían con las 4 del HTML, así que el color
+  // sale del id y no hace falta tocar la configuración existente.
+  const isStudio = typeof window !== "undefined"
+    && isStudioPathname(window.location.pathname)
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
+  const STUDIO_COL: Record<string, string> = {
+    pending: "#3A3A42", in_progress: "#EF5B94", completed: "#2FB37E", blocked: "#D83E7C",
+  };
+  const studioColor = STUDIO_COL[column.id] ?? "#8a8a90";
+
+  const filteredTasks = column.tasks.filter(task => canViewTask(task));
 
   return (
     <div
       ref={setDroppableNodeRef}
-      className={`
+      style={isStudio ? {
+        background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16,
+        borderTop: `3px solid ${studioColor}`, padding: 14, display: "flex",
+        flexDirection: "column", gap: 10, minHeight: 220,
+        fontFamily: "'Poppins',sans-serif",
+        boxShadow: isOver ? `0 0 0 2px ${studioColor}55` : undefined,
+      } : undefined}
+      className={isStudio ? "" : `
         flex flex-col bg-white rounded-lg shadow-sm border-2 transition-all duration-200 h-[calc(100%-10px)].
         ${columnColors.border} ${columnColors.bg}
         ${isCompact ? 'w-64' : 'w-80'}
@@ -191,7 +203,23 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
       `}
     >
 
-      {/* Header de la columna */}
+      {/* Header de la columna — studio: punto de color + título + contador (fiel al HTML) */}
+      {isStudio ? (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }} className="cursor-grab active:cursor-grabbing">
+          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+            <span style={{ width: 9, height: 9, borderRadius: "50%", background: studioColor, flex: "none" }} />
+            <span style={{ font: "600 13px Poppins", color: "#3A3A42", whiteSpace: "nowrap" }}>{column.title}</span>
+            <span style={{ font: "600 11px Poppins", color: "#8a8a90", background: "#f5f5f7", borderRadius: 10, padding: "2px 9px" }}>{filteredTasks.length}</span>
+          </div>
+          <span
+            onClick={handleAddTaskClick}
+            title={t("Agregar tarea")}
+            style={{ width: 26, height: 26, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#8a8a90", cursor: "pointer", flex: "none" }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+          </span>
+        </div>
+      ) : (
       <div
         className={`
           flex items-center justify-between p-3 border-b cursor-grab active:cursor-grabbing 
@@ -265,6 +293,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
           </div>
         </div>
       </div>
+      )}
 
       {/* Contenido de la columna */}
       {!column.isCollapsed && (
@@ -338,10 +367,18 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
             <div className="flex items-center justify-center h-auto">
               <button
                 onClick={() => setIsCreatingTask(true)}
-                className="flex w-full h-full min-h-[150px] flex-col items-center justify-center space-y-2 border-2 border-dashed border-gray-300 rounded-md text-gray-500 hover:text-gray-700 hover:border-gray-400 transition-colors group"
+                style={isStudio ? {
+                  width: "100%", border: "1.5px dashed #E0E0E4", borderRadius: 12,
+                  padding: "26px 14px", display: "flex", flexDirection: "column",
+                  alignItems: "center", gap: 7, color: "#b3b3ba", background: "transparent",
+                  cursor: "pointer", font: "500 12px Poppins",
+                } : undefined}
+                className={isStudio ? "" : "flex w-full h-full min-h-[150px] flex-col items-center justify-center space-y-2 border-2 border-dashed border-gray-300 rounded-md text-gray-500 hover:text-gray-700 hover:border-gray-400 transition-colors group"}
               >
-                <Plus className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                <span className="text-sm">{t("Agregar una tarea")}</span>
+                {isStudio
+                  ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+                  : <Plus className="w-6 h-6 group-hover:scale-110 transition-transform" />}
+                <span className={isStudio ? "" : "text-sm"}>{t("Agregar una tarea")}</span>
               </button>
             </div>
           )}
@@ -349,7 +386,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
       )}
 
       {/* Pie de columna con botón de agregar cuando hay tareas */}
-      {!column.isCollapsed && column.tasks.length > 0 && !isCreatingTask && (
+      {!isStudio && !column.isCollapsed && column.tasks.length > 0 && !isCreatingTask && (
         <div className={`p-3 border-t ${columnColors.border}`}>
           <button
             onClick={() => setIsCreatingTask(true)}

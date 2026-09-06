@@ -12,9 +12,11 @@ import NameModal from '../../components/public-album/NameModal';
 import Toast from '../../components/shared/Toast';
 import { validateFile, convertHeicIfNeeded, PHOTO_VIDEO_TYPES, PHOTO_VIDEO_ACCEPT } from '@bodasdehoy/shared/upload';
 
+import { resolvePublicApiIaOrigin } from '../../utils/endpoints';
+
 const Lightbox = dynamic(() => import('../../components/shared/Lightbox'));
 
-const API_BASE = process.env.NEXT_PUBLIC_MEMORIES_API_URL || 'https://api-ia.bodasdehoy.com';
+const API_BASE = resolvePublicApiIaOrigin();
 const DEVELOPMENT = (process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy').trim();
 
 interface PublicMedia {

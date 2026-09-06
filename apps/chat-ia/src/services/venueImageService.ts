@@ -3,7 +3,7 @@
  * El backend expone POST /api/venue/generate-design.
  */
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api-ia.bodasdehoy.com';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_IA_URL || 'https://api-ia.bodasdehoy.com';
 
 interface GenerateVenueDesignParams {
   imageUrl?: string;

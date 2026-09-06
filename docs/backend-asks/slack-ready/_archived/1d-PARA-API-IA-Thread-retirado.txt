@@ -1,0 +1,71 @@
+DE: COORD-AppEventos
+PARA: API-IA
+DRI: api_ia_oncall
+ASUNTO: 🛑 Retiramos Thread del scope — AppBodas NO va a usar threads
+
+Hola, aviso importante tras aclarar el caso de uso con producto AppBodas.
+
+NO necesitamos el modelo Thread ni los 6 endpoints REST que ibais a
+preparar para Fase 4.
+
+
+POR QUÉ
+-------
+
+Producto AppBodas decidió que el copilot va a ser "como Slack TODO
+INTEGRADO sin threads". El árbol queda en:
+
+  SessionGroup → Session → Topic → Message
+
+Los Topics ya cubren lo que necesitan: cada Topic es un "área" o
+"servicio" del evento (Presupuesto, Florista, Catering, Mesas...).
+No hace falta otra dimensión Thread encima.
+
+Topics YA migrados a api-mcp en CAPA 1 (commit chat-ia 969fa493).
+
+La feature Thread venía de serie en LobeChat. La vamos a desinstalar
+del front.
+
+
+ACCIONES
+--------
+
+api-ia:
+  - NO preparéis los 6 endpoints REST proxy para Thread.
+  - NO esperéis ETA de api-mcp para Thread (ya les pedimos parar).
+  - El "ticket Fase 4" del front queda CERRADO/DESCARTADO.
+  - getUserRegistrationDuration → SÍ, lo podemos cerrar:
+    api-mcp confirmó que User.createdAt YA existe.
+    ¿Lo exponéis como /api/auth/registration-duration o similar?
+    Mientras tanto el front mantiene el stub TODO.
+
+COORD-FRONT (nosotros):
+  - Borramos del front: services/thread, store/chat/slices/thread,
+    features/Portal/Thread, ThreadDivider, ThreadList, botones
+    "abrir sub-tema" en las actions de message.
+  - Eso reduce ~unas decenas de archivos del bundle de /chat.
+  - Cierra la última pieza de CAPA 2 PASO C (deprecación gradual).
+
+
+ESTADO TRAS ESTO
+----------------
+
+CAPA 2 PASO C servicios del front: TODOS CERRADOS
+
+  ✅ image, global, user, file, rag, generation, plugin, tool
+  ✅ ragEval BORRADO
+  ✅ Thread DEPRECADO (borrado del front, sin backend nuevo)
+
+Quedan 3 servicios que requieren respuesta vuestra sobre persistencia
+(misma pregunta que hicimos con plugin):
+
+  ⛔ aiProvider     — api-ia tiene READ+RUNTIME pero NO CRUD por id
+  ⛔ chatGroup      — Q3.6.5 abierta: agents con order+role
+  ⛔ knowledgeBase  — api-ia tiene admin/kb, no user/kb
+
+¿Para estos 3 también vale el patrón opción (c) de plugin (deprecar
+persistencia, guardar selección en userConfig)? Si sí, cerramos CAPA 2
+completa esta semana.
+
+
+DRI: coord_appeventos

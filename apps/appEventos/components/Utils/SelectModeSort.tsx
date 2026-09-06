@@ -8,10 +8,14 @@ import { ArrowDownBodasIcon } from "../icons";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from "react-i18next";
 import { Direction, Order, SelectModeSortType } from "../../utils/Interfaces";
+import { isStudioPathname } from "../../utils/studioPaths";
 
 
 
 interface props {
+  /** Botón cuadrado de 36px solo con icono: la fila de Tareas del HTML lleva un
+   *  clúster de botones-icono, no un botón con texto. Conserva el mismo menú. */
+  iconOnly?: boolean;
   value: SelectModeSortType
   setValue: Dispatch<SetStateAction<SelectModeSortType>>
 }
@@ -21,12 +25,17 @@ interface orderOptions {
   title: string
 }
 
-export const SelectModeSort: FC<props> = ({ value, setValue }) => {
+export const SelectModeSort: FC<props> = ({ value, setValue , iconOnly = false }) => {
   const { t } = useTranslation();
   const [show, setShow] = useState<boolean>(false)
   const [isAllowed, ht] = useAllowed()
   const [order, setOrder] = useState<Order>(value ? value.order : "fecha")
   const [direction, setDirection] = useState<Direction>(value ? value.direction : "asc")
+  // Rediseño studio (gate ?studio, default ON): solo /itinerario. Fiel a
+  // dropdownordenar.html (.ord-btn / .ord-menu, 2 grupos, no cierra al elegir).
+  const isStudio = typeof window !== "undefined"
+    && isStudioPathname(window.location.pathname)
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy"
 
   let orderOptions: orderOptions[] = [
     {
@@ -64,6 +73,40 @@ export const SelectModeSort: FC<props> = ({ value, setValue }) => {
     setValue({ order, direction })
   }, [order, direction])
 
+
+  if (isStudio) {
+    const ordItem = (on: boolean): React.CSSProperties => ({ display: "flex", alignItems: "center", gap: 11, padding: "9px 14px", borderRadius: 8, cursor: "pointer", font: on ? "600 13px Poppins" : "400 13px Poppins", color: on ? "#3A3A42" : "#6b6b72", textTransform: "capitalize" })
+    const ordDot = (on: boolean): React.CSSProperties => ({ width: 9, height: 9, borderRadius: "50%", background: on ? "#2FB37E" : "#ececef", flex: "none", display: "inline-block" })
+    return (
+      <ClickAwayListener onClickAway={() => setShow(false)}>
+        <div className={`relative select-none ${show ? "z-50" : ""}`}>
+          <button onClick={() => setShow(!show)} title={t("Ordenar", { defaultValue: "Ordenar" })} style={iconOnly
+            ? { width: 36, height: 36, borderRadius: 10, background: "#fff", border: "1.5px solid #E7E7EA", color: "#8a8a90", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flex: "none", padding: 0 }
+            : { display: "flex", alignItems: "center", gap: 7, padding: "9px 14px", borderRadius: 10, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 12.5px Poppins", cursor: "pointer", textTransform: "capitalize" }}>
+            {iconOnly && <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M7 4v16M7 20l-3-3M7 4l3 3M17 20V4M17 4l3 3M17 20l-3-3" /></svg>}
+            {!iconOnly && t("toOrder", { defaultValue: "Ordenar" })}
+            {!iconOnly && <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b6b72" strokeWidth={2} strokeLinecap="round"><path d="M6 9l6 6 6-6" /></svg>}
+          </button>
+          {show && <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 6, width: 180, background: "#fff", borderRadius: 14, boxShadow: "0 14px 40px rgba(0,0,0,.14)", border: "1px solid #f0f0f2", zIndex: 40, padding: "10px 6px" }}>
+            {orderOptions.map(item => {
+              const on = order === item.value
+              return <div key={item.value} className="ord-item-studio" onClick={() => setOrder(item.value as Order)} style={ordItem(on)}>
+                <span style={ordDot(on)} />{item.title}
+              </div>
+            })}
+            <div style={{ height: 1, background: "#f0f0f2", margin: "8px 10px" }} />
+            {directionOptions.map(item => {
+              const on = direction === item.value
+              return <div key={item.value} className="ord-item-studio" onClick={() => setDirection(item.value as Direction)} style={ordItem(on)}>
+                <span style={ordDot(on)} />{item.title}
+              </div>
+            })}
+          </div>}
+          <style jsx>{`.ord-item-studio:hover{background:#fdf7fa;}`}</style>
+        </div>
+      </ClickAwayListener>
+    )
+  }
 
   return (
     <ClickAwayListener onClickAway={() => setShow(false)} >

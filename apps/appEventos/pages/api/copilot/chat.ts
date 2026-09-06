@@ -14,9 +14,10 @@
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { resolveMcpOrigin, resolveApiIaOrigin } from '../../../utils/apiEndpoints';
 
 // Python backend URL with auto-routing
-const PYTHON_BACKEND_URL = process.env.PYTHON_BACKEND_URL || 'https://api-ia.bodasdehoy.com';
+const PYTHON_BACKEND_URL = resolveApiIaOrigin();
 
 // Safety guard: never return "fallback" model output if the backend IA is down.
 const ENABLE_COPILOT_FALLBACK = process.env.ENABLE_COPILOT_FALLBACK === 'true';
@@ -54,6 +55,7 @@ const respondBackendUnavailable = (
       res.setHeader('Connection', 'keep-alive');
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('X-Request-Id', requestId);
+      res.setHeader('X-Api-Ia-Origin', PYTHON_BACKEND_URL);
     }
     res.write(`data: ${JSON.stringify({ choices: [{ delta: { content: msg } }] })}\n\n`);
     res.write('data: [DONE]\n\n');
@@ -61,7 +63,9 @@ const respondBackendUnavailable = (
     return;
   }
 
-  res.status(503).json({ error: 'IA_BACKEND_UNAVAILABLE', message: msg, requestId });
+  res.setHeader('X-Request-Id', requestId);
+  res.setHeader('X-Api-Ia-Origin', PYTHON_BACKEND_URL);
+  res.status(503).json({ error: 'IA_BACKEND_UNAVAILABLE', message: msg, requestId, backendOrigin: PYTHON_BACKEND_URL });
 };
 
 // Default provider: backend IA auto-routing
@@ -72,9 +76,9 @@ const DEFAULT_PROVIDER = 'auto';
 // GPT-4, o el mejor disponible en OpenRouter). Por defecto true para el Copilot.
 const PREFER_REASONING_MODEL = process.env.COPILOT_PREFER_REASONING_MODEL !== 'false';
 
-// API2_GRAPHQL_URL: solo se usa como fallback de whitelabel si SKIP_WHITELABEL_VIA_API2 no está activo.
+// API_MCP_URL: solo se usa como fallback de whitelabel si SKIP_WHITELABEL_VIA_API2 no está activo.
 // apps/web no debe apuntar a api2; preferir API_IA_WHITELABEL_URL o SKIP_WHITELABEL_VIA_API2=true.
-const API2_GRAPHQL_URL = process.env.API2_GRAPHQL_URL || '';
+const API_MCP_URL = resolveMcpOrigin();
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 
@@ -398,9 +402,16 @@ async function getWhitelabelApiKey(development: string): Promise<{ apiKey: strin
   `;
 
   try {
-    const response = await fetch(API2_GRAPHQL_URL, {
+    // Unificación secretos api-mcp v2 (29-jun): X-Internal-Secret auth
+    // servicio-servicio. getWhiteLabelConfig antes iba sin auth (pública),
+    // añadimos por consistencia con el resto de callers a api-mcp.
+    const internalSecret = process.env.INTERNAL_SECRET;
+    const response = await fetch(API_MCP_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(internalSecret ? { 'X-Internal-Secret': internalSecret } : {}),
+      },
       body: JSON.stringify({ query }),
     });
 
@@ -600,15 +611,15 @@ async function proxyToPythonBackend(
       // NO se añade Authorization — api-ia tratará la request como visitante anónimo
     } else {
       // Auth: use client-sent header if it carries a real token (not empty Bearer)
-      // Fallback: extract from cookies (idTokenV0.1.0 SSO, api2_jwt, dev-user-config)
+      // Fallback: extract from cookies (idTokenV0.1.0 SSO, mcp_jwt, dev-user-config)
       const rawAuthHeader = req.headers['authorization'] as string | undefined;
       const clientToken = rawAuthHeader?.replace(/^Bearer\s+/i, '').trim();
       if (clientToken && clientToken.startsWith('eyJ')) {
         headers['Authorization'] = rawAuthHeader as string;
       } else {
         const cookieHeader = req.headers['cookie'] || '';
-        // 1) api2_jwt (dedicated)
-        const jwtMatch = cookieHeader.match(/api2_jwt=([^;]+)/);
+        // 1) mcp_jwt (dedicated)
+        const jwtMatch = cookieHeader.match(/mcp_jwt=([^;]+)/);
         const jwtToken = jwtMatch ? decodeURIComponent(jwtMatch[1]) : '';
         // 2) SSO idTokenV0.1.0 (Firebase, domain=.bodasdehoy.com)
         const ssoMatch = cookieHeader.match(/idTokenV0\.1\.0=([^;]+)/);
@@ -769,8 +780,20 @@ async function proxyToPythonBackend(
       if (backendResponse.status === 402) {
         const msg = extractedMessage || 'Saldo de IA agotado. Recarga tu cuenta para continuar usando el asistente.';
         res.setHeader('X-Backend-Error-Code', 'SALDO_AGOTADO');
-        // URL de Facturación: la que envía api-ia o fallback a Copilot /settings/billing
-        const copilotOrigin = process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com';
+        // BUG-H-04: derivar el copilotOrigin del host de la request (dev/test/prod)
+        // en vez de hardcodear chat.bodasdehoy.com. Si hay X-Forwarded-Host o Host,
+        // usamos resolveChatOrigin; si no, fallback al env.
+        const reqHost = (req.headers['x-forwarded-host'] || req.headers.host || '') as string;
+        let copilotOrigin: string;
+        if (reqHost) {
+          // ej. "app-dev.bodasdehoy.com" → "https://chat-dev.bodasdehoy.com"
+          const hostname = reqHost.split(':')[0];
+          if (hostname.includes('-dev.')) copilotOrigin = `https://chat-dev.${hostname.split('-dev.')[1]}`;
+          else if (hostname.includes('-test.')) copilotOrigin = `https://chat-test.${hostname.split('-test.')[1]}`;
+          else copilotOrigin = `https://chat.${hostname.replace(/^[^.]+\./, '')}`;
+        } else {
+          copilotOrigin = process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com';
+        }
         const billingUrl = extractedPaymentUrl || `${copilotOrigin.replace(/\/$/, '')}/settings/billing`;
         console.warn('[Copilot API] 402 saldo agotado recibido de api-ia', { requestId, paymentUrl: extractedPaymentUrl });
         res.status(402).json({

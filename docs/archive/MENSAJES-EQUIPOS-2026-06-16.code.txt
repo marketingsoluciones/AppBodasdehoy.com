@@ -1,0 +1,95 @@
+═══════════════════════════════════════════════════════════════════
+ MENSAJES POR EQUIPO — 16/06/2026 14:41 (verificado en vivo por COORD-FRONT)
+ Builds front desplegados: chat-dev 5wsjra7g · app-dev sEqHJ1mz
+═══════════════════════════════════════════════════════════════════
+
+
+───────────────────────────────────────────────────────────────────
+🔴 PARA: API-IA (api_ia_oncall)  ·  1 BLOQUEADOR CRÍTICO + 1 validación
+───────────────────────────────────────────────────────────────────
+
+ASUNTO: Copiloto en bucle de herramientas (rompe el caso de uso principal) + validar vuestros fixes
+
+#1 CRÍTICO — COPILOTO NO DEVUELVE DATOS (el único bloqueador de verdad que queda):
+  Al preguntar al copiloto "¿cuántos eventos tengo / lista mis eventos / cuántos invitados tiene
+  la boda X", el agente responde:
+    "No pude completar la consulta porque la operación create_event está fallando ahora mismo."
+    (o "la consulta requirió demasiados pasos").
+  → Para LISTAR, invoca create_event (herramienta de CREAR, equivocada) y esa operación falla.
+  → La generación de texto pura SÍ funciona ("escríbeme una invitación" responde bien).
+  → El fallo es 100% del ENRUTADO/EJECUCIÓN de herramientas (tool-routing MCP) de vuestro
+    orquestador de agentes. El mensaje NO existe en el código del front.
+  PETICIÓN: revisar por qué el tool-routing elige create_event para una consulta de listado y por
+  qué entra en bucle (no converge). Es el caso de uso central del copiloto.
+
+#2 (info) Verificamos vuestros 6 fixes por API:
+  ✅ Bug A createEvento: ya NO da "is not a constructor" (validación normal de campos).
+  ✅ Bug B getEventos/getAllUserRelatedEventsByEmail: responde sin INTERNAL_SERVER_ERROR.
+  ✅ wallet_getBalance: el JWT de api-ia ya valida.
+  ✅ OAuth FB/IG: oauth-url → 200.
+  Bug C getUserSubscription: no pudimos validar con JWT de test ("No autorizado"); confirmadlo vosotros.
+
+DRI: api_ia_oncall (tool-routing copiloto = BLOQUEADOR)
+
+
+───────────────────────────────────────────────────────────────────
+🔴 PARA: API-MCP (api_mcp_oncall)  ·  validar crear evento + datos DEV
+───────────────────────────────────────────────────────────────────
+
+ASUNTO: Verificar createEvento end-to-end + dataset de prueba en DEV
+
+1. CREAR EVENTO — el front muestra "El servidor rechazó la creación del evento" cuando la mutation
+   createEvento falla. Verificado por API: createEvento ya NO crashea ("is not a constructor"
+   resuelto), pero da validación de campos. PETICIÓN: confirmad que createEvento con input COMPLETO
+   y un usuario real CREA el evento de verdad (no solo que valida). El QA lo vio rechazar.
+
+2. DATASET DE PRUEBA EN DEV (bloquea TODO el testing funcional):
+   Los 3 usuarios de prueba tienen 0 eventos en DEV. La boda "Isabel y Raúl" NO existe en DEV.
+   getAllUserRelatedEventsByEmail responde total=0. PETICIÓN: cargar al menos 1 evento por usuario
+   en DEV (con invitados/mesas/presupuesto), incluida la boda Isabel&Raúl, para poder probar
+   invitados, presupuesto, mesas, invitaciones, itinerario.
+
+3. (menor) socket.io: api-mcp/socket.io da 404. NO hace falta que lo despleguéis — el front YA
+   apunta a api-ia (donde el socket vive y da handshake válido). Solo para que sepáis por qué el
+   QA veía 404: el front (lógica heredada) apuntaba a api-mcp; ya corregido a api-ia.
+
+DRI: api_mcp_oncall (createEvento real + dataset DEV)
+
+
+───────────────────────────────────────────────────────────────────
+🟢 PARA: QA / AUDITOR  ·  re-probar builds nuevos + desbloquear su entorno
+───────────────────────────────────────────────────────────────────
+
+ASUNTO: Re-probar con builds nuevos (hard-refresh) + 2 cosas de VUESTRO entorno
+
+BUILDS NUEVOS (hard-refresh Cmd+Shift+R o incógnito):
+  chat-dev = 5wsjra7gP3q6NSug5UN-l · app-dev = sEqHJ1mzc6csR7znSlCgx
+
+CERRADO EN ESTOS BUILDS (re-verificar):
+  - Bandeja de mensajería: ya NO crashea (había 4 accesos a .name sin guard, todos blindados).
+  - Lista lateral / búsqueda ⌘K: ya NO se queda en esqueleto por crash del filtro.
+  - socket.io 404: el front ya apunta a api-ia (realtime restaurado).
+  - WhatsApp leer/enviar, eventos firma, saldo, /messages redirect: en el build.
+
+2 COSAS DE VUESTRO ENTORNO (no es bug del front, no podemos arreglarlo nosotros):
+  - LOGIN FIREBASE falla con auth/network-request-failed: vuestro entorno bloquea
+    identitytoolkit.googleapis.com (no hay peticiones a Firebase en la red). OAuth SÍ funciona.
+    → permitir tráfico saliente a identitytoolkit.googleapis.com / securetoken.googleapis.com.
+  - app-dev.bodasdehoy.com bloqueado para la herramienta → habilitar el dominio en la extensión/
+    claude.ai Admin → Capabilities, para poder auditar eventos/SSO/realtime entre 2 usuarios.
+
+SIGUE ABIERTO (backend, no front): copiloto "demasiados pasos" (api-ia) · crear evento real (api-mcp).
+
+DRI: QA (red Firebase + habilitar app-dev + re-test)
+
+
+═══════════════════════════════════════════════════════════════════
+ RESUMEN — quién bloquea qué (verificado 14:41)
+═══════════════════════════════════════════════════════════════════
+  Copiloto tool-routing (no da datos)   → API-IA   → 🔴 BLOQUEADOR del caso de uso principal
+  createEvento crea de verdad + dataset → API-MCP  → 🔴 bloquea testing funcional
+  login Firebase (red) + habilitar app  → QA       → bloquea SU auditoría (no producción)
+  FRONT (Bandeja, socket, eventos…)     → ✅ cerrado y desplegado en builds nuevos
+
+  El FRONT no bloquea nada. Los 2 bloqueadores reales son api-ia (copiloto) y api-mcp (evento+datos).
+═══════════════════════════════════════════════════════════════════

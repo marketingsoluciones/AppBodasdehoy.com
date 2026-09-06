@@ -36,7 +36,7 @@ const nextConfig = {
   rewrites: async () => [
     {
       source: '/api/graphql',
-      destination: process.env.API2_GRAPHQL_URL || 'https://api2.eventosorganizador.com/graphql',
+      destination: process.env.API_MCP_URL || 'https://api-mcp.eventosorganizador.com',
     },
     {
       source: '/api/memories/:path*',
@@ -55,7 +55,10 @@ const nextConfig = {
   },
 };
 
+// Sentry — solo activo cuando NEXT_PUBLIC_SENTRY_DSN está definido.
+// En dev se deshabilita el webpack plugin para evitar overhead de compilación.
 const { withSentryConfig } = require('@sentry/nextjs');
+const isProdBuild = process.env.NODE_ENV === 'production';
 
 module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
   ? withSentryConfig(nextConfig, {
@@ -64,6 +67,8 @@ module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
       project: 'memories-web',
       widenClientFileUpload: true,
       hideSourceMaps: true,
-      disableLogger: true,
+      webpack: { treeshake: { removeDebugLogging: true } },
+      disableClientWebpackPlugin: !isProdBuild,
+      disableServerWebpackPlugin: !isProdBuild,
     })
   : nextConfig;

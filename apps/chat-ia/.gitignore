@@ -119,3 +119,6 @@ prd
 GEMINI.md
 e2e/reports
 .vercel
+
+# graphql-codegen output (FASE 1, regenerable desde SDL público)
+src/generated/

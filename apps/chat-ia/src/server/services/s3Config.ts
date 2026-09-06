@@ -11,6 +11,8 @@
  *   whitelabel.externalServices[cloudflare_r2].config.credentials
  */
 
+import { resolveServerMcpGraphqlUrl } from '@/const/mcpEndpoints';
+
 const GET_WHITELABEL_STORAGE_CONFIG = `
   query GetWhitelabelStorageConfig($development: String!, $supportKey: String) {
     getWhiteLabelStorageConfig(development: $development, supportKey: $supportKey) {
@@ -57,11 +59,11 @@ export async function getServerS3Config(development = 'bodasdehoy'): Promise<S3W
     return cached.config;
   }
 
-  const api2Url = process.env.API2_GRAPHQL_URL || 'https://api2.eventosorganizador.com';
+  const mcpGraphqlUrl = resolveServerMcpGraphqlUrl();
   const supportKey = process.env[`SUPPORT_KEY_${development.toUpperCase().replaceAll('-', '_')}`]
     || process.env.API2_SUPPORT_KEY;
 
-  const res = await fetch(`${api2Url}/graphql`, {
+  const res = await fetch(mcpGraphqlUrl, {
     body: JSON.stringify({
       query: GET_WHITELABEL_STORAGE_CONFIG,
       variables: { development, supportKey },
@@ -78,7 +80,7 @@ export async function getServerS3Config(development = 'bodasdehoy'): Promise<S3W
   const { data, errors } = await res.json();
 
   if (errors?.length) {
-    throw new Error(`[s3Config] api2 GraphQL error: ${errors[0].message}`);
+    throw new Error(`[s3Config] MCP GraphQL error: ${errors[0].message}`);
   }
 
   const cfg = data?.getWhiteLabelStorageConfig;

@@ -32,19 +32,26 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
     const handleSubmit = async () => {
         setSaving(true)
         try {
-            const results = await fetchApiEventos({
-                query: queries.addCompartitions,
-                variables: {
-                    args: {
-                        eventID: event._id,
-                        users,
-                        permissions
+            // api-mcp addCompartition acepta 1 usuario por llamada (canonical: compartirEvento)
+            // Iteramos sobre cada user.
+            let lastResult: any = null
+            for (const uid of users) {
+                const r: any = await fetchApiEventos({
+                    query: queries.addCompartitions,
+                    variables: {
+                        args: {
+                            evento_id: event._id,
+                            usuario_id: uid,
+                            permisos: permissions
+                        }
                     }
-                }
-            }) as Event
+                })
+                lastResult = r
+            }
+            const results = (lastResult?.evento || lastResult || {}) as Event
             const resultsUser = await fetchApiBodas({
                 query: queries?.getUsers,
-                variables: { uids: results?.compartido_array },
+                variables: { ids: results?.compartido_array, development: config?.development || 'bodasdehoy' },
                 development: config?.development
             });
             resultsUser.map((result) => {
@@ -55,15 +62,24 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
             })
             setUsers([])
             const f1 = eventsGroup.findIndex(elem => elem._id === event._id)
-            eventsGroup[f1].detalles_compartidos_array?.push(...results.detalles_compartidos_array)
-            eventsGroup[f1].compartido_array.push(...results.compartido_array)
+            // Deduplicar: solo agregar UIDs que no existan ya
+            const existingUids = new Set(eventsGroup[f1].compartido_array)
+            for (const det of results.detalles_compartidos_array) {
+              if (!existingUids.has(det.uid)) {
+                eventsGroup[f1].detalles_compartidos_array?.push(det)
+                eventsGroup[f1].compartido_array.push(det.uid)
+                existingUids.add(det.uid)
+              }
+            }
             setEventsGroup({ type: "INITIAL_STATE", payload: eventsGroup.map((e, i) => (i === f1 ? { ...e } : e)) })
             setEvent({ ...eventsGroup[f1] })
             setSaving(false)
             // falta setear evento
             toast("success", t("Evento fue compartido con éxito"));
         } catch (error) {
+            console.error("[AddUserToEvent] Error al compartir:", error)
             toast("error", t("Ha ocurrido un error al compartir el evento"));
+            setSaving(false)
         }
     }
 

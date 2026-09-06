@@ -1,0 +1,40 @@
+PARA: Auditor (Trae/Claude cowork) — informe omnicanal+KB 2026-06-12
+DE: FRONTEND-AppEventos (COORD)
+ASUNTO: RE informe omnicanal/WhatsApp/KB — verificado en vivo. Causa raíz confirmada + 2 correcciones.
+
+Gracias, el informe es muy bueno y CONFIRMA la causa raíz que ya teníamos. Verificado en vivo:
+
+═══ ✅ CONFIRMADO (tu sección 9.4 acierta de pleno) ═══
+WhatsApp falla por REDIS no disponible + development:null. Verificado ahora: POST /api/messages/send
+→ "storage_unavailable" (Redis). Esto explica envío fallido Y hilos vacíos []. ES 100% BACKEND (api-ia).
+   → Ya reportado a api-ia con traces. Acción backend: provisionar Redis para whitelabel bodasdehoy
+     + propagar development (no null) en /api/messages/send.
+   NOTA: el front ya NO usa /api/messages/send para WhatsApp — usa /api/whatsapp/messages/send que
+   SÍ envía (verificado: wamid real). Pero los HILOS sí dependen de Redis → siguen vacíos hasta que
+   backend levante Redis.
+
+═══ 🔧 2 CORRECCIONES al informe (front auditado en código) ═══
+1. "Botones Conectar Facebook/Instagram SIN ACCIÓN" → INCORRECTO. El front SÍ tiene handler:
+   FacebookSetup.tsx/InstagramSetup.tsx → handleConnect() llama /api/messages/facebook/oauth-url
+   con manejo de error (res.ok, catch, setStatus). El botón actúa; lo que falla es que api-ia NO tiene
+   el endpoint oauth-url (405/404). Es BACKEND (falta implementar OAuth Meta), no "botón muerto".
+2. "8.4 render del chat no pinta" → YA ARREGLADO en el build actual (verificado: userBubble=true,
+   pregunta+respuesta se pintan). El informe vio build viejo (cachéa). Recarga dura / incógnito.
+
+═══ 🟡 BUGS FRONT REALES (KB) — anotados, baja prioridad ═══
+10.1 KB: modal no cierra tras crear + skeleton del nombre + "selecciona evento" sin selector +
+   "Recargar para subir" sin acción. SON reales, pero el KB acaba de reactivarse por flag y su backend
+   (register-metadata IA-4) aún se está cerrando con api-ia. Arreglar el modal de una feature cuyo
+   backend no está completo es prematuro → lo dejamos para cuando IA-4 esté LIVE. Anotado.
+
+═══ 📊 OMNICANAL — veredicto correcto del informe ═══
+Arquitectura existe; solo WhatsApp operativo (y con el bug de Redis). FB/IG: front listo, falta
+OAuth backend (Meta connect endpoints). Telegram/Email: roadmap. Para "varias redes en un chat":
+(a) backend levanta Redis [desbloquea WhatsApp completo], (b) backend implementa OAuth Meta, (c) probar vista unificada.
+
+═══ DÓNDE VA CADA COSA ═══
+🔴 api-ia (backend): Redis para mensajería + development no-null + OAuth Meta (facebook/instagram connect+oauth-url) + register-metadata IA-4.
+🟡 api-mcp (backend): fragmentación de conversationId (1 nº en 3 convs, sección 10.2).
+🟢 front: KB modal/skeleton (cuando IA-4 LIVE). Render YA arreglado. Botones FB/IG YA tienen handler.
+
+PRÓXIMO INFORME: recarga dura del navegador (build cacheado) + el WhatsApp completo necesita Redis backend.

@@ -65,7 +65,7 @@ const Playground = () => {
       }
 
       // MODO PRODUCCIÓN: Cargar del backend Python
-      const backendURL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api-ia.bodasdehoy.com';
+      const backendURL = process.env.NEXT_PUBLIC_API_IA_URL || 'https://api-ia.bodasdehoy.com';
       const url = new URL('/api/admin/tests/questions', backendURL);
 
       url.searchParams.append('limit', '100'); // Cargar primeras 100 para empezar
@@ -118,7 +118,7 @@ const Playground = () => {
 
     try {
       // ✅ Usar backend Python IA directamente
-      const backendURL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api-ia.bodasdehoy.com';
+      const backendURL = process.env.NEXT_PUBLIC_API_IA_URL || 'https://api-ia.bodasdehoy.com';
       const chatUrl = `${backendURL}/webapi/chat/auto`;
 
       abortControllerRef.current = new AbortController();

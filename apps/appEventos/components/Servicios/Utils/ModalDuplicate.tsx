@@ -28,8 +28,7 @@ export const ModalDuplicate = ({ setModalDuplicate, modalDuplicate }) => {
 
   useEffect(() => {
     setFilteredEventsGroup(eventsGroup?.filter(elem =>
-      elem.usuario_id === user.uid ||
-      (elem.usuario_id !== user.uid && elem.permissions?.some(permission => permission.title === "servicios" && permission.value === "edit"))
+      elem.usuario_id === user.uid
     ))
   }, [eventsGroup])
 
@@ -45,21 +44,18 @@ export const ModalDuplicate = ({ setModalDuplicate, modalDuplicate }) => {
       }
       setloading(true)
       const itinerary: Itinerary = modalDuplicate.data
-      const result = await fetchApiEventos({
+      const rawResult = await fetchApiEventos({
         query: queries.duplicateItinerario,
         variables: {
-          eventID: event._id,
-          itinerarioID: itinerary._id,
-          eventDestinationID: eventDestination._id,
-          storageBucket: config.fileConfig.storageBucket
+          evento_id: eventDestination._id || event._id,
+          itinerario_id: itinerary._id,
         },
         domain: config.domain
-      }) as Itinerary
+      })
+      const result = ((rawResult as any)?.itinerario || rawResult) as Itinerary
       //si es el mismo evento
       if (eventDestination._id === event._id) {
         const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerary._id)
-        event.itinerarios_array[f1].next_id = result._id
-        event.itinerarios_array.push(result)
         fetchApiEventos({
           query: queries.editItinerario,
           variables: {
@@ -71,18 +67,36 @@ export const ModalDuplicate = ({ setModalDuplicate, modalDuplicate }) => {
           domain: config.domain
         })
         const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
-        if (event.listIdentifiers[fListIdentifiers].end_Id === itinerary._id) {
-          event.listIdentifiers[fListIdentifiers].end_Id = result._id
+        const needsListIdUpdate = event.listIdentifiers[fListIdentifiers].end_Id === itinerary._id
+        if (needsListIdUpdate) {
+          // Pre-calculamos el nuevo listIdentifiers para enviarlo al API.
+          const newListIdentifiers = event.listIdentifiers.map((li, i) =>
+            i !== fListIdentifiers ? li : { ...li, end_Id: result._id }
+          )
           fetchApiEventos({
             query: queries.eventUpdate,
             variables: {
               idEvento: event._id,
               variable: "listIdentifiers",
-              value: JSON.stringify(event.listIdentifiers)
+              value: JSON.stringify(newListIdentifiers)
             }
           })
         }
-        setEvent({ ...event })
+        // Update inmutable: next_id en itinerario antiguo + push del nuevo + listIdentifiers si aplica.
+        setEvent((prev) => ({
+          ...prev,
+          itinerarios_array: [
+            ...prev.itinerarios_array.map((it, i) =>
+              i !== f1 ? it : { ...it, next_id: result._id }
+            ),
+            result,
+          ],
+          listIdentifiers: needsListIdUpdate
+            ? prev.listIdentifiers.map((li, i) =>
+                i !== fListIdentifiers ? li : { ...li, end_Id: result._id }
+              )
+            : prev.listIdentifiers,
+        }))
       }
       //si no es el mismo evento
       if (eventDestination._id !== event._id) {

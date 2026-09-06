@@ -20,8 +20,27 @@ const WeddingHeader = ({
             </div>
             <div className="border-l pl-4 ml-4">
               <p className="text-xs text-gray-500">Evento</p>
-              <p className="font-semibold capitalize">{clientName}</p>
-              <p className="text-xs text-gray-600 capitalize">{type}: {new Date(parseInt(weddingDate)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}</p>
+              {/* BUG-CW-N27 (informe QA 7ª ronda): sin color explícito heredaba
+                  del padre; en algún tab queda invisible (white-on-white). */}
+              <p className="font-semibold capitalize text-gray-800">{clientName}</p>
+              {/* QA1 23-jun v2: el fix v1 con parseInt era incorrecto.
+                  parseInt("2026-06-15") = 2026 (epoch+2s = 1 Ene 1970).
+                  Fix v2: construir Date directamente del valor sin parseInt y
+                  validar con getFullYear() para descartar epoch obvio. */}
+              <p className="text-xs text-gray-600 capitalize">
+                {type}:{" "}
+                {(() => {
+                  if (weddingDate == null || weddingDate === "" || weddingDate === 0 || weddingDate === "0") return "—";
+                  const d = new Date(weddingDate);
+                  if (isNaN(d.getTime()) || d.getFullYear() < 2000) return "—";
+                  return d.toLocaleDateString("es-VE", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    timeZone: "UTC",
+                  });
+                })()}
+              </p>
             </div>
           </div>
           {/* <div className="flex items-center space-x-3">

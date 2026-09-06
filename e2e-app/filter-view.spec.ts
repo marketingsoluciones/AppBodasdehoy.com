@@ -17,7 +17,7 @@
  *           TEST_USER_EMAIL / TEST_USER_PASSWORD
  */
 import { test, expect } from '@playwright/test';
-import { clearSession, waitForAppReady, loginAndSelectEvent } from './helpers';
+import { clearSession, waitForAppReady, loginAndSelectEvent, navigateToModule } from './helpers';
 import { TEST_CREDENTIALS, TEST_URLS } from './fixtures';
 
 const BASE_URL = TEST_URLS.app;
@@ -122,7 +122,7 @@ test.describe('filter_view — postMessage simulated', () => {
     const eventId = await loginAndSelectEvent(page, TEST_CREDENTIALS.email, TEST_CREDENTIALS.password, BASE_URL);
     if (!eventId) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await navigateToModule(page, 'invitados');
     await waitForAppReady(page, 20_000);
 
     await sendFilterViewMessage(page, {
@@ -144,7 +144,7 @@ test.describe('filter_view — postMessage simulated', () => {
     const eventId = await loginAndSelectEvent(page, TEST_CREDENTIALS.email, TEST_CREDENTIALS.password, BASE_URL);
     if (!eventId) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await navigateToModule(page, 'presupuesto');
     await waitForAppReady(page, 20_000);
 
     await sendFilterViewMessage(page, { entity: 'budget_items', ids: ['000000000000000000000001'], query: 'catering' });
@@ -161,7 +161,7 @@ test.describe('filter_view — postMessage simulated', () => {
     const eventId = await loginAndSelectEvent(page, TEST_CREDENTIALS.email, TEST_CREDENTIALS.password, BASE_URL);
     if (!eventId) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await navigateToModule(page, 'invitados');
     await waitForAppReady(page, 20_000);
 
     // Activar filtro (ids no vacíos para que el banner sea visible)
@@ -194,7 +194,7 @@ test.describe('filter_view — interacción UI', () => {
     const eventId = await loginAndSelectEvent(page, TEST_CREDENTIALS.email, TEST_CREDENTIALS.password, BASE_URL);
     if (!eventId) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await navigateToModule(page, 'invitados');
     await waitForAppReady(page, 20_000);
 
     // Activar filtro (ids con valor para que el banner sea visible)

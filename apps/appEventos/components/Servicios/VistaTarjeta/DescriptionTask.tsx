@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { ComponentType, FC, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import 'react-quill/dist/quill.snow.css';
+import { isStudioPathname } from "../../../utils/studioPaths";
 
 const replacesLink: ComponentType<UrlProps> = (props) => {
   return (
@@ -45,6 +46,11 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
   const [editing, setEditing] = useState<boolean>(false);
   const [customDescription, setCustomDescription] = useState(task?.tips || '');
   const ruta = usePathname();
+  // Rediseño studio (gate ?studio, default ON): solo /itinerario. Fiel a
+  // tarjetatareaitinerario.html (.desc-head / .desc-area).
+  const isStudio = typeof window !== "undefined"
+    && isStudioPathname(window.location.pathname)
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
 
   useEffect(() => {
     setCustomDescription(task?.tips || '');
@@ -55,12 +61,12 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
 
   return (
     <>
-      <div className="flex flex-col flex-1 basis-0 min-h-0 max-h-full">
-        <div className="flex items-center justify-between">
-          <label className="text-xs font-medium text-gray-700">
+      <div className={isStudio ? "flex flex-col w-full" : "flex flex-col flex-1 basis-0 min-h-0 max-h-full"}>
+        <div className="flex items-center justify-between mb-2">
+          <label className={isStudio ? "flex items-center gap-[7px] font-semibold text-[12.5px] text-[#a0a0a8]" : "text-xs font-medium text-gray-700"}>
             {t('Descripción detallada')}
           </label>
-          {canShowEditButton && (
+          {canShowEditButton && !isStudio && (
             <button id="edit-description"
               onClick={() => setEditing(true)}
               className="text-xs text-primary hover:text-primary/80"
@@ -69,10 +75,10 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
             </button>
           )}
         </div>
-        <div className="w-full relative flex flex-1 min-h-0">
+        <div className={isStudio ? "w-full relative" : "w-full relative flex flex-1 min-h-0"}>
           {shouldShowEditor && (
-            <div className="absolute z-10 w-full bg-white border border-green rounded-lg overflow-hidden">
-              <div className="h-[293px]">
+            <div className={`${isStudio ? 'relative w-full border-[1.5px] border-[#E7E7EA]' : 'absolute z-10 w-full border border-green'} bg-white rounded-lg overflow-hidden`}>
+              <div className={isStudio ? '' : 'h-[293px]'}>
                 <ReactQuill
                   id="editor-description"
                   value={customDescription}
@@ -81,7 +87,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
                   formats={quillFormats}
                   theme="snow"
                   placeholder={t('Escribe una descripción detallada...')}
-                  className="bg-white border-none description-editor"
+                  className={`bg-white border-none description-editor ${isStudio ? 'description-editor-studio' : ''}`}
                 />
               </div>
               <div className="flex justify-end space-x-2 p-3 bg-gray-50 border-t border-gray-200">
@@ -106,9 +112,15 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
               </div>
             </div>
           )}
-          <div id="description-task" className={`w-full flex flex-1 basis-0 min-h-0 max-h-full overflow-y-auto break-words border border-gray-200 rounded-lg p-4 ${canEdit ? 'cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'} `}
+          <div id="description-task" className={`w-full break-words ${isStudio && shouldShowEditor ? 'hidden' : ''} ${isStudio ? "min-h-[60px] border-[1.5px] border-[#E7E7EA] rounded-xl px-4 py-[13px] text-[12.5px] hover:border-[#EF5B94]" : "flex flex-1 basis-0 min-h-0 max-h-full overflow-y-auto border border-gray-200 rounded-lg p-4"} ${canEdit ? 'cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'} `}
+            onClick={() => {
+              if (isStudio && canShowEditButton) {
+                setCustomDescription(task.tips || '');
+                setEditing(true);
+              }
+            }}
             onDoubleClick={() => {
-              if (canShowEditButton) {
+              if (!isStudio && canShowEditButton) {
                 setCustomDescription(task.tips || '');
                 setEditing(true);
               }
@@ -124,7 +136,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
                 ]}
               />
               : <p className="text-xs text-gray-400">
-                {canEdit ? t('Haz doble clic para agregar una descripción...') : t('Sin descripción')}
+                {canEdit ? (isStudio ? t('Haz clic para agregar una descripción…') : t('Haz doble clic para agregar una descripción...')) : t('Sin descripción')}
               </p>
             }
           </div>
@@ -177,14 +189,18 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
         background-color: #e5e7eb !important;
       }
       .description-editor .ql-toolbar button.ql-active {
-        background-color: #ddd6fe !important;
-        color: #6b21a8 !important;
+        background-color: rgba(0, 0, 0, 0.06) !important;
+        color: var(--color-secondary, #f472b6) !important;
       }
       .description-editor .ql-editor.ql-blank::before {
         color: #9ca3af;
         font-style: normal;
         font-size: 12px;
       }
+      /* Studio: editor inline compacto, del tamaño de la caja de descripción */
+      .description-editor-studio .ql-editor { min-height: 60px !important; max-height: 220px; height: auto !important; padding: 12px 16px; }
+      .description-editor-studio .ql-toolbar { flex: 0 0 auto; }
+      .description-editor-studio .ql-container { flex: 0 1 auto; }
 `}</style>
     </>
   )

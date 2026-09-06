@@ -1,4 +1,5 @@
 import { FC, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { EventsGroupContextProvider } from "../../context/EventsGroupContext";
@@ -96,12 +97,12 @@ const EventLoadingOrError: FC<EventLoadingOrErrorProps> = ({
           <p className="text-sm text-gray-500 mb-5">
             Tu sesión ha caducado. Inicia sesión de nuevo para ver tus eventos.
           </p>
-          <a
+          <Link
             href="/login"
             className="inline-block px-5 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors"
           >
             Iniciar sesión
-          </a>
+          </Link>
         </div>
       </div>
     );

@@ -1,5 +1,5 @@
 import { isDeprecatedEdition } from '@lobechat/const';
-import { ModelProvider } from 'model-bank';
+import { ModelProvider } from '@lobechat/types';
 
 import { getAiInfraStoreState } from '@/store/aiInfra';
 import { aiModelSelectors, aiProviderSelectors } from '@/store/aiInfra/selectors';

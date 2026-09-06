@@ -1,0 +1,87 @@
+================================================================================
+  ORQUESTACIÓN: Front (este repo) · api-ia · MCP · Infra
+  Objetivo: una sola “tabla de verdad” de quién responde qué y por dónde hablamos.
+  Última actualización: 2026-04-18 (mantener al día al cambiar procesos).
+================================================================================
+
+URGENCIA (resumen)
+------------------
+  P0 = bloquea realtime o datos de plan/R2: Infra (socket URL), MCP (enum
+       subscription + deploy), MCP (R2 CRM bodasdehoy).
+  P1 = deploy+smoke front; bugs api-ia 24 feb.
+  P2 = Leads, embeddings ticket, guests-per-event servidor, reglas Cursor user.
+  Detalle, roles y *definición de «cerrado»* por equipo:
+  scripts/PENDIENTES-NOSOTROS-VS-ELLOS.txt (URGENCIA + DEFINICIÓN + ROLES).
+
+LÍDERES Y ANTI-BUCLE
+--------------------
+  Proceso y plantilla de respuesta (quién debe nombrarse en Slack, un hilo
+  maestro P0, plantilla DRI/ETA): scripts/LIDERES-DRI-Y-ANTIBUCLE.txt
+
+CANALES Y HERRAMIENTAS
+----------------------
+  • Slack con api-ia (y visibilidad front): #copilot-api-ia
+    - Scripts: scripts/slack-send.sh [--web|--copilot] "mensaje"
+    - scripts/slack-read.sh [N]
+    - .env raíz: SLACK_BOT_TOKEN, SLACK_CHANNEL_FRONTEND (default C0AEV0GCLM7)
+  • Coordinación cruzada api-ia ↔ MCP (cuando aplique): hilo acordado con backend
+    (no sustituir contacto humano; el agente solo redacta y propone envíos).
+  • Lista operativa nosotros vs ellos: scripts/PENDIENTES-NOSOTROS-VS-ELLOS.txt
+  • Reglas Cursor (siempre en repo): .cursor/rules/mcp-slack-plan-invites.mdc
+
+ROLES (RACI simplificado)
+-------------------------
+  R = Responsible (ejecuta)  A = Accountable  C = Consulted  I = Informed
+
+  Tema                          Front/repo    api-ia          MCP         Infra/DNS
+  ----------------------------- ------------  --------------  ----------  -----------
+  Chat / providers / RAG        C/I           R/A             I           I
+  GraphQL negocio (eventos…)    R/A (UI)      I               R/A         I
+  Plan/suscripción UI           R/A           I               R/A (data) I
+  Socket.IO tiempo real         R/A (env+UI)  R/A (servidor)  I           R/A (DNS/TLS)
+  JWT/cookies/auth app          R/A           C               C           I
+  Whitelabel / development      R             C               R           I
+  R2 / storage CRM              I             I               R/A         C
+
+FLUJO DE ESCALADO (orden)
+-------------------------
+  1) Reproducir + capturar: URL, entorno, UTC, status HTTP, cuerpo JSON de error
+     (sin tokens ni .env en Slack).
+  2) Clasificar capa:
+     - 502/503/timeout hacia api-ia.* o chat-dev.* → api-ia + posible infra.
+     - GraphQL errors / enum / schema → MCP (contrato).
+     - ERR_NAME_NOT_RESOLVED / socket.io 404 → Infra + URL correcta
+       (NEXT_PUBLIC_SOCKET_URL / proxy).
+  3) Escribir en #copilot-api-ia con @/mención si el equipo lo usa; si es puro
+     MCP, pedir que api-ia reenvíe o enlacen hilo con backend.
+  4) Registrar en scripts/PENDIENTES-NOSOTROS-VS-ELLOS.txt qué casilla queda
+     pendiente de “ellos”.
+
+ALINEACIONES RECIENTES (código)
+-------------------------------
+  • getMySubscription: front omite campo status hasta resolver enum en BD/MCP
+    (appEventos + chat-ia alineados).
+  • Socket: base URL configurable; emits coherentes (ver commits recientes).
+
+DOCUMENTACIÓN ADICIONAL (paths en repo; pueden estar en .cursorignore para IA)
+-------------------------------------------------------------------------------
+  • apps/appEventos/docs/ — documento único MCP/app y análisis GraphQL si
+    existen en tu checkout (copiar a Slack si backend pide spec escrita).
+  • apps/chat-ia/public/PETICIONES_EQUIPO_MCP.md — peticiones formales si aplica.
+
+REVISIÓN TRIMESTRAL (checklist)
+-------------------------------
+  [ ] ¿Canal MCP sigue siendo el mismo? Actualizar esta hoja.
+  [ ] ¿URLs prod/dev de GraphQL y Socket documentadas en .env.example?
+  [ ] ¿PENDIENTES-NOSOTROS-VS-ELLOS.txt refleja lo abierto en Slack?
+
+ESTADO ÚLTIMA COORDINACIÓN (repo scripts, ~18–19 abr 2026)
+---------------------------------------------------------
+  • Socket: **BASE pública** `https://api-ia.bodasdehoy.com` (unificada con IA / cert)
+    (DoD §9). Servidor Socket.IO v4 en **repo api-ia**; Infra = proxy/DNS/TLS;
+    Front = `NEXT_PUBLIC_SOCKET_URL` + redeploy. Detalle: OPERATIVO-CHECKLIST +
+    SOCKET-EVENTOS-ESPECIFICACION-COMPLETA.txt §12.
+  • MCP: sigue P0 hasta evidencia deploy enum `getMySubscription.status` +
+    R2 CRM bodasdehoy; hilo maestro con backend (commit citado 55f6af6).
+  • Mensaje Slack único para cerrar actividades (todos los streams):
+    scripts/slack-mensaje-coordinacion-cierre-p0-todos-equipos.txt

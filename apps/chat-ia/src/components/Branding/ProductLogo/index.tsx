@@ -1,4 +1,5 @@
-import { LobeHub, LobeHubProps } from '@lobehub/ui/brand';
+// SPRINT-AS: sub-path directo (no barrel) — evita arrastrar LogoSpline + @splinetool/runtime (3.7MB).
+import LobeHub, { type LobeHubProps } from '@lobehub/ui/es/brand/LobeHub';
 import { memo } from 'react';
 
 import { isCustomBranding } from '@/const/version';

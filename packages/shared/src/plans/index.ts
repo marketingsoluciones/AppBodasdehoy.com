@@ -25,6 +25,8 @@ export {
   usageColor,
   gbToPhotos,
   tokensToQueries,
+  formatEsInteger,
+  formatEsDecimal,
 } from './humanize';
 
 // Gates utilities

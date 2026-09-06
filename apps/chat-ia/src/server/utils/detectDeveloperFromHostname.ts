@@ -57,23 +57,18 @@ const DOMAIN_TO_DEVELOPER: Record<string, string> = {
 'chat.bodasdehoy.com': 'bodasdehoy',
   
 
-
 'editor-dev.bodasdehoy.com': 'bodasdehoy',
-  
 
+  
+  
 
 'editor-test.bodasdehoy.com': 'bodasdehoy',
-
-  
   
 
 'editor.bodasdehoy.com': 'bodasdehoy',
   
 
 'eventosorganizador.com': 'eventosorganizador',
-  
-
-'chat.bodasdehoy.com': 'bodasdehoy',
 
 // bodasdehoy.com — legacy (masterv1)
 'iachat.bodasdehoy.com': 'bodasdehoy',

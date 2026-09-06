@@ -88,7 +88,7 @@ export const ClickUpResponsableSelector: React.FC<Props> = ({
           <div
             key={`person-${index}`}
             onClick={() => handleToggleSelection(name)}
-            className={`flex items-center space-x-3 p-2 rounded-md cursor-pointer transition-colors ${isSelected ? 'bg-pink-50 border border-pink-200' : 'hover:bg-gray-50'
+            className={`flex items-center space-x-3 p-2 rounded-md cursor-pointer transition-colors ${isSelected ? 'bg-base border border-primary' : 'hover:bg-gray-50'
               }`}
           >
             <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
@@ -126,7 +126,7 @@ export const ClickUpResponsableSelector: React.FC<Props> = ({
           <div
             key={`grupo-${index}`}
             onClick={() => handleToggleSelection(grupo.title)}
-            className={`flex items-center space-x-3 p-2 rounded-md cursor-pointer transition-colors ${isSelected ? 'bg-pink-50 border border-pink-200' : 'hover:bg-gray-50'
+            className={`flex items-center space-x-3 p-2 rounded-md cursor-pointer transition-colors ${isSelected ? 'bg-base border border-primary' : 'hover:bg-gray-50'
               }`}
           >
             <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
@@ -221,7 +221,7 @@ export const ClickUpResponsableSelector: React.FC<Props> = ({
             {value.length > 0 && (
               <button
                 onClick={handleClearAll}
-                className="text-sm text-[#ff2525] hover:text-red-700 transition-colors"
+                className="text-sm text-red-600 hover:text-red-700 transition-colors"
               >
                 {t('Limpiar todo')}
               </button>
@@ -238,7 +238,7 @@ export const ClickUpResponsableSelector: React.FC<Props> = ({
                   {item}
                   <button
                     onClick={() => handleToggleSelection(item)}
-                    className="ml-1 hover:text-[#ff2525]"
+                    className="ml-1 hover:text-red-600"
                   >
                     <X className="w-3 h-3" />
                   </button>

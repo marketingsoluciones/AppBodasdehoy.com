@@ -3,15 +3,39 @@ import { signInWithPopup, signInWithRedirect, UserCredential, signInWithEmailAnd
 import { useRouter } from "next/navigation";
 import Cookies from 'js-cookie';
 import { LoadingContextProvider, AuthContextProvider } from "../context";
-import { fetchApiBodas, queries, getApiErrorMessage } from "./Fetching";
+import { fetchApiBodas, queries, getApiErrorMessage, lastFetchApiBodasError } from "./Fetching";
 import { normalizeRedirectAfterLogin } from "./urlHelpers";
 import { useToast } from "../hooks/useToast";
 import { PhoneNumberUtil } from 'google-libphonenumber';
 import { useActivity } from "../hooks/useActivity";
 import { useTranslation } from "react-i18next";
-import { authBridge, parseJwt } from '@bodasdehoy/shared/auth';
+import { authBridge, parseJwt, setCrossAppIdToken } from '@bodasdehoy/shared/auth';
 
 export { parseJwt }; // re-exportar para compatibilidad con imports existentes
+
+/**
+ * BUG-1 sesión fantasma (informe QA 21-jun): parseJwt() devuelve null si el
+ * token está EXPIRADO, mal formado o vacío. Los call-sites legacy hacían
+ * `parseJwt(token).exp * 1000` sin guard → TypeError "Cannot read properties
+ * of null (reading 'exp')" → ErrorBoundary y usuario atrapado en UI fantasma.
+ *
+ * Helper safeJwtExpiry:
+ *   · Si parseJwt OK + tiene exp → Date válido
+ *   · Si parseJwt null o falta exp → undefined (consumer decide fallback)
+ *
+ * Si se pasa `onExpired` y el token resultó inválido/expirado, se llama —
+ * útil para auto-cleanup desde sitios que pueden disparar logout (Cookies.set
+ * sin expiry, por ejemplo, deja al cliente sin TTL aplicable).
+ */
+export function safeJwtExpiry(token: string | null | undefined, onExpired?: () => void): Date | undefined {
+  if (!token) return undefined;
+  const payload = parseJwt(token);
+  if (!payload || typeof payload.exp !== 'number') {
+    onExpired?.();
+    return undefined;
+  }
+  return new Date(payload.exp * 1000);
+}
 
 export const phoneUtil = PhoneNumberUtil.getInstance();
 
@@ -21,6 +45,18 @@ function getCookieDomain(configDomain?: string): string | undefined {
     return undefined;
   }
   return configDomain || (process.env.NEXT_PUBLIC_PRODUCTION ? configDomain : process.env.NEXT_PUBLIC_DOMINIO) || '.bodasdehoy.com';
+}
+
+/**
+ * BUG R4-002 (QA 30-jun): si AuthContext.config aún no está hidratado
+ * cuando login completa, Cookies.set(resolveCookieName(config?.cookie), …) escribe una cookie
+ * literal llamada "undefined" → basura en navegador + tracking imposible.
+ * Helper centralizado con fallback al cookie estándar de bodasdehoy.
+ */
+function resolveCookieName(configCookie?: string): string {
+  if (typeof configCookie === 'string' && configCookie.length > 0) return configCookie;
+  console.warn('[Auth] config.cookie undefined — usando fallback "sessionBodas". Hidratación tardía de AuthContext.');
+  return 'sessionBodas';
 }
 
 export const useAuthentication = () => {
@@ -44,12 +80,31 @@ export const useAuthentication = () => {
 
   const getSessionCookie = useCallback(async (tokenID: any): Promise<string | undefined> => {
     if (tokenID) {
-      console.log("[Auth] Llamando auth mutation con development:", config?.development)
-      console.log("[Auth] Token ID (primeros 50 chars):", tokenID?.substring(0, 50))
+      // BUG-LOGIN QA 30-jun: AuthContext hidrata `config.development` en
+      // useEffect (async), pero el login puede dispararse antes de la 1ª
+      // hidratación → development=undefined → api-mcp rechaza la auth.
+      // Fallback derivado del hostname (app-dev/chat-dev → bodasdehoy).
+      const fallbackDevelopment = (() => {
+        if (typeof window === 'undefined') return 'bodasdehoy';
+        const host = window.location.hostname || '';
+        if (host === 'localhost' || host === '127.0.0.1') return 'bodasdehoy';
+        const parts = host.split('.');
+        const tenant = parts.length >= 3 ? parts[parts.length - 3] : null;
+        if (tenant && tenant !== 'app-dev' && tenant !== 'chat-dev' && tenant !== 'app-test' && tenant !== 'chat-test' && tenant !== 'app' && tenant !== 'chat') {
+          return tenant;
+        }
+        return 'bodasdehoy';
+      })();
+      const effectiveDevelopment = config?.development || fallbackDevelopment;
+      // 4-jul: retirado diagnóstico tokenID temporal (R5, 30-jun). Backend
+      // cerró save-user timeout el 1-jul (fix audit skipAudit) → tokens
+      // Firebase se aceptan sin problema y el log era ruido de consola.
+      // Si vuelve el "no tiene 3 partes", inspeccionar via DebugFooter.
+      console.log("[Auth] Llamando auth mutation con development:", effectiveDevelopment);
       const authResult: any = await fetchApiBodas({
         query: queries.auth,
         variables: { idToken: tokenID },
-        development: config?.development
+        development: effectiveDevelopment
       });
       console.log("[Auth] Resultado COMPLETO de auth mutation:", authResult)
       console.log("[Auth] Análisis del resultado:", {
@@ -65,41 +120,101 @@ export const useAuthentication = () => {
         const { sessionCookie } = authResult;
         // Setear en localStorage token JWT
         const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
-        
+
         const cookieDomain = getCookieDomain(config?.domain)
-        
+
+        // BUG-11 (informe QA 21-jun): diagnóstico ampliado y fallback.
+        // Causas comunes de que Cookies.set no persista:
+        //   · Valor >4096 bytes (límite browser por cookie)
+        //   · Cross-site con SameSite=lax bloqueado en algunos browsers
+        //   · 3rd-party cookies disabled (Safari ITP, modo incógnito strict)
+        //   · Cuota total de cookies por dominio (>180 en Chrome)
+        const sessionCookieSize = (typeof sessionCookie === 'string' ? sessionCookie.length : 0)
         console.log("[Auth] Estableciendo cookie sessionBodas (popup):", {
           cookie: config?.cookie,
           domain: cookieDomain,
-          expires: dateExpire.toISOString()
+          expires: dateExpire.toISOString(),
+          valueSize: sessionCookieSize,
+          tooLarge: sessionCookieSize > 4000
         })
-        
-        Cookies.set(config?.cookie, sessionCookie, { 
-          domain: cookieDomain, 
+
+        Cookies.set(resolveCookieName(config?.cookie), sessionCookie, {
+          domain: cookieDomain,
           expires: dateExpire,
           path: "/",
           secure: window.location.protocol === "https:",
           sameSite: "lax"
         });
-        
-        // Verificar que la cookie se estableció
-        const cookieVerificada = Cookies.get(config?.cookie)
+
+        // Verificar que la cookie se estableció. Si falla, reintentar tras un
+        // breve delay (race con popup callback) antes de declarar fallo.
+        let cookieVerificada = Cookies.get(resolveCookieName(config?.cookie))
+        if (!cookieVerificada) {
+          // BUG-CW-N05 (informe QA 23-jun): el popup de Firebase puede tener
+          // race condition con Cookies.set en el callback. Reintentar 1 vez.
+          await new Promise(resolve => setTimeout(resolve, 100))
+          Cookies.set(resolveCookieName(config?.cookie), sessionCookie, {
+            domain: cookieDomain,
+            expires: dateExpire,
+            path: "/",
+            secure: window.location.protocol === "https:",
+            sameSite: "lax"
+          });
+          cookieVerificada = Cookies.get(resolveCookieName(config?.cookie))
+        }
         if (cookieVerificada) {
           console.log("[Auth] ✅ Cookie sessionBodas establecida correctamente (popup)")
         } else {
-          console.error("[Auth] ❌ Error: Cookie sessionBodas NO se estableció (popup)")
+          // BUG-11 fallback: si la cookie falla (Safari ITP, tamaño, etc.) persistir
+          // en localStorage para que api.ApiBodas tenga el token como Bearer.
+          // No es óptimo (no cross-domain), pero evita que el usuario quede sin sesión.
+          // BUG-CW-N05: bajamos de error a warn — el fallback funciona, no es bloqueante.
+          console.warn("[Auth] ⚠️ Cookie sessionBodas NO se estableció (popup) tras reintento. Aplicando fallback localStorage.", {
+            valueSize: sessionCookieSize,
+            domain: cookieDomain,
+            protocol: window.location.protocol,
+            hint: sessionCookieSize > 4000
+              ? "sessionCookie excede 4KB — backend debe acortar el JWT"
+              : "browser rechazó (third-party cookies / ITP / SameSite). Fallback localStorage activo — la sesión funciona normalmente."
+          })
+          try {
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('sessionBodas_fallback', sessionCookie)
+            }
+          } catch { /* quota / private mode */ }
         }
-        
+
         return sessionCookie
       } else {
+        // QA 30-jun: capturamos los errores GraphQL del backend para distinguir
+        // "Timeout (3000ms) en Mongo save user" de otros fallos. Antes el toast
+        // era genérico y el usuario aterrizaba en home como si no hubiera
+        // pasado nada → bloqueo silencioso de E2E.
+        const backendErrors = lastFetchApiBodasError?.errors || []
+        const backendMessages = backendErrors
+          .map((e: any) => e?.message)
+          .filter(Boolean)
+        const traceId = lastFetchApiBodasError?.traceId
         console.error("[Auth] ❌ No se recibió sessionCookie de la API")
         console.error("[Auth] authResult completo:", JSON.stringify(authResult, null, 2))
-        console.error("[Auth] Config development:", config?.development)
-        console.error("[Auth] Es un Error?:", authResult instanceof Error)
-        if (authResult instanceof Error) {
-          console.error("[Auth] Detalles del error:", authResult.message, authResult.stack)
+        console.error("[Auth] Config development:", effectiveDevelopment)
+        console.error("[Auth] Backend errors[]:", backendMessages)
+        if (traceId) console.error("[Auth] traceId:", traceId)
+        const isMongoTimeout = backendMessages.some((m: string) =>
+          /timeout.*mongo|mongo.*timeout|mongo save user/i.test(m),
+        )
+        if (isMongoTimeout) {
+          try { toast("error", `🛑 El servidor de auth (api-mcp) no respondió a tiempo. Reintenta en unos segundos.${traceId ? ` [${traceId}]` : ''}`) } catch {}
+        } else if (backendMessages.length > 0) {
+          try { toast("error", `❌ Auth falló: ${backendMessages[0]}${traceId ? ` [${traceId}]` : ''}`) } catch {}
         }
-        throw new Error("No se pudo cargar la cookie de sesión por que hubo un problema")
+        const reason = isMongoTimeout
+          ? `Backend auth timeout (Mongo save user)`
+          : backendMessages[0] || 'unknown'
+        const err: any = new Error(`Login falló: ${reason}`)
+        err.backendErrors = backendErrors
+        err.traceId = traceId
+        throw err
       }
     } else {
       console.warn("[Auth] No hay tokenID para pedir la cookie de sesion")
@@ -208,7 +323,8 @@ export const useAuthentication = () => {
         if (res) {
           setLoading(true)
           const idToken = await res?.user?.getIdToken()
-          const dateExpire = new Date(parseJwt(idToken).exp * 1000)
+          // BUG-1 (informe QA 21-jun): safeJwtExpiry undefined → session cookie.
+          const dateExpire = safeJwtExpiry(idToken)
           
           const idTokenDomain = getCookieDomain(config?.domain)
           
@@ -217,13 +333,8 @@ export const useAuthentication = () => {
             expires: dateExpire.toISOString()
           })
           
-          Cookies.set("idTokenV0.1.0", idToken, { 
-            domain: idTokenDomain, 
-            expires: dateExpire,
-            path: "/",
-            secure: window.location.protocol === "https:",
-            sameSite: "lax"
-          })
+          // Escritor único de la cookie compartida (SessionBridge), atributos consistentes.
+          if (idToken) setCrossAppIdToken(idToken)
           
           // Verificar que la cookie se estableció
           const idTokenVerificado = Cookies.get("idTokenV0.1.0")
@@ -251,16 +362,22 @@ export const useAuthentication = () => {
               // Esperar un momento para asegurar que las cookies se establezcan correctamente
               setTimeout(() => {
                 // Verificar que las cookies estén establecidas
-                const sessionCookie = Cookies.get(config?.cookie)
+                const sessionCookie = Cookies.get(resolveCookieName(config?.cookie))
                 const idToken = Cookies.get("idTokenV0.1.0")
 
                 if (sessionCookie && idToken) {
                   console.log("[Auth] ✅ Cookies verificadas (popup), redirigiendo...")
                 } else {
-                  console.warn("[Auth] ⚠️ Algunas cookies no están presentes (popup):", {
+                  // QA 30-jun: si no hay cookies tras 1.5s, el SSO NO se
+                  // consolidó (típicamente backend devolvió auth:null por
+                  // timeout Mongo). NO redirigir a home — el usuario aterriza
+                  // en landing pública sin saber qué pasó.
+                  console.error("[Auth] ⚠️ Cookies de sesión faltantes tras login (popup):", {
                     sessionCookie: !!sessionCookie,
                     idToken: !!idToken
                   })
+                  try { toast("error", "El login no se consolidó (cookies ausentes). Reintenta o contacta soporte.") } catch {}
+                  return
                 }
 
                 if (window.location.pathname === '/login' || window.location.pathname.includes('/login')) {
@@ -278,6 +395,20 @@ export const useAuthentication = () => {
               if (res?.user?.uid && res?.user?.email) {
                 console.log("[Auth] Creando usuario automáticamente en la API...")
                 try {
+                  // BUG-LOGIN QA 30-jun: mismo fix que getSessionCookie —
+                  // config?.development puede estar undefined si createUser
+                  // dispara antes de hidratar AuthContext.
+                  const fallbackDev = (() => {
+                    if (typeof window === 'undefined') return 'bodasdehoy';
+                    const host = window.location.hostname || '';
+                    if (host === 'localhost' || host === '127.0.0.1') return 'bodasdehoy';
+                    const parts = host.split('.');
+                    const tenant = parts.length >= 3 ? parts[parts.length - 3] : null;
+                    if (tenant && tenant !== 'app-dev' && tenant !== 'chat-dev' && tenant !== 'app-test' && tenant !== 'chat-test' && tenant !== 'app' && tenant !== 'chat') {
+                      return tenant;
+                    }
+                    return 'bodasdehoy';
+                  })();
                   // Crear usuario en la API con rol por defecto
                   const createResult = await fetchApiBodas({
                     query: queries.createUser,
@@ -285,7 +416,7 @@ export const useAuthentication = () => {
                       uid: res.user.uid,
                       role: whoYouAre && whoYouAre !== "" ? [whoYouAre] : ["creator"]
                     },
-                    development: config?.development
+                    development: config?.development || fallbackDev
                   })
 
                   if (createResult) {
@@ -338,12 +469,20 @@ export const useAuthentication = () => {
         setLoading(false);
         setIsStartingRegisterOrLogin(false);
         const errorCode: string = error?.code ?? error?.message ?? '';
+        // BUG #5 QA 30-jun: el toast NO aparecía cuando Firebase devolvía
+        // `auth/invalid-login-credentials` (Firebase v10+ con email enumeration
+        // protection enabled). Lista ampliada para cubrir TODOS los códigos
+        // de credencial-inválida que las versiones modernas pueden emitir.
         const isAuthCredentialError =
           errorCode === 'auth/invalid-credential' ||
+          errorCode === 'auth/invalid-login-credentials' ||
           errorCode === 'auth/wrong-password' ||
           errorCode === 'auth/user-not-found' ||
           errorCode === 'auth/invalid-email' ||
-          errorCode === 'auth/too-many-requests';
+          errorCode === 'auth/too-many-requests' ||
+          errorCode === 'auth/user-disabled' ||
+          errorCode === 'auth/account-exists-with-different-credential';
+        console.error('[Auth] Login error code:', errorCode, '| message:', error?.message);
         if (isAuthCredentialError) {
           toast('error', t('usuario o contraseña inválida'));
         } else if (errorCode === 'user does not exist into events bd') {
@@ -359,7 +498,10 @@ export const useAuthentication = () => {
             toast('error', msg.length > 80 ? 'Error al iniciar sesión. Reintenta o comprueba tu conexión.' : msg);
           }
         }
-        console.warn('[Auth] Error en login:', errorCode, error?.message);
+        // Re-throw para que el llamador (FormLogin) tenga safety-net si quiere
+        // mostrar mensaje adicional o limpiar estado. Antes el error se
+        // consumía y nadie más arriba sabía que el login falló.
+        throw error;
       }
     },
     [getSessionCookie, router, setLoading, setUser, toast]
@@ -368,7 +510,15 @@ export const useAuthentication = () => {
   const _signOut = useCallback(async () => {
     Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
     Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
-    authBridge.clearAuth(); // Limpia dev-user-config y tokens de apps/copilot
+    authBridge.clearAuth();
+    if (typeof window !== 'undefined') {
+      ['dev_bypass', 'dev_bypass_email', 'dev_bypass_uid', 'dev_bypass_role', 'dev_bypass_eventos'].forEach(k => {
+        localStorage.removeItem(k); sessionStorage.removeItem(k)
+      })
+      localStorage.removeItem('appEventos_activeEventId')
+      // BUG-11 (informe QA 21-jun): limpiar fallback sessionBodas si se usó.
+      localStorage.removeItem('sessionBodas_fallback')
+    }
     signOut(getAuth());
     router.push(config?.pathDirectory ? `${config?.pathDirectory}/signout?end=true` : "/")
   }, [router])

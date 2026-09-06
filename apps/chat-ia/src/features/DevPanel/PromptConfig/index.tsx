@@ -4,7 +4,7 @@ import { Edit, Plus, Save, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';
 
 interface PromptTemplate {
   category: string;

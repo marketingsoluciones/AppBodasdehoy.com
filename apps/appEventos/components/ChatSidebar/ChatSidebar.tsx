@@ -20,7 +20,15 @@ const MIN_WIDTH = 360;
 /** Por debajo de este ancho el Copilot se muestra como overlay (no comprime el contenido) */
 const MOBILE_BREAKPOINT = 768;
 
-const ChatSidebar: FC = () => {
+type AuthCtx = ReturnType<typeof AuthContextProvider>;
+type EventCtx = ReturnType<typeof EventContextProvider>;
+type ChatSidebarInnerProps = {
+  user: AuthCtx['user'];
+  config: AuthCtx['config'];
+  event: EventCtx['event'];
+};
+
+const ChatSidebarInner: FC<ChatSidebarInnerProps> = ({ user, config, event }) => {
   const { isOpen, width, closeSidebar, setWidth } = useChatSidebar();
   const [viewMode, setViewMode] = useState<'minimal' | 'full'>('minimal');
   const [isMobile, setIsMobile] = useState(false);
@@ -43,16 +51,10 @@ const ChatSidebar: FC = () => {
     }
     return `guest_${Date.now()}`;
   });
-  const authContext = AuthContextProvider();
-  const eventContext = EventContextProvider();
 
-  const user = authContext?.user;
-  const config = authContext?.config;
-  const event = eventContext?.event;
-
-  // Solo renderizar si el tenant tiene copilotEnabled o el usuario es admin
+  // Solo renderizar si el tenant NO lo ha deshabilitado explícitamente o el usuario es admin
   const isAdmin = Array.isArray(user?.role) ? user.role.includes('admin') : user?.role === 'admin';
-  if (config?.copilotEnabled !== true && !isAdmin) return null;
+  const isTenantDisabled = config?.copilotEnabled === false && !isAdmin;
 
   // Obtener datos para el chat - Detectar si es guest por displayName o falta de email
   // El AuthContext crea automáticamente un usuario guest si no hay sesión
@@ -157,6 +159,8 @@ const ChatSidebar: FC = () => {
   // Ancho efectivo en el layout: en móvil siempre 0 para no comprimir el main; en desktop el Container reserva la columna con grid
   const layoutWidth = isMobile ? 0 : isOpen && viewMode === 'minimal' ? width : 0;
 
+  if (isTenantDisabled) return null;
+
   return (
     <>
       {/* ========== VISTA MÍNIMA - MÓVIL: overlay flotante ========== */}
@@ -210,7 +214,7 @@ const ChatSidebar: FC = () => {
                   <button
                     type="button"
                     onClick={closeSidebar}
-                    className="p-2 hover:bg-pink-50 rounded-lg transition-colors"
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                     title="Cerrar (minimizar)"
                   >
                     <IoClose className="w-5 h-5 text-gray-500" />
@@ -311,7 +315,7 @@ const ChatSidebar: FC = () => {
                 <ul className="flex flex-col gap-1 mb-3">
                   {['Crear y gestionar invitados', 'Organizar el presupuesto', 'Diseñar el itinerario del día'].map((item) => (
                     <li key={item} className="flex items-center gap-1.5 text-xs text-gray-500">
-                      <span className="text-pink-400">✦</span> {item}
+                      <span className="text-primary">✦</span> {item}
                     </li>
                   ))}
                 </ul>
@@ -423,6 +427,20 @@ const ChatSidebar: FC = () => {
       </AnimatePresence>
     </>
   );
+};
+
+const ChatSidebar: FC = () => {
+  const authContext = AuthContextProvider();
+  const eventContext = EventContextProvider();
+
+  const user = authContext?.user;
+  const config = authContext?.config;
+  const event = eventContext?.event;
+
+  const isAdmin = Array.isArray(user?.role) ? user.role.includes('admin') : user?.role === 'admin';
+  if (config?.copilotEnabled === false && !isAdmin) return null;
+
+  return <ChatSidebarInner user={user} config={config} event={event} />;
 };
 
 export default memo(ChatSidebar);

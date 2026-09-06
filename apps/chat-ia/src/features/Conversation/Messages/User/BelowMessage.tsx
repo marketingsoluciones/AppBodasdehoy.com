@@ -66,7 +66,12 @@ export const UserBelowMessage = memo<UserBelowMessageProps>(
       s.rewriteQuery,
     ]);
 
-    const status: DeliveryStatus = deliveryStatus ?? 'synced';
+    // BUG-6 QA (23-jul): antes el default era 'synced' ("Sincronizado", doble check)
+    // → afirmaba PERSISTENCIA de forma OPTIMISTA aunque el guardado fallara (500),
+    // contradiciendo el banner de error. Default honesto = 'sent' ("Enviado"): el
+    // mensaje se envió, sin afirmar que se guardó. 'synced' solo con confirmación real
+    // (que el backend de persistencia debe proveer). El caller pasa 'error' si falló.
+    const status: DeliveryStatus = deliveryStatus ?? 'sent';
     const StatusIcon = STATUS_ICON[status] ?? Check;
     const statusColorMap: Record<DeliveryStatus, string> = {
       error: theme.colorError,

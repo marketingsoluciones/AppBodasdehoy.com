@@ -8,7 +8,8 @@
  *   3. Empezar desde cero (cierra el modal)
  */
 
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { EventContextProvider } from '../../context';
 
 interface Props {
@@ -19,6 +20,18 @@ interface Props {
 export const PresupuestoInitModal: FC<Props> = ({ onClose, onDuplicate }) => {
   const { event } = EventContextProvider();
   const [generating, setGenerating] = useState(false);
+
+  // BUG-CW-N21 (reconfirmado QA 7ª ronda): el fix z-[60] del backdrop no
+  // bastaba porque el modal se renderiza dentro de la página /presupuesto,
+  // cuyo árbol padre tiene un DIV con z-[45] que crea un stacking context.
+  // El header del layout es z-[46] → gana al backdrop hijo (sus z-index se
+  // comparan SOLO contra hermanos del z-[45], no contra el header global).
+  // Fix correcto: portal a document.body para que el modal viva en la raíz
+  // del DOM, sin stacking context padre que lo limite.
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    setPortalTarget(typeof document !== 'undefined' ? document.body : null);
+  }, []);
 
   const handleGenerateWithAI = () => {
     if (generating) return;
@@ -63,11 +76,43 @@ export const PresupuestoInitModal: FC<Props> = ({ onClose, onDuplicate }) => {
     onClose();
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden">
-        <div className="bg-primary px-6 py-4">
-          <h2 className="text-white font-display font-semibold text-lg">¿Cómo quieres empezar?</h2>
+  // BUG-CW-N01 (informe QA 22-jun noche): permitir cerrar modal con ESC o
+  // click en el backdrop (fuera del contenido). Sin esto, el modal era
+  // imposible de cerrar excepto eligiendo una de las 3 opciones — el QA
+  // automation no podía interactuar con el panel detrás.
+  if (typeof window !== 'undefined') {
+    // Listener Escape (solo uno por instancia)
+    (window as any).__presupuestoInitModalEscBound = (window as any).__presupuestoInitModalEscBound || false
+    if (!(window as any).__presupuestoInitModalEscBound) {
+      const onEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+      window.addEventListener('keydown', onEsc, { once: true })
+      ;(window as any).__presupuestoInitModalEscBound = true
+      setTimeout(() => { (window as any).__presupuestoInitModalEscBound = false }, 100)
+    }
+  }
+
+  if (!portalTarget) return null;
+
+  const modalContent = (
+    <div
+      className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center bg-black/40 backdrop-blur-sm overflow-y-auto py-8"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
+      <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden my-auto">
+        <div className="bg-primary px-6 py-4 relative">
+          {/* BUG-CW-N01: botón X visible para cerrar el modal sin tener que elegir
+              una opción. Mejora UX y permite QA automation acceder al panel detrás. */}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar"
+            className="absolute top-2 right-3 text-white/80 hover:text-white text-xl font-light leading-none w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition cursor-pointer"
+          >
+            ×
+          </button>
+          <h2 className="text-white font-display font-semibold text-lg pr-8">¿Cómo quieres empezar?</h2>
           <p className="text-white/80 text-xs mt-0.5">Este evento aún no tiene categorías de presupuesto</p>
         </div>
 
@@ -118,4 +163,6 @@ export const PresupuestoInitModal: FC<Props> = ({ onClose, onDuplicate }) => {
       </div>
     </div>
   );
+
+  return createPortal(modalContent, portalTarget);
 };

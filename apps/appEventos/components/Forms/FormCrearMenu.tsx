@@ -1,11 +1,13 @@
 import { Form, Formik } from "formik";
+import { formikValidateUx } from "./formikValidateUx";
 import { EventContextProvider } from "../../context";
 import InputField from "./InputField";
 import * as yup from "yup";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { BorrarIcon, IconLocationFood } from "../icons";
 import { useTranslation } from 'react-i18next';
+import { normalizeMenus } from "../../utils/mcpSchemaAdapter";
 
 const validationSchema = yup.object().shape({
   nombre: yup.string().required(),
@@ -23,39 +25,46 @@ const FormCrearMenu = ({ set, state }) => {
 
   const handleSubmit = async (values, actions) => {
     try {
-      const { menus_array }: any = await fetchApiEventos({
+      const result: any = await fetchApiBodas({
         query: queries.createMenu,
         variables: {
           eventID: event._id,
-          name: values.nombre,
+          menu: { title: values.nombre, nombre: values.nombre, nombre_menu: values.nombre, precio: 0 },
         },
       });
+      // fetchApiBodas devuelve null en error GraphQL (NO lanza). No destructurar {evento}
+      // directo (lanzaría en null) y confirmar éxito REAL antes del toast + actualizar lista.
+      if (!result?.success || (result?.errors?.length ?? 0) > 0) {
+        const backendMsg = result?.errors?.[0]?.message;
+        toast("error", `${t("Ha ocurrido un error al crear el menú")}${backendMsg ? `: ${backendMsg}` : ""}`);
+        return;
+      }
       setEvent((old) => ({
         ...old,
-        menus_array,
+        menus_array: normalizeMenus(result?.evento?.menus_array),
       }));
       toast("success", t("Menú creado con exito"));
     } catch (error) {
-      toast("error", t("Ha ocurrido un error al crear el grupo"));
+      toast("error", t("Ha ocurrido un error al crear el menú"));
     } finally {
       actions.resetForm()
     }
   };
 
-  const handleDeleteMenu = async (value: string) => {
+  const handleDeleteMenu = async (menu: { _id?: string; nombre_menu?: string }) => {
     try {
-      const { menus_array }: any = await fetchApiEventos({
+      const { evento }: any = await fetchApiBodas({
         query: queries.deleteMenu,
         variables: {
           eventID: event._id,
-          name: value,
+          menuId: menu?._id,
         },
       });
       setEvent((old) => {
-        const invitados_array = old.invitados_array.map(elem => elem.nombre_menu == value ? { ...elem, nombre_menu: null } : elem)
+        const invitados_array = old.invitados_array.map(elem => elem.nombre_menu == menu?.nombre_menu ? { ...elem, nombre_menu: null } : elem)
         return ({
           ...old,
-          menus_array,
+          menus_array: normalizeMenus(evento?.menus_array),
           invitados_array
         })
       });
@@ -69,6 +78,7 @@ const FormCrearMenu = ({ set, state }) => {
     <>
       <div className="w-full">
         <Formik
+      {...formikValidateUx}
           initialValues={initialValues}
           onSubmit={handleSubmit}
           validationSchema={validationSchema}
@@ -118,7 +128,7 @@ const FormCrearMenu = ({ set, state }) => {
                   <IconLocationFood className="text-gray-500 w-4 h-4" />
                   <span className="ml-2">{item.nombre_menu}</span>
                 </div>
-                <div className="cursor-pointer" onClick={() => { handleDeleteMenu(item.nombre_menu) }}>
+                <div className="cursor-pointer" onClick={() => { handleDeleteMenu(item) }}>
                   <BorrarIcon className="text-gray-500 w-4 h-4" />
                 </div>
               </div>

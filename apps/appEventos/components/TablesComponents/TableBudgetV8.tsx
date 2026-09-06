@@ -290,24 +290,32 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
   }, [showFloatOptionsMenu, showDotsOptionsMenu])
 
   const handleChangeColumnVisible = (props?: VisibleColumn) => {
-    if (props) {
-      const f1 = event.presupuesto_objeto.visibleColumns.findIndex(elem => elem.accessor === props.accessor)
-      if (f1 > -1) {
-        event.presupuesto_objeto.visibleColumns[f1].show = props.show
-      } else {
-        event.presupuesto_objeto.visibleColumns.push({ accessor: props.accessor, show: props.show })
-      }
+    // Pre-calcular newVisibleColumns para enviarlo al API + actualizar estado.
+    const currentVisibleColumns = event.presupuesto_objeto.visibleColumns ?? []
+    let newVisibleColumns: VisibleColumn[]
+    if (!props) {
+      newVisibleColumns = []
     } else {
-      event.presupuesto_objeto.visibleColumns = []
+      const f1 = currentVisibleColumns.findIndex(elem => elem.accessor === props.accessor)
+      if (f1 > -1) {
+        newVisibleColumns = currentVisibleColumns.map((c, i) =>
+          i === f1 ? { ...c, show: props.show } : c
+        )
+      } else {
+        newVisibleColumns = [...currentVisibleColumns, { accessor: props.accessor, show: props.show }]
+      }
     }
     fetchApiEventos({
       query: queries.editVisibleColumns,
       variables: {
         evento_id: event?._id,
-        visibleColumns: event.presupuesto_objeto.visibleColumns
+        visibleColumns: newVisibleColumns
       },
     })
-    setEvent({ ...event })
+    setEvent((prev) => ({
+      ...prev,
+      presupuesto_objeto: { ...prev.presupuesto_objeto, visibleColumns: newVisibleColumns },
+    }))
   }
 
   return (

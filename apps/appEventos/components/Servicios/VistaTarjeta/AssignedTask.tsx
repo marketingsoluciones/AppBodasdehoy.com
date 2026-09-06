@@ -7,25 +7,96 @@ import { GruposResponsablesArry } from "../Utils/ResponsableSelector";
 import { AuthContextProvider } from "../../../context/AuthContext";
 import { EventContextProvider } from "../../../context/EventContext";
 import { ImageAvatar } from "../../Utils/ImageAvatar";
+import { cleanResponsables } from "./TaskNewUtils";
+import { isStudioPathname } from "../../../utils/studioPaths";
 
 interface Props {
   canEdit: boolean;
   task: any;
   handleUpdate: (field: string, value: any) => Promise<void>;
   owner: boolean;
+  /** Variante en línea de tareasvistatarjeta.html: "Responsables" junto a Estado y
+   *  Prioridad, sin rejilla de 120px ni caja con borde. La usa TaskFullView (Tareas);
+   *  Itinerario sigue con la variante apilada por defecto. */
+  inline?: boolean;
 }
-export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate, owner }) => {
+export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate, owner, inline = false }) => {
   const { t } = useTranslation();
   const { user } = AuthContextProvider();
   const { event } = EventContextProvider();
   const [editing, setEditing] = useState<boolean>(false);
   const [tempResponsable, setTempResponsable] = useState<string[]>(task.responsable || []);
   const ruta = usePathname();
+  // Rediseño studio (gate ?studio, default ON): solo /itinerario. Fiel a
+  // tarjetatareaitinerario.html (.fila-grid / .caja / .chip-persona / .btn-asignar).
+  const isStudio = typeof window !== "undefined"
+    && isStudioPathname(window.location.pathname)
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
+  const canShowAsignar = canEdit && (["/itinerario"].includes(ruta) ? (owner || task.estatus || task.estatus === null) : true);
 
   useEffect(() => {
     setTempResponsable(Array.isArray(task?.responsable) ? task.responsable : []);
   }, [task])
 
+  const resolveUserInfo = (resp: string) =>
+    GruposResponsablesArry.find((el) => el.title?.toLowerCase() === resp?.toLowerCase())
+    || [user, event?.detalles_usuario_id, ...(event?.detalles_compartidos_array || [])].find((el) => {
+      const displayName = el?.displayName || el?.email || 'Sin nombre';
+      return displayName.toLowerCase() === resp?.toLowerCase();
+    });
+
+
+  if (isStudio) {
+    const respList = cleanResponsables(task.responsable);
+    // Más de dos asignados → slider horizontal (scroll invisible) en vez de apilar.
+    // Se desactiva mientras se edita para no recortar el selector superpuesto.
+    const isSlider = respList.length > 2 && !(editing && canEdit);
+    return (
+      <div
+        style={inline
+          ? { display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap", minWidth: 0, overflow: "hidden" }
+          : { display: "grid", gridTemplateColumns: "120px 1fr", gap: 14, alignItems: "center" }}
+        className={inline ? "" : "w-full"}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 5, font: inline ? "500 11.5px Poppins" : "600 12.5px Poppins", color: "#8a8a90", flex: "none", whiteSpace: "nowrap" }}>
+          <User className="w-[13px] h-[13px]" />
+          {inline ? t('Responsables', { defaultValue: 'Responsables' }) : t('Asignados')}
+        </div>
+        <div className={`relative${isSlider ? " asig-slider" : ""}`} style={inline
+          ? { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", minWidth: 0 }
+          : { minHeight: 44, border: "1.5px solid #E7E7EA", borderRadius: 12, padding: "7px 12px", display: "flex", alignItems: "center", gap: 8, flexWrap: isSlider ? "nowrap" : "wrap", overflowX: isSlider ? "auto" : "visible" }}>
+          {(editing && canEdit) && <div className="absolute z-10 top-0 md:left-0 right-0">
+            <ClickUpResponsableSelector
+              value={tempResponsable}
+              onChange={(newValue) => { setTempResponsable(newValue); handleUpdate('responsable', newValue); setEditing(false); }}
+              onClose={() => { setEditing(false); setTempResponsable(task.responsable || []); }}
+            />
+          </div>}
+          {respList.map((resp, idx) => (
+            <span key={idx} style={{ display: "flex", alignItems: "center", gap: 6, background: "#f5f5f7", borderRadius: 16, padding: "4px 10px 4px 4px", font: "500 11.5px Poppins", color: "#3A3A42", flex: "none", whiteSpace: "nowrap" }}>
+              <span style={{ width: 22, height: 22, borderRadius: "50%", overflow: "hidden", display: "inline-block", flex: "none" }}>
+                <ImageAvatar user={resolveUserInfo(resp)} size="md" />
+              </span>
+              {resp}
+            </span>
+          ))}
+          {canShowAsignar && (
+            <button
+              onClick={() => { setEditing(true); setTempResponsable(task.responsable || []); }}
+              style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 11px", borderRadius: 16, background: "#FCE7F0", color: "#D83E7C", font: "600 11px Poppins", border: "none", cursor: "pointer", flex: "none", whiteSpace: "nowrap" }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+              {task.responsable?.length > 0 ? t('Editar') : t('Asignar')}
+            </button>
+          )}
+        </div>
+        <style jsx>{`
+          .asig-slider::-webkit-scrollbar { height: 0; width: 0; display: none; }
+          .asig-slider { scrollbar-width: none; -ms-overflow-style: none; }
+        `}</style>
+      </div>
+    )
+  }
 
   return (
     <div className="flex items-center space-x-2 w-full relative ">

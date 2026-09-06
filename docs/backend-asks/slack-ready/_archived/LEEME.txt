@@ -1,0 +1,27 @@
+3 mensajes listos para copiar y pegar en Slack
+==============================================
+
+Estos archivos son .txt (texto plano). Abrelos en VSCode, selecciona TODO el contenido (Cmd+A) y copia (Cmd+C). Pega en Slack tal cual.
+
+
+1-API-IA.txt
+   Para: API-IA
+   Slack: hilo 1779046688.849779 en #coordinacion
+   Contiene: 6 endpoints `thread` + decisión `ragEval` + 5 confirmaciones de shape
+
+2-API-MCP-Cat-C.txt
+   Para: API-MCP
+   Slack: hilo 1779046688.849779 en #coordinacion
+   Contiene: 13 ops Cat C ALTA + 20 por verificar (apagar apiapp)
+
+3-API-MCP-P0-eventos.txt
+   Para: API-MCP
+   Slack: hilo 1779939514 (escalación P0 original)
+   Contiene: diagnóstico solicitado + plan verificación P0 conexión eventos
+
+
+ORDEN RECOMENDADO DE ENVÍO
+--------------------------
+
+1. PRIMERO el 3 (P0 conexión eventos) — es prerequisito de todo.
+2. LUEGO el 1 (API-IA) y el 2 (API-MCP Cat C) en paralelo — equipos distintos.

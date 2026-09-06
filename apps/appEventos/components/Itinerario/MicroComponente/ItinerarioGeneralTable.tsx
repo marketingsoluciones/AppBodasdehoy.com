@@ -18,6 +18,7 @@ import { EditTastk } from "./ItineraryPanel";
 import { LiaLinkSolid } from "react-icons/lia";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
+import { safeArr } from "../../../utils/Funciones";
 import { PiCheckFatBold } from "react-icons/pi";
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { GoChevronDown } from "react-icons/go";
@@ -71,9 +72,11 @@ export const ItineraryGeneralTable = () => {
                     accessor: "tasks",
                     id: "tasks",
                     Cell: (data) => {
+                        // EVT-01: data.value puede ser null si la tarea no tiene subtareas.
+                        const arr = safeArr(data.value)
                         return (
                             <div className="flex w-full items-center justify-end capitalize">
-                                {data.value.length > 0 ? data.value.length : "null"}
+                                {arr.length > 0 ? arr.length : ""}
                             </div>
                         )
                     }
@@ -545,9 +548,18 @@ const SubComponenteTable = ({ data, itinerario }) => {
                             })
                                 .then(() => {
                                     const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
-                                    const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id)
-                                    event.itinerarios_array[f1].tasks[f2].spectatorView = !values?.spectatorView
-                                    setEvent({ ...event })
+                                    const newSpectatorView = !values?.spectatorView
+                                    setEvent((prev) => ({
+                                        ...prev,
+                                        itinerarios_array: prev.itinerarios_array.map((it, i) =>
+                                            i !== f1 ? it : {
+                                                ...it,
+                                                tasks: it.tasks.map(tk =>
+                                                    tk._id !== values._id ? tk : { ...tk, spectatorView: newSpectatorView }
+                                                ),
+                                            }
+                                        ),
+                                    }))
                                     toast("success", t("Item guardado con exito"))
                                     setShowEditTask({ state: false })
                                 })

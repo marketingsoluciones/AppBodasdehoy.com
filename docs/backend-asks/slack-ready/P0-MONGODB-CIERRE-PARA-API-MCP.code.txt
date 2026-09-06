@@ -1,0 +1,47 @@
+DE: FRONTEND-APPEVENTOS (COORD)
+PARA: api_mcp_oncall
+ASUNTO: P0 MongoDB flapping — vuestra arquitectura aclara la causa. 3 preguntas para cerrarlo.
+
+Gracias por el doc de arquitectura MongoDB (2026-06-12). Aclara mucho el P0 del flapping.
+
+⚠️ SEGURIDAD: el doc traía credenciales de producción en texto plano (Atlas + leadscrap +
+SSH root). NO las hemos guardado en el repo. Recomendación: rotad esas credenciales y compartidlas
+por un gestor de secretos, no por chat — quedan en el historial.
+
+ANÁLISIS DEL FLAPPING (con vuestro dato) — la causa raíz probable NO es el plan, es CÓMO se abren conexiones:
+- Nuestro P0 era MONGODB_DBEVENT_URI → DB "prueba1" (256 MongoNotConnectedError intermitentes, "sube y baja").
+- Vuestro doc: colección `eventos` en eventos_organizador@saqnro0 = M0 FREE TIER (512MB).
+
+🔴 CAUSA RAÍZ ENCONTRADA (auditoría SSH read-only de VUESTRO código, src/index-simple.ts:275-282):
+   El flapping NO es por abrir demasiadas conexiones — es por config de pool DEMASIADO AGRESIVA:
+
+     await mongoose.connect(mongoUri, {
+       maxPoolSize: 2,            // ❌ solo 2 conexiones máx (multi-usuario → 3ª query falla/espera)
+       minPoolSize: 0,            // ❌ CERO conexiones persistentes
+       maxIdleTimeMS: 10000,      // ❌ cierra conexiones inactivas a los 10s
+       ...
+     });
+
+   QUÉ PASA: tras 10s sin queries → minPoolSize:0 deja el pool VACÍO. Llega una query → Mongoose
+   intenta usar el pool vacío → "Client must be connected"/MongoNotConnectedError ANTES de reconectar.
+   ESO ES EL FLAPPING EXACTO. Además maxPoolSize:2 ahoga la concurrencia multi-tenant.
+   El comentario del código dice "para evitar exceder límites" → fue una optimización para el M0 que
+   CAUSÓ el problema. Y PM2 muestra ↺30 reinicios en 8min (crash loop) — síntoma del mismo problema.
+
+   OJO: hay DOS configs de pool en el repo — index-simple.ts (max2/min0, ACTIVA) vs
+   conector-fix.ts (max10/min2). La activa es la mala.
+
+FIX PROPUESTO (vuestro lado, src/index-simple.ts):
+   maxPoolSize: 10,        // o más según carga
+   minPoolSize: 2,         // mantener conexiones vivas (NO 0) → evita el "pool vacío"
+   maxIdleTimeMS: 60000,   // o quitarlo — no cerrar conexiones tan agresivo
+   (= justo lo que ya tenéis en conector-fix.ts; unificad a esa config).
+
+PREGUNTAS PARA CERRAR:
+1. ¿Confirmáis que index-simple.ts (max2/min0/idle10s) es la conexión activa de eventos? ¿Lo subís?
+2. ¿La conexión de eventos usa saqnro0/eventos_organizador (migrasteis desde prueba1)?
+3. Tras subir el pool → ¿0 MongoNotConnectedError? Verificamos juntos.
+
+NO es problema del plan M0 (un M0 aguanta ~500 conexiones; vosotros usáis 2). Es la config del pool.
+
+DRI: api_mcp_oncall → subir maxPoolSize/minPoolSize en index-simple.ts y re-verificar.

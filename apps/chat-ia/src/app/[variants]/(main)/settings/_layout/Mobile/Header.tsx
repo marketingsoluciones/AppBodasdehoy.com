@@ -26,7 +26,7 @@ const Header = memo(() => {
 
   const handleBackClick = () => {
     if (isSessionActive && showMobileWorkspace) {
-      router.push('/chat');
+      router.push('/asistente');
     } else if (activeSettingsKey === 'provider' && providerName !== null) {
       setProviderName(null);
       setActiveSettingsKey('provider');

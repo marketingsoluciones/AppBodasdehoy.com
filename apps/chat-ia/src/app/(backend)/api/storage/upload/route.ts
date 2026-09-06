@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
 const BACKEND_URL =
-  process.env.BACKEND_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  'https://api-ia.bodasdehoy.com';
+  resolveServerBackendOrigin();
 
 const PROXY_TIMEOUT_MS = 30_000;
 
@@ -11,12 +10,12 @@ const PROXY_TIMEOUT_MS = 30_000;
  * POST /api/storage/upload
  *
  * Proxy al backend api-ia que escribe en Cloudflare R2.
- * Las credenciales R2 las gestiona api-ia vía whitelabel (api2). El front no
+ * Las credenciales R2 las gestiona api-ia vía whitelabel (MCP). El front no
  * necesita ninguna variable S3_* — solo pasar X-Development y X-User-ID.
  *
  * Routing según eventId:
  *   - Con eventId → api-ia /api/storage/events/{eventId}/upload
- *                   (guarda metadata en api2 MongoDB para listado/permisos)
+ *                   (guarda metadata en MCP MongoDB para listado/permisos)
  *   - Sin eventId → api-ia /api/storage/r2/users/{userId}/upload
  *                   (archivos de usuario sin contexto de evento)
  *

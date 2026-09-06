@@ -1,7 +1,5 @@
-import { Group83, PlusIcon, } from "../icons";
 import { FC, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import BlockDefault from "./BlockDefault";
 import DragTable from "./DragTable"
 import SvgFromString from '../SvgFromString';
 import { getSvgOptimizationInfo, SVG_SIZE_LIMITS } from '../../utils/svgSizeUtils';
@@ -11,7 +9,7 @@ import { EventContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
 import { GalerySvg } from "../../utils/Interfaces";
 import { convertBackendSvgsToReact } from "../../pages/mesas";
-import { CiText } from "react-icons/ci";
+import { FURNITURE } from "./furnitureIcons";
 
 interface propsBlockPanelElements {
   listElements: GalerySvg[]
@@ -67,8 +65,10 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
             },
           })
           const svgsWithReactIcons = convertBackendSvgsToReact(result.results);
-          event.galerySvgs = event.galerySvgs ? [...event.galerySvgs, ...svgsWithReactIcons] : svgsWithReactIcons;
-          setEvent({ ...event });
+          setEvent((prev) => ({
+            ...prev,
+            galerySvgs: prev.galerySvgs ? [...prev.galerySvgs, ...svgsWithReactIcons] : svgsWithReactIcons,
+          }));
           const newListElements = [...listElements, newElement]
           setListElements(newListElements);
           setShowModal(false);
@@ -120,8 +120,10 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
           },
         })
         const svgsWithReactIcons = convertBackendSvgsToReact(result.results);
-        event.galerySvgs = event.galerySvgs ? [...event.galerySvgs, ...svgsWithReactIcons] : svgsWithReactIcons;
-        setEvent({ ...event });
+        setEvent((prev) => ({
+          ...prev,
+          galerySvgs: prev.galerySvgs ? [...prev.galerySvgs, ...svgsWithReactIcons] : svgsWithReactIcons,
+        }));
         const newListElements = [...listElements, ...svgsWithReactIcons]
         setListElements(newListElements);
         setShowModal(false);
@@ -155,52 +157,59 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
     return { isValid: true };
   };
 
+  // Modal "Añadir SVG" — rediseñado a la paleta rosa del prototipo (antes azul/gris genérico).
+  // Lógica intacta: handleFileUpload / handleUrlSubmit / createGalerySvgs.
   const Modal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 text-gray-700">
-      <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-        <h3 className="text-lg font-semibold mb-4">Agregar SVG</h3>
-        {/* Información sobre límites de tamaño */}
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
-          <p className="text-sm text-blue-800">
-            <strong>Límites de tamaño:</strong><br />
-            • Máximo: {SVG_SIZE_LIMITS.MAX_FILE_SIZE / 1024}KB<br />
-            • Recomendado: {SVG_SIZE_LIMITS.RECOMMENDED_SIZE / 1024}KB o menos
-          </p>
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-[rgba(43,43,48,.38)] px-4"
+      onClick={() => { if (!isLoading) setShowModal(false) }}
+    >
+      <div onClick={(e) => e.stopPropagation()} className="w-[400px] max-w-full bg-white rounded-[18px] shadow-[0_24px_60px_rgba(0,0,0,.28)] p-6 text-[#3A3A42]">
+        <div className="flex items-center gap-[11px] mb-[18px]">
+          <div className="w-10 h-10 rounded-[11px] flex-none bg-[#FCE7F0] text-[#EF5B94] flex items-center justify-center text-[20px] leading-none">＋</div>
+          <div>
+            <div className="text-[16px] font-bold text-[#3A3A42]">Añadir SVG</div>
+            <div className="text-[11.5px] font-medium text-[#a0a0a8]">Un elemento decorativo para tu plano</div>
+          </div>
+        </div>
+        {/* Límites de tamaño en pastilla rosa (regla proyecto: avisos en pastilla) */}
+        <div className="bg-[#FCF2F6] border border-[#f7c2da] rounded-[12px] px-4 py-3 mb-4 text-[11px] font-medium text-[#c14a78] leading-relaxed">
+          Máximo {SVG_SIZE_LIMITS.MAX_FILE_SIZE / 1024}KB · Recomendado {SVG_SIZE_LIMITS.RECOMMENDED_SIZE / 1024}KB o menos.
         </div>
         {/* Opción 1: Cargar desde archivo */}
         <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">Cargar desde archivo:</label>
+          <div className="text-[11px] font-bold tracking-wider uppercase text-[#b3b3ba] mb-2">Cargar desde archivo</div>
           <input
             type="file"
             accept=".svg"
             onChange={handleFileUpload}
-            className="w-full p-2 border border-gray-300 rounded"
             disabled={isLoading}
+            className="w-full p-3 rounded-[11px] border-[1.5px] border-[#E7E7EA] text-[12.5px] file:mr-3 file:py-1.5 file:px-3 file:rounded-[8px] file:border-0 file:bg-[#FCE7F0] file:text-[#EF5B94] file:font-semibold file:cursor-pointer disabled:opacity-60"
           />
         </div>
         {/* Opción 2: Cargar desde URL */}
         <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">Cargar desde URL:</label>
+          <div className="text-[11px] font-bold tracking-wider uppercase text-[#b3b3ba] mb-2">Cargar desde URL</div>
           <input
             type="text"
-            placeholder="URL del SVG (ej: https://ejemplo.com/icono.svg)"
+            placeholder="https://ejemplo.com/icono.svg"
             value={svgUrl}
             onChange={(e) => setSvgUrl(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded mb-2"
             disabled={isLoading}
+            className="w-full p-3 rounded-[11px] border-[1.5px] border-[#E7E7EA] focus:border-[#EF5B94] outline-none text-[12.5px] mb-2 disabled:opacity-60"
           />
           <button
             onClick={handleUrlSubmit}
             disabled={isLoading}
-            className="w-full mt-2 bg-primary text-white p-2 rounded-full disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="w-full py-[11px] rounded-[11px] bg-[#EF5B94] text-white text-[12.5px] font-semibold disabled:bg-[#f0aecb] disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Cargando...' : 'Agregar desde URL'}
+            {isLoading ? 'Cargando…' : 'Agregar desde URL'}
           </button>
         </div>
         <button
           onClick={() => setShowModal(false)}
           disabled={isLoading}
-          className="w-full bg-gray-400 text-white p-2 rounded-full disabled:bg-gray-400 disabled:cursor-not-allowed"
+          className="w-full py-[11px] rounded-[11px] bg-[#f7f7f9] text-[#6b6b72] text-[12.5px] font-semibold disabled:cursor-not-allowed"
         >
           Cancelar
         </button>
@@ -215,36 +224,43 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
         <Modal />,
         document.getElementById('rootElementMain') || document.body
       )}
-      <div id="listTables" className="w-full h-full">
-        <BlockDefault listaLength={listElements.length}>
-          <DragTable item={{
-            size: { width: 60, height: 120 },
-            tipo: "text",
-            title: "",
-            icon: <CiText className="w-8 h-8 text-gray-400" />
-          }} />
-          {listElements.map((item, idx) => (
-            <DragTable key={idx} item={item} />
-          ))}
-          <div id="added-svg" onClick={() => { setShowModal(true) }} className="w-20 h-16 static">
-            <span className="w-full h-full flex items-center ">
-              <div className="w-full h-full p-2 flex-col justify-center items-center cursor-pointer relative">
-                <div className="w-full h-full flex transform hover:scale-105 transition justify-center items-center relative">
-                  <div className="js-dragDefault w-full h-10 flex justify-center items-center">
-                    <Group83 className="relative w-max" />
-                    <PlusIcon className={`absolute inset-0 m-auto text-primary w-3 h-3 `} />
-                  </div>
-                </div>
-              </div>
-            </span>
+      <div id="listTables" className="w-full h-full flex flex-col">
+        {/* Aviso en pastilla ovalada rosa (proto Mobiliario) */}
+        <div className="flex-none bg-[#FCF2F6] border border-[#f7c2da] rounded-[999px] px-4 py-[9px] mb-[11px]">
+          <div className="text-[10px] font-medium text-[#c14a78] whitespace-nowrap">Arrastra un elemento al plano para añadirlo.</div>
+        </div>
+        {/* Cabecera de sección */}
+        <div className="flex-none text-[11px] font-bold tracking-wider uppercase text-[#b3b3ba] mb-[10px]">Elementos decorativos</div>
+        {/* Grid 3-col de tarjetas fiel al HTML. DragTable conserva el motor de arrastre
+            (mismos IDs #dragN/#icon + js-dragDefault + handlers); `label` = modo tarjeta. */}
+        <div className="flex-1 min-h-0 overflow-auto">
+          <div className="grid grid-cols-3 gap-[9px] content-start">
+            {/* 6 elementos base del HTML: Texto · Árbol · Planta · Cabina DJ · Arco · Piano */}
+            {FURNITURE.map((f) => {
+              const isText = f.model === 'text'
+              const item = {
+                icon: <f.Icon />,
+                title: isText ? '' : f.model,
+                tipo: isText ? 'text' : 'element',
+                size: f.size,
+              } as GalerySvg
+              return <DragTable key={f.model} item={item} label={f.label} />
+            })}
+            {/* SVGs personalizados subidos por el usuario (galery, tienen _id) */}
+            {listElements.filter((el) => (el as any)?._id).map((item, idx) => (
+              <DragTable key={(item as any)._id || idx} item={item} label={item.title} />
+            ))}
+            {/* Añadir SVG — tarjeta punteada; abre el modal real (createGalerySvgs) */}
+            <div
+              id="added-svg"
+              onClick={() => { setShowModal(true) }}
+              className="w-full flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-[12px] bg-white border-[1.5px] border-dashed border-[#f0aecb] cursor-pointer hover:bg-[#FCF2F6] transition-colors"
+            >
+              <span className="text-[#EF5B94] text-[18px] leading-none">＋</span>
+              <span className="text-[10px] font-semibold text-[#EF5B94] text-center leading-tight">Añadir SVG</span>
+            </div>
           </div>
-          <style>{`
-            .listTables {
-              touch - action: none;
-              user-select: none;
-            }
-          `}</style>
-        </BlockDefault>
+        </div>
       </div>
     </>
   );

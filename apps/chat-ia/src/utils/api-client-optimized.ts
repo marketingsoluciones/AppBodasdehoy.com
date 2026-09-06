@@ -42,6 +42,22 @@ interface RequestQueueItem {
   resolve: (value: any) => void;
 }
 
+/**
+ * Lee el claim `exp` de un JWT (ms epoch) sin verificar firma. null si no se puede.
+ * Se usa para acotar el cache al vencimiento REAL del token, no a 7 días fijos.
+ */
+function getJwtExpMs(token: string): number | null {
+  try {
+    const payload = token.split('.')[1];
+    if (!payload) return null;
+    const b64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const json = JSON.parse(atob(b64));
+    return typeof json?.exp === 'number' ? json.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
 export class OptimizedApiClient {
   private tokenCache: TokenCache | null = null;
   private requestQueue: RequestQueueItem[] = [];
@@ -85,12 +101,18 @@ export class OptimizedApiClient {
   }
 
   /**
-   * Guardar token en cache con expiración de 7 días
+   * Guardar token en cache, acotado al vencimiento REAL del JWT (fallback 1h)
    */
   private saveTokenCache(token: string, userId?: string, development?: string): void {
     if (typeof window === 'undefined') return;
 
-    const expiry = Date.now() + (7 * 24 * 60 * 60 * 1000); // 7 días
+    // Acotar el cache al `exp` REAL del JWT (no 7 días fijos): así el cache no finge
+    // una sesión válida más allá de la vida real del token (raíz del "false-connected").
+    // Sin `exp` decodificable → fallback CORTO (1h), nunca 7 días.
+    const realExpMs = getJwtExpMs(token);
+    const expiry = realExpMs && realExpMs > Date.now()
+      ? realExpMs
+      : Date.now() + 60 * 60 * 1000;
     this.tokenCache = { development, expiry, token, userId };
 
     try {
@@ -260,7 +282,7 @@ export class OptimizedApiClient {
     }
 
     // Usar middleware Python (evita CORS y SSL)
-    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+    const BACKEND_URL = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';
     const graphqlURL = this.baseURL || `${BACKEND_URL}/graphql`;
     const url = graphqlURL.includes('/graphql') ? graphqlURL : `${graphqlURL}/graphql`;
 

@@ -30,7 +30,7 @@ vi.mock('@/chains/translate', () => ({
 
 // Mock supportLocales
 vi.mock('@/locales/options', () => ({
-  supportLocales: ['en-US', 'zh-CN'],
+  supportLocales: ['en-US', 'es-ES'],
 }));
 
 beforeEach(() => {

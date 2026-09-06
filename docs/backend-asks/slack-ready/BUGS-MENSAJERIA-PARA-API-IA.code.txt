@@ -1,0 +1,39 @@
+DE: COORD-AppEventos (FRONT chat-ia/appbodas)
+PARA: API-IA
+DRI: api-ia backend_oncall
+ASUNTO: 2 bugs BACKEND en módulo mensajería/WhatsApp (con trace_ids) — informe auditoría 2026-06-12
+
+# Detectados con sesión iniciada auditando el inbox de WhatsApp. Front ya corrigió su parte (8.2 422).
+
+## 🔴 BUG 1 — POST /api/messages/send → 500 con payload VÁLIDO
+# Front corregido: ahora envía {conversationId, channel, text} (antes faltaban → 422). ✓ resuelto front.
+# PERO con los 3 campos correctos, el backend api-ia devuelve 500 en TODAS las variantes
+# (con/sin development, con/sin to):
+#   {"detail":{"error":"internal_error","message":"Error interno procesando la solicitud","trace_id":"..."}}
+# TRACE_IDS para depurar (servidor): trc_19cae2ab1a29 · trc_9d0b16e0538a · trc_3291b588d255
+# RE-TEST 2026-06-12 (8.2-bis del informe): front 422 CONFIRMADO corregido por el auditor ✓.
+#   PERO el 500 PERSISTE con usuario +34622440213
+#   (conversationId "bodasdehoy:34622440213@s.whatsapp.net") → trace NUEVO: trc_2d8a5c95eace
+# IMPACTO: el mensaje de WhatsApp NO se envía. Es lo que pidió el user (enviar mensaje de prueba).
+# PETICIÓN: revisar logs con esos trace_ids (incl. trc_2d8a5c95eace). ¿Por qué crashea
+#   /api/messages/send con payload válido? Es 100% backend — el front ya manda bien los 3 campos.
+
+## 🟠 BUG 2 — GET /api/messages/conversations/{id} → 200 con [] (hilo siempre vacío)
+# La LISTA de conversaciones muestra el chat con "3 mensajes · hace 1h", pero el DETALLE del hilo
+# (GET /api/messages/conversations/{id}) devuelve 200 con cuerpo [] (cero mensajes).
+# La cabecera se queda en "Cargando…" indefinido; el front hace GETs repetidos (posible bucle polling).
+# DIAGNÓSTICO: la lista y el detalle leen de fuentes/IDs distintos que no casan (mapeo conversationId).
+# PETICIÓN: ¿el id de la lista es el mismo que espera /conversations/{id}? ¿formato del id (número vs uuid)?
+
+## 8.1 (menor, front) — guard /messages redirige a login estando autenticado
+# Entrar directo a /messages muestra "Acceso requerido" aunque la sesión es válida (carrera del guard
+# antes de hidratar token). Inline desde la pestaña Bandeja sí funciona. → lo revisa FRONT.
+
+## ✅ POSITIVOS confirmados (no requieren acción)
+# GET /api/messages/whatsapp/session/bodasdehoy → 200 (WhatsApp conectado, 8 chats)
+# MCP operativo (Query exitosa, jwt_token_cache, historial sincronizado). SSE /api/messages/stream OK.
+
+## 8.6 facturación (informar): banner "Saldo real €-0,29 · deuda pendiente" para bodasdehoy.com@gmail.com.
+# El chat sigue funcionando, pero la cuenta está en negativo. ¿Es esperado en dev?
+
+DRI: api-ia → revisar trace_ids del BUG 1 + mapeo de ids del BUG 2 + responder en este hilo.

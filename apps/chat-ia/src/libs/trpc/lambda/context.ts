@@ -1,38 +1,30 @@
 import { ClientSecretPayload } from '@lobechat/types';
 import { parse } from 'cookie';
 import debug from 'debug';
-import { User } from 'next-auth';
 import { NextRequest } from 'next/server';
 
-import {
-  LOBE_CHAT_AUTH_HEADER,
-  LOBE_CHAT_OIDC_AUTH_HEADER,
-  enableClerk,
-  enableNextAuth,
-} from '@/const/auth';
+import { LOBE_CHAT_AUTH_HEADER, LOBE_CHAT_OIDC_AUTH_HEADER } from '@/const/auth';
 import { oidcEnv } from '@/envs/oidc';
-import { ClerkAuth, IClerkAuth } from '@/libs/clerk-auth';
 import { validateOIDCJWT } from '@/libs/oidc-provider/jwt';
 
-// Create context logger namespace
+// SPRINT-P 2026-05-19 — migración Clerk-out + NextAuth-out:
+// Eliminados imports @clerk + next-auth + enableClerk/enableNextAuth + ClerkAuth.
+// bodasdehoy usa Firebase via api-ia + OIDC opcional. El contexto mantiene
+// soporte completo para OIDC, dev-user-config cookie, x-user-id header
+// y LOBE_CHAT_AUTH_HEADER.
+
 const log = debug('lobe-trpc:lambda:context');
 
 export interface OIDCAuth {
-  // Other OIDC information that might be needed (optional, as payload contains all info)
   [key: string]: any;
-  // OIDC token data (now the complete payload)
   payload: any;
-  // User ID
   sub: string;
 }
 
 export interface AuthContext {
   authorizationHeader?: string | null;
-  clerkAuth?: IClerkAuth;
   jwtPayload?: ClientSecretPayload | null;
   marketAccessToken?: string;
-  nextAuth?: User;
-  // Add OIDC authentication information
   oidcAuth?: OIDCAuth | null;
   resHeaders?: Headers;
   userAgent?: string;
@@ -41,13 +33,10 @@ export interface AuthContext {
 
 /**
  * Inner function for `createContext` where we create the context.
- * This is useful for testing when we don't want to mock Next.js' request/response
  */
 export const createContextInner = async (params?: {
   authorizationHeader?: string | null;
-  clerkAuth?: IClerkAuth;
   marketAccessToken?: string;
-  nextAuth?: User;
   oidcAuth?: OIDCAuth | null;
   userAgent?: string;
   userId?: string | null;
@@ -57,9 +46,7 @@ export const createContextInner = async (params?: {
 
   return {
     authorizationHeader: params?.authorizationHeader,
-    clerkAuth: params?.clerkAuth,
     marketAccessToken: params?.marketAccessToken,
-    nextAuth: params?.nextAuth,
     oidcAuth: params?.oidcAuth,
     resHeaders: responseHeaders,
     userAgent: params?.userAgent,
@@ -74,8 +61,7 @@ export type LambdaContext = Awaited<ReturnType<typeof createContextInner>>;
  * @link https://trpc.io/docs/v11/context
  */
 export const createLambdaContext = async (request: NextRequest): Promise<LambdaContext> => {
-  // we have a special header to debug the api endpoint in development mode
-  // IT WON'T GO INTO PRODUCTION ANYMORE
+  // Header especial debug solo en development
   const isDebugApi = request.headers.get('lobe-auth-dev-backend-api') === '1';
   const isMockUser = process.env.ENABLE_MOCK_DEV_USER === '1';
 
@@ -83,8 +69,7 @@ export const createLambdaContext = async (request: NextRequest): Promise<LambdaC
     return { userId: process.env.MOCK_DEV_USER_ID };
   }
 
-  // ✅ Autenticación API2 desde dev-user-config cookie
-  // Permite que usuarios autenticados en dev-login sean reconocidos por el servidor
+  // Autenticación desde dev-user-config cookie (dev-login)
   const cookieHeader = request.headers.get('cookie');
   if (cookieHeader) {
     const cookies = parse(cookieHeader);
@@ -93,7 +78,7 @@ export const createLambdaContext = async (request: NextRequest): Promise<LambdaC
       try {
         const config = JSON.parse(decodeURIComponent(devUserConfig));
         if (config.userId) {
-          log('API2 authentication from dev-user-config cookie, userId: %s', config.userId);
+          log('Auth from dev-user-config cookie, userId: %s', config.userId);
           return createContextInner({ userId: config.userId });
         }
       } catch (e) {
@@ -102,20 +87,18 @@ export const createLambdaContext = async (request: NextRequest): Promise<LambdaC
     }
   }
 
-  // ✅ También verificar header x-user-id para peticiones de la API de chat
+  // x-user-id header para chat API
   const xUserId = request.headers.get('x-user-id');
   if (xUserId) {
-    log('API2 authentication from x-user-id header, userId: %s', xUserId);
+    log('Auth from x-user-id header, userId: %s', xUserId);
     return createContextInner({ userId: xUserId });
   }
 
-  log('createLambdaContext called for request');
-  // for API-response caching see https://trpc.io/docs/v11/caching
+  log('createLambdaContext for request');
 
   const authorization = request.headers.get(LOBE_CHAT_AUTH_HEADER);
   const userAgent = request.headers.get('user-agent') || undefined;
 
-  // get marketAccessToken from cookies (reutilizamos cookieHeader si existe, sino lo obtenemos)
   const existingCookieHeader = cookieHeader || request.headers.get('cookie');
   const cookies = existingCookieHeader ? parse(existingCookieHeader) : {};
   const marketAccessToken = cookies['mp_token'];
@@ -126,35 +109,26 @@ export const createLambdaContext = async (request: NextRequest): Promise<LambdaC
     marketAccessToken,
     userAgent,
   };
-  log('LobeChat Authorization header: %s', authorization ? 'exists' : 'not found');
 
   let userId;
-  let auth;
-  let oidcAuth = null;
+  let oidcAuth: OIDCAuth | null = null;
 
-  // Prioritize checking for OIDC authentication (both standard Authorization and custom Oidc-Auth headers)
+  // OIDC primero (si activado)
   if (oidcEnv.ENABLE_OIDC) {
-    log('OIDC enabled, attempting OIDC authentication');
-    const standardAuthorization = request.headers.get('Authorization');
+    log('OIDC enabled, attempting OIDC auth');
     const oidcAuthToken = request.headers.get(LOBE_CHAT_OIDC_AUTH_HEADER);
-    log('Standard Authorization header: %s', standardAuthorization ? 'exists' : 'not found');
-    log('Oidc-Auth header: %s', oidcAuthToken ? 'exists' : 'not found');
 
     try {
       if (oidcAuthToken) {
-        // Use direct JWT validation instead of database lookup
         const tokenInfo = await validateOIDCJWT(oidcAuthToken);
-
         oidcAuth = {
           payload: tokenInfo.tokenData,
-          ...tokenInfo.tokenData, // Spread payload into oidcAuth
-          sub: tokenInfo.userId, // Use tokenData as payload
+          ...tokenInfo.tokenData,
+          sub: tokenInfo.userId,
         };
         userId = tokenInfo.userId;
-        log('OIDC authentication successful, userId: %s', userId);
+        log('OIDC auth successful, userId: %s', userId);
 
-        // If OIDC authentication is successful, return context immediately
-        log('OIDC authentication successful, creating context and returning');
         return createContextInner({
           oidcAuth,
           ...commonContext,
@@ -162,58 +136,14 @@ export const createLambdaContext = async (request: NextRequest): Promise<LambdaC
         });
       }
     } catch (error) {
-      // If OIDC authentication fails, log error and continue with other authentication methods
       if (oidcAuthToken) {
-        log('OIDC authentication failed, error: %O', error);
-        console.error('OIDC authentication failed, trying other methods:', error);
+        log('OIDC auth failed, error: %O', error);
+        console.error('OIDC auth failed, trying other methods:', error);
       }
     }
   }
 
-  // If OIDC is not enabled or validation fails, try LobeChat custom Header and other authentication methods
-  if (enableClerk) {
-    log('Attempting Clerk authentication');
-    const clerkAuth = new ClerkAuth();
-    const result = await clerkAuth.getAuthFromRequest(request);
-    auth = result.clerkAuth;
-    userId = result.userId;
-    log('Clerk authentication result, userId: %s', userId || 'not authenticated');
-
-    return createContextInner({
-      clerkAuth: auth,
-      ...commonContext,
-      userId,
-    });
-  }
-
-  if (enableNextAuth) {
-    log('Attempting NextAuth authentication');
-    try {
-      const { default: NextAuth } = await import('@/libs/next-auth');
-
-      const session = await NextAuth.auth();
-      if (session && session?.user?.id) {
-        auth = session.user;
-        userId = session.user.id;
-        log('NextAuth authentication successful, userId: %s', userId);
-      } else {
-        log('NextAuth authentication failed, no valid session');
-      }
-      return createContextInner({
-        nextAuth: auth,
-        ...commonContext,
-        userId,
-      });
-    } catch (e) {
-      log('NextAuth authentication error: %O', e);
-      console.error('next auth err', e);
-    }
-  }
-
-  // Final return, userId may be undefined
-  log(
-    'All authentication methods attempted, returning final context, userId: %s',
-    userId || 'not authenticated',
-  );
+  // Fallback final con authorization header (firebase JWT via api-ia)
+  log('Returning final context, userId: %s', userId || 'not authenticated');
   return createContextInner({ ...commonContext, userId });
 };

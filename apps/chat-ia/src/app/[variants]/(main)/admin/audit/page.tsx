@@ -15,7 +15,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 
 const { RangePicker } = DatePicker;
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';
 
 interface AuditResult {
   api_total: number;

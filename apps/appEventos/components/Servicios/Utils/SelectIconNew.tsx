@@ -3,6 +3,7 @@ import { FC, useState } from "react";
 import { useAllowed } from "../../../hooks/useAllowed";
 import { Task } from "../../../utils/Interfaces";
 import { IconArray, NewSelectIcon } from "../VistaTabla/NewSelectIcon";
+import { isStudioPathname } from "../../../utils/studioPaths";
 
 
 interface SelectIconNewProps {
@@ -14,6 +15,9 @@ interface SelectIconNewProps {
 export const SelectIconNew: FC<SelectIconNewProps> = ({ handleChange, owner, task }) => {
   const [openIcon, setOpenIcon] = useState(false)
   const [isAllowed, ht] = useAllowed()
+  const isStudio = typeof window !== "undefined"
+    && isStudioPathname(window.location.pathname)
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy"
 
   return (
     <>
@@ -32,7 +36,7 @@ export const SelectIconNew: FC<SelectIconNewProps> = ({ handleChange, owner, tas
                 : setOpenIcon(!openIcon)
         }}>
         {task?.icon
-          ? <div className="border-[1px] border-gray-500 border-dashed rounded-full p-1 w-[90%] h-[90%] flex items-center justify-center">
+          ? <div className={isStudio ? "w-[62%] h-[62%] flex items-center justify-center text-[#6b6b72]" : "border-[1px] border-gray-500 border-dashed rounded-full p-1 w-[90%] h-[90%] flex items-center justify-center"}>
             {IconArray.find((elem) => elem?.title === task?.icon)?.icon}
           </div>
           : <AddIcon />}

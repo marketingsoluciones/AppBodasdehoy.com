@@ -1,5 +1,5 @@
 import { FewShots } from '@lobechat/types';
-import { LLMParams } from 'model-bank';
+import { LLMParams } from '@lobechat/types';
 
 export type TTSServer = 'openai' | 'edge' | 'microsoft';
 

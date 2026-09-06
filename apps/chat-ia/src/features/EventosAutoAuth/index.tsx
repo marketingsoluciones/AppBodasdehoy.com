@@ -6,10 +6,12 @@ import { useEffect, useMemo, useState, useRef } from 'react';
 
 import { message } from '@/components/AntdStaticMethods';
 import { getDeveloperToken, setDeveloperToken } from '@/const/developerTokens';
-import { consumeInviteToken } from '@/services/api2/invite';
+import { isRestorableSessionToken } from '@/utils/jwtSession';
+import { consumeInviteToken } from '@/services/mcpApi/invite';
 import { processGoogleRedirectResult, processFacebookRedirectResult, initCrossAppTokenRefresh } from '@/services/firebase-auth';
 import { useChatStore } from '@/store/chat';
 import { useAgentStore } from '@/store/agent';
+import { useUserStore } from '@/store/user';
 import { authBridge } from '@bodasdehoy/shared/auth';
 
 // ✅ OPTIMIZACIÓN: Solo loguear en desarrollo
@@ -20,6 +22,35 @@ const devLog = (...args: any[]): void => {
 const devWarn = (...args: any[]): void => {
   if (isDev) console.warn(...args);
 };
+
+/**
+ * 🔒 SEGURIDAD: gate para la auto-inyección de tokens admin predefinidos
+ * (ver getDeveloperToken / DEVELOPER_TOKENS).
+ *
+ * Estos tokens son credenciales `role:admin` hardcodeadas pensadas SOLO como
+ * atajo de desarrollo local. Auto-inyectarlas sin condición provoca un
+ * "login fantasma": la UI aparece autenticada como admin sin login ni cookie SSO.
+ *
+ * Solo se permiten cuando se cumplen AMBAS condiciones:
+ *   1. hostname es estrictamente local (localhost / 127.0.0.1)
+ *   2. el desarrollador lo habilita explícitamente con `localStorage.dev_bypass = 'true'`
+ *
+ * En chat-dev / test / prod NUNCA se inyectan: ahí la sesión llega por el SSO real.
+ */
+const isLocalDevBypassEnabled = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  const host = window.location.hostname;
+  const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
+  if (!isLocalHost) return false;
+  try {
+    return localStorage.getItem('dev_bypass') === 'true';
+  } catch {
+    return false;
+  }
+};
+
+// 🔒 SEGURIDAD: validación mínima de JWT (no expirado / bien formado) para decidir
+// si una sesión guardada en localStorage puede restaurarse. Ver utils/jwtSession.
 
 /**
  * Componente de extensión para auto-identificación de usuarios
@@ -45,7 +76,7 @@ export function EventosAutoAuth() {
 
 function EventosAutoAuthComponent() {
   const searchParams = useSearchParams();
-  const { setExternalChatConfig, currentUserId } = useChatStore();
+  const { setExternalChatConfig, currentUserId, userProfile } = useChatStore();
   const { togglePlugin } = useAgentStore();
   const [lastIdentifiedUserId, setLastIdentifiedUserId] = useState<string | null>(null);
   // ✅ FIX: Inicializar sincrónicamente para que el primer render ya sepa si está en iframe.
@@ -56,11 +87,61 @@ function EventosAutoAuthComponent() {
   );
   const [receivedAuthFromParent, setReceivedAuthFromParent] = useState(false);
 
+  // ── FIX auth shell (22-jul): sincronizar isSignedIn (user store LobeChat) con
+  // la sesión Bodas. El SSO Bodas puebla currentUserId + userProfile en el CHAT
+  // store, pero isSignedIn — que usa TODO el shell/nav (cabecera, "Visitante",
+  // pestaña Bandeja en móvil, useDomainGuestUser) — nunca se ponía a true porque
+  // el auth nativo LobeChat (NextAuth/Clerk) está DESACTIVADO. Resultado: usuarios
+  // LOGUEADOS por Bodas aparecían como "Visitante" y en móvil no veían Bandeja.
+  // Aquí lo mantenemos en sync (raíz común de varios síntomas de QA).
+  useEffect(() => {
+    const isRealUser =
+      !!currentUserId &&
+      currentUserId !== 'visitante@guest.local' &&
+      currentUserId !== 'guest' &&
+      currentUserId !== 'anonymous';
+    const us = useUserStore.getState();
+    if (isRealUser && !us.isSignedIn) {
+      const p: any = userProfile || {};
+      useUserStore.setState({
+        isSignedIn: true,
+        user: {
+          ...us.user,
+          avatar: p.avatar || p.photoURL || us.user?.avatar,
+          email: p.email || (currentUserId.includes('@') ? currentUserId : us.user?.email),
+          fullName: p.fullName || p.displayName || p.name || us.user?.fullName,
+          id: currentUserId,
+          username: p.displayName || p.name || p.email || currentUserId,
+        } as any,
+      });
+    } else if (!isRealUser && us.isSignedIn) {
+      useUserStore.setState({ isSignedIn: false });
+    }
+  }, [currentUserId, userProfile]);
+
   // ── SSO token refresh: renueva idTokenV0.1.0 automáticamente cada ~55 min
   // Mantiene la sesión cross-domain válida indefinidamente mientras el usuario esté activo
   useEffect(() => {
-    const unsubscribe = initCrossAppTokenRefresh();
-    return unsubscribe;
+    if (typeof window === 'undefined') return;
+    let unsubscribe: undefined | (() => void);
+
+    const start = () => {
+      unsubscribe = initCrossAppTokenRefresh();
+    };
+
+    if ('requestIdleCallback' in window) {
+      const id = (window as any).requestIdleCallback(start, { timeout: 2000 });
+      return () => {
+        (window as any).cancelIdleCallback?.(id);
+        unsubscribe?.();
+      };
+    }
+
+    const t = setTimeout(start, 1500);
+    return () => {
+      clearTimeout(t);
+      unsubscribe?.();
+    };
   }, []);
 
   // ✅ CORRECCIÓN: Refs para evitar llamadas duplicadas de autenticación
@@ -141,7 +222,7 @@ function EventosAutoAuthComponent() {
           if (payload.enablePlugins && Array.isArray(payload.enablePlugins)) {
             for (const pluginId of payload.enablePlugins) {
               devLog('[EventosAutoAuth] Habilitando plugin desde AUTH_CONFIG:', pluginId);
-              togglePlugin(pluginId, true).catch(() => {});
+              togglePlugin(pluginId, true).catch((e) => console.warn(`[EventosAutoAuth] togglePlugin(${pluginId}) falló:`, e?.message));
             }
           }
 
@@ -360,20 +441,20 @@ user_id: effectiveUserId,
         if (sharedAuth.isAuthenticated && sharedAuth.user && sharedAuth.sessionCookie) {
           devLog('✅ [AuthBridge] Usuario autenticado via cookie compartida de la app:', sharedAuth.user.uid);
 
-          // Guardar en localStorage para que api2/client.ts pueda leer el token
+          // Guardar en localStorage para que mcpApi/client.ts pueda leer el token
           // SOLO usar idToken (JWT de Firebase) — sessionCookie es un token opaco de servidor,
           // no un JWT válido y causa "Not enough segments" en api-ia al intentar decodificarlo.
           const apiToken = sharedAuth.idToken;
           if (apiToken) {
             localStorage.setItem('jwt_token', apiToken);
-            localStorage.setItem('api2_jwt_token', apiToken);
+            localStorage.setItem('mcp_jwt_token', apiToken);
           }
 
           // Sincronizar a formato dev-user-config que usa LobeChat
           await authBridge.syncAuthToLobechat(sharedAuth);
 
           // Identificar al usuario en el store de LobeChat
-          // ✅ CRÍTICO: Usar email como userId (NO Firebase UID) porque api2 consulta eventos/chats por email.
+          // ✅ CRÍTICO: Usar email como userId (NO Firebase UID) porque MCP consulta eventos/chats por email.
           // fetchUserEvents detecta si es email → usa getAllUserRelatedEventsByEmail
           // fetchExternalChats también envía userId a getSessions query
           const userId = sharedAuth.user.email || sharedAuth.user.uid;
@@ -482,8 +563,14 @@ user_id: effectiveUserId,
           // ✅ Si NO hay email/phone en URL, intentar cargar desde localStorage
           const savedDeveloper = savedConfig?.developer || savedConfig?.development;
 
+          // 🔒 SEGURIDAD: si la sesión guardada trae token, debe ser un JWT válido y
+          // no expirado para restaurarla. Tokens sin caducar legítimos (SSO) pasan;
+          // tokens admin falsos/expirados de un dev-user-config viejo se descartan.
+          const savedTokenIsValid =
+            !savedConfig?.token || isRestorableSessionToken(savedConfig.token);
+
           // Si hay sesión guardada para este developer, cargarla automáticamente
-          if (savedConfig?.userId && savedDeveloper === developerParam) {
+          if (savedConfig?.userId && savedDeveloper === developerParam && savedTokenIsValid) {
             devLog(
               `✅ Sesión encontrada para developer ${developerParam}, cargando usuario: ${savedConfig.userId.slice(0, 20)}...`,
             );
@@ -615,7 +702,16 @@ user_id: effectiveUserId,
 
         // ✅ NUEVO: Si hay sesión guardada para este developer, cargarla automáticamente
         const savedDeveloper = savedConfig?.developer || savedConfig?.development;
-        if (savedConfig?.userId && savedDeveloper === developer && !emailParam && !phoneParam) {
+        // 🔒 SEGURIDAD: igual que arriba, si hay token guardado debe ser JWT válido/no expirado.
+        const savedTokenIsValid =
+          !savedConfig?.token || isRestorableSessionToken(savedConfig.token);
+        if (
+          savedConfig?.userId &&
+          savedDeveloper === developer &&
+          !emailParam &&
+          !phoneParam &&
+          savedTokenIsValid
+        ) {
           devLog(
             `✅ Sesión encontrada para developer ${developer}, cargando usuario: ${savedConfig.userId.slice(0, 20)}...`,
           );
@@ -674,11 +770,11 @@ user_id: effectiveUserId,
             : undefined);
       }
 
-      // ✅ CARGAR TOKEN JWT AUTOMÁTICAMENTE PARA DESARROLLO
-      // Esto debe ejecutarse SIEMPRE para asegurar que hay un token válido
+      // 🔒 SEGURIDAD: cargar token admin predefinido SOLO en dev local con opt-in explícito.
+      // Sin esto se producía un "login fantasma" (UI admin sin login ni SSO). Ver isLocalDevBypassEnabled().
       devLog('🔍 EventosAutoAuth: Verificando token JWT', { developer });
 
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && isLocalDevBypassEnabled()) {
         const currentToken = localStorage.getItem('jwt_token');
         const developerToken = getDeveloperToken(developer);
 
@@ -770,7 +866,7 @@ user_id: effectiveUserId,
       devLog('🚀 Iniciando carga paralela de branding y credenciales para:', developer);
 
       const BRANDING_FETCH_TIMEOUT = 3000; // ✅ Reducido de 8s a 3s para carga más rápida
-      const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+      const backendBaseUrl = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';
 
       // Helper con timeout
       const fetchWithTimeout = async (url: string, timeout: number = BRANDING_FETCH_TIMEOUT) => {
@@ -904,7 +1000,7 @@ user_id: effectiveUserId,
       // ✅ Función para cargar credenciales (con timeout y fallback)
       const loadCredentials = async () => {
         try {
-          const { fetchAICredentials } = await import('@/services/api2/aiCredentials');
+          const { fetchAICredentials } = await import('@/services/mcpApi/aiCredentials');
           const { useUserStore } = await import('@/store/user');
 
           // ✅ Timeout rápido para credenciales (2 segundos)

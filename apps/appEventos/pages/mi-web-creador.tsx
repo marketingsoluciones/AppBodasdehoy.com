@@ -5,10 +5,14 @@
 import { AuthContextProvider } from '../context';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { resolveChatOrigin } from '@bodasdehoy/shared/utils';
 
 const getCreatorUrl = () => {
   if (typeof window === 'undefined') return '';
-  const base = (process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com').replace(/\/$/, '');
+  // BUG-H-04: usar resolveChatOrigin (basado en hostname actual) en vez de
+  // process.env.NEXT_PUBLIC_CHAT que podía apuntar a chat.bodasdehoy.com (prod)
+  // incluso desde app-dev.
+  const base = resolveChatOrigin(window.location.hostname);
   return `${base}/bodasdehoy/wedding-creator`;
 };
 
@@ -49,7 +53,7 @@ export default function MiWebCreadorPage() {
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-pink-500 text-white font-medium hover:bg-pink-600 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white font-medium hover:opacity-80 transition-opacity"
         >
           Abrir Creador de webs en Copilot
         </a>

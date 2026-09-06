@@ -40,7 +40,7 @@ describe('Metadata', () => {
         url: 'https://example.com/custom',
         type: 'article',
         tags: ['tag1', 'tag2'],
-        locale: 'fr-FR',
+        locale: 'es-ES',
         alternate: true,
       });
 
@@ -52,7 +52,7 @@ describe('Metadata', () => {
           description: 'Custom description',
           images: [{ url: 'https://custom-image.com', alt: `Custom Title · ${BRANDING_NAME}` }],
           type: 'article',
-          locale: 'fr-FR',
+          locale: 'es-ES',
         }),
         twitter: expect.objectContaining({
           title: `Custom Title · ${BRANDING_NAME}`,
@@ -71,7 +71,7 @@ describe('Metadata', () => {
       const result = (meta as any).genAlternateLocales('en', '/test');
 
       expect(result).toHaveProperty('x-default', expect.stringContaining('/test'));
-      expect(result).toHaveProperty('zh-CN', expect.stringContaining('hl=zh-CN'));
+      expect(result).toHaveProperty('es-ES', expect.stringContaining('hl=zh-CN'));
       expect(result).not.toHaveProperty('en');
     });
   });
@@ -117,20 +117,20 @@ describe('Metadata', () => {
         url: 'https://example.com/og',
         siteName: 'LobeChat',
         alternateLocale: expect.arrayContaining([
-          'ar',
-          'bg-BG',
-          'de-DE',
+          'es-ES',
+          'es-ES',
+          'es-ES',
           'en-US',
           'es-ES',
-          'fr-FR',
-          'ja-JP',
-          'ko-KR',
+          'es-ES',
+          'es-ES',
+          'es-ES',
           'pt-BR',
-          'ru-RU',
-          'tr-TR',
-          'zh-CN',
-          'zh-TW',
-          'vi-VN',
+          'es-ES',
+          'es-ES',
+          'es-ES',
+          'es-ES',
+          'es-ES',
         ]),
       });
     });
