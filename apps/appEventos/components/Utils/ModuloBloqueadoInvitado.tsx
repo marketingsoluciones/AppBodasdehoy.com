@@ -136,11 +136,11 @@ const ModuloBloqueadoInvitado: FC<{ modulo: ModKey }> = ({ modulo }) => {
         <div style={{ position: "absolute", inset: 0, background: "rgba(246,245,247,.5)" }} />
         {/* 3) TARJETA modal de registro */}
         <div style={{ position: "relative", zIndex: 2, display: "flex", justifyContent: "center", padding: "52px 24px 46px" }}>
-          <div style={{ width: 480, maxWidth: "94%", background: "#fff", borderRadius: 20, boxShadow: "0 30px 80px rgba(0,0,0,.18)", padding: "30px 30px 26px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+          <div style={{ width: "100%", maxWidth: 480, background: "#fff", borderRadius: 20, boxShadow: "0 30px 80px rgba(0,0,0,.18)", padding: "28px 22px 24px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", boxSizing: "border-box" }}>
             <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", marginBottom: 16 }}>{m.icon}</div>
             <div style={{ font: "700 21px Poppins", color: "#3A3A42", marginBottom: 8 }}>{m.title}</div>
             <div style={{ font: "400 13px/1.65 Poppins", color: "#8a8a90", maxWidth: 440, marginBottom: 22 }}>{m.desc}</div>
-            <div style={{ background: "#fafafa", border: "1px solid #f0f0f2", borderRadius: 14, padding: "18px 24px", display: "flex", flexDirection: "column", gap: 10, alignItems: "flex-start", marginBottom: 24, minWidth: 380, maxWidth: "100%" }}>
+            <div style={{ background: "#fafafa", border: "1px solid #f0f0f2", borderRadius: 14, padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10, alignItems: "flex-start", marginBottom: 24, width: "100%", boxSizing: "border-box" }}>
               {m.benefits.map((b, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, font: "500 12.5px Poppins", color: "#3A3A42", textAlign: "left" }}>
                   <span style={{ width: 20, height: 20, borderRadius: "50%", background: "#E2F6EE", display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>{check}</span>{b}
