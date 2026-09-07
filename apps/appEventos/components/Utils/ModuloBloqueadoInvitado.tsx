@@ -67,25 +67,82 @@ const MODULOS: Record<ModKey, { preview: Preview; icon: ReactNode; title: string
 };
 
 /* ── Skeletons del preview (datos de EJEMPLO, jamás reales; no interactivos) ── */
-const PILL_COLORS = ["#E2F6EE", "#FDF6DE", "#E2F6EE", "#FBE3ED", "#E2F6EE", "#FDF6DE"];
+
+// Maqueta FIEL de la pantalla real (cabecera + estadísticas + acciones + tabla), con
+// datos de EJEMPLO. Se pinta detrás del velo y difuminada: al desenfocarse se lee como
+// el módulo real. La usan invitados/presupuesto/itinerario (mismo patrón cabecera+tabla).
+const SAMPLE_ROWS: { n: string; est: [string, string, string]; menu: string }[] = [
+  { n: "Isabel Gómez", est: ["Confirmado", "#2FB37E", "#E4F5EE"], menu: "Pescado" },
+  { n: "Raúl Martín", est: ["Confirmado", "#2FB37E", "#E4F5EE"], menu: "Vegano" },
+  { n: "Lucía Fernández", est: ["Por confirmar", "#E0A32B", "#FBF0DA"], menu: "Carne" },
+  { n: "Carlos Ruiz", est: ["Confirmado", "#2FB37E", "#E4F5EE"], menu: "Pescado" },
+  { n: "Marta Díaz", est: ["Cancelado", "#D83E7C", "#FBE3ED"], menu: "—" },
+  { n: "Javier López", est: ["Confirmado", "#2FB37E", "#E4F5EE"], menu: "Vegano" },
+];
+const AV = ["#F9CFE1", "#C9B6E8", "#B6D8E8", "#E8D6B6", "#B6E8C9", "#E8B6C4"];
 
 const SkTabla: FC = () => (
-  <>
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
-      <div style={{ width: 180, height: 16, borderRadius: 8, background: "#e4e4e8" }} />
-      <div style={{ display: "flex", gap: 8 }}><div style={{ width: 120, height: 34, borderRadius: 10, background: "#EF5B94", opacity: .8 }} /><div style={{ width: 90, height: 34, borderRadius: 10, background: "#f0f0f2" }} /></div>
+  <div style={{ fontFamily: "'Poppins',sans-serif" }}>
+    {/* Cabecera del módulo */}
+    <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 3px 12px rgba(0,0,0,.05)", padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <span style={{ font: "700 24px Poppins", color: "#3A3A42" }}>Mis invitados</span>
+        <span style={{ font: "600 12px Poppins", color: "#B99323", background: "#FBF0DA", borderRadius: 20, padding: "5px 12px" }}>Propietario</span>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ display: "flex" }}>
+          {AV.slice(0, 4).map((c, i) => <span key={i} style={{ width: 30, height: 30, borderRadius: "50%", background: c, border: "2px solid #fff", marginLeft: i ? -9 : 0 }} />)}
+        </div>
+        <span style={{ font: "600 11px Poppins", color: "#8a8a90", letterSpacing: ".5px" }}>BODA DE ISABEL &amp; RAÚL</span>
+      </div>
     </div>
-    <div style={{ height: 38, borderRadius: 10, background: "#fafafa", marginBottom: 8 }} />
-    {PILL_COLORS.map((c, i) => (
-      <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 10px", borderBottom: "1px solid #f5f5f7" }}>
-        <span style={{ width: 30, height: 30, borderRadius: "50%", background: "#F9CFE1", flex: "none" }} />
-        <span style={{ width: 150, height: 11, borderRadius: 6, background: "#e4e4e8" }} />
-        <span style={{ width: 74, height: 20, borderRadius: 11, background: c }} />
-        <span style={{ width: 90, height: 10, borderRadius: 6, background: "#efeff2" }} />
-        <span style={{ width: 90, height: 10, borderRadius: 6, background: "#efeff2" }} />
+    {/* Estadísticas */}
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 6px 14px", borderBottom: "2px solid #EF5B94", marginBottom: 16 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+        <span style={{ font: "700 22px Poppins", color: "#EF5B94" }}>44</span>
+        <span style={{ font: "600 14px Poppins", color: "#3A3A42" }}>Invitados</span>
+        <span style={{ font: "500 12px Poppins", color: "#8a8a90" }}>35 adultos · 8 niños</span>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {[["4 por confirmar", "#E0A32B", "#FBF0DA"], ["39 confirmados", "#2FB37E", "#E4F5EE"], ["1 cancelados", "#D83E7C", "#FBE3ED"]].map((s, i) => (
+          <span key={i} style={{ display: "flex", alignItems: "center", gap: 6, font: "600 12px Poppins", color: s[1], background: s[2], borderRadius: 20, padding: "7px 14px" }}>
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: "currentColor" }} />{s[0]}
+          </span>
+        ))}
+        <span style={{ font: "600 12.5px Poppins", color: "#fff", background: "#EF5B94", borderRadius: 12, padding: "10px 18px" }}>Sentar invitados</span>
+      </div>
+    </div>
+    {/* Acciones + buscador */}
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+      <div style={{ display: "flex", gap: 10 }}>
+        <span style={{ font: "600 12.5px Poppins", color: "#fff", background: "#EF5B94", borderRadius: 12, padding: "10px 18px" }}>+ Invitados</span>
+        {["+ Grupo", "+ Menú", "Exportar"].map((b, i) => (
+          <span key={i} style={{ font: "600 12.5px Poppins", color: "#6b6b72", background: "#fff", border: "1.5px solid #E7E7EA", borderRadius: 12, padding: "10px 18px" }}>{b}</span>
+        ))}
+      </div>
+      <div style={{ width: 260, font: "500 12.5px Poppins", color: "#b3b3ba", background: "#fff", border: "1.5px solid #E7E7EA", borderRadius: 12, padding: "10px 16px" }}>Buscar invitado</div>
+    </div>
+    {/* Tabla */}
+    <div style={{ display: "grid", gridTemplateColumns: "2.2fr 1.2fr 1fr 1.2fr 1.2fr 1fr", gap: 12, padding: "0 10px 12px", font: "700 10px Poppins", color: "#a0a0a8", letterSpacing: ".5px" }}>
+      {["INVITADO", "ASISTENCIA", "MENÚ", "ASIENTOS RECEPCIÓN", "ASIENTOS CEREMONIA", "ACOMPAÑANTES"].map((h, i) => <span key={i}>{h}</span>)}
+    </div>
+    <div style={{ font: "700 11.5px Poppins", color: "#6b6b72", padding: "10px 12px", background: "#f7f7f9", borderRadius: 8, marginBottom: 4 }}>Novios <span style={{ color: "#a0a0a8" }}>2</span></div>
+    {SAMPLE_ROWS.map((r, i) => (
+      <div key={i} style={{ display: "grid", gridTemplateColumns: "2.2fr 1.2fr 1fr 1.2fr 1.2fr 1fr", gap: 12, alignItems: "center", padding: "13px 12px", borderBottom: "1px solid #f2f2f4" }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 11 }}>
+          <span style={{ width: 30, height: 30, borderRadius: "50%", background: AV[i % AV.length], flex: "none" }} />
+          <span style={{ font: "500 12.5px Poppins", color: "#3A3A42" }}>{r.n}</span>
+        </span>
+        <span style={{ display: "flex", alignItems: "center", gap: 6, font: "600 11.5px Poppins", color: r.est[1] }}>
+          <span style={{ width: 7, height: 7, borderRadius: "50%", background: "currentColor" }} />{r.est[0]}
+        </span>
+        <span style={{ font: "500 12px Poppins", color: "#6b6b72" }}>{r.menu}</span>
+        <span style={{ font: "500 11px Poppins", color: "#8a8a90" }}>FAMILIA</span>
+        <span style={{ font: "500 11px Poppins", color: "#8a8a90" }}>NOVIOS</span>
+        <span style={{ font: "500 12px Poppins", color: "#6b6b72" }}>0</span>
       </div>
     ))}
-  </>
+  </div>
 );
 
 const SkPlano: FC = () => (
@@ -128,12 +185,12 @@ const ModuloBloqueadoInvitado: FC<{ modulo: ModKey }> = ({ modulo }) => {
   return (
     <div style={{ width: "100%", padding: "20px 16px 40px", display: "flex", justifyContent: "center", fontFamily: "'Poppins',sans-serif" }}>
       <div style={{ position: "relative", width: "100%", maxWidth: 1080, background: "#fff", borderRadius: 16, overflow: "hidden", boxShadow: "0 4px 14px rgba(0,0,0,.05)", minHeight: 600 }}>
-        {/* 1) PREVIEW difuminado (no interactivo, datos de ejemplo) */}
-        <div aria-hidden style={{ position: "absolute", inset: 0, filter: "blur(4px)", opacity: .6, pointerEvents: "none", userSelect: "none", padding: "28px 34px" }}>
+        {/* 1) PREVIEW difuminado (no interactivo, datos de ejemplo) — se lee como el módulo real */}
+        <div aria-hidden style={{ position: "absolute", inset: 0, filter: "blur(3.5px)", opacity: .85, pointerEvents: "none", userSelect: "none", padding: "24px 30px" }}>
           <Preview />
         </div>
-        {/* 2) VELO 50% */}
-        <div style={{ position: "absolute", inset: 0, background: "rgba(246,245,247,.5)" }} />
+        {/* 2) VELO */}
+        <div style={{ position: "absolute", inset: 0, background: "rgba(246,245,247,.4)" }} />
         {/* 3) TARJETA modal de registro */}
         <div style={{ position: "relative", zIndex: 2, display: "flex", justifyContent: "center", padding: "52px 24px 46px" }}>
           <div style={{ width: "100%", maxWidth: 480, background: "#fff", borderRadius: 20, boxShadow: "0 30px 80px rgba(0,0,0,.18)", padding: "28px 22px 24px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", boxSizing: "border-box" }}>
