@@ -49,7 +49,25 @@ export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks,
   const [q, setQ] = useState("");
   const [openMenu, setOpenMenu] = useState(false);
   const [listMenu, setListMenu] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const listas = Array.isArray(itineraries) ? itineraries : [];
+
+  // Compartir: acción real y autocontenida (Web Share API en móvil, o copiar enlace).
+  const compartir = async () => {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    try {
+      const nav: any = typeof navigator !== "undefined" ? navigator : null;
+      if (nav?.share) {
+        await nav.share({ title: `${t("Tareas")} · ${event?.nombre ?? ""}`.trim(), url });
+        return;
+      }
+      if (nav?.clipboard?.writeText) {
+        await nav.clipboard.writeText(url);
+      }
+    } catch {
+      /* usuario canceló el diálogo de compartir: sin acción */
+    }
+  };
 
   const lista = Array.isArray(tasks) ? tasks : [];
   const term = q.trim().toLowerCase();
@@ -67,11 +85,11 @@ export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks,
   const iniciales = (resp: string) => (resp || "?").charAt(0).toUpperCase();
 
   return (
-    <div className="md:hidden" style={{ background: "#F6F5F7", minHeight: "100%", fontFamily: "'Poppins',sans-serif", position: "relative", paddingBottom: 96, overflowX: "hidden" }}>
+    <div className="md:hidden" style={{ width: "100%", background: "#F6F5F7", minHeight: "100%", fontFamily: "'Poppins',sans-serif", position: "relative", paddingBottom: 96, overflowX: "hidden" }}>
       <style dangerouslySetInnerHTML={{ __html: ".tm-hs{scrollbar-width:none;-ms-overflow-style:none;}.tm-hs::-webkit-scrollbar{display:none;height:0;}" }} />
 
-      {/* HEADER MÓDULO */}
-      <div style={{ background: "#fff", padding: "13px 16px 10px", position: "sticky", top: 0, zIndex: 10, boxShadow: "0 2px 10px rgba(0,0,0,.04)" }}>
+      {/* HEADER MÓDULO — borde a borde. Buscador oculto hasta pulsar la lupa (fiel al HTML). */}
+      <div style={{ background: "#fff", padding: "16px 16px 10px", position: "sticky", top: 0, zIndex: 10, boxShadow: "0 2px 10px rgba(0,0,0,.04)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ minWidth: 0, flex: 1 }}>
             <div style={{ font: "700 17px Poppins", color: "#3A3A42" }}>{t("Tareas", { defaultValue: "Tareas" })}</div>
@@ -79,14 +97,26 @@ export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks,
               <span style={{ color: "#EF5B94", fontWeight: 600 }}>{(event?.tipo || "EVENTO").toUpperCase()}</span> · {event?.nombre}
             </div>
           </div>
-          <span title={t("Buscar")} onClick={() => { const el = document.getElementById("tm-q"); el?.focus(); }} style={{ width: 34, height: 34, borderRadius: "50%", background: "#F7F6F8", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", cursor: "pointer" }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3A3A42" strokeWidth={2}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+          <span
+            title={t("Buscar")}
+            onClick={() => setSearchOpen((v) => { const nv = !v; if (!nv) setQ(""); return nv; })}
+            style={{ width: 34, height: 34, borderRadius: "50%", background: searchOpen ? "#FCE7F0" : "#F7F6F8", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", cursor: "pointer", transition: "background .15s" }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={searchOpen ? "#EF5B94" : "#3A3A42"} strokeWidth={2}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+          </span>
+          <span title={t("Compartir", { defaultValue: "Compartir" })} onClick={compartir} style={{ width: 34, height: 34, borderRadius: "50%", background: "#F7F6F8", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", cursor: "pointer", color: "#EF5B94" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="12" r="2.6" /><circle cx="17.5" cy="5.5" r="2.6" /><circle cx="17.5" cy="18.5" r="2.6" /><path d="M8.3 10.8l6.9-4M8.3 13.2l6.9 4" /></svg>
           </span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, border: "1.5px solid #E7E7EA", borderRadius: 12, padding: "0 12px", height: 36, marginTop: 10 }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={2} strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
-          <input id="tm-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Buscar tareas…", { defaultValue: "Buscar tareas…" })} style={{ border: "none", outline: "none", font: "400 12.5px Poppins", color: "#3A3A42", width: "100%", background: "transparent" }} />
-        </div>
+        {searchOpen && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, border: "1.5px solid #EF5B94", borderRadius: 12, padding: "0 12px", height: 40, marginTop: 12 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2} strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+            <input id="tm-q" autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Buscar tarea", { defaultValue: "Buscar tarea" })} style={{ border: "none", outline: "none", font: "400 12.5px Poppins", color: "#3A3A42", width: "100%", background: "transparent" }} />
+            <span onClick={() => { setQ(""); setSearchOpen(false); }} style={{ flex: "none", cursor: "pointer", display: "flex", alignItems: "center" }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={2.2} strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </span>
+          </div>
+        )}
       </div>
 
       {/* SELECTOR DE LISTA + NUEVA (misma lógica que el escritorio, vía props) */}
