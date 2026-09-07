@@ -660,18 +660,19 @@ const ModuloBloqueadoInvitado: FC<{ modulo: ModKey }> = ({ modulo }) => {
   const loginHref = base;
 
   return (
-    <div style={{ width: "100%", padding: "20px 16px 40px", display: "flex", justifyContent: "center", fontFamily: "'Poppins',sans-serif" }}>
-      <div style={{ position: "relative", width: "100%", maxWidth: 1080, background: "#fff", borderRadius: 16, overflow: "hidden", boxShadow: "0 4px 14px rgba(0,0,0,.05)", minHeight: 600 }}>
+    <div style={{ width: "100%", fontFamily: "'Poppins',sans-serif" }}>
+      {/* A pantalla completa: el fondo difuminado llena todo el área, sin marco ni bordes. */}
+      <div style={{ position: "relative", width: "100%", background: "#fff", overflow: "hidden", minHeight: "calc(100vh - 64px)" }}>
         {/* 1) PREVIEW difuminado (no interactivo, datos de ejemplo) — se lee como el módulo real.
                Escritorio y móvil tienen su propia maqueta, fiel al layout real de cada uno. */}
-        <div aria-hidden style={{ position: "absolute", inset: 0, filter: "blur(3.5px)", opacity: .85, pointerEvents: "none", userSelect: "none" }}>
+        <div aria-hidden style={{ position: "absolute", inset: 0, filter: "blur(3.5px)", opacity: .85, pointerEvents: "none", userSelect: "none", overflow: "hidden" }}>
           <div className="hidden md:block" style={{ padding: "24px 30px" }}><Preview /></div>
           <div className="md:hidden" style={{ padding: "10px 8px" }}><PreviewM /></div>
         </div>
         {/* 2) VELO */}
         <div style={{ position: "absolute", inset: 0, background: "rgba(246,245,247,.4)" }} />
-        {/* 3) TARJETA modal de registro */}
-        <div style={{ position: "relative", zIndex: 2, display: "flex", justifyContent: "center", padding: "52px 24px 46px" }}>
+        {/* 3) TARJETA modal de registro — centrada sobre el fondo completo */}
+        <div style={{ position: "relative", zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 64px)", padding: "32px 20px 40px" }}>
           <div style={{ width: "100%", maxWidth: 480, background: "#fff", borderRadius: 20, boxShadow: "0 30px 80px rgba(0,0,0,.18)", padding: "28px 22px 24px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", boxSizing: "border-box" }}>
             <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", marginBottom: 16 }}>{m.icon}</div>
             <div style={{ font: "700 21px Poppins", color: "#3A3A42", marginBottom: 8 }}>{m.title}</div>
