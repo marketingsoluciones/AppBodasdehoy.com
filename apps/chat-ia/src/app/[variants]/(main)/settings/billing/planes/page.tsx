@@ -542,7 +542,7 @@ const PlanesPage = memo(() => {
   }, 0);
 
   return (
-    <Flexbox gap={32} style={{ maxWidth: 1100, padding: 24, width: '100%' }}>
+    <Flexbox gap={32} style={{ maxWidth: 1100, padding: 24, paddingBottom: 88, width: '100%' }}>
       <Breadcrumb
         items={[
           { title: <Link href="/settings">Ajustes</Link> },

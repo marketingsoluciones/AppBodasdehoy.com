@@ -266,7 +266,7 @@ const BillingPage = memo(() => {
   // Mientras EventosAutoAuth hidrata el store, mostrar skeleton (no bloqueo)
   if (!isAuthenticated && isCheckingAuth) {
     return (
-      <Flexbox gap={24} style={{ maxWidth: 1024, padding: 24, width: '100%' }}>
+      <Flexbox gap={24} style={{ maxWidth: 1024, padding: 24, paddingBottom: 88, width: '100%' }}>
         <Skeleton active paragraph={{ rows: 1 }} title={{ width: 200 }} />
         <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
           <Skeleton active paragraph={{ rows: 4 }} />
@@ -317,7 +317,7 @@ const BillingPage = memo(() => {
   }
 
   return (
-    <Flexbox gap={24} style={{ maxWidth: 1024, padding: 24, width: '100%' }}>
+    <Flexbox gap={24} style={{ maxWidth: 1024, padding: 24, paddingBottom: 88, width: '100%' }}>
       {showUpgradedBanner && (
         <Alert
           afterClose={() => {

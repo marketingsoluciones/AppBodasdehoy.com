@@ -3,7 +3,7 @@
 import { Icon } from '@lobehub/ui';
 import { TabBar, type TabBarProps } from '@lobehub/ui/mobile';
 import { createStyles } from 'antd-style';
-import { Bot, Compass, FolderClosed, Globe, Images, Inbox, LayoutGrid, MessageSquare, Settings, User, UserPlus } from 'lucide-react';
+import { Bot, Compass, FolderClosed, Globe, Images, Inbox, LayoutGrid, MessageSquare, Settings, UserPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { rgba } from 'polished';
 import { memo, useMemo, useState } from 'react';
@@ -13,6 +13,7 @@ import { MOBILE_TABBAR_HEIGHT } from '@/const/layoutTokens';
 import { useActiveTabKey } from '@/hooks/useActiveTabKey';
 import { useInboxUnreadCount } from '@/hooks/useInboxUnreadCount';
 import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
+import UserAvatar from '@/features/User/UserAvatar';
 import { SidebarTabKey } from '@/store/global/initialState';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
@@ -169,12 +170,11 @@ const NavBar = memo(() => {
         },
         // "Yo" (elemento principal del usuario) va CENTRADO en la barra (JCP 6-sep): con sesión
         // en server mode quedan 5 pestañas y "Yo" cae en la posición central (Asistente ·
-        // Bandeja · Yo · Discover · Más). "Yo" y "Más" solo para registrados; el visitante ve
-        // lo básico (Asistente) + la puerta a registrarse (menú mínimo, feedback JCP 5-sep).
+        // Bandeja · Yo · Discover · Más). Muestra el AVATAR real del usuario (fricción4 "usuario
+        // visible" + refuerza que es su elemento principal). "Yo"/"Más" solo registrados; el
+        // visitante ve lo básico (Asistente) + la puerta a registrarse (menú mínimo, JCP 5-sep).
         isLoggedIn && {
-          icon: (active: boolean) => (
-            <Icon className={active ? styles.active : undefined} icon={User} />
-          ),
+          icon: () => <UserAvatar clickable={false} size={26} />,
           key: SidebarTabKey.Me,
           onClick: () => {
             router.push('/me');
