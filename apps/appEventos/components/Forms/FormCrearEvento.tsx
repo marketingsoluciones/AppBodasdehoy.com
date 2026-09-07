@@ -295,7 +295,13 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
 
   useEffect(() => {
     if (valir) {
-      setEvent(eventsGroup[eventsGroup?.length - 1])
+      // Seleccionar el evento RECIÉN creado (user.eventSelected apunta a él), NO el último
+      // de la lista: eventsGroup[length-1] podía ser otro evento (p. ej. el de pruebas) →
+      // el Resumen mostraba un evento distinto al recién creado / marcado "SELECCIONADO".
+      const creado = (Array.isArray(eventsGroup) && user?.eventSelected)
+        ? eventsGroup.find((e: any) => e?._id === user?.eventSelected)
+        : null
+      setEvent(creado || eventsGroup[eventsGroup?.length - 1])
       setValir(false)
     }
   }, [valir])

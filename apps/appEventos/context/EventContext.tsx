@@ -203,14 +203,16 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
           const eventsGroupSort = [...eventsPendientes].sort((a: any, b: any) => {
             return b.fecha_creacion - a.fecha_creacion
           })
-          // Prioridad: localStorage (selección más reciente) > user.eventSelected (BD, puede estar desactualizado)
+          // PRIORIDAD: user.eventSelected (la elección EXPLÍCITA persistida en BD — la
+          // MISMA que marca la insignia "SELECCIONADO" en Mis eventos, y la que fija tanto
+          // CREAR como ELEGIR un evento). localStorage es solo caché de sesión y puede
+          // quedar rezagado: al crear un evento se actualiza user.eventSelected pero NO
+          // localStorage → antes el Resumen mostraba un evento distinto al SELECCIONADO.
+          // Fallback: localStorage > 1º pendiente > 1º.
           const savedEventId = typeof window !== 'undefined' ? localStorage.getItem('appEventos_activeEventId') : null
-          let eventSelected = savedEventId ? eventsGroup.find(elem => elem._id === savedEventId) : null
-          if (!eventSelected && user?.eventSelected) {
-            eventSelected = eventsGroupSort?.find(elem => elem._id === user?.eventSelected)
-          }
-          if (!eventSelected && user?.eventSelected) {
-            eventSelected = eventsGroup.find(elem => elem._id === user?.eventSelected)
+          let eventSelected = user?.eventSelected ? eventsGroup.find(elem => elem._id === user?.eventSelected) : null
+          if (!eventSelected && savedEventId) {
+            eventSelected = eventsGroup.find(elem => elem._id === savedEventId)
           }
           if (!eventSelected && eventsGroupSort?.length) {
             eventSelected = eventsGroupSort[0]
@@ -247,13 +249,16 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
         }
         eventsGroup[0] && setValir(true)
       } else {
-        // Re-seleccionar SOLO si (a) no hay evento activo o (b) el evento activo se ha
-        // desviado de la ELECCIÓN EXPLÍCITA guardada en localStorage. NO revertir por un
-        // user.eventSelected (BD) desactualizado cuando el evento activo ya coincide con
-        // lo que el usuario eligió — antes esto forzaba un bucle que "devolvía" el evento.
+        // Re-seleccionar si: (a) no hay evento activo; (b) el evento activo se desvía de la
+        // elección guardada en localStorage; o (c) user.eventSelected (la insignia
+        // "SELECCIONADO", que fijan crear/elegir evento) apunta a un evento VÁLIDO distinto
+        // del activo → reconcilia el caso en que el Resumen mostraba un evento distinto al
+        // seleccionado. La re-selección prioriza user.eventSelected, así que converge sin bucle.
         const savedEventId = typeof window !== 'undefined' ? localStorage.getItem('appEventos_activeEventId') : null
         const mismatchSaved = !!savedEventId && !!event?._id && savedEventId !== event._id
-        if (!event?._id || mismatchSaved) {
+        const mismatchUser = !!user?.eventSelected && !!event?._id && user.eventSelected !== event._id
+          && eventsGroup.some((e: any) => e?._id === user?.eventSelected)
+        if (!event?._id || mismatchSaved || mismatchUser) {
           setValir(false);
         }
       }
