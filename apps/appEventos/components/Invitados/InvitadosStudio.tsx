@@ -11,7 +11,6 @@ import FormInvitadoStudio from "../Forms/FormInvitadoStudio";
 import FormCrearGrupoStudio from "../Forms/FormCrearGrupoStudio";
 import FormCrearMenuStudio from "../Forms/FormCrearMenuStudio";
 import { BorrarInvitado } from "../../hooks/EditarInvitado";
-import { CopiarLink } from "../Utils/Compartir";
 import InvitadosStudioMovil from "./InvitadosStudioMovil";
 
 /**
@@ -36,6 +35,7 @@ export const InvitadosStudio: FC = () => {
   const [editGuest, setEditGuest] = useState<any>(null);
   const [rowMenu, setRowMenu] = useState<string | null>(null);
   const [shareOpen, setShareOpen] = useState<string | null>(null);
+  const [copiedShare, setCopiedShare] = useState(false);
   const [grpMenu, setGrpMenu] = useState<string | null>(null);
   const openForm = (type: string) => { setFormShow(type); setIsMounted(true); setRowMenu(null); };
   const guestLink = (id: string) => `${typeof window !== "undefined" ? window.location.origin : ""}?pGuestEvent=${id}${event?._id?.slice(3, 9)}${event?._id}`;
@@ -146,7 +146,7 @@ export const InvitadosStudio: FC = () => {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       </Head>
-      <style dangerouslySetInnerHTML={{ __html: `@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}` }} />
+      <style dangerouslySetInnerHTML={{ __html: `@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}@keyframes ig-pop{from{opacity:0;transform:translateY(-6px) scale(.97)}to{opacity:1;transform:none}}` }} />
 
       {/* Crear invitado / Crear grupo — paneles studio propios, anclados a la IZQUIERDA por encima de todo */}
       {shouldRenderChild && formShow === "invitado" && (
@@ -280,12 +280,39 @@ export const InvitadosStudio: FC = () => {
                           <div style={{ display: "flex", alignItems: "center", gap: 5, font: "600 12px Poppins", color: "#6b6b72" }}>{acomp}</div>
                           <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 9, color: "#c4c4cc" }}>
                             <div style={{ position: "relative", display: "flex" }}>
-                              <svg onClick={() => { setRowMenu(null); setShareOpen(shareOpen === r._id ? null : r._id); }} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} style={{ cursor: "pointer" }}><title>Compartir invitación</title><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1" /><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1" /></svg>
+                              <span onClick={() => { setRowMenu(null); setCopiedShare(false); setShareOpen(shareOpen === r._id ? null : r._id); }} title="Compartir invitación" style={{ width: 32, height: 32, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flex: "none", color: shareOpen === r._id ? "#EF5B94" : "#8a8a90", background: shareOpen === r._id ? "#FCE7F0" : "transparent" }}>
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" /><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" /></svg>
+                              </span>
                               {shareOpen === r._id && (
                                 <ClickAwayListener onClickAway={() => setShareOpen(null)}>
-                                  <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 8, background: "#fff", border: "1px solid #eee", borderRadius: 12, boxShadow: "0 12px 30px rgba(0,0,0,.16)", zIndex: 9, padding: 12, width: 300 }}>
-                                    <div style={{ font: "600 11px Poppins", color: "#6b6b72", marginBottom: 8 }}>Compartir invitación de {r?.nombre}</div>
-                                    <CopiarLink link={guestLink(r._id)} />
+                                  <div style={{ position: "absolute", top: 42, right: 0, width: 360, maxWidth: "86vw", background: "#fff", borderRadius: 16, boxShadow: "0 20px 50px rgba(0,0,0,.18)", border: "1px solid #f0f0f2", zIndex: 30, padding: "18px 20px", animation: "ig-pop .18s ease" }}>
+                                    <div style={{ position: "absolute", top: -7, right: 10, width: 14, height: 14, background: "#fff", borderLeft: "1px solid #f0f0f2", borderTop: "1px solid #f0f0f2", transform: "rotate(45deg)" }} />
+                                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                                      <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                                        <div style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg,#CDEBE3,#9ED9C8)", flex: "none" }} />
+                                        <div style={{ minWidth: 0 }}>
+                                          <div style={{ font: "600 13.5px Poppins", color: "#3A3A42" }}>Compartir invitación</div>
+                                          <div style={{ font: "400 11px Poppins", color: "#8a8a90", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Enlace personal de <span style={{ color: "#EF5B94", fontWeight: 600 }}>{r?.nombre}</span></div>
+                                        </div>
+                                      </div>
+                                      <span onClick={() => setShareOpen(null)} style={{ width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#8a8a90", cursor: "pointer", flex: "none" }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg></span>
+                                    </div>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12 }}>
+                                      <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, background: "#faf9fb", border: "1.5px solid #E7E7EA", borderRadius: 11, padding: "10px 13px", minWidth: 0 }}>
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ flex: "none" }}><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" /><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" /></svg>
+                                        <span style={{ font: "500 11.5px Poppins", color: "#6b6b72", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{guestLink(r._id)}</span>
+                                      </div>
+                                      <button onClick={() => { try { navigator.clipboard.writeText(guestLink(r._id)); } catch { /* noop */ } setCopiedShare(true); setTimeout(() => setCopiedShare(false), 1800); }} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 16px", borderRadius: 11, background: copiedShare ? "#2FB37E" : "#EF5B94", color: "#fff", font: "600 12px Poppins", border: "none", cursor: "pointer", whiteSpace: "nowrap", flex: "none", boxShadow: "0 4px 12px rgba(239,91,148,.25)" }}>
+                                        {copiedShare
+                                          ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>
+                                          : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></svg>}
+                                        {copiedShare ? "¡Copiado!" : "Copiar"}
+                                      </button>
+                                    </div>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12 }}>
+                                      <a href={`https://wa.me/${(r?.telefono || "").replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hola ${r?.nombre || ""}, aquí tienes tu invitación: ${guestLink(r._id)}`)}`} target="_blank" rel="noreferrer" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: 9, borderRadius: 11, background: "#fff", border: "1.5px solid #E7E7EA", color: "#2FB37E", font: "600 11.5px Poppins", cursor: "pointer", textDecoration: "none" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5.1-1.3A10 10 0 1 0 12 2zm4.9 13.9c-.2.6-1.2 1.1-1.7 1.2-.4 0-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5s.7 1.8.8 1.9c.1.1.1.3 0 .5-.3.6-.7.9-.5 1.2.7 1.2 1.6 2 2.8 2.6.3.2.5.1.7-.1l.9-1c.2-.3.4-.2.7-.1l1.6.8c.3.1.5.2.5.4 0 .1 0 .7-.2 1.2z" /></svg>WhatsApp</a>
+                                      <a href={`mailto:${r?.correo || ""}?subject=${encodeURIComponent("Tu invitación")}&body=${encodeURIComponent(`Hola ${r?.nombre || ""}, aquí tienes tu invitación: ${guestLink(r._id)}`)}`} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: 9, borderRadius: 11, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 11.5px Poppins", cursor: "pointer", textDecoration: "none" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5" /><path d="M3.5 6.5L12 13l8.5-6.5" /></svg>Correo</a>
+                                    </div>
                                   </div>
                                 </ClickAwayListener>
                               )}
