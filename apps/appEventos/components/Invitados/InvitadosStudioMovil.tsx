@@ -4,9 +4,6 @@ import { useRouter } from "next/router";
 import { EventContextProvider, AuthContextProvider } from "../../context";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
-import { useDelayUnmount } from "../../utils/Funciones";
-import ModalLeft from "../Utils/ModalLeft";
-import FormEditarInvitado from "../Forms/FormEditarInvitado";
 import FormInvitadoStudio from "../Forms/FormInvitadoStudio";
 import FormCrearGrupoStudio from "../Forms/FormCrearGrupoStudio";
 import FormCrearMenuStudio from "../Forms/FormCrearMenuStudio";
@@ -41,8 +38,6 @@ const InvitadosStudioMovil: FC = () => {
   const [shareOpen, setShareOpen] = useState(false);
   const [formShow, setFormShow] = useState<null | "invitado" | "grupo" | "menu">(null);
   const [editGuest, setEditGuest] = useState<any>(null);
-  const [isMounted, setIsMounted] = useState(false);
-  const shouldRenderChild = useDelayUnmount(isMounted, 500);
 
   const all: any[] = event?.invitados_array || [];
   const fathers = all.filter((inv) => !inv?.father);
@@ -96,7 +91,7 @@ const InvitadosStudioMovil: FC = () => {
   }).filter((gr) => (q ? gr.guests.length > 0 : true));
 
   const openAdd = (type: "invitado" | "grupo" | "menu") => { setAddOpen(false); setFormShow(type); };
-  const openEdit = () => { const g = detail; setDetail(null); setEditGuest(g); setIsMounted(true); };
+  const openEdit = () => { const g = detail; setDetail(null); setEditGuest(g); };
   const copyLink = () => {
     if (!detail) return;
     try { navigator.clipboard.writeText(guestLink(detail._id)); toast("success", "Enlace copiado"); } catch { toast("error", "No se pudo copiar"); }
@@ -264,11 +259,9 @@ const InvitadosStudioMovil: FC = () => {
       {formShow === "grupo" && <FormCrearGrupoStudio onClose={() => setFormShow(null)} />}
       {formShow === "menu" && <FormCrearMenuStudio onClose={() => setFormShow(null)} />}
 
-      {/* Editar invitado (ModalLeft studio → portal a body) */}
-      {shouldRenderChild && (
-        <ModalLeft state={isMounted} set={setIsMounted} studio>
-          <FormEditarInvitado state={isMounted} set={setIsMounted} invitado={editGuest} setInvitadoSelected={setEditGuest} />
-        </ModalLeft>
+      {/* Editar invitado usa el MISMO panel studio que crear, precargado. */}
+      {editGuest && (
+        <FormInvitadoStudio onClose={() => setEditGuest(null)} invitado={editGuest} />
       )}
     </div>
   );

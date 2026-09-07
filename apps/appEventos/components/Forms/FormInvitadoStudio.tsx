@@ -106,10 +106,13 @@ const ResetForm: FC<{ setFieldValue: any; resetForm: any; contact: any }> = ({ s
   return null;
 };
 
-const FormInvitadoStudio: FC<{ onClose: () => void }> = ({ onClose }) => {
+const FormInvitadoStudio: FC<{ onClose: () => void; invitado?: any; father?: string }> = ({ onClose, invitado, father }) => {
+  const isEdit = !!invitado?._id;
+  const isCompanion = !!father && !isEdit;
   const { t } = useTranslation();
   const { geoInfo } = AuthContextProvider() as any;
   const { event, setEvent } = EventContextProvider() as any;
+  const fatherGuest = isCompanion ? (event?.invitados_array || []).find((g: any) => g?._id === father) : null;
   const toast = useToast();
   const { isPhoneValid } = useAuthentication();
   const [contactsForApiGoogle] = useImportGuest();
@@ -137,19 +140,41 @@ const FormInvitadoStudio: FC<{ onClose: () => void }> = ({ onClose }) => {
         return true;
       })
       .test("Unico", "Número asignado a otro invitado", (value) => {
+        if (isCompanion) return true; // acompañante puede compartir datos del padre
         const name = document.activeElement?.getAttribute("name");
-        if (name !== "telefono" && (value?.length ?? 0) > 3) return !(event?.invitados_array ?? []).map((i: any) => i?.telefono).includes(value);
+        // Al editar, el propio invitado no cuenta como duplicado de sí mismo.
+        if (name !== "telefono" && (value?.length ?? 0) > 3) return !(event?.invitados_array ?? []).filter((i: any) => i?._id !== invitado?._id).map((i: any) => i?.telefono).includes(value);
         return true;
       }),
-    rol: yup.string().required("Rol requerido").notOneOf(["Seleccionar"], "Seleccione un Rol válido"),
+    rol: isCompanion ? yup.string() : yup.string().required("Rol requerido").notOneOf(["Seleccionar"], "Seleccione un Rol válido"),
     correo: yup.string().email("El formato del correo no es válido").test("Unico", "Correo asignado a otro invitado", (value) => {
-      if (!value) return true;
-      return !(event?.invitados_array ?? []).filter(Boolean).map((i: any) => i?.correo).includes(value);
+      if (isCompanion || !value) return true;
+      return !(event?.invitados_array ?? []).filter(Boolean).filter((i: any) => i?._id !== invitado?._id).map((i: any) => i?.correo).includes(value);
     }),
   });
 
   const menuOptions = Array.from(new Set([...(event?.menus_array || []).map((m: any) => m?.nombre_menu).filter(Boolean), "sin menú"]));
-  const initialValues = {
+  const initialValues = isEdit ? {
+    nombre: invitado?.nombre ?? "",
+    sexo: invitado?.sexo ?? "hombre",
+    grupo_edad: invitado?.grupo_edad ?? "adulto",
+    correo: invitado?.correo ?? "",
+    telefono: invitado?.telefono ?? `+${phoneUtil.getCountryCodeForRegion(geoInfo?.ipcountry)}`,
+    rol: invitado?.rol ?? "",
+    nombre_menu: invitado?.nombre_menu ?? ((menuOptions[0] as string) || "sin menú"),
+    passesQuantity: invitado?.passesQuantity ?? 0,
+  } : isCompanion ? {
+    // Acompañante: hereda grupo/menú/asistencia del padre; datos propios en blanco.
+    nombre: "",
+    sexo: fatherGuest?.sexo ?? "hombre",
+    grupo_edad: fatherGuest?.grupo_edad ?? "adulto",
+    correo: "",
+    telefono: `+${phoneUtil.getCountryCodeForRegion(geoInfo?.ipcountry)}`,
+    rol: fatherGuest?.rol ?? "",
+    nombre_menu: fatherGuest?.nombre_menu ?? ((menuOptions[0] as string) || "sin menú"),
+    passesQuantity: 0,
+    asistencia: fatherGuest?.asistencia ?? "confirmado",
+  } : {
     nombre: "",
     sexo: "hombre",
     grupo_edad: "adulto",
@@ -166,10 +191,47 @@ const FormInvitadoStudio: FC<{ onClose: () => void }> = ({ onClose }) => {
         values.telefono = `+${phoneUtil.getCountryCodeForRegion(geoInfo.ipcountry)}${values?.telefono.slice(1)}`;
       }
       if (values.nombre_menu === "sin menú") values.nombre_menu = undefined;
-      const result: any = await fetchApiBodas({
-        query: queries.createGuests,
-        variables: { eventID: event._id, invitados_array: [values] },
-      });
+      let result: any;
+      if (isEdit) {
+        result = await fetchApiBodas({
+          query: queries.editGuests,
+          variables: { eventID: event._id, guestID: invitado._id, datos: values },
+        });
+      } else if (isCompanion) {
+        // Mismo payload probado que FormAcompañante: reenvía el padre + crea el acompañante.
+        const sendValues = [
+          {
+            _id: father,
+            nombre: fatherGuest?.nombre || "",
+            telefono: fatherGuest?.telefono || "",
+            correo: fatherGuest?.correo || "",
+            sexo: fatherGuest?.sexo || "",
+            grupo_edad: fatherGuest?.grupo_edad || "",
+            nombre_menu: fatherGuest?.nombre_menu || "",
+            asistencia: fatherGuest?.asistencia || "",
+          },
+          {
+            _id: null,
+            father,
+            nombre: values.nombre,
+            telefono: values.telefono,
+            correo: values.correo,
+            sexo: values.sexo,
+            grupo_edad: values.grupo_edad,
+            nombre_menu: values.nombre_menu,
+            asistencia: values.asistencia || fatherGuest?.asistencia || "confirmado",
+          },
+        ];
+        result = await fetchApiBodas({
+          query: queries.createGuests,
+          variables: { eventID: event._id, invitados_array: sendValues },
+        });
+      } else {
+        result = await fetchApiBodas({
+          query: queries.createGuests,
+          variables: { eventID: event._id, invitados_array: [values] },
+        });
+      }
       if (!result?.success || (result?.errors?.length ?? 0) > 0) {
         const backendMsg = result?.errors?.[0]?.message;
         toast("error", `${t("Ha ocurrido un error")}${backendMsg ? `: ${backendMsg}` : ""}`);
@@ -177,7 +239,7 @@ const FormInvitadoStudio: FC<{ onClose: () => void }> = ({ onClose }) => {
       }
       const updated = result?.evento?.invitados_array;
       if (Array.isArray(updated)) setEvent((old: any) => ({ ...old, invitados_array: updated }));
-      toast("success", t("Invitado creado con exito"));
+      toast("success", isEdit ? t("Invitado actualizado") : isCompanion ? t("Acompañante añadido") : t("Invitado creado con exito"));
       onClose();
     } catch (error) {
       toast("error", `${t("Ha ocurrido un error")} ${error}`);
@@ -201,7 +263,7 @@ const FormInvitadoStudio: FC<{ onClose: () => void }> = ({ onClose }) => {
 
               {/* Cabecera */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "22px 30px 16px", borderBottom: "1px solid #f0f0f2" }}>
-                <h2 style={{ font: "700 17px Poppins", color: "#3A3A42" }}>{t("Crear invitado")}</h2>
+                <h2 style={{ font: "700 17px Poppins", color: "#3A3A42" }}>{isEdit ? t("Editar invitado") : isCompanion ? t("Añadir acompañante") : t("Crear invitado")}</h2>
                 <button type="button" onClick={onClose} style={{ width: 32, height: 32, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", color: "#8a8a90", cursor: "pointer", border: "none", background: "none" }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M6 6l12 12M18 6L6 18" /></svg></button>
               </div>
 
@@ -211,7 +273,7 @@ const FormInvitadoStudio: FC<{ onClose: () => void }> = ({ onClose }) => {
                   <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#EAF3F0", overflow: "hidden", flex: "none" }}>
                     <img src={ImageProfile[values.sexo]?.image ?? "/placeholder/user.png"} alt={ImageProfile[values.sexo]?.alt} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   </div>
-                  <button type="button" onClick={() => { (window as any)["ReactNativeWebView"] || (navigator as any)["contacts"] ? setShowMedioSelectImport(true) : contactsForApiGoogle().then((r: any) => setShowForApiGoogle(r)); }} style={{ display: "flex", alignItems: "center", gap: 7, padding: "10px 16px", borderRadius: 20, background: "#EF5B94", color: "#fff", font: "600 12px Poppins", border: "none", cursor: "pointer", boxShadow: "0 5px 14px rgba(239,91,148,.28)", whiteSpace: "nowrap" }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="8" r="3.4" /><path d="M3.5 19c.7-2.8 3-4.5 5.5-4.5s4.8 1.7 5.5 4.5" /><path d="M17 8h5M19.5 5.5v5" /></svg>{t("importcontacts")}</button>
+                  {!isEdit && !isCompanion && <button type="button" onClick={() => { (window as any)["ReactNativeWebView"] || (navigator as any)["contacts"] ? setShowMedioSelectImport(true) : contactsForApiGoogle().then((r: any) => setShowForApiGoogle(r)); }} style={{ display: "flex", alignItems: "center", gap: 7, padding: "10px 16px", borderRadius: 20, background: "#EF5B94", color: "#fff", font: "600 12px Poppins", border: "none", cursor: "pointer", boxShadow: "0 5px 14px rgba(239,91,148,.28)", whiteSpace: "nowrap" }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="8" r="3.4" /><path d="M3.5 19c.7-2.8 3-4.5 5.5-4.5s4.8 1.7 5.5 4.5" /><path d="M17 8h5M19.5 5.5v5" /></svg>{t("importcontacts")}</button>}
                 </div>
 
                 <PhoneField />
@@ -234,7 +296,7 @@ const FormInvitadoStudio: FC<{ onClose: () => void }> = ({ onClose }) => {
               {/* Pie */}
               <div style={{ display: "flex", gap: 12, padding: "16px 30px 22px", borderTop: "1px solid #f0f0f2", background: "#fff" }}>
                 <button type="button" onClick={onClose} style={{ padding: "13px 22px", borderRadius: 12, background: "#f5f5f7", border: "none", color: "#6b6b72", font: "600 13px Poppins", cursor: "pointer" }}>{t("Cancelar")}</button>
-                <button type="submit" disabled={isSubmitting} style={{ flex: 1, padding: 13, borderRadius: 12, background: isSubmitting ? "#f19bbb" : "#EF5B94", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: isSubmitting ? "default" : "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}>{t("Crear invitado")}</button>
+                <button type="submit" disabled={isSubmitting} style={{ flex: 1, padding: 13, borderRadius: 12, background: isSubmitting ? "#f19bbb" : "#EF5B94", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: isSubmitting ? "default" : "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}>{isEdit ? t("Guardar cambios") : isCompanion ? t("Añadir acompañante") : t("Crear invitado")}</button>
               </div>
             </Form>
           )}

@@ -7,12 +7,9 @@ import BlockTitle from "../Utils/BlockTitle";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { useDelayUnmount } from "../../utils/Funciones";
-import ModalLeft from "../Utils/ModalLeft";
 import FormInvitadoStudio from "../Forms/FormInvitadoStudio";
 import FormCrearGrupoStudio from "../Forms/FormCrearGrupoStudio";
 import FormCrearMenuStudio from "../Forms/FormCrearMenuStudio";
-import FormAcompañante from "../Forms/FormAcompañante";
-import FormEditarInvitado from "../Forms/FormEditarInvitado";
 import { BorrarInvitado } from "../../hooks/EditarInvitado";
 import { CopiarLink } from "../Utils/Compartir";
 import InvitadosStudioMovil from "./InvitadosStudioMovil";
@@ -155,18 +152,19 @@ export const InvitadosStudio: FC = () => {
       {shouldRenderChild && formShow === "invitado" && (
         <FormInvitadoStudio onClose={() => setIsMounted(false)} />
       )}
+      {/* Editar invitado usa el MISMO panel studio que crear, precargado. */}
+      {shouldRenderChild && formShow === "editar" && (
+        <FormInvitadoStudio onClose={() => { setIsMounted(false); setEditGuest(null); }} invitado={editGuest} />
+      )}
+      {/* Añadir acompañante usa TAMBIÉN el panel studio general (father = invitado padre). */}
+      {shouldRenderChild && formShow === "acompañante" && (
+        <FormInvitadoStudio onClose={() => { setIsMounted(false); setAcompFather(null); }} father={acompFather as string} />
+      )}
       {shouldRenderChild && formShow === "grupo" && (
         <FormCrearGrupoStudio onClose={() => setIsMounted(false)} />
       )}
       {shouldRenderChild && formShow === "menu" && (
         <FormCrearMenuStudio onClose={() => setIsMounted(false)} />
-      )}
-      {/* Resto de formularios (reusa los del módulo actual vía ModalLeft) */}
-      {shouldRenderChild && formShow !== "invitado" && formShow !== "grupo" && formShow !== "menu" && (
-        <ModalLeft state={isMounted} set={setIsMounted}>
-          {formShow === "acompañante" && <FormAcompañante state={isMounted} set={setIsMounted} guestFather={acompFather as string} />}
-          {formShow === "editar" && <FormEditarInvitado state={isMounted} set={setIsMounted} invitado={editGuest} setInvitadoSelected={setEditGuest} />}
-        </ModalLeft>
       )}
 
       <div style={{ maxWidth: 1040, margin: "0 auto", padding: "22px 20px 60px", animation: "fadein .2s ease" }}>
