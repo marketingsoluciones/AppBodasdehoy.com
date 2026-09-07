@@ -115,7 +115,7 @@ export const InvitadosStudio: FC = () => {
     return { name, guests };
   }).filter((gr) => gr.guests.length > 0 || (!q && gr.name !== "no asignado"));
 
-  const GRID = "2.4fr 1.1fr 1fr 1.2fr 1.2fr 1.2fr 40px";
+  const GRID = "2.4fr 1.1fr 1fr 1.2fr 1.2fr 1.2fr 80px";
   const th: React.CSSProperties = { font: "700 10.5px Poppins", color: "#5a5a62", letterSpacing: ".5px", textTransform: "uppercase" };
   const btnGhost: React.CSSProperties = { display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 11, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 12.5px Poppins", cursor: "pointer" };
   const plusW = <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.2} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>;
@@ -289,7 +289,6 @@ export const InvitadosStudio: FC = () => {
                                     <div style={{ position: "absolute", top: -7, right: 10, width: 14, height: 14, background: "#fff", borderLeft: "1px solid #f0f0f2", borderTop: "1px solid #f0f0f2", transform: "rotate(45deg)" }} />
                                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
                                       <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                                        <div style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg,#CDEBE3,#9ED9C8)", flex: "none" }} />
                                         <div style={{ minWidth: 0 }}>
                                           <div style={{ font: "600 13.5px Poppins", color: "#3A3A42" }}>Compartir invitación</div>
                                           <div style={{ font: "400 11px Poppins", color: "#8a8a90", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Enlace personal de <span style={{ color: "#EF5B94", fontWeight: 600 }}>{r?.nombre}</span></div>
