@@ -1,4 +1,5 @@
 import { FC, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { Task, Itinerary } from "../../../utils/Interfaces";
 import { useDateTime } from "../../../hooks/useDateTime";
@@ -51,6 +52,7 @@ export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks,
   const [listMenu, setListMenu] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [respEdit, setRespEdit] = useState<string | null>(null); // _id de la tarea cuyos responsables se editan
+  const [prioEdit, setPrioEdit] = useState<string | null>(null); // _id de la tarea cuya prioridad se edita
   const listas = Array.isArray(itineraries) ? itineraries : [];
 
   // Editar un campo de UNA tarea concreta: local (instantáneo) + API (persiste).
@@ -93,7 +95,7 @@ export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks,
 
   return (
     <div className="md:hidden" style={{ width: "100%", background: "#F6F5F7", minHeight: "100%", fontFamily: "'Poppins',sans-serif", position: "relative", paddingBottom: 96, overflowX: "hidden" }}>
-      <style dangerouslySetInnerHTML={{ __html: ".tm-hs{scrollbar-width:none;-ms-overflow-style:none;}.tm-hs::-webkit-scrollbar{display:none;height:0;}" }} />
+      <style dangerouslySetInnerHTML={{ __html: ".tm-hs{scrollbar-width:none;-ms-overflow-style:none;}.tm-hs::-webkit-scrollbar{display:none;height:0;}.tm-resp-sheet .w-80{width:100%!important;border:none!important;box-shadow:none!important;border-radius:0!important;}" }} />
 
       {/* HEADER MÓDULO — borde a borde. Buscador oculto hasta pulsar la lupa (fiel al HTML). */}
       <div style={{ background: "#fff", padding: "16px 16px 10px", position: "sticky", top: 0, zIndex: 10, boxShadow: "0 2px 10px rgba(0,0,0,.04)" }}>
@@ -244,17 +246,31 @@ export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks,
                       style={{ width: "100%", border: "none", outline: "none", background: "transparent", font: "600 11.5px Poppins", color: "#3A3A42", padding: 0, marginTop: 2 }}
                     />
                   </div>
-                  <div style={{ background: "#faf9fb", borderRadius: 11, padding: "9px 12px" }}>
+                  <div style={{ position: "relative", background: "#faf9fb", borderRadius: 11, padding: "9px 12px" }}>
                     <div style={{ font: "600 9px Poppins", color: "#a0a0a8", letterSpacing: ".5px", textTransform: "uppercase" }}>{t("Prioridad")}</div>
-                    <select
-                      value={pr.value}
-                      onChange={(e) => editField(tk._id, "prioridad", e.target.value)}
-                      style={{ width: "100%", border: "none", outline: "none", background: "transparent", font: "600 11.5px Poppins", color: PRIO_MOV[String(pr.value)] ?? "#8F6E14", padding: 0, marginTop: 2, appearance: "none", cursor: "pointer" }}
-                    >
-                      {TASK_PRIORITIES.map((p: any) => (
-                        <option key={p.value} value={p.value} style={{ color: "#3A3A42" }}>{t(p.label)}</option>
-                      ))}
-                    </select>
+                    <div onClick={() => setPrioEdit(prioEdit === tk._id ? null : tk._id)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6, marginTop: 2, cursor: "pointer" }}>
+                      <span style={{ display: "flex", alignItems: "center", gap: 6, font: "600 11.5px Poppins", color: PRIO_MOV[String(pr.value)] ?? "#8F6E14" }}>
+                        <span style={{ width: 7, height: 7, borderRadius: "50%", background: "currentColor" }} />{t(pr.label)}
+                      </span>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2.2} strokeLinecap="round" style={{ flex: "none", transform: prioEdit === tk._id ? "rotate(180deg)" : "none", transition: "transform .15s" }}><path d="M6 9l6 6 6-6" /></svg>
+                    </div>
+                    {prioEdit === tk._id && (
+                      <>
+                        <div onClick={() => setPrioEdit(null)} style={{ position: "fixed", inset: 0, zIndex: 24 }} />
+                        <div style={{ position: "absolute", left: 0, right: 0, top: "calc(100% + 4px)", background: "#fff", borderRadius: 12, border: "1px solid #f0f0f2", boxShadow: "0 14px 40px rgba(0,0,0,.16)", padding: 5, zIndex: 25 }}>
+                          {TASK_PRIORITIES.map((p: any) => {
+                            const on = p.value === pr.value;
+                            const c = PRIO_MOV[String(p.value)] ?? "#8F6E14";
+                            return (
+                              <div key={p.value} onClick={() => { editField(tk._id, "prioridad", p.value); setPrioEdit(null); }} style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 11px", borderRadius: 9, font: "600 12px Poppins", color: c, background: on ? "#FCE7F0" : "transparent", cursor: "pointer" }}>
+                                <span style={{ width: 7, height: 7, borderRadius: "50%", background: "currentColor" }} />{t(p.label)}
+                                {on && <svg style={{ marginLeft: "auto" }} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2FB37E" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
                 {/* responsables (editable) */}
@@ -272,14 +288,18 @@ export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks,
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
                     {cleanResponsables(tk.responsable).length > 0 ? t("Editar") : t("Asignar")}
                   </button>
-                  {respEdit === tk._id && (
-                    <div style={{ position: "absolute", left: 0, right: 0, top: "calc(100% + 4px)", zIndex: 30 }}>
-                      <ClickUpResponsableSelector
-                        value={Array.isArray(tk.responsable) ? tk.responsable : []}
-                        onChange={(newValue) => { editField(tk._id, "responsable", newValue); setRespEdit(null); }}
-                        onClose={() => setRespEdit(null)}
-                      />
-                    </div>
+                  {respEdit === tk._id && typeof document !== "undefined" && createPortal(
+                    <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(30,25,35,.45)", display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={() => setRespEdit(null)}>
+                      <div className="tm-resp-sheet" style={{ width: "100%", maxWidth: 430, background: "#fff", borderRadius: "18px 18px 0 0", padding: "10px 12px 20px", maxHeight: "82vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
+                        <div style={{ width: 38, height: 4, borderRadius: 4, background: "#e2e2e6", margin: "2px auto 8px" }} />
+                        <ClickUpResponsableSelector
+                          value={Array.isArray(tk.responsable) ? tk.responsable : []}
+                          onChange={(newValue) => { editField(tk._id, "responsable", newValue); setRespEdit(null); }}
+                          onClose={() => setRespEdit(null)}
+                        />
+                      </div>
+                    </div>,
+                    document.body
                   )}
                 </div>
                 {/* descripción (editable) */}
