@@ -187,7 +187,13 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
   // Capturar eventos del cumulo y seleccionar uno
   useEffect(() => {
     if (eventsGroup && eventsGroup.length === 0) {
-      setEvent(null);
+      // IMPORTANTE: usar setEventRaw (NO el wrapper setEvent). Un eventsGroup vacío
+      // suele ser TRANSITORIO (refetch / socket / navegación); si usáramos setEvent,
+      // borraría appEventos_activeEventId (la elección explícita del usuario) y al
+      // recargar la lista la re-selección caería a user.eventSelected (BD, a menudo
+      // desactualizada) → el evento "volvía" a otro. Limpiamos solo el evento activo
+      // en memoria; la elección persistida se conserva para restaurarla al recargar.
+      setEventRaw(null);
       setValir(false); // Permitir re-selección cuando eventsGroup vuelva a cargar
     }
     if (eventsGroup?.length > 0) {
@@ -240,9 +246,16 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
           if (typeof window !== 'undefined') localStorage.setItem('appEventos_activeEventId', eventSelected._id)
         }
         eventsGroup[0] && setValir(true)
-      } else if (user?.eventSelected && (!event?._id || user.eventSelected !== event?._id)) {
-        // user.eventSelected llegó tarde (API async) o cambió en otra pestaña → re-seleccionar
-        setValir(false);
+      } else {
+        // Re-seleccionar SOLO si (a) no hay evento activo o (b) el evento activo se ha
+        // desviado de la ELECCIÓN EXPLÍCITA guardada en localStorage. NO revertir por un
+        // user.eventSelected (BD) desactualizado cuando el evento activo ya coincide con
+        // lo que el usuario eligió — antes esto forzaba un bucle que "devolvía" el evento.
+        const savedEventId = typeof window !== 'undefined' ? localStorage.getItem('appEventos_activeEventId') : null
+        const mismatchSaved = !!savedEventId && !!event?._id && savedEventId !== event._id
+        if (!event?._id || mismatchSaved) {
+          setValir(false);
+        }
       }
     }
   }, [eventsGroup, valir, user?.eventSelected]);
