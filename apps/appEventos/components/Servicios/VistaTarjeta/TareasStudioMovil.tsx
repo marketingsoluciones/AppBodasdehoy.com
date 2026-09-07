@@ -4,6 +4,7 @@ import { Task, Itinerary } from "../../../utils/Interfaces";
 import { useDateTime } from "../../../hooks/useDateTime";
 import { TASK_STATUSES, TASK_PRIORITIES } from "../VistaTabla/NewTypes";
 import { cleanResponsables } from "./TaskNewUtils";
+import { ClickUpResponsableSelector } from "../VistaTabla/NewResponsableSelector";
 
 /**
  * TareasStudioMovil — vista MÓVIL de Tareas fiel a tareasmovil.html (md:hidden).
@@ -23,7 +24,7 @@ interface Props {
   tasks: Task[];
   expandedTasks?: Set<string>;
   toggleTaskExpand?: (id: string) => void;
-  handleUpdate: (field: string, value: any) => Promise<void>;
+  handleUpdate: (field: string, value: any, taskId?: string) => Promise<void>;
   handleTaskUpdate: (taskId: string, updates: Partial<Task>) => void;
   handleTaskCreate: (task: Partial<Task>) => void;
   deleteTask: (task: Task, itinerario: Itinerary) => void;
@@ -45,12 +46,18 @@ const PRIO_MOV: Record<string, string> = { alta: "#D83E7C", media: "#8F6E14", ba
 
 export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks, toggleTaskExpand, handleUpdate, handleTaskUpdate, handleTaskCreate, deleteTask, title, event, itineraries, onSelectItinerario, onCreateItinerario }) => {
   const { t } = useTranslation();
-  const { utcDateFormated2Digits, timeFormated } = useDateTime();
+  const { utcDateFormated2Digits, timeFormated, utcDateTime, utcTime } = useDateTime();
   const [q, setQ] = useState("");
-  const [openMenu, setOpenMenu] = useState(false);
   const [listMenu, setListMenu] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [respEdit, setRespEdit] = useState<string | null>(null); // _id de la tarea cuyos responsables se editan
   const listas = Array.isArray(itineraries) ? itineraries : [];
+
+  // Editar un campo de UNA tarea concreta: local (instantáneo) + API (persiste).
+  const editField = (taskId: string, field: string, value: any) => {
+    handleTaskUpdate(taskId, { [field]: value } as Partial<Task>);
+    handleUpdate(field, value, taskId);
+  };
 
   // Compartir: acción real y autocontenida (Web Share API en móvil, o copiar enlace).
   const compartir = async () => {
@@ -171,13 +178,23 @@ export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks,
           const cabecera = (
             <div style={{ background: "#fff", border: abierta ? "1px solid #F3B6CE" : "1px solid #f0f0f2", borderRadius: abierta ? "15px 15px 0 0" : 15, boxShadow: abierta ? "none" : "0 3px 10px rgba(0,0,0,.03)", padding: "13px 15px", display: "flex", alignItems: "center", gap: 11, opacity: done && !abierta ? 0.62 : 1, position: "relative", zIndex: 2 }}>
               <span
-                onClick={(e) => { e.stopPropagation(); handleUpdate("estado", done ? "pending" : "completed"); }}
+                onClick={(e) => { e.stopPropagation(); editField(tk._id, "estado", done ? "pending" : "completed"); }}
                 style={{ width: 22, height: 22, borderRadius: "50%", border: `1.5px solid ${done ? "#2FB37E" : "#d8d8dd"}`, background: done ? "#2FB37E" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", cursor: "pointer" }}
               >
                 {done && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M4 12l5 5L20 6" /></svg>}
               </span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ font: "600 13px Poppins", color: done ? "#a0a0a8" : "#3A3A42", textDecoration: done ? "line-through" : "none" }}>{tk.descripcion || t("Sin título", { defaultValue: "Sin título" })}</div>
+                {abierta ? (
+                  <input
+                    defaultValue={tk.descripcion || ""}
+                    onClick={(e) => e.stopPropagation()}
+                    onBlur={(e) => { const v = e.target.value.trim(); if (v && v !== tk.descripcion) editField(tk._id, "descripcion", v); }}
+                    placeholder={t("Título de la tarea", { defaultValue: "Título de la tarea" })}
+                    style={{ width: "100%", border: "none", outline: "none", background: "transparent", font: "600 13px Poppins", color: "#3A3A42", padding: 0 }}
+                  />
+                ) : (
+                  <div style={{ font: "600 13px Poppins", color: done ? "#a0a0a8" : "#3A3A42", textDecoration: done ? "line-through" : "none" }}>{tk.descripcion || t("Sin título", { defaultValue: "Sin título" })}</div>
+                )}
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 5, font: "600 10px Poppins", color: fg, background: bg, padding: "3px 9px", borderRadius: 11, whiteSpace: "nowrap" }}>
                     <span style={{ width: 6, height: 6, borderRadius: "50%", background: "currentColor" }} />{t(st.label)}
@@ -204,38 +221,76 @@ export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks,
                     const on = s.value === st.value;
                     const [f, b] = EST_MOV[String(s.value)] ?? EST_MOV.pending;
                     return (
-                      <span key={s.value} onClick={() => handleUpdate("estado", s.value)}
+                      <span key={s.value} onClick={() => editField(tk._id, "estado", s.value)}
                         style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 16, background: on ? b : "#fff", border: `1.5px solid ${on ? f : "#E7E7EA"}`, font: "600 10.5px Poppins", color: on ? f : "#8a8a90", whiteSpace: "nowrap", flex: "none", cursor: "pointer" }}>
                         <span style={{ width: 6, height: 6, borderRadius: "50%", background: "currentColor" }} />{t(s.label)}
                       </span>
                     );
                   })}
                 </div>
-                {/* fecha + prioridad */}
+                {/* fecha + prioridad (editables) */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 13 }}>
                   <div style={{ background: "#faf9fb", borderRadius: 11, padding: "9px 12px" }}>
                     <div style={{ font: "600 9px Poppins", color: "#a0a0a8", letterSpacing: ".5px", textTransform: "uppercase" }}>{t("Fecha")}</div>
-                    <div style={{ font: "600 11.5px Poppins", color: "#3A3A42" }}>{fecha || t("Sin fecha")}</div>
+                    <input
+                      type="date"
+                      value={tk.fecha ? utcDateTime(tk.fecha) : ""}
+                      onChange={(e) => {
+                        const ds = e.target.value;
+                        if (!ds) { editField(tk._id, "fecha", null); return; }
+                        const time = (tk.fecha && tk.horaActiva !== false) ? utcTime(tk.fecha) : "00:00";
+                        editField(tk._id, "fecha", `${ds}T${time}:00.000Z`);
+                      }}
+                      style={{ width: "100%", border: "none", outline: "none", background: "transparent", font: "600 11.5px Poppins", color: "#3A3A42", padding: 0, marginTop: 2 }}
+                    />
                   </div>
                   <div style={{ background: "#faf9fb", borderRadius: 11, padding: "9px 12px" }}>
                     <div style={{ font: "600 9px Poppins", color: "#a0a0a8", letterSpacing: ".5px", textTransform: "uppercase" }}>{t("Prioridad")}</div>
-                    <div style={{ font: "600 11.5px Poppins", color: PRIO_MOV[String(pr.value)] ?? "#8F6E14" }}>{t(pr.label)}</div>
+                    <select
+                      value={pr.value}
+                      onChange={(e) => editField(tk._id, "prioridad", e.target.value)}
+                      style={{ width: "100%", border: "none", outline: "none", background: "transparent", font: "600 11.5px Poppins", color: PRIO_MOV[String(pr.value)] ?? "#8F6E14", padding: 0, marginTop: 2, appearance: "none", cursor: "pointer" }}
+                    >
+                      {TASK_PRIORITIES.map((p: any) => (
+                        <option key={p.value} value={p.value} style={{ color: "#3A3A42" }}>{t(p.label)}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
-                {/* responsables */}
-                <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 13, flexWrap: "wrap" }}>
+                {/* responsables (editable) */}
+                <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 7, marginBottom: 13, flexWrap: "wrap" }}>
                   <span style={{ font: "600 10.5px Poppins", color: "#a0a0a8", letterSpacing: ".5px", textTransform: "uppercase" }}>{t("Responsables")}</span>
                   {cleanResponsables(tk.responsable).map((r, i) => (
                     <span key={i} style={{ display: "flex", alignItems: "center", gap: 6, background: "#f5f5f7", borderRadius: 14, padding: "3px 11px 3px 3px", font: "500 11px Poppins", color: "#3A3A42" }}>
                       <span style={{ width: 20, height: 20, borderRadius: "50%", background: "#EF5B94", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", font: "700 9px Poppins" }}>{iniciales(r)}</span>{r}
                     </span>
                   ))}
+                  <button
+                    onClick={() => setRespEdit(respEdit === tk._id ? null : tk._id)}
+                    style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 11px", borderRadius: 14, background: "#FCE7F0", color: "#D83E7C", font: "600 11px Poppins", border: "none", cursor: "pointer" }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+                    {cleanResponsables(tk.responsable).length > 0 ? t("Editar") : t("Asignar")}
+                  </button>
+                  {respEdit === tk._id && (
+                    <div style={{ position: "absolute", left: 0, right: 0, top: "calc(100% + 4px)", zIndex: 30 }}>
+                      <ClickUpResponsableSelector
+                        value={Array.isArray(tk.responsable) ? tk.responsable : []}
+                        onChange={(newValue) => { editField(tk._id, "responsable", newValue); setRespEdit(null); }}
+                        onClose={() => setRespEdit(null)}
+                      />
+                    </div>
+                  )}
                 </div>
-                {/* descripción */}
+                {/* descripción (editable) */}
                 <div style={{ font: "600 10.5px Poppins", color: "#a0a0a8", letterSpacing: ".5px", textTransform: "uppercase", marginBottom: 7 }}>{t("Descripción")}</div>
-                <div style={{ minHeight: 42, border: "1.5px solid #E7E7EA", borderRadius: 11, padding: "10px 13px", font: "400 11.5px/1.6 Poppins", color: tk.tips ? "#3A3A42" : "#b3b3ba", marginBottom: 13 }}>
-                  {tk.tips || t("Haz clic para agregar una descripción…", { defaultValue: "Haz clic para agregar una descripción…" })}
-                </div>
+                <textarea
+                  defaultValue={tk.tips || ""}
+                  onBlur={(e) => { const v = e.target.value; if (v !== (tk.tips || "")) editField(tk._id, "tips", v); }}
+                  placeholder={t("Haz clic para agregar una descripción…", { defaultValue: "Haz clic para agregar una descripción…" })}
+                  rows={3}
+                  style={{ width: "100%", minHeight: 42, border: "1.5px solid #E7E7EA", borderRadius: 11, padding: "10px 13px", font: "400 11.5px/1.6 Poppins", color: "#3A3A42", marginBottom: 13, resize: "vertical", outline: "none", background: "#fff", boxSizing: "border-box" }}
+                />
                 {/* acciones */}
                 <div style={{ display: "flex", gap: 8 }}>
                   <button onClick={() => handleTaskCreate({ ...tk, _id: undefined, descripcion: `${tk.descripcion} (copia)` } as any)} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: 10, borderRadius: 11, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 11.5px Poppins", cursor: "pointer" }}>

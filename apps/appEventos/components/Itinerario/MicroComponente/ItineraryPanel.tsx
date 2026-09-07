@@ -236,8 +236,11 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   const apiTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   // Función para manejar actualización de campos
-  const handleUpdate = async (fieldName: string, value: any): Promise<void> => {
-    const task = tasks?.find(task => task._id === selectTask);
+  // taskId opcional: el móvil (TareasStudioMovil) puede tener varias tarjetas abiertas a la
+  // vez, así que pasa el _id explícito en vez de depender de selectTask (que solo apunta a una).
+  // El escritorio sigue llamando sin taskId → usa selectTask como siempre.
+  const handleUpdate = async (fieldName: string, value: any, taskId?: string): Promise<void> => {
+    const task = tasks?.find(task => task._id === (taskId ?? selectTask));
     const canEdit = !user?.uid ? false : canEditTask()
     if (!canEdit) {
       ht();
