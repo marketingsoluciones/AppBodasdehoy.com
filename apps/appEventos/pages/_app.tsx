@@ -83,7 +83,7 @@ const MyApp = ({ Component, pageProps }) => {
   }, []);
 
   // Rutas públicas del portal del invitado — sin auth, sin nav, sin layout autenticado
-  const isPublicPortal = router.pathname.startsWith('/e/') || router.pathname.startsWith('/buscador-mesa/')
+  const isPublicPortal = router.pathname.startsWith('/e/') || router.pathname.startsWith('/buscador-mesa/') || router.pathname === '/confirmar-asistencia'
 
   if (isPublicPortal) {
     return (
