@@ -76,17 +76,8 @@ const BlockInvitados: FC<propsBlockInvitados> = ({ set, setEditInv, editInv, set
                 <ListInvitados filter={filter} setEditInv={setEditInv} editInv={editInv} setSelected={setSelected} />
             </div>
 
-            {open && (
-                <div className="p-2 flex-none">
-                    <button
-                        onClick={() => !isAllowed() ? ht() : ConditionalAction()}
-                        className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-[11px] bg-white border-[1.5px] border-dashed border-[#f0aecb] text-[#EF5B94] text-[12.5px] font-semibold focus:outline-none"
-                    >
-                        <PlusIcon className="text-[#EF5B94] w-3" />
-                        {t("addguests")}
-                    </button>
-                </div>
-            )}
+            {/* Botón "Añadir invitados" retirado del panel de Mesas (petición): los invitados se
+                gestionan desde el módulo Invitados. */}
 
             <style>{`
             .listInvitados {
