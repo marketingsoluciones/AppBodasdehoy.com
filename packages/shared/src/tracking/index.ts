@@ -24,6 +24,21 @@ declare const process:
 
 const DEFAULT_API_MCP_URL = 'https://api-mcp.eventosorganizador.com';
 
+/**
+ * api-mcp expone GraphQL en `/graphql`, no en la raíz: un POST al origen pelado
+ * devuelve `405 Method Not Allowed`. Todos los call-sites del monorepo pasaban
+ * el ORIGEN (chat-ia y memories-web incluso le quitan el sufijo a propósito con
+ * `resolveMcpOrigin()`), así que `setMyReferralCode` y `updateMyAttribution`
+ * llevaban meses devolviendo 405 y muriendo en el `catch` — de ahí que no
+ * hubiera ni un solo referido registrado en la base.
+ *
+ * Normalizamos en un único sitio: acepta tanto el origen como la URL completa.
+ */
+function graphqlEndpoint(baseUrl: string): string {
+  const trimmed = baseUrl.replace(/\/+$/, '');
+  return /\/graphql$/i.test(trimmed) ? trimmed : `${trimmed}/graphql`;
+}
+
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
 export interface Attribution {
@@ -103,6 +118,63 @@ export function setMarketingConsent(granted: boolean): void {
   }
 }
 
+// ─── Puente de referido entre subdominios ────────────────────────────────────
+
+/**
+ * El código de referido tiene que viajar desde la landing (`bodasdehoy.com`)
+ * hasta donde se cobra (`app.bodasdehoy.com`, `chat.bodasdehoy.com`).
+ * `localStorage` NO sirve: es por origen, y esos son orígenes distintos.
+ *
+ * Una cookie en el dominio padre `.bodasdehoy.com` sí los comparte, es
+ * FIRST-PARTY en las tres, y por tanto sobrevive a Safari/ITP — al contrario
+ * que una cookie puesta desde un dominio ajeno como eventosorganizador.com,
+ * que iOS bloquea de plano.
+ */
+const REFERRAL_COOKIE = 'pending_referral_code';
+/** 90 días: misma ventana de atribución que aplica api-mcp al cerrar la venta. */
+const REFERRAL_COOKIE_MAX_AGE = 60 * 60 * 24 * 90;
+
+/** `.bodasdehoy.com` a partir de `app.bodasdehoy.com`. Vacío en localhost. */
+function referralCookieDomain(): string {
+  const host = window.location.hostname;
+  if (!host || /^[\d.]+$/.test(host)) return '';
+  const parts = host.split('.');
+  // Nuestros dominios son .com de dos niveles; en localhost no ponemos Domain.
+  if (parts.length < 2) return '';
+  return `.${parts.slice(-2).join('.')}`;
+}
+
+function readReferralCookie(): string | null {
+  try {
+    const m = document.cookie.match(new RegExp(`(?:^|;\\s*)${REFERRAL_COOKIE}=([^;]+)`));
+    return m ? decodeURIComponent(m[1]) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeReferralCookie(code: string): void {
+  try {
+    const domain = referralCookieDomain();
+    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie =
+      `${REFERRAL_COOKIE}=${encodeURIComponent(code)}; path=/; max-age=${REFERRAL_COOKIE_MAX_AGE}` +
+      `${domain ? `; domain=${domain}` : ''}; SameSite=Lax${secure}`;
+  } catch {
+    /* modo privado */
+  }
+}
+
+function clearReferralCookie(): void {
+  try {
+    const domain = referralCookieDomain();
+    document.cookie =
+      `${REFERRAL_COOKIE}=; path=/; max-age=0${domain ? `; domain=${domain}` : ''}; SameSite=Lax`;
+  } catch {
+    /* modo privado */
+  }
+}
+
 // ─── Captura de parámetros al aterrizar ──────────────────────────────────────
 
 /**
@@ -125,8 +197,19 @@ export function captureTrackingParams(): void {
   // Capturar ?ref= para el sistema de afiliados (no sobreescribir si ya hay uno).
   // Va antes del gate: es identificador de referido, no tracking publicitario.
   const ref = params.get('ref');
-  if (ref && !localStorage.getItem('pending_referral_code')) {
-    localStorage.setItem('pending_referral_code', ref.toUpperCase());
+  if (ref) {
+    const code = ref.toUpperCase();
+    if (!localStorage.getItem('pending_referral_code')) {
+      localStorage.setItem('pending_referral_code', code);
+    }
+    // Puente a los demás subdominios (la venta no se cierra en la landing).
+    writeReferralCookie(code);
+  } else {
+    // Sin ?ref= en esta URL: rescatar el código que dejó otra app del dominio.
+    const fromCookie = readReferralCookie();
+    if (fromCookie && !localStorage.getItem('pending_referral_code')) {
+      localStorage.setItem('pending_referral_code', fromCookie.toUpperCase());
+    }
   }
 
   // Gate RGPD para el resto de captura publicitaria (utm/gclid/fbclid/…)
@@ -240,7 +323,7 @@ export async function registerReferralIfPending(
   if (!code) return;
 
   try {
-    const response = await fetch(api2Url, {
+    const response = await fetch(graphqlEndpoint(api2Url), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -255,14 +338,28 @@ export async function registerReferralIfPending(
       }),
     });
 
-    if (response.ok) {
-      const json = await response.json();
-      if (json.data?.setMyReferralCode?.success) {
-        localStorage.removeItem('pending_referral_code');
-      }
+    if (!response.ok) {
+      // Visible a propósito: un 405/404 aquí significa referido NO registrado,
+      // es decir comisión no atribuida. Silenciarlo fue lo que ocultó el bug.
+      console.warn(
+        `[tracking] setMyReferralCode falló: HTTP ${response.status} en ${graphqlEndpoint(api2Url)}`,
+      );
+      return;
     }
-  } catch {
+
+    const json = await response.json();
+    if (json.errors?.length) {
+      console.warn('[tracking] setMyReferralCode devolvió errores GraphQL:', json.errors);
+      return;
+    }
+    if (json.data?.setMyReferralCode?.success) {
+      localStorage.removeItem('pending_referral_code');
+      // Sin esto la cookie volvería a sembrar el código en cada visita.
+      clearReferralCookie();
+    }
+  } catch (e) {
     // Non-fatal — no bloquear el flujo de login
+    console.warn('[tracking] setMyReferralCode no pudo enviarse:', (e as Error)?.message);
   }
 }
 
@@ -288,7 +385,7 @@ export async function sendAttributionToApi(
   if (!firstTouch && !lastTouch) return;
 
   try {
-    await fetch(api2Url, {
+    const response = await fetch(graphqlEndpoint(api2Url), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -302,8 +399,15 @@ export async function sendAttributionToApi(
         variables: { first_touch: firstTouch, last_touch: lastTouch },
       }),
     });
-  } catch {
+
+    if (!response.ok) {
+      console.warn(
+        `[tracking] updateMyAttribution falló: HTTP ${response.status} en ${graphqlEndpoint(api2Url)}`,
+      );
+    }
+  } catch (e) {
     // Non-fatal
+    console.warn('[tracking] updateMyAttribution no pudo enviarse:', (e as Error)?.message);
   }
 }
 
