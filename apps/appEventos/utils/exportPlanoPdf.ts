@@ -82,6 +82,10 @@ export const exportPlanoPdf = ({ planSpaceActive, event, planoTitle, planoImage 
       doc.text('Este plano no tiene mesas todavía.', pw / 2, areaY + areaH / 2, { align: 'center', baseline: 'middle' });
     }
 
+    // Fondo BEIGE del plano (como en la web), bajo la cuadrícula.
+    doc.setFillColor(243, 241, 236);
+    doc.rect(offX, offY, W * scale, H * scale, 'F');
+
     // Cuadrícula sutil (como en la web: 44 px de mundo).
     const gpx = 44 * scale;
     if (gpx > 4) {
@@ -90,16 +94,32 @@ export const exportPlanoPdf = ({ planSpaceActive, event, planoTitle, planoImage 
       for (let gy = offY; gy <= offY + H * scale + 0.5; gy += gpx) doc.line(offX, gy, offX + W * scale, gy);
     }
 
-    // Muebles (elements no-texto): caja gris clara con etiqueta.
+    // Muebles (elements no-texto): iconos vectoriales grises como en la web (árbol/planta);
+    // para el resto, caja clara con etiqueta.
     elements.filter((el) => el?.tipo !== 'text').forEach((el: any) => {
       const x = sx(el?.position?.x ?? 0), y = sy(el?.position?.y ?? 0);
       const w = (el?.size?.width ?? 60) * scale, h = (el?.size?.height ?? 60) * scale;
-      doc.setFillColor(...C.furniture); doc.setDrawColor(...C.chairEmpty); doc.setLineWidth(0.6);
-      doc.roundedRect(x, y, w, h, 3, 3, 'FD');
-      const lbl = String(el?.tipo || '');
-      if (lbl && w > 24) {
-        doc.setFont('helvetica', 'normal'); doc.setFontSize(Math.max(5, Math.min(7, w / 8))); doc.setTextColor(...C.muted);
-        doc.text(lbl, x + w / 2, y + h / 2, { align: 'center', baseline: 'middle', maxWidth: w - 4 });
+      const cx = x + w / 2, cy = y + h / 2;
+      const tipo = String(el?.tipo || '').toLowerCase();
+      doc.setDrawColor(...C.muted); doc.setLineWidth(Math.max(0.8, Math.min(2, w * 0.03)));
+      if (tipo.includes('arbol') || tipo.includes('árbol') || tipo.includes('pino')) {
+        // Árbol: tronco + copa triangular.
+        doc.line(cx, cy + h * 0.40, cx, cy - h * 0.02);
+        doc.triangle(cx - w * 0.30, cy - h * 0.02, cx + w * 0.30, cy - h * 0.02, cx, cy - h * 0.45, 'S');
+        doc.triangle(cx - w * 0.24, cy - h * 0.18, cx + w * 0.24, cy - h * 0.18, cx, cy - h * 0.52, 'S');
+      } else if (tipo.includes('planta') || tipo.includes('flor')) {
+        // Planta: tallo + dos hojas.
+        doc.line(cx, cy + h * 0.40, cx, cy - h * 0.10);
+        doc.ellipse(cx - w * 0.16, cy - h * 0.02, w * 0.15, h * 0.10, 'S');
+        doc.ellipse(cx + w * 0.16, cy - h * 0.02, w * 0.15, h * 0.10, 'S');
+      } else {
+        // Resto de mobiliario (dj, piano, arco…): caja clara con etiqueta.
+        doc.setFillColor(...C.furniture); doc.setDrawColor(...C.chairEmpty); doc.setLineWidth(0.6);
+        doc.roundedRect(x, y, w, h, 3, 3, 'FD');
+        if (tipo && w > 24) {
+          doc.setFont('helvetica', 'normal'); doc.setFontSize(Math.max(5, Math.min(7, w / 8))); doc.setTextColor(...C.muted);
+          doc.text(tipo, cx, cy, { align: 'center', baseline: 'middle', maxWidth: w - 4 });
+        }
       }
     });
 
