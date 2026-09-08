@@ -192,12 +192,9 @@ export interface propsTableType {
 }
 
 const MesaRedonda: FC<propsTableType> = ({ children, table, setShowFormEditar, disableDrag, spaceChairs }) => {
-  function getTanDeg(deg: number) {
-    var rad = (deg * Math.PI) / 180;
-    return Math.tan(rad);
-  }
-  const anguloOpuesto = 360 / table.numberChair / 2
-  const adyacente = (spaceChairs / 2) / getTanDeg(anguloOpuesto)
+  // Diámetro FIJO (por defecto 1 m = 100 px; ajustable con table.diameter), independiente del
+  // nº de sillas — mismas mesas del mismo tamaño, cambia cuántas sillas se reparten.
+  const adyacente = (((table as any)?.diameter && (table as any).diameter > 0 ? (table as any).diameter : 1) * 100) / 2
   return (
     <>
       <div style={{ width: adyacente * 2, height: adyacente * 2 }} className="rounded-full transform bg-white shadow border border-gray-500 relative flex items-center justify-center">
@@ -209,7 +206,8 @@ const MesaRedonda: FC<propsTableType> = ({ children, table, setShowFormEditar, d
 };
 
 const MesaCuadrada: FC<propsTableType> = ({ children, table, setShowFormEditar, disableDrag, spaceChairs }) => {
-  const size = Math.ceil(table.numberChair / 4) * spaceChairs
+  // Lado FIJO (por defecto 1 m = 100 px; ajustable con table.side), independiente del nº de sillas.
+  const size = ((table as any)?.side && (table as any).side > 0 ? (table as any).side : 1) * 100
   return (
     <>
       <div style={{ width: size, height: size }} className="shadow border border-gray-500 relative bg-white flex items-center justify-center" >

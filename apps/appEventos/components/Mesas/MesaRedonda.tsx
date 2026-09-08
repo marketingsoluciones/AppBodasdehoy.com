@@ -14,12 +14,12 @@ export const MesaRedondaNew: FC<propsRedonda> = ({ table, invitados, setDisableW
     idxs?.push(i)
   }
 
-  function getTanDeg(deg: number) {
-    var rad = (deg * Math.PI) / 180;
-    return Math.tan(rad);
-  }
-  const anguloOpuesto = 360 / table.numberChair / 2
-  const adyacente = (spaceChairs / 2) / getTanDeg(anguloOpuesto)
+  // TODAS las mesas redondas tienen el MISMO diámetro; lo que cambia es cuántas sillas se
+  // reparten alrededor (más sillas = más juntas). El diámetro es FIJO (no depende del nº de
+  // sillas). Por defecto 1 m; ajustable si la mesa trae `diameter` (en metros). Escala del
+  // lienzo: 100 px = 1 m.
+  const diametroM = (table as any)?.diameter && (table as any).diameter > 0 ? (table as any).diameter : 1
+  const adyacente = (diametroM * 100) / 2
   return (
     <>
       <div style={{ width: (adyacente * 2), height: (adyacente * 2) }} className="rounded-full transform bg-white shadow border border-gray-500 relative flex items-center justify-center">
