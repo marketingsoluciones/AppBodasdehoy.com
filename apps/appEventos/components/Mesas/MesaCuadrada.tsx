@@ -38,7 +38,7 @@ export const MesaCuadradaNew: FC<propsMesaCuadradra> = ({ table, invitados, setD
       <div
         style={{ width: size, height: size }}
         className="bg-white shadow border border-gray-500 flex items-center justify-center relative">
-        <span style={{ rotate: `-${table?.rotation}deg` }} className="font-display text-xs tracking-tight">{table.title}</span>
+        <span style={{ transform: `rotate(-${table?.rotation || 0}deg)` }} className="font-display text-xs tracking-tight">{table.title}</span>
         <div
           style={{
             paddingTop: `${(spaceChairsCalc - 45) / 2}px`,
