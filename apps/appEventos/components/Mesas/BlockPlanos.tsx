@@ -111,6 +111,9 @@ export const BlockPlanos: FC = () => {
         size: nuevo.size ?? { width: 1500, height: 800 },
         tables: nuevo.tables ?? [],
         elements: nuevo.elements ?? [],
+        // Sin spaceChairs, las mesas del plano se calculaban con NaN → salían como un círculo
+        // diminuto. 120 es el valor de los planos existentes.
+        spaceChairs: nuevo.spaceChairs ?? 120,
       }
       const planSpaceNuevo = [...(event?.planSpace ?? []), nuevoConLienzo]
       await fetchApiEventos({
