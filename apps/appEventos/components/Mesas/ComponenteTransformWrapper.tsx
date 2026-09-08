@@ -142,6 +142,12 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
                             const w = el.scrollWidth || (lienzo?.width ?? 0)
                             const h = el.scrollHeight || (lienzo?.height ?? 0)
                             try {
+                              // El texto (nombres de mesa) salía comprimido ("Mesa 1"→"Meso1") porque
+                              // html2canvas capturaba ANTES de que la fuente (Poppins) terminara de
+                              // medirse → usaba métricas de fallback y los glifos se solapaban. Esperar
+                              // a que las fuentes estén listas + un respiro de layout lo corrige.
+                              try { if ((document as any).fonts?.ready) await (document as any).fonts.ready } catch { /* noop */ }
+                              await new Promise((r) => setTimeout(r, 120))
                               const canvas = await html2canvas(el, { backgroundColor: '#F3F1EC', height: h, logging: false, scale: 2, useCORS: true, width: w, windowHeight: h, windowWidth: w } as any)
                               planoImage = canvas.toDataURL('image/png')
                             } finally {
