@@ -3,9 +3,10 @@
 import Script from 'next/script';
 import { message } from 'antd';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 
 import { LoginForm, SplitLoginPage } from '@bodasdehoy/auth-ui';
+import { getCurrentDevelopment, getCurrentDevelopmentConfig, getDeveloperDisplayName } from '@/utils/developmentDetector';
 import { useChatStore } from '@/store/chat';
 import { loginWithEmailPassword, loginWithFacebook, loginWithGoogle } from '@/services/firebase-auth';
 import { optimizedApiClient } from '@/utils/api-client-optimized';
@@ -71,7 +72,19 @@ type WaStep = 'idle' | 'phone' | 'otp';
 function RightPanel() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const development = searchParams.get('developer') || 'bodasdehoy';
+  const queryDev = searchParams.get('developer');
+  // Multimarca (8-sep): ?developer= manda; si no, detectar el whitelabel por DOMINIO
+  // (getCurrentDevelopment) en vez de asumir 'bodasdehoy'. Detección tras montar para no romper
+  // hidratación (SSR/prerender = bodasdehoy). Auth UNIFICADO (mismo Firebase): el `development`
+  // es la etiqueta de tenant (BD compartida) + el branding del login.
+  const [development, setDevelopment] = useState(queryDev || 'bodasdehoy');
+  useEffect(() => {
+    if (queryDev) return;
+    try { const d = getCurrentDevelopment(); if (d) setDevelopment(d); } catch { /* noop */ }
+  }, [queryDev]);
+  const loginPrimaryColor = useMemo(() => {
+    try { return getCurrentDevelopmentConfig().colors.primary || '#F7628C'; } catch { return '#F7628C'; }
+  }, [development]);
   const redirectAfterLogin = searchParams.get('redirect') || null;
   const reason = searchParams.get('reason');
 
@@ -421,6 +434,7 @@ function RightPanel() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center', padding: '40px 36px' }}>
       {contextHolder}
       <LoginForm
+        primaryColor={loginPrimaryColor}
         onEmailLogin={handleEmailLogin}
         onFacebookLogin={handleFacebookLogin}
         onGoogleLogin={handleGoogleLogin}
@@ -497,8 +511,20 @@ const SSO_SCRIPT = `
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
 function LoginContent() {
+  // Multimarca (8-sep): el brandName del panel deriva del whitelabel detectado por dominio
+  // (antes hardcodeado a "Bodas de Hoy · Copilot IA" para todas las marcas). Tras montar, para
+  // no romper hidratación. El copy (features/stats) se mantiene genérico por ahora.
+  const [leftPanel, setLeftPanel] = useState(CHAT_IA_LEFT_PANEL);
+  useEffect(() => {
+    try {
+      const dev = getCurrentDevelopment();
+      if (dev && dev !== 'bodasdehoy') {
+        setLeftPanel({ ...CHAT_IA_LEFT_PANEL, brandName: `${getDeveloperDisplayName(dev)} · Copilot IA` });
+      }
+    } catch { /* noop */ }
+  }, []);
   return (
-    <SplitLoginPage leftPanel={CHAT_IA_LEFT_PANEL}>
+    <SplitLoginPage leftPanel={leftPanel}>
       <Suspense fallback={<div style={{ padding: 40, textAlign: 'center' }}>Cargando...</div>}>
         <RightPanel />
       </Suspense>
