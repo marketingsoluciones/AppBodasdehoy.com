@@ -170,7 +170,7 @@ export const ElementContent: FC<propsElement> = ({ item, scale, disableDrag }) =
           formats={quillFormats}
           theme="snow"
           placeholder="Escribe aquí"
-          className={`bg-white border-none textTable-editor_${item._id}`}
+          className={`bg-transparent border-none textTable-editor_${item._id}`}
         />
       </div>
       setReactElement(reactElement)
