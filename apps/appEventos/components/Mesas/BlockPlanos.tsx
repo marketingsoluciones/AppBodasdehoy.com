@@ -1,4 +1,5 @@
 import { FC, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AuthContextProvider, EventContextProvider } from '../../context';
 import { planSpace } from '../../utils/Interfaces';
 import { fetchApiEventos, queries } from '../../utils/Fetching';
@@ -27,6 +28,9 @@ export const BlockPlanos: FC = () => {
   const [newPlanoOpen, setNewPlanoOpen] = useState(false)
   const [newPlanoName, setNewPlanoName] = useState('')
   const [createNotice, setCreateNotice] = useState<string | null>(null)
+  // Modal de confirmación al borrar un plano (in-app, centrado — NO window.confirm).
+  const [deleteTarget, setDeleteTarget] = useState<planSpace | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const handleClick = (item: planSpace) => {
     try {
@@ -50,26 +54,31 @@ export const BlockPlanos: FC = () => {
   // Eliminar un plano. api-mcp NO tiene deletePlanSpace (sí deleteTable/deleteElement);
   // se persiste vía updateEvento con el array planSpace ya filtrado
   // (EventoUpdateInput.planSpace: [JSON!]). Solo se aplica en UI si el backend confirma.
-  const handleDeletePlano = async (e: any, item: planSpace) => {
+  // El icono de papelera abre el modal de confirmación in-app (no window.confirm).
+  const askDeletePlano = (e: any, item: planSpace) => {
     e.stopPropagation()
-    const mesas = (item as any)?.tables?.length || 0
-    const nombre = t((item as any)?.title) || t('thisplan', 'este plano')
-    const msg = mesas > 0
-      ? t('confirmdeleteplanotables', `¿Eliminar el plano «${nombre}»? Se borrarán también sus ${mesas} mesa(s). Esta acción no se puede deshacer.`)
-      : t('confirmdeleteplano', `¿Eliminar el plano «${nombre}»? Esta acción no se puede deshacer.`)
-    if (typeof window !== 'undefined' && !window.confirm(msg)) return
+    setDeleteTarget(item)
+  }
+
+  const confirmDeletePlano = async () => {
+    const item = deleteTarget
+    if (!item) return
+    setDeleting(true)
     const nuevos = (event?.planSpace || []).filter((ps: any) => ps?._id !== item?._id)
     try {
       const res: any = await fetchApiEventos({
         query: queries.eventUpdate,
         variables: { idEvento: event?._id, input: { planSpace: nuevos } },
       })
-      if (!res?.success) return
+      if (!res?.success) { setDeleting(false); return }
       setEvent((prev: any) => ({ ...prev, planSpace: nuevos }))
       // Si borramos el plano activo, seleccionar el primero restante (o ninguno).
       if (planSpaceSelect === item?._id) setPlanSpaceSelect(nuevos[0]?._id ?? null)
+      setDeleteTarget(null)
     } catch {
       /* error de red: no se aplica el borrado en UI (no queda inconsistente) */
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -150,7 +159,7 @@ export const BlockPlanos: FC = () => {
                 </div>
               }
               <button
-                onClick={(e) => handleDeletePlano(e, item)}
+                onClick={(e) => askDeletePlano(e, item)}
                 title={t('deleteplano', 'Eliminar plano')}
                 className="flex-none w-[24px] h-[24px] rounded-md flex items-center justify-center text-[#c2c2ca] hover:text-[#EF5B94] hover:bg-[#FCE7F0] transition"
               >
@@ -215,6 +224,34 @@ export const BlockPlanos: FC = () => {
           </div>
         </div>
       }
+
+      {/* MODAL CONFIRMAR BORRADO DE PLANO (in-app, centrado — reemplaza window.confirm) */}
+      {deleteTarget && typeof document !== 'undefined' && createPortal(
+        <div onClick={() => !deleting && setDeleteTarget(null)} className="fixed inset-0 z-[1000] flex items-center justify-center bg-[rgba(43,43,48,.45)] px-4" style={{ fontFamily: "'Poppins',sans-serif" }}>
+          <div onClick={(e) => e.stopPropagation()} className="w-[380px] max-w-full bg-white rounded-[18px] shadow-[0_24px_60px_rgba(0,0,0,.28)] p-6">
+            <div className="flex items-center gap-[11px] mb-[14px]">
+              <div className="w-11 h-11 rounded-full flex-none bg-[#FBE3ED] text-[#D83E7C] flex items-center justify-center">
+                <svg className="w-[22px] h-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6" /></svg>
+              </div>
+              <div className="text-[17px] font-bold text-[#3A3A42]">{t('deleteplano', 'Eliminar plano')}</div>
+            </div>
+            <div className="text-[12.5px] leading-[1.6] text-[#6b6b72] mb-[22px]">
+              {t('confirmdeleteplanoq', '¿Eliminar el plano')} «<span className="font-semibold text-[#3A3A42] capitalize">{t((deleteTarget as any)?.title)}</span>»?{' '}
+              {((deleteTarget as any)?.tables?.length || 0) > 0 && (
+                <>{t('confirmdeleteplanotablesq', `Se borrarán también sus ${(deleteTarget as any)?.tables?.length} mesa(s).`)} </>
+              )}
+              {t('cannotundo', 'Esta acción no se puede deshacer.')}
+            </div>
+            <div className="flex gap-[11px] justify-end">
+              <button type="button" disabled={deleting} onClick={() => setDeleteTarget(null)} className="px-5 py-[11px] rounded-[11px] bg-[#f7f7f9] text-[#6b6b72] text-[12.5px] font-semibold">{t('cancel', 'Cancelar')}</button>
+              <button type="button" disabled={deleting} onClick={confirmDeletePlano} className="px-6 py-[11px] rounded-[11px] bg-[#D83E7C] text-white text-[12.5px] font-semibold whitespace-nowrap shadow-[0_6px_16px_rgba(216,62,124,.3)]">
+                {deleting ? t('deleting', 'Eliminando…') : t('delete', 'Eliminar')}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   )
 }

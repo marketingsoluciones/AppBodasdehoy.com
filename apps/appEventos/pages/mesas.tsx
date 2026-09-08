@@ -115,7 +115,7 @@ const Mesas: FC = () => {
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [editInv, setEditInv] = useState(false)
   const [invitadoSelected, setSelected] = useState<string | null>(null);
-  const [itemSelect, setItemSelect] = useState("mesas")
+  const [itemSelect, setItemSelect] = useState("planos")
   const [fullScreen, setFullScreen] = useState<boolean>(false)
   const [creaElement, setCreaElement] = useState<boolean>(false)
   const [isAllowed, ht] = useAllowed()
