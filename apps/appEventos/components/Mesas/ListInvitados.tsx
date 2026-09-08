@@ -15,7 +15,15 @@ interface propsListInvitados {
 
 const ListInvitados: FC<propsListInvitados> = ({ editInv, setEditInv, setSelected, filter = 'todos' }) => {
   const { t } = useTranslation()
-  const { filterGuests } = EventContextProvider()
+  const { filterGuests, event } = EventContextProvider()
+
+  // Mapa _id → nombre de TODOS los invitados: para poder etiquetar a un acompañante con el
+  // nombre de su padre aunque el padre no esté en esta misma lista (p. ej. padre por sentar).
+  const nameById = useMemo(() => {
+    const m = new Map<string, string>()
+      ; (event?.invitados_array || []).forEach((g: any) => { if (g?._id) m.set(g._id, g?.nombre) })
+    return m
+  }, [event?.invitados_array])
 
   // Función para ordenar invitados agrupando padres e hijos (no sentados)
   const sortedGuests = useMemo(() => {
@@ -64,10 +72,32 @@ const ListInvitados: FC<propsListInvitados> = ({ editInv, setEditInv, setSelecte
     return result;
   }, [filterGuests?.noSentados]);
 
-  const seated = useMemo(
-    () => (filterGuests?.sentados ?? []).filter((g) => g != null) as any[],
-    [filterGuests?.sentados]
-  );
+  // Sentados agrupando acompañantes DEBAJO de su invitado (para saber que van juntos).
+  const seated = useMemo(() => {
+    const arr = (filterGuests?.sentados ?? []).filter((g) => g != null) as any[];
+    const result: any[] = [];
+    const processed = new Set();
+    arr.forEach((g) => {
+      if (!g.father && !processed.has(g._id)) {
+        result.push(g); processed.add(g._id);
+        const addKids = (pid: string) => arr.forEach((c) => {
+          if (c.father === pid && !processed.has(c._id)) {
+            result.push({ ...c, isChild: true, parentName: g.nombre || nameById.get(pid) || 'Sin nombre' });
+            processed.add(c._id); addKids(c._id);
+          }
+        });
+        addKids(g._id);
+      }
+    });
+    // Acompañantes cuyo padre NO está sentado: al final, etiquetados con el padre del evento.
+    arr.forEach((g) => {
+      if (!processed.has(g._id)) {
+        result.push(g.father ? { ...g, isChild: true, parentName: nameById.get(g.father) || 'Sin nombre' } : g);
+        processed.add(g._id);
+      }
+    });
+    return result;
+  }, [filterGuests?.sentados, nameById]);
 
   const showPending = filter === 'todos' || filter === 'porsentar'
   const showSeated = filter === 'todos' || filter === 'sentados'
@@ -107,13 +137,14 @@ const ListInvitados: FC<propsListInvitados> = ({ editInv, setEditInv, setSelecte
             <div className="px-3 py-3 text-[11px] text-center text-[#a0a0a8]">{t('nonseatedguests')}</div>
           }
           {seated.map((g) => (
-            <div key={g._id} className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition">
+            <div key={g._id} className="w-full flex items-center gap-2.5 py-1.5 rounded-lg hover:bg-gray-50 transition" style={{ paddingLeft: g.isChild ? 26 : 12, paddingRight: 12 }}>
+              {g.isChild && <span className="text-[#c4c4cc] -ml-3 flex-none">↳</span>}
               <img
                 className="w-7 h-7 rounded-full object-cover ring-1 ring-gray-200"
                 src={ImageProfile[g.sexo]?.image || "/profile_men.png"}
                 alt={ImageProfile[g.sexo]?.alt || "Invitado"}
               />
-              <span className="flex-1 min-w-0 font-display text-sm truncate text-gray-600">{g?.nombre?.trim() ? g.nombre : t('companion', 'Acompañante')}</span>
+              <span className="flex-1 min-w-0 font-display text-sm truncate text-gray-600">{g?.nombre?.trim() ? g.nombre : (g.isChild ? `Acompañante de ${g.parentName}` : t('companion', 'Acompañante'))}</span>
               <span className="text-[10px] font-semibold text-[#EF5B94] bg-[#FCE7F0] px-2 py-0.5 rounded-md whitespace-nowrap">
                 {g.nombre_mesa ? `${g.nombre_mesa} · ` : ''}A{(g.chair ?? 0) + 1}
               </span>
