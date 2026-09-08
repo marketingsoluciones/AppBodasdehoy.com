@@ -11,6 +11,9 @@ interface ExportArgs {
   // Captura del lienzo (html2canvas, dataURL PNG). Si viene, la página 1 muestra el
   // plano TAL CUAL en la app. Si no, se dibuja el croquis vectorial.
   planoImage?: string
+  // Iconos de mobiliario capturados del lienzo (PNG por elemento) con su rect en px de mundo,
+  // para pintar los MISMOS iconos que la web (los SVG no tienen texto → no se deforman).
+  furniture?: { image: string; x: number; y: number; w: number; h: number }[]
 }
 
 // Colores de marca (RGB para jsPDF).
@@ -30,7 +33,7 @@ const stripHtml = (s: any): string =>
 
 const ROUND_TIPOS = ['redonda', 'oval', 'podio'];
 
-export const exportPlanoPdf = ({ planSpaceActive, event, planoTitle, planoImage }: ExportArgs): boolean => {
+export const exportPlanoPdf = ({ planSpaceActive, event, planoTitle, planoImage, furniture }: ExportArgs): boolean => {
   try {
     const tables: any[] = planSpaceActive?.tables ?? [];
     const elements: any[] = planSpaceActive?.elements ?? [];
@@ -94,44 +97,36 @@ export const exportPlanoPdf = ({ planSpaceActive, event, planoTitle, planoImage 
       for (let gy = offY; gy <= offY + H * scale + 0.5; gy += gpx) doc.line(offX, gy, offX + W * scale, gy);
     }
 
-    // Muebles (elements no-texto): iconos vectoriales grises como en la web (árbol/planta);
-    // para el resto, caja clara con etiqueta.
-    elements.filter((el) => el?.tipo !== 'text').forEach((el: any) => {
-      const x = sx(el?.position?.x ?? 0), y = sy(el?.position?.y ?? 0);
-      const w = (el?.size?.width ?? 60) * scale, h = (el?.size?.height ?? 60) * scale;
-      const cx = x + w / 2, cy = y + h / 2;
-      const tipo = String(el?.tipo || '').toLowerCase();
-      doc.setDrawColor(...C.muted); doc.setLineWidth(Math.max(0.8, Math.min(2, w * 0.03)));
-      if (tipo.includes('arbol') || tipo.includes('árbol') || tipo.includes('pino')) {
-        // Árbol: tronco + copa triangular.
-        doc.line(cx, cy + h * 0.40, cx, cy - h * 0.02);
-        doc.triangle(cx - w * 0.30, cy - h * 0.02, cx + w * 0.30, cy - h * 0.02, cx, cy - h * 0.45, 'S');
-        doc.triangle(cx - w * 0.24, cy - h * 0.18, cx + w * 0.24, cy - h * 0.18, cx, cy - h * 0.52, 'S');
-      } else if (tipo.includes('planta') || tipo.includes('flor')) {
-        // Planta: tallo + dos hojas.
-        doc.line(cx, cy + h * 0.40, cx, cy - h * 0.10);
-        doc.ellipse(cx - w * 0.16, cy - h * 0.02, w * 0.15, h * 0.10, 'S');
-        doc.ellipse(cx + w * 0.16, cy - h * 0.02, w * 0.15, h * 0.10, 'S');
-      } else {
-        // Resto de mobiliario (dj, piano, arco…): caja clara con etiqueta.
+    // Mobiliario: usar los MISMOS iconos de la web (capturados del lienzo). Si no hay captura,
+    // caja clara con etiqueta como respaldo.
+    if (furniture && furniture.length) {
+      furniture.forEach((f) => {
+        try { doc.addImage(f.image, 'PNG', sx(f.x), sy(f.y), f.w * scale, f.h * scale); } catch { /* imagen inválida */ }
+      });
+    } else {
+      elements.filter((el) => el?.tipo !== 'text').forEach((el: any) => {
+        const x = sx(el?.position?.x ?? 0), y = sy(el?.position?.y ?? 0);
+        const w = (el?.size?.width ?? 60) * scale, h = (el?.size?.height ?? 60) * scale;
         doc.setFillColor(...C.furniture); doc.setDrawColor(...C.chairEmpty); doc.setLineWidth(0.6);
         doc.roundedRect(x, y, w, h, 3, 3, 'FD');
-        if (tipo && w > 24) {
+        const lbl = String(el?.tipo || '');
+        if (lbl && w > 24) {
           doc.setFont('helvetica', 'normal'); doc.setFontSize(Math.max(5, Math.min(7, w / 8))); doc.setTextColor(...C.muted);
-          doc.text(tipo, cx, cy, { align: 'center', baseline: 'middle', maxWidth: w - 4 });
+          doc.text(lbl, x + w / 2, y + h / 2, { align: 'center', baseline: 'middle', maxWidth: w - 4 });
         }
-      }
-    });
+      });
+    }
 
-    // Textos: contenido plano en su posición (jsPDF vectorial → nunca se deforma).
+    // Textos: contenido plano en su posición, en UNA sola línea legible (sin maxWidth, que
+    // lo partía en dos). jsPDF vectorial → nunca se deforma.
     elements.filter((el) => el?.tipo === 'text').forEach((el: any) => {
       const txt = stripHtml(el?.title) || 'Escribe aquí';
       const x = sx((el?.position?.x ?? 0) + (el?.size?.width ?? 80) / 2);
       const y = sy((el?.position?.y ?? 0) + (el?.size?.height ?? 30) / 2);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(Math.max(7, Math.min(15, (el?.fontSize ?? 14) * scale * 1.4)));
+      doc.setFontSize(Math.max(8, Math.min(16, (el?.fontSize ?? 14) * scale * 1.4)));
       doc.setTextColor(...C.ink);
-      doc.text(txt, x, y, { align: 'center', baseline: 'middle', maxWidth: Math.max(60, (el?.size?.width ?? 160) * scale) });
+      doc.text(txt, x, y, { align: 'center', baseline: 'middle' });
     });
 
     // Mesas + sillas NUMERADAS, con el MISMO tamaño que el render (1 m por defecto = 100 px de

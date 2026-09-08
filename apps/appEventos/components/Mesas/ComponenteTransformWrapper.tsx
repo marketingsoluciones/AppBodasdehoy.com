@@ -119,11 +119,24 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
                     <button
                       onClick={async () => {
                         setShowMiniMenu(false)
-                        // PDF con VECTORES (jsPDF): dibuja el plano directamente (mesas, sillas
-                        // NUMERADAS, textos y cuadrícula) con las MISMAS posiciones/tamaños del
-                        // render. Nítido y SIN deformación — no depende de rasterizar fuentes
-                        // con html2canvas (que comprimía los nombres, p. ej. "Mesa 1"→"Meso1").
-                        const ok = exportPlanoPdf({ planSpaceActive, event, planoTitle: t(planSpaceActive?.title) })
+                        // PDF con VECTORES (jsPDF): mesas, sillas NUMERADAS, textos y cuadrícula con
+                        // las MISMAS posiciones/tamaños del render → nítido y sin deformar (no depende
+                        // de rasterizar fuentes). El MOBILIARIO sí se captura del lienzo para usar los
+                        // MISMOS iconos que la web (son SVG sin texto → no se deforman).
+                        let furniture: { image: string; x: number; y: number; w: number; h: number }[] = []
+                        try {
+                          const els = (planSpaceActive?.elements || []).filter((e: any) => e?.tipo !== 'text')
+                          if (els.length) {
+                            const html2canvas = (await import('html2canvas-pro')).default
+                            for (const el of els) {
+                              const node = document.getElementById(`element_${el?._id}`) as HTMLElement | null
+                              if (!node) continue
+                              const canvas = await html2canvas(node, { backgroundColor: null, scale: 2, logging: false, useCORS: true } as any)
+                              furniture.push({ image: canvas.toDataURL('image/png'), x: node.offsetLeft, y: node.offsetTop, w: node.offsetWidth, h: node.offsetHeight })
+                            }
+                          }
+                        } catch { /* si falla, exportPlanoPdf usa el respaldo de cajas */ }
+                        const ok = exportPlanoPdf({ planSpaceActive, event, planoTitle: t(planSpaceActive?.title), furniture })
                         if (!ok) toast('error', t('pdferror') || 'No se pudo generar el PDF')
                       }}
                       className="w-full flex items-center gap-2 text-left font-semibold py-1.5 mb-1 border-b border-gray-100 hover:text-primary"
