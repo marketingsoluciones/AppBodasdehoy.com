@@ -82,7 +82,15 @@ export const exportPlanoPdf = ({ planSpaceActive, event, planoTitle, planoImage 
       doc.text('Este plano no tiene mesas todavía.', pw / 2, areaY + areaH / 2, { align: 'center', baseline: 'middle' });
     }
 
-    // Muebles (elements no-texto): caja gris clara con etiqueta (fiel: gris claro).
+    // Cuadrícula sutil (como en la web: 44 px de mundo).
+    const gpx = 44 * scale;
+    if (gpx > 4) {
+      doc.setDrawColor(228, 225, 216); doc.setLineWidth(0.4);
+      for (let gx = offX; gx <= offX + W * scale + 0.5; gx += gpx) doc.line(gx, offY, gx, offY + H * scale);
+      for (let gy = offY; gy <= offY + H * scale + 0.5; gy += gpx) doc.line(offX, gy, offX + W * scale, gy);
+    }
+
+    // Muebles (elements no-texto): caja gris clara con etiqueta.
     elements.filter((el) => el?.tipo !== 'text').forEach((el: any) => {
       const x = sx(el?.position?.x ?? 0), y = sy(el?.position?.y ?? 0);
       const w = (el?.size?.width ?? 60) * scale, h = (el?.size?.height ?? 60) * scale;
@@ -95,65 +103,78 @@ export const exportPlanoPdf = ({ planSpaceActive, event, planoTitle, planoImage 
       }
     });
 
-    // Textos: contenido plano en su posición (con su fontSize).
+    // Textos: contenido plano en su posición (jsPDF vectorial → nunca se deforma).
     elements.filter((el) => el?.tipo === 'text').forEach((el: any) => {
       const txt = stripHtml(el?.title) || 'Escribe aquí';
       const x = sx((el?.position?.x ?? 0) + (el?.size?.width ?? 80) / 2);
       const y = sy((el?.position?.y ?? 0) + (el?.size?.height ?? 30) / 2);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(Math.max(6, Math.min(14, (el?.fontSize ?? 14) * scale * 1.4)));
+      doc.setFontSize(Math.max(7, Math.min(15, (el?.fontSize ?? 14) * scale * 1.4)));
       doc.setTextColor(...C.ink);
-      doc.text(txt, x, y, { align: 'center', baseline: 'middle', maxWidth: Math.max(40, (el?.size?.width ?? 120) * scale) });
+      doc.text(txt, x, y, { align: 'center', baseline: 'middle', maxWidth: Math.max(60, (el?.size?.width ?? 160) * scale) });
     });
 
-    // Mesas + sillas.
+    // Mesas + sillas NUMERADAS, con el MISMO tamaño que el render (1 m por defecto = 100 px de
+    // mundo; ajustable con diameter/side; crece un poco para que quepan las sillas).
+    const CHAIR_ARC = 34; // px de mundo por silla en el borde (igual que el render)
     tables.forEach((tb: any) => {
-      const x = sx(tb?.position?.x ?? 0);
-      const y = sy(tb?.position?.y ?? 0);
-      const w = (tb?.size?.width ?? 100) * scale;
-      const h = (tb?.size?.height ?? 100) * scale;
-      const cx = x + w / 2, cy = y + h / 2;
       const round = ROUND_TIPOS.includes(tb?.tipo);
+      const n = tb?.numberChair ?? (tb?.guests?.length ?? 0);
+      // Tamaño en px de mundo (idéntico a MesaRedondaNew / MesaCuadradaNew).
+      let wWorld: number;
+      if (round) {
+        const baseR = ((tb?.diameter && tb.diameter > 0 ? tb.diameter : 1) * 100) / 2;
+        const minR = n > 2 ? (CHAIR_ARC / 2) / Math.tan(Math.PI / n) : baseR;
+        wWorld = Math.max(baseR, minR) * 2;
+      } else {
+        const perSide = Math.ceil(n / 4);
+        wWorld = Math.max((tb?.side && tb.side > 0 ? tb.side : 1) * 100, perSide * CHAIR_ARC);
+      }
+      // Centro: se mantiene donde estaba (position + size/2 antiguos) y se dibuja al tamaño nuevo.
+      const cx = sx((tb?.position?.x ?? 0) + (tb?.size?.width ?? wWorld) / 2);
+      const cy = sy((tb?.position?.y ?? 0) + (tb?.size?.height ?? wWorld) / 2);
+      const w = wWorld * scale, h = w;
+      const x = cx - w / 2, y = cy - h / 2;
 
-      // sillas alrededor del perímetro
-      const N = tb?.numberChair ?? (tb?.guests?.length ?? 0);
       const occupied = new Set((tb?.guests ?? []).map((g: any) => g?.chair));
-      const chairR = Math.max(2.2, Math.min(w, h) * 0.09);
-      const gap = chairR * 1.35;
-      for (let i = 0; i < N; i++) {
+      const chairR = Math.max(5, Math.min(12, w * 0.14));
+
+      // Sillas: círculo blanco con nº dentro (rosa si ocupada). Justo fuera del borde de la mesa.
+      for (let i = 0; i < n; i++) {
         let px: number, py: number;
         if (round) {
-          const th = (i / N) * Math.PI * 2 - Math.PI / 2;
-          px = cx + (w / 2 + gap + chairR) * Math.cos(th);
-          py = cy + (h / 2 + gap + chairR) * Math.sin(th);
+          const th = (i / n) * Math.PI * 2 - Math.PI / 2;
+          const rr = w / 2 + chairR * 0.9;
+          px = cx + rr * Math.cos(th); py = cy + rr * Math.sin(th);
         } else {
-          // recorrido del perímetro del rectángulo
+          const off = chairR * 0.9;
           const perim = 2 * (w + h);
-          const d = ((i + 0.5) / N) * perim;
-          const off = gap + chairR;
+          const d = ((i + 0.5) / n) * perim;
           if (d < w) { px = x + d; py = y - off; }
           else if (d < w + h) { px = x + w + off; py = y + (d - w); }
           else if (d < 2 * w + h) { px = x + w - (d - w - h); py = y + h + off; }
           else { px = x - off; py = y + h - (d - 2 * w - h); }
         }
-        if (occupied.has(i)) doc.setFillColor(...C.pink);
-        else doc.setFillColor(...C.chairEmpty);
-        doc.circle(px, py, chairR, 'F');
+        const occ = occupied.has(i);
+        doc.setFillColor(255, 255, 255); doc.setDrawColor(...(occ ? C.pink : C.chairEmpty)); doc.setLineWidth(0.8);
+        doc.circle(px, py, chairR, 'FD');
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(Math.max(5, chairR * 1.05)); doc.setTextColor(...(occ ? C.pink : C.muted));
+        doc.text(String(i + 1), px, py + chairR * 0.05, { align: 'center', baseline: 'middle' });
       }
 
-      // mesa
-      doc.setFillColor(...C.bg); doc.setDrawColor(...C.ink); doc.setLineWidth(1);
-      if (round) doc.ellipse(cx, cy, w / 2, h / 2, 'FD');
+      // Mesa (blanca con borde) + etiqueta.
+      doc.setFillColor(255, 255, 255); doc.setDrawColor(...C.ink); doc.setLineWidth(1);
+      if (round) doc.circle(cx, cy, w / 2, 'FD');
       else doc.roundedRect(x, y, w, h, 3, 3, 'FD');
       const label = String(tb?.title || tb?.nombre_mesa || '');
       if (label) {
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(Math.max(5, Math.min(9, w / 7)));
+        doc.setFontSize(Math.max(6, Math.min(10, w / 9)));
         doc.setTextColor(...C.ink);
-        doc.text(label, cx, cy, { align: 'center', baseline: 'middle', maxWidth: Math.max(20, w - 4) });
+        doc.text(label, cx, cy, { align: 'center', baseline: 'middle', maxWidth: Math.max(20, w - 8) });
       }
     });
-    } // fin croquis vectorial (solo si no hubo captura de la app)
+    } // fin croquis vectorial
 
     // ---------- PÁGINAS 2+: invitados por mesa + sin mesa (2 columnas) ----------
     doc.addPage('letter', 'portrait');

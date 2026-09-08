@@ -119,47 +119,11 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
                     <button
                       onClick={async () => {
                         setShowMiniMenu(false)
-                        // Capturar el plano TAL CUAL en la web = una FOTO con la cuadrícula.
-                        // La cuadrícula vive en el wrapper del zoom (.react-transform-wrapper),
-                        // no en #lienzo-drop; por eso capturamos el wrapper (cuadrícula + mesas
-                        // + muebles + textos, exactamente como se ve). Si falla → croquis vectorial.
-                        let planoImage: string | undefined
-                        try {
-                          // html2canvas-pro (fork): soporta colores oklch/lab/color() de Tailwind v4.
-                          // El html2canvas clásico (1.4.1) lanzaba con oklch → abortaba la captura → croquis.
-                          const html2canvas = (await import('html2canvas-pro')).default
-                          // Capturar el CONTENIDO del plano (#lienzo-drop) a tamaño natural = el
-                          // plano ENTERO con mesas, sillas, ICONOS de mobiliario y TEXTOS. NO se
-                          // captura el wrapper del zoom (.react-transform-wrapper): su transform
-                          // rompe html2canvas (por eso salía el croquis de fallback). Se añade la
-                          // cuadrícula temporal por CSS para que la foto salga como en la web.
-                          const el = document.getElementById('lienzo-drop')
-                          if (el) {
-                            const prev = { background: el.style.background, backgroundImage: el.style.backgroundImage, backgroundSize: el.style.backgroundSize }
-                            el.style.background = '#F3F1EC'
-                            el.style.backgroundImage = 'linear-gradient(#E4E1D8 1px, transparent 1px), linear-gradient(90deg, #E4E1D8 1px, transparent 1px)'
-                            el.style.backgroundSize = '44px 44px'
-                            const w = el.scrollWidth || (lienzo?.width ?? 0)
-                            const h = el.scrollHeight || (lienzo?.height ?? 0)
-                            try {
-                              // El texto (nombres de mesa) salía comprimido ("Mesa 1"→"Meso1") porque
-                              // html2canvas capturaba ANTES de que la fuente (Poppins) terminara de
-                              // medirse → usaba métricas de fallback y los glifos se solapaban. Esperar
-                              // a que las fuentes estén listas + un respiro de layout lo corrige.
-                              try { if ((document as any).fonts?.ready) await (document as any).fonts.ready } catch { /* noop */ }
-                              await new Promise((r) => setTimeout(r, 120))
-                              const canvas = await html2canvas(el, { backgroundColor: '#F3F1EC', height: h, logging: false, scale: 2, useCORS: true, width: w, windowHeight: h, windowWidth: w } as any)
-                              planoImage = canvas.toDataURL('image/png')
-                            } finally {
-                              el.style.background = prev.background
-                              el.style.backgroundImage = prev.backgroundImage
-                              el.style.backgroundSize = prev.backgroundSize
-                            }
-                          }
-                        } catch (e) {
-                          console.warn('[exportPDF] captura del plano falló; uso croquis vectorial:', e)
-                        }
-                        const ok = exportPlanoPdf({ planSpaceActive, event, planoTitle: t(planSpaceActive?.title), planoImage })
+                        // PDF con VECTORES (jsPDF): dibuja el plano directamente (mesas, sillas
+                        // NUMERADAS, textos y cuadrícula) con las MISMAS posiciones/tamaños del
+                        // render. Nítido y SIN deformación — no depende de rasterizar fuentes
+                        // con html2canvas (que comprimía los nombres, p. ej. "Mesa 1"→"Meso1").
+                        const ok = exportPlanoPdf({ planSpaceActive, event, planoTitle: t(planSpaceActive?.title) })
                         if (!ok) toast('error', t('pdferror') || 'No se pudo generar el PDF')
                       }}
                       className="w-full flex items-center gap-2 text-left font-semibold py-1.5 mb-1 border-b border-gray-100 hover:text-primary"
