@@ -1379,8 +1379,12 @@ export const queries = {
       listaRegalos
     }
   }`,
-  addCompartitions: `mutation($args:inputCompartition){
-    addCompartition(args:$args){
+  // 8-sep: migrado de addCompartition/updateCompartition (DEPRECADAS, solo permisos:[String!] →
+  // rechazaban los objetos {title,value}) a compartirEvento, que expone el argumento
+  // permissions:[inputPermisoModulo!] ({title,value}) — el diseño granular por módulo restaurado
+  // por api-mcp (6a61d12). compartirEvento hace upsert: crea la entrada o actualiza sus permissions.
+  addCompartitions: `mutation($evento_id:ID!, $usuario_id:String!, $permisos:[String!]!, $permissions:[inputPermisoModulo!]){
+    compartirEvento(evento_id:$evento_id, usuario_id:$usuario_id, permisos:$permisos, permissions:$permissions){
       success
       errors{ field message code }
       evento{
@@ -1389,10 +1393,14 @@ export const queries = {
       }
     }
   }`,
-  updateCompartitions: `mutation($args:inputCompartition){
-    updateCompartition(args:$args){
+  updateCompartitions: `mutation($evento_id:ID!, $usuario_id:String!, $permisos:[String!]!, $permissions:[inputPermisoModulo!]){
+    compartirEvento(evento_id:$evento_id, usuario_id:$usuario_id, permisos:$permisos, permissions:$permissions){
       success
       errors{ field message code }
+      evento{
+        compartido_array
+        detalles_compartidos_array
+      }
     }
   }`,
   deleteCompartitions: `mutation($args:inputCompartition){

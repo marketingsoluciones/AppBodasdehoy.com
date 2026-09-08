@@ -57,7 +57,7 @@ const ModalCompartirEventoStudio: FC<Props> = ({ event, onClose }) => {
     if (people.some((p) => (p?.email || "").toLowerCase() === em)) { toast("error", "Esa persona ya tiene acceso"); return; }
     setSaving(true);
     try {
-      const r: any = await fetchApiEventos({ query: queries.addCompartitions, variables: { args: { evento_id: event._id, usuario_id: em, permisos: SECCIONES.map((s) => ({ title: s.key, value: "view" })) } } });
+      const r: any = await fetchApiEventos({ query: queries.addCompartitions, variables: { evento_id: event._id, usuario_id: em, permisos: [], permissions: SECCIONES.map((s) => ({ title: s.key, value: "view" })) } });
       const evt = r?.evento;
       if (evt) mergeIntoGroup({ compartido_array: evt.compartido_array ?? evLive?.compartido_array, detalles_compartidos_array: evt.detalles_compartidos_array ?? evLive?.detalles_compartidos_array });
       setEmail("");
@@ -84,7 +84,7 @@ const ModalCompartirEventoStudio: FC<Props> = ({ event, onClose }) => {
     const permisos = SECCIONES.map((s) => ({ title: s.key, value: permState[s.key] || "none" }));
     mergeIntoGroup({ detalles_compartidos_array: people.map((x) => x.uid === p.uid ? { ...x, permissions: permisos } : x) });
     setPermTarget(null);
-    try { await fetchApiEventos({ query: queries.updateCompartitions, variables: { args: { evento_id: event._id, usuario_id: p.uid, permisos } } }); toast("success", "Permisos actualizados"); }
+    try { await fetchApiEventos({ query: queries.updateCompartitions, variables: { evento_id: event._id, usuario_id: p.uid, permisos: [], permissions: permisos } }); toast("success", "Permisos actualizados"); }
     catch (e) { console.warn("[Compartir] permisos:", (e as any)?.message ?? e); toast("error", "Ha ocurrido un error"); }
   };
 

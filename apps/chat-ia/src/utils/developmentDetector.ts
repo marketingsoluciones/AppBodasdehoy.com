@@ -110,7 +110,7 @@ const DOMAIN_TO_DEVELOPMENT: Record<string, string> = {
   
 
 
-'champagneevents.com': 'champagneevents',
+'champagne-events.com.mx': 'champagne-events',
   
 
 
@@ -166,7 +166,7 @@ const DOMAIN_TO_DEVELOPMENT: Record<string, string> = {
 'www.bodasdehoy.com': 'bodasdehoy',
 
   
-  'www.champagneevents.com': 'champagneevents',
+  'www.champagne-events.com.mx': 'champagne-events',
   'www.eventosorganizador.com': 'eventosorganizador',
 };
 
@@ -208,7 +208,7 @@ export function detectDevelopmentFromURL(): string | null {
   const PARENT_DOMAIN_MAP: Record<string, string> = {
     'annloevents.com': 'annloevents',
     'bodasdehoy.com': 'bodasdehoy',
-    'champagneevents.com': 'champagneevents',
+    'champagne-events.com.mx': 'champagne-events',
     'eventosorganizador.com': 'eventosorganizador',
   };
   for (const [parentDomain, dev] of Object.entries(PARENT_DOMAIN_MAP)) {
