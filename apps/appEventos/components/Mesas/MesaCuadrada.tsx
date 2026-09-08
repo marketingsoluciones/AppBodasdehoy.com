@@ -11,12 +11,13 @@ export const MesaCuadradaNew: FC<propsMesaCuadradra> = ({ table, invitados, setD
   const dec = parseInt(`${(`${(table?.numberChair / 4).toFixed(2)}`)}`.split(".")[1])
   const qwe = dec / 25
   const numberChairForSide = Math.ceil(table?.numberChair / 4)
-  // TODAS las mesas cuadradas tienen el MISMO lado; lo que cambia es cuántas sillas se
-  // reparten (más sillas = más juntas). Lado FIJO (no depende del nº de sillas). Por defecto
-  // 1 m; ajustable si la mesa trae `side` (en metros). Escala del lienzo: 100 px = 1 m.
+  // Lado por defecto 1 m (100 px = 1 m), ajustable con `side` (en metros). Pero se garantiza
+  // un lado MÍNIMO para que las sillas de cada lado quepan: al añadir muchas sillas la mesa
+  // crece un poco. Lado = max(lado pedido, sillas por lado · ancho de silla).
   const ladoM = (table as any)?.side && (table as any).side > 0 ? (table as any).side : 1
-  const size = ladoM * 100
-  // Unidad de espaciado interna derivada del lado FIJO (para que las sillas quepan en él).
+  const CHAIR_W = 34 // px por silla en un lado
+  const size = Math.max(ladoM * 100, numberChairForSide * CHAIR_W)
+  // Unidad de espaciado interna derivada del lado (para que las sillas quepan en él).
   const spaceChairsCalc = numberChairForSide > 0 ? size / numberChairForSide : size
 
   const idxsSide = { a: [], b: [], c: [], d: [] }

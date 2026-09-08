@@ -110,10 +110,10 @@ const ListInvitados: FC<propsListInvitados> = ({ editInv, setEditInv, setSelecte
             <div key={g._id} className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition">
               <img
                 className="w-7 h-7 rounded-full object-cover ring-1 ring-gray-200"
-                src={ImageProfile[g.sexo]?.image}
-                alt={ImageProfile[g.sexo]?.alt}
+                src={ImageProfile[g.sexo]?.image || "/profile_men.png"}
+                alt={ImageProfile[g.sexo]?.alt || "Invitado"}
               />
-              <span className="flex-1 min-w-0 font-display text-sm truncate text-gray-600">{g.nombre}</span>
+              <span className="flex-1 min-w-0 font-display text-sm truncate text-gray-600">{g?.nombre?.trim() ? g.nombre : t('companion', 'Acompañante')}</span>
               <span className="text-[10px] font-semibold text-[#EF5B94] bg-[#FCE7F0] px-2 py-0.5 rounded-md whitespace-nowrap">
                 {g.nombre_mesa ? `${g.nombre_mesa} · ` : ''}A{(g.chair ?? 0) + 1}
               </span>

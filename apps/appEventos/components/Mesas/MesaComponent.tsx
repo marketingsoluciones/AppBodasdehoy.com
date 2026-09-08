@@ -192,9 +192,11 @@ export interface propsTableType {
 }
 
 const MesaRedonda: FC<propsTableType> = ({ children, table, setShowFormEditar, disableDrag, spaceChairs }) => {
-  // Diámetro FIJO (por defecto 1 m = 100 px; ajustable con table.diameter), independiente del
-  // nº de sillas — mismas mesas del mismo tamaño, cambia cuántas sillas se reparten.
-  const adyacente = (((table as any)?.diameter && (table as any).diameter > 0 ? (table as any).diameter : 1) * 100) / 2
+  // Diámetro por defecto 1 m (ajustable con table.diameter) con radio mínimo para que las
+  // sillas no se solapen (más sillas = un poco más grande).
+  const baseR = (((table as any)?.diameter && (table as any).diameter > 0 ? (table as any).diameter : 1) * 100) / 2
+  const nChR = table?.numberChair || 0
+  const adyacente = Math.max(baseR, nChR > 2 ? (34 / 2) / Math.tan(Math.PI / nChR) : baseR)
   return (
     <>
       <div style={{ width: adyacente * 2, height: adyacente * 2 }} className="rounded-full transform bg-white shadow border border-gray-500 relative flex items-center justify-center">
@@ -206,8 +208,8 @@ const MesaRedonda: FC<propsTableType> = ({ children, table, setShowFormEditar, d
 };
 
 const MesaCuadrada: FC<propsTableType> = ({ children, table, setShowFormEditar, disableDrag, spaceChairs }) => {
-  // Lado FIJO (por defecto 1 m = 100 px; ajustable con table.side), independiente del nº de sillas.
-  const size = ((table as any)?.side && (table as any).side > 0 ? (table as any).side : 1) * 100
+  // Lado por defecto 1 m (ajustable con table.side) con lado mínimo para que las sillas quepan.
+  const size = Math.max(((table as any)?.side && (table as any).side > 0 ? (table as any).side : 1) * 100, Math.ceil((table?.numberChair || 0) / 4) * 34)
   return (
     <>
       <div style={{ width: size, height: size }} className="shadow border border-gray-500 relative bg-white flex items-center justify-center" >

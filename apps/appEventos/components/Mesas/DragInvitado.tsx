@@ -64,10 +64,12 @@ const DragInvitado = (props) => {
             }}>
             <img
               className="w-7 h-7 rounded-full mr-2 object-cover ring-1 ring-gray-200 text-gray-700"
-              src={ImageProfile[invitado.sexo]?.image}
-              alt={ImageProfile[invitado.sexo]?.alt}
+              src={ImageProfile[invitado.sexo]?.image || "/profile_men.png"}
+              alt={ImageProfile[invitado.sexo]?.alt || "Invitado"}
             />
-            <p className="w-full font-display text-sm truncate">{invitado?.nombre}</p>
+            {/* Acompañantes sin nombre (placeholders del nº de acompañantes del invitado):
+                mostrar una etiqueta con sentido en vez de quedar en blanco. */}
+            <p className="w-full font-display text-sm truncate">{invitado?.nombre?.trim() ? invitado.nombre : ((invitado as any)?.parentName ? `Acompañante de ${(invitado as any).parentName}` : "Acompañante")}</p>
           </span>
         </span>
       </div>
