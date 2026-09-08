@@ -85,6 +85,11 @@ function RightPanel() {
   const loginPrimaryColor = useMemo(() => {
     try { return getCurrentDevelopmentConfig().colors.primary || '#F7628C'; } catch { return '#F7628C'; }
   }, [development]);
+  // secondary de la marca = fin del gradiente del CTA (antes morado hardcode). Multimarca:
+  // bodasdehoy #D6497A, eventosorganizador #284C77, etc. (developments.ts theme.secondaryColor)
+  const loginSecondaryColor = useMemo(() => {
+    try { return getCurrentDevelopmentConfig().colors.secondary || loginPrimaryColor; } catch { return loginPrimaryColor; }
+  }, [development, loginPrimaryColor]);
   const redirectAfterLogin = searchParams.get('redirect') || null;
   const reason = searchParams.get('reason');
 
@@ -435,6 +440,7 @@ function RightPanel() {
       {contextHolder}
       <LoginForm
         primaryColor={loginPrimaryColor}
+        secondaryColor={loginSecondaryColor}
         onEmailLogin={handleEmailLogin}
         onFacebookLogin={handleFacebookLogin}
         onGoogleLogin={handleGoogleLogin}

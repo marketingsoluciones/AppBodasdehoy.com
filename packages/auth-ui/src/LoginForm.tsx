@@ -21,10 +21,18 @@ export interface LoginFormProps {
   sessionExpiredMessage?: string | null;
   /**
    * Color primario whitelabel (afecta CTA primario + acentos del hint
-   * auto-sugerir provider). Default rosa-violeta Bodas de Hoy (#A93E8C).
+   * auto-sugerir provider). Default rosa Bodas de Hoy (#F7628C).
    * Multimarca: cada whitelabel pasa su color desde el config.
    */
   primaryColor?: string;
+  /**
+   * Color secundario whitelabel = fin del gradiente del CTA primario.
+   * Default = tono oscuro de marca Bodas de Hoy (#D6497A). Multimarca: cada
+   * whitelabel pasa su secondary desde el config (p.ej. eventosorganizador azul
+   * #6096B9→#284C77). Antes el CTA tenía un gradiente rosa→MORADO hardcodeado
+   * (#ec4899→#a855f7) igual para toda marca; ahora lo pinta el color de la marca.
+   */
+  secondaryColor?: string;
   /**
    * Si false, oculta el hint "Detectamos cuenta Gmail" tras el email.
    * Default true. Multimarca: whitelabels que prefieren login uniforme
@@ -117,8 +125,8 @@ const s = {
     textAlign: 'right' as const,
     width: '100%',
   },
-  btnPrimary: (loading: boolean) => ({
-    background: loading ? '#f0f0f0' : 'linear-gradient(90deg, #ec4899, #a855f7)',
+  btnPrimary: (loading: boolean, primary = '#F7628C', secondary = '#D6497A') => ({
+    background: loading ? '#f0f0f0' : `linear-gradient(90deg, ${primary}, ${secondary})`,
     border: 'none',
     borderRadius: 8,
     color: loading ? '#8c8c8c' : 'white',
@@ -197,7 +205,8 @@ export function LoginForm({
   onRegister,
   error: externalError,
   sessionExpiredMessage,
-  primaryColor = '#A93E8C',
+  primaryColor = '#F7628C',
+  secondaryColor = '#D6497A',
   enableProviderHint = true,
 }: LoginFormProps) {
   // QA 10-ago: los inputs email/password eran CONTROLADOS (`value={state}`). Un re-render
@@ -427,12 +436,12 @@ export function LoginForm({
         </div>
 
         {onForgotPassword && (
-          <button onClick={onForgotPassword} style={s.forgotLink} type="button">
+          <button onClick={onForgotPassword} style={{ ...s.forgotLink, color: primaryColor }} type="button">
             ¿Olvidaste tu contraseña?
           </button>
         )}
 
-        <button disabled={anyLoading} style={s.btnPrimary(loading)} type="submit">
+        <button disabled={anyLoading} style={s.btnPrimary(loading, primaryColor, secondaryColor)} type="submit">
           {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
         </button>
       </form>
@@ -441,7 +450,7 @@ export function LoginForm({
       {onRegister && (
         <div style={s.registerRow}>
           ¿No tienes cuenta?{' '}
-          <button onClick={onRegister} style={s.registerLink} type="button">
+          <button onClick={onRegister} style={{ ...s.registerLink, color: primaryColor }} type="button">
             Crear cuenta gratis
           </button>
         </div>
