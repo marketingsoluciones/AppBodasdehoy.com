@@ -386,13 +386,13 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                         : <div style={{ font: "600 13.5px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={g.nombre}>{g.nombre}</div>,
                       unidad: iEd("unidad")
                         ? <select autoFocus value={itemEdit!.val} onChange={(e) => setItemEdit({ key, field: "unidad", val: e.target.value })} onBlur={() => saveItem(c, g, it, "unidad")} onKeyDown={itemKD("unidad")} style={{ ...editInput, padding: "4px 4px", textAlign: "center" }}>{UNIDADES.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-                        : <span onClick={canEditItem ? () => openItem("unidad", it?.unidad || "xUni.") : undefined} style={{ font: "500 12.5px Poppins", color: "#6b6b72", cursor: canEditItem ? "pointer" : "default" }}>{it?.unidad || "—"}</span>,
+                        : <span style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{it?.unidad || "—"}</span>,
                       cantidad: iEd("cantidad")
                         ? <input autoFocus value={itemEdit!.val} onChange={(e) => setItemEdit({ key, field: "cantidad", val: e.target.value })} onBlur={() => saveItem(c, g, it, "cantidad")} onKeyDown={itemKD("cantidad")} style={{ ...editInput, textAlign: "center" }} />
-                        : <span onClick={(canEditItem && (!it || it?.unidad === "xUni.")) ? () => openItem("cantidad", String(it?.cantidad ?? 1)) : undefined} title={(it && it.unidad !== "xUni." && it.unidad) ? t("Derivada del nº de invitados", { defaultValue: "Derivada del nº de invitados" }) as string : undefined} style={{ font: "500 12.5px Poppins", color: "#6b6b72", cursor: (canEditItem && (!it || it?.unidad === "xUni.")) ? "text" : "default" }}>{it ? (effCantidad(it) ?? "—") : "—"}</span>,
+                        : <span title={(it && it.unidad !== "xUni." && it.unidad) ? t("Derivada del nº de invitados", { defaultValue: "Derivada del nº de invitados" }) as string : undefined} style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{it ? (effCantidad(it) ?? "—") : "—"}</span>,
                       valor: iEd("valor")
                         ? <input autoFocus value={itemEdit!.val} onChange={(e) => setItemEdit({ key, field: "valor", val: e.target.value })} onBlur={() => saveItem(c, g, it, "valor")} onKeyDown={itemKD("valor")} style={{ ...editInput, textAlign: "center" }} />
-                        : <span onClick={canEditItem ? () => openItem("valor", String(it?.valor_unitario ?? 0)) : undefined} style={{ font: "500 12.5px Poppins", color: "#6b6b72", cursor: canEditItem ? "text" : "default" }}>{it ? getCurrency(it.valor_unitario || 0, cur) : "—"}</span>,
+                        : <span style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{it ? getCurrency(it.valor_unitario || 0, cur) : "—"}</span>,
                       coste: (editing && !hasItems)
                         ? <input value={editVals.coste_final} onChange={(e) => setEditVals((v) => ({ ...v, coste_final: e.target.value }))} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveEdit(c, g); } else if (e.key === "Escape") setEditRow(null); }} style={{ ...editInput, textAlign: "right" }} />
                         : <span title={hasItems ? t("Suma de las partidas (cantidad × valor)", { defaultValue: "Suma de las partidas (cantidad × valor)" }) as string : undefined} style={{ font: "700 12.5px Poppins", color: "#3A3A42" }}>{getCurrency(ct, cur)}</span>,
@@ -435,7 +435,13 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                         <div className="pd-row" style={{ display: "grid", gridTemplateColumns: gridTemplate, gap: 8, alignItems: "center", padding: "11px 20px 11px 22px", borderBottom: payOpen[key] ? "none" : "1px solid #f4f4f6" }}>
                           {visibleCols.map((col) => {
                             const editable = !editing && (col.key === "partida" || (col.key === "coste" && !hasItems) || col.key === "estimado");
-                            return <div key={col.key} onClick={editable ? () => startEdit(c, g, key) : undefined} style={{ ...cellStyle(col.align), ...(editable ? { cursor: "text" } : {}) }}>{render[col.key]}</div>;
+                            // Columnas de item: TODA la celda clicable (no solo el "—" diminuto). La cantidad
+                            // solo si aún no hay item o la unidad es "xUni." (el resto se deriva de invitados).
+                            const itemField = (col.key === "unidad" || col.key === "cantidad" || col.key === "valor") ? (col.key as "unidad" | "cantidad" | "valor") : null;
+                            const itemClickable = !editing && !!itemField && canEditItem && !iEd(itemField) && (itemField !== "cantidad" || !it || it?.unidad === "xUni.");
+                            const itemDef = itemField === "unidad" ? (it?.unidad || "xUni.") : itemField === "cantidad" ? String(it?.cantidad ?? 1) : String(it?.valor_unitario ?? 0);
+                            const onClick = editable ? () => startEdit(c, g, key) : itemClickable ? () => openItem(itemField as "unidad" | "cantidad" | "valor", itemDef) : undefined;
+                            return <div key={col.key} onClick={onClick} style={{ ...cellStyle(col.align), ...((editable || itemClickable) ? { cursor: itemField === "unidad" ? "pointer" : "text" } : {}) }}>{render[col.key]}</div>;
                           })}
                         </div>
                         {payOpen[key] && (() => {
