@@ -171,16 +171,25 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
     if (!it?._id) {
       // Sin item aún: crear uno con el valor editado (+ defaults). El backend calcula coste_final
       // = cantidad × valor. Así el "coste real" queda automático.
-      const base: any = { unidad: "xUni.", cantidad: 1, valor_unitario: g.coste_final || 0 };
+      // Payload COMPLETO (idéntico a la vista legacy handleCreateItem/tableBudgetV8): el backend
+      // exige nombre/total/estatus; con un item parcial devuelve success:false y NO persiste.
+      const base: any = { nombre: g.nombre || t("Item", { defaultValue: "Item" }), cantidad: 1, valor_unitario: g.coste_final || 0, total: g.coste_final || 0, unidad: "xUni.", estatus: false };
       base[variable] = valor;
-      try { applyPO(await fetchApiEventos({ query: queries.nuevoItemGasto, variables: { evento_id: event._id, categoria_id: c._id, gasto_id: g._id, itemGasto: base } })); setHintOff(true); toast("success", t("Cambios guardados")); }
-      catch { toast("error", t("Ha ocurrido un error")); }
+      base.total = (Number(base.cantidad) || 0) * (Number(base.valor_unitario) || 0);
+      try {
+        const res: any = await fetchApiEventos({ query: queries.nuevoItemGasto, variables: { evento_id: event._id, categoria_id: c._id, gasto_id: g._id, itemGasto: base } });
+        if (res?.success === false) { toast("error", res?.errors?.[0]?.message || t("No se pudo guardar")); return; }
+        applyPO(res); setHintOff(true); toast("success", t("Cambios guardados"));
+      } catch { toast("error", t("Ha ocurrido un error")); }
       return;
     }
     const current = field === "valor" ? (it.valor_unitario || 0) : field === "cantidad" ? (it.cantidad || 0) : (it.unidad || "");
     if (String(valor) === String(current)) return;
-    try { applyPO(await fetchApiEventos({ query: queries.editItemGasto, variables: { evento_id: event._id, categoria_id: c._id, gasto_id: g._id, itemGasto_id: it._id, variable, valor } })); setHintOff(true); toast("success", t("Cambios guardados")); }
-    catch { toast("error", t("Ha ocurrido un error")); }
+    try {
+      const res: any = await fetchApiEventos({ query: queries.editItemGasto, variables: { evento_id: event._id, categoria_id: c._id, gasto_id: g._id, itemGasto_id: it._id, variable, valor } });
+      if (res?.success === false) { toast("error", res?.errors?.[0]?.message || t("No se pudo guardar")); return; }
+      applyPO(res); setHintOff(true); toast("success", t("Cambios guardados"));
+    } catch { toast("error", t("Ha ocurrido un error")); }
   };
 
   // Borrado diferido con "Deshacer": ocultamos la entidad ~6s y solo entonces confirmamos en backend.
@@ -259,11 +268,15 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
       let last: any = null;
       for (const [variable, valor] of changes) {
         last = await fetchApiEventos({ query: queries.editGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, variable_reemplazar: variable, valor_reemplazar: valor } });
+        if (last?.success === false) { toast("error", last?.errors?.[0]?.message || t("No se pudo guardar")); return; }
       }
       // Item (unidad/cantidad/valor): crear si no hay, editar si hay (solo con 0/1 items).
       if (singleI) {
         if (!it0?._id && willHaveItem) {
-          last = await fetchApiEventos({ query: queries.nuevoItemGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, itemGasto: { unidad: uni, cantidad: cant || 1, valor_unitario: val } } });
+          // Payload COMPLETO (idéntico a la vista legacy): el backend exige nombre/total/estatus;
+          // con un item parcial devuelve success:false y NO persiste (F5 borra lo "guardado").
+          last = await fetchApiEventos({ query: queries.nuevoItemGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, itemGasto: { nombre: g.nombre || t("Item", { defaultValue: "Item" }), cantidad: cant || 1, valor_unitario: val, total: (cant || 1) * val, unidad: uni, estatus: false } } });
+          if (last?.success === false) { toast("error", last?.errors?.[0]?.message || t("No se pudo guardar")); return; }
         } else if (it0?._id) {
           const iChanges: [string, any][] = [];
           if (uni !== (it0.unidad || "")) iChanges.push(["unidad", uni]);
@@ -271,6 +284,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
           if (val !== (it0.valor_unitario || 0)) iChanges.push(["valor_unitario", val]);
           for (const [variable, valor] of iChanges) {
             last = await fetchApiEventos({ query: queries.editItemGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, itemGasto_id: it0._id, variable, valor } });
+            if (last?.success === false) { toast("error", last?.errors?.[0]?.message || t("No se pudo guardar")); return; }
           }
         }
       }

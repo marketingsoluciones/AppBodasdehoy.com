@@ -81,7 +81,7 @@ const ModalAddPagoStudio: FC<Props> = ({ categoriaId, gastoId, onClose, pago }) 
       const result: any = editing
         ? await fetchApiEventos({ query: queries.editPago, variables: { evento_id: event._id, categoria_id: categoriaId, gasto_id: gastoId, pago_id: pago._id, pagos_array: [pagoObj] } })
         : await fetchApiEventos({ query: queries.nuevoPago, variables: { evento_id: event._id, categoria_id: categoriaId, gasto_id: gastoId, pagos_array: [pagoObj] } });
-      if (result?.success === false && result?.errors?.length) { toast("error", t("Ha ocurrido un error")); setSaving(false); return; }
+      if (result?.success === false) { toast("error", result?.errors?.[0]?.message || t("No se pudo guardar el pago")); setSaving(false); return; }
       // Defensivo: parsear si presupuesto_objeto viene como String JSON y solo aplicar si trae
       // categorias_array (evita guardar un string y dejar la tabla sin datos → "pago no se refleja").
       let po = result?.evento?.presupuesto_objeto;
