@@ -1160,7 +1160,10 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
       const pago = pagos[0] ?? v.pago ?? {};
       return { evento_id: v.evento_id, gasto_id: v.gasto_id, pago };
     },
-    mapResponse: (p) => p,
+    // presupuestoSuperset PARSEA presupuesto_objeto (api-mcp lo devuelve como String JSON). Antes
+    // era (p)=>p → el consumer guardaba un string en event.presupuesto_objeto → la tabla se quedaba
+    // sin categorias_array y el pago "no se reflejaba". Ahora idéntico a nuevoItemGasto/editItemGasto.
+    mapResponse: (p) => presupuestoSuperset(p),
   },
   editPago: {
     canonicalQuery: `mutation($evento_id:ID!,$gasto_id:ID!,$pago_id:ID!,$datos:JSON!){
@@ -1175,7 +1178,7 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
       const datos = pagos[0] ?? v.datos ?? {};
       return { evento_id: v.evento_id, gasto_id: v.gasto_id, pago_id: v.pago_id, datos };
     },
-    mapResponse: (p) => p,
+    mapResponse: (p) => presupuestoSuperset(p),
   },
 
   // ────── borraItemsGastos: rename itemsGastos_ids→items_ids, drop categoria_id ──────

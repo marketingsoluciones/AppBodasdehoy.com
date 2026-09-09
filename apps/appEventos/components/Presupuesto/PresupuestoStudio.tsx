@@ -51,26 +51,36 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
   const cur = p.currency;
   const cats = Array.isArray(categorias) ? categorias : [];
 
+  // COSTE REAL derivado de los items (Σ cantidad_efectiva × valor_unitario) — igual que la tabla
+  // detallada (PresupuestoDetalladoStudio). api-mcp no siempre recalcula coste_final al editar items,
+  // así que el resumen/donut también lo calculan desde items para no quedar desincronizados en 0.
+  const stGuests = p?.totalStimatedGuests || {};
+  const effCant = (it: any) => !it ? 0 : it.unidad === "xUni." ? (it.cantidad || 0) : it.unidad === "xNiños." ? (stGuests.children || 0) : it.unidad === "xAdultos." ? (stGuests.adults || 0) : ((stGuests.children || 0) + (stGuests.adults || 0));
+  const costeRealGasto = (g: any) => { const items = (g?.items_array || []); return items.length ? items.reduce((a: number, it: any) => a + effCant(it) * (it?.valor_unitario || 0), 0) : (g?.coste_final || 0); };
+  const costeRealCat = (c: any) => (c?.gastos_array || []).filter((g: any) => g?.estatus !== false).reduce((s: number, g: any) => s + costeRealGasto(g), 0);
+  const pagadoCat = (c: any) => (c?.gastos_array || []).filter((g: any) => g?.estatus !== false).reduce((s: number, g: any) => s + (g?.pagado || 0), 0);
+
   const { total, pagado, costeFinal, porPagar, disponible, paidW, dueW, catsActive, catsZero, sumEst, sumFinal } = useMemo(() => {
     const total = typeof p.presupuesto_total === "number" ? p.presupuesto_total : (p.coste_estimado || 0);
-    const pagado = p.pagado || 0;
-    const costeFinal = p.coste_final || 0;
+    const costeFinal = cats.reduce((s, c) => s + costeRealCat(c), 0);
+    const pagado = cats.reduce((s, c) => s + pagadoCat(c), 0);
     const porPagar = Math.max(0, costeFinal - pagado);
     const disponible = total - costeFinal;
     const paidW = total > 0 ? Math.min(100, (pagado / total) * 100) : 0;
     const dueW = total > 0 ? Math.min(100 - paidW, (porPagar / total) * 100) : 0;
-    const active = cats.filter((c) => (c.coste_final || 0) > 0 || (c.coste_estimado || 0) > 0);
-    const zero = cats.filter((c) => !((c.coste_final || 0) > 0 || (c.coste_estimado || 0) > 0));
+    const active = cats.filter((c) => costeRealCat(c) > 0 || (c.coste_estimado || 0) > 0);
+    const zero = cats.filter((c) => !(costeRealCat(c) > 0 || (c.coste_estimado || 0) > 0));
     const sumEst = cats.reduce((s, c) => s + (c.coste_estimado || 0), 0);
-    const sumFinal = cats.reduce((s, c) => s + (c.coste_final || 0), 0);
+    const sumFinal = costeFinal;
     return { total, pagado, costeFinal, porPagar, disponible, paidW, dueW, catsActive: active, catsZero: zero, sumEst, sumFinal };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p, cats]);
 
   // Donut "¿Cuánto cuesta mi evento?" — distribución del gasto real (coste_final) por categoría.
   const donut = useMemo(() => {
     const COLORS = ["#EF5B94", "#5FBE8E", "#F4A26B", "#5EC0C4", "#8E8CE0", "#C58BD8", "#E7C24B", "#7BC67E", "#F0885A", "#6AA9E0", "#E0728F", "#9BD07B"];
     const CIRC = 490.09; // 2·π·78
-    const data = cats.filter((c) => (c.coste_final || 0) > 0).map((c) => ({ nombre: c.nombre, val: c.coste_final || 0 })).sort((a, b) => b.val - a.val);
+    const data = cats.map((c) => ({ nombre: c.nombre, val: costeRealCat(c) })).filter((d) => d.val > 0).sort((a, b) => b.val - a.val);
     const totalG = data.reduce((s, d) => s + d.val, 0);
     let off = 0;
     const segs = data.map((d, i) => {
@@ -223,7 +233,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
 
   const catRow = (c: any, faded = false) => {
     const est = c.coste_estimado || 0;
-    const fin = c.coste_final || 0;
+    const fin = costeRealCat(c);
     const barW = est > 0 ? Math.min(100, (fin / est) * 100) : (fin > 0 ? 100 : 0);
     const stColor = fin === 0 ? "#d6d6dc" : fin > est ? "#D83E7C" : "#2FB37E";
     const stTitle = fin === 0 ? t("Sin gasto") : fin > est ? t("Excedido") : t("Dentro del estimado");
@@ -247,8 +257,8 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
     const selCat = (cats || []).find((c: any) => c._id === showCategoria._id);
     if (!selCat) return null;
     const rows = (selCat.gastos_array || []).filter((g: any) => g?.estatus !== false);
-    const selTot = selCat.coste_final || 0;
-    const selPag = selCat.pagado || 0;
+    const selTot = costeRealCat(selCat);
+    const selPag = pagadoCat(selCat);
     const selPen = Math.max(0, selTot - selPag);
     const GRID = "minmax(110px,1.3fr) 74px 72px 74px";
     return (
@@ -266,7 +276,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
           </div>
           {rows.length === 0 && <div style={{ padding: "22px 16px", textAlign: "center", font: "500 12px Poppins", color: "#a0a0a8" }}>{t("Sin partidas todavía", { defaultValue: "Sin partidas todavía" })}</div>}
           {rows.map((g: any, i: number) => {
-            const tot = g.coste_final || 0; const pag = g.pagado || 0; const pen = Math.max(0, tot - pag);
+            const tot = costeRealGasto(g); const pag = g.pagado || 0; const pen = Math.max(0, tot - pag);
             return (
               <div key={g._id || i} className="ps-row" style={{ display: "grid", gridTemplateColumns: GRID, gap: 6, alignItems: "center", padding: "12px 16px", borderBottom: "1px solid #f4f4f6" }}>
                 <div style={{ font: "500 12.5px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={g.nombre}>{g.nombre}</div>
@@ -437,7 +447,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
                   <div style={{ font: "700 15px Poppins", color: "#3A3A42", whiteSpace: "nowrap" }}>{t("¿Cómo va tu presupuesto?", { defaultValue: "¿Cómo va tu presupuesto?" })}</div>
                 </div>
                 {(() => {
-                  const over = (cats || []).filter((c: any) => (c.coste_final || 0) > (c.coste_estimado || 0) && (c.coste_estimado || 0) > 0);
+                  const over = (cats || []).filter((c: any) => costeRealCat(c) > (c.coste_estimado || 0) && (c.coste_estimado || 0) > 0);
                   if (!over.length) return null;
                   const txt = over.length === 1
                     ? `${t("Atención:", { defaultValue: "Atención:" })} ${cap1(over[0].nombre)} ${t("supera su estimado", { defaultValue: "supera su estimado" })}`

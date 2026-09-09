@@ -88,10 +88,19 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
   const visibleCols = ALL_COLS.filter((c) => columnConfig[COLMAP[c.key]]?.visible !== false);
   const gridTemplate = visibleCols.map((c) => c.w).join(" ");
 
+  // COSTE REAL: si la partida tiene items, se DERIVA de ellos (Σ cantidad_efectiva × valor_unitario).
+  // api-mcp no siempre recalcula coste_final al crear/editar un item, así que la tabla lo calcula desde
+  // los items (que sí se persisten). Sin items → coste_final manual. UNIDADES: 'xUni.' = cantidad manual;
+  // el resto se deriva del nº de invitados estimados (misma regla que ExcelView).
+  const stGuests = event?.presupuesto_objeto?.totalStimatedGuests || {};
+  const effCantidad = (it: any) => !it ? undefined : it.unidad === "xUni." ? it.cantidad : it.unidad === "xNiños." ? (stGuests.children || 0) : it.unidad === "xAdultos." ? (stGuests.adults || 0) : ((stGuests.children || 0) + (stGuests.adults || 0));
+  const costeRealOf = (g: any) => { const items = (g?.items_array || []); return items.length ? items.reduce((a: number, it: any) => a + (effCantidad(it) ?? 0) * (it?.valor_unitario || 0), 0) : (g?.coste_final || 0); };
+
   const totals = useMemo(() => {
     let tot = 0, pag = 0, est = 0, nP = 0;
-    cats.forEach((c) => (c.gastos_array || []).filter((g: any) => g?.estatus !== false).forEach((g: any) => { tot += g.coste_final || 0; pag += g.pagado || 0; est += g.coste_estimado || 0; nP++; }));
+    cats.forEach((c) => (c.gastos_array || []).filter((g: any) => g?.estatus !== false).forEach((g: any) => { tot += costeRealOf(g); pag += g.pagado || 0; est += g.coste_estimado || 0; nP++; }));
     return { tot, pag, est, pen: tot - pag, nCat: cats.length, nPart: nP };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cats]);
   const tableTotals = { estimado: totals.est, total: totals.tot, pagado: totals.pag };
   const rmin = parseEs(filters.amountRange.min), rmax = parseEs(filters.amountRange.max);
@@ -103,13 +112,13 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
     const catMatch = String(c.nombre || "").toLowerCase().includes(ql);
     let gastos = (c.gastos_array || []).filter((g: any) => filters.visibilityStatus === "hidden" ? g?.estatus === false : g?.estatus !== false);
     gastos = gastos.filter((g: any) => {
-      const ct = g.coste_final || 0, pag = g.pagado || 0, pen = ct - pag;
+      const ct = costeRealOf(g), pag = g.pagado || 0, pen = ct - pag;
       if (filters.paymentStatus === "paid") return ct > 0 && pen <= 0;
       if (filters.paymentStatus === "pending") return pen > 0 && pag <= 0;
       if (filters.paymentStatus === "partial") return pag > 0 && pen > 0;
       return true;
     });
-    gastos = gastos.filter((g: any) => { const ct = g.coste_final || 0; if (filters.amountRange.min && ct < rmin) return false; if (filters.amountRange.max && ct > rmax) return false; return true; });
+    gastos = gastos.filter((g: any) => { const ct = costeRealOf(g); if (filters.amountRange.min && ct < rmin) return false; if (filters.amountRange.max && ct > rmax) return false; return true; });
     gastos = gastos.filter((g: any) => !ql || catMatch || String(g.nombre || "").toLowerCase().includes(ql));
     return { c, gastos };
   }).filter((x) => x.gastos.length > 0 || (!ql && noFilters));
@@ -121,7 +130,13 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
 
   const allOpen = cats.every((c) => isOpen(c._id));
   const toggleAll = () => { const next: Record<string, boolean> = {}; cats.forEach((c) => (next[c._id] = !allOpen)); setOpen(next); };
-  const applyPO = (result: any) => { const po = result?.evento?.presupuesto_objeto; if (po) setEvent((prev: any) => ({ ...prev, presupuesto_objeto: po })); };
+  // Aplica el presupuesto_objeto devuelto por una mutación. Defensivo: parsea si viene como String
+  // JSON (escalar api-mcp) y solo aplica si trae categorias_array (nunca machaca la tabla con {} vacío).
+  const applyPO = (result: any) => {
+    let po = result?.evento?.presupuesto_objeto;
+    if (typeof po === "string") { try { po = JSON.parse(po); } catch { po = null; } }
+    if (po && Array.isArray(po.categorias_array)) setEvent((prev: any) => ({ ...prev, presupuesto_objeto: po }));
+  };
 
   // "Editar en Gastos": aterrizar con SOLO esa categoría abierta y su fila resaltada 4s.
   useEffect(() => {
@@ -148,8 +163,6 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
   // presupuesto_objeto, así que NO recalculamos a mano. Regla de negocio (idéntica a ExcelView):
   // 'xUni.' = cantidad manual; el resto se deriva del nº de invitados estimados.
   const UNIDADES = ["xUni.", "xNiños.", "xAdultos.", "xInvitados."];
-  const stGuests = event?.presupuesto_objeto?.totalStimatedGuests || {};
-  const effCantidad = (it: any) => !it ? undefined : it.unidad === "xUni." ? it.cantidad : it.unidad === "xNiños." ? (stGuests.children || 0) : it.unidad === "xAdultos." ? (stGuests.adults || 0) : ((stGuests.children || 0) + (stGuests.adults || 0));
   const saveItem = async (c: any, g: any, it: any, field: "unidad" | "cantidad" | "valor") => {
     const raw = itemEdit?.val ?? "";
     setItemEdit(null);
@@ -392,7 +405,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
             {filteredVis.length === 0 && <div style={{ padding: "34px 22px", textAlign: "center", font: "500 12.5px Poppins", color: "#a0a0a8" }}>{t("Sin resultados")}</div>}
 
             {filteredVis.map(({ c, gastos }) => {
-              const tot = gastos.reduce((a: number, g: any) => a + (g.coste_final || 0), 0);
+              const tot = gastos.reduce((a: number, g: any) => a + costeRealOf(g), 0);
               const abierto = ql ? true : isOpen(c._id);
               return (
                 <div key={c._id}>
@@ -424,7 +437,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                   </div>
                   {abierto && gastos.map((g: any) => {
                     const it = (g.items_array || [])[0];
-                    const ct = g.coste_final || 0, pag = g.pagado || 0, pen = ct - pag;
+                    const ct = costeRealOf(g), pag = g.pagado || 0, pen = ct - pag;
                     const key = c._id + "|" + g._id;
                     const editing = editRow === key;
                     const items = (g.items_array || []);

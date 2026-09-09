@@ -82,8 +82,26 @@ const ModalAddPagoStudio: FC<Props> = ({ categoriaId, gastoId, onClose, pago }) 
         ? await fetchApiEventos({ query: queries.editPago, variables: { evento_id: event._id, categoria_id: categoriaId, gasto_id: gastoId, pago_id: pago._id, pagos_array: [pagoObj] } })
         : await fetchApiEventos({ query: queries.nuevoPago, variables: { evento_id: event._id, categoria_id: categoriaId, gasto_id: gastoId, pagos_array: [pagoObj] } });
       if (result?.success === false && result?.errors?.length) { toast("error", t("Ha ocurrido un error")); setSaving(false); return; }
-      const po = result?.evento?.presupuesto_objeto;
-      if (po) setEvent((prev: any) => ({ ...prev, presupuesto_objeto: po }));
+      // Defensivo: parsear si presupuesto_objeto viene como String JSON y solo aplicar si trae
+      // categorias_array (evita guardar un string y dejar la tabla sin datos → "pago no se refleja").
+      let po = result?.evento?.presupuesto_objeto;
+      if (typeof po === "string") { try { po = JSON.parse(po); } catch { po = null; } }
+      let applied = false;
+      if (po && Array.isArray(po.categorias_array)) { setEvent((prev: any) => ({ ...prev, presupuesto_objeto: po })); applied = true; }
+      // Refuerzo optimista: si el backend NO devolvió un presupuesto_objeto usable, reflejamos el pago
+      // en la tabla localmente (añadir a pagos_array y sumar a 'pagado' si es un pago realizado). Solo
+      // para pago nuevo; en edición dejamos que mande el backend.
+      if (!applied && !editing) {
+        setEvent((prev: any) => {
+          const p0 = prev?.presupuesto_objeto; if (!p0) return prev;
+          return { ...prev, presupuesto_objeto: { ...p0,
+            categorias_array: (p0.categorias_array || []).map((cc: any) => cc._id !== categoriaId ? cc : ({ ...cc,
+              gastos_array: (cc.gastos_array || []).map((gg: any) => gg._id !== gastoId ? gg : ({ ...gg,
+                pagos_array: [ ...(gg.pagos_array || []), pagoObj ],
+                pagado: (gg.pagado || 0) + (esPago ? imp : 0),
+              })) })) } };
+        });
+      }
       toast("success", editing ? t("Pago actualizado") : esPago ? t("Pago registrado") : t("Próximo pago programado"));
       onClose();
     } catch (e) {
