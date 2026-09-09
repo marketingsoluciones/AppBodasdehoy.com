@@ -957,16 +957,21 @@ export const CopilotEmbed = ({
   // Auto-envío del prompt pendiente (p. ej. "Generar con IA" del presupuesto): al montar el
   // copilot con un autoSendMessage, se envía UNA sola vez tras un respiro para que la sesión
   // esté lista. Los invitados no auto-generan. onAutoSent limpia el pendiente en el contexto.
+  // IMPORTANTE: handleSend va por REF (no en deps) — cambia de identidad al cargar el historial
+  // y, si estuviera en deps, el cleanup cancelaba el timer antes de enviar → no se enviaba.
   const autoSentRef = useRef(false);
+  const handleSendRef = useRef(handleSend);
+  useEffect(() => { handleSendRef.current = handleSend; }, [handleSend]);
   useEffect(() => {
     if (!autoSendMessage || autoSentRef.current || isGuest) return;
-    autoSentRef.current = true;
     const timer = setTimeout(() => {
-      try { handleSend(autoSendMessage); } catch { /* noop */ }
+      if (autoSentRef.current) return;
+      autoSentRef.current = true;
+      try { handleSendRef.current(autoSendMessage); } catch { /* noop */ }
       onAutoSent?.();
-    }, 600);
+    }, 700);
     return () => clearTimeout(timer);
-  }, [autoSendMessage, isGuest, handleSend, onAutoSent]);
+  }, [autoSendMessage, isGuest, onAutoSent]);
 
   // Interceptar clicks en links markdown internos
   const messageListRef = useRef<HTMLDivElement>(null);
