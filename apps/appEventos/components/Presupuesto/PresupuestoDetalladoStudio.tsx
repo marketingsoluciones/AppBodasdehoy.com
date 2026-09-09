@@ -365,7 +365,20 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                     const hasItems = items.length > 0;                 // con items: coste = Σ(cant×valor), derivado (no editable a mano)
                     const singleItem = items.length === 1;             // solo la fila única representa fielmente su item
                     const iEd = (f: string) => itemEdit?.key === key && itemEdit?.field === f;
-                    const openItem = (f: "unidad" | "cantidad" | "valor", v: string) => { if (!isAllowed()) { ht(); return; } setEditRow(null); setMenuAt(null); setHintOff(true); setItemEdit({ key, field: f, val: v }); };
+                    // Editable si la partida tiene 0 o 1 items (0 → se crea uno por defecto al editar).
+                    // Con 2+ items la fila resumen no representa uno solo → no editable aquí.
+                    const canEditItem = !hasItems || singleItem;
+                    const openItem = async (f: "unidad" | "cantidad" | "valor", v: string) => {
+                      if (!isAllowed()) { ht(); return; }
+                      setEditRow(null); setMenuAt(null); setHintOff(true);
+                      if (!it?._id) {
+                        // Sin item aún: crear uno por defecto (xUni., 1, valor = coste actual) para poder
+                        // editar unidad/cantidad/valor como pide el usuario. El backend recalcula el coste.
+                        try { applyPO(await fetchApiEventos({ query: queries.nuevoItemGasto, variables: { evento_id: event._id, categoria_id: c._id, gasto_id: g._id, itemGasto: { unidad: "xUni.", cantidad: 1, valor_unitario: g.coste_final || 0 } } })); }
+                        catch { toast("error", t("Ha ocurrido un error")); return; }
+                      }
+                      setItemEdit({ key, field: f, val: v });
+                    };
                     const itemKD = (f: "unidad" | "cantidad" | "valor") => (e: any) => { if (e.key === "Enter") { e.preventDefault(); saveItem(c, g, it, f); } else if (e.key === "Escape") setItemEdit(null); };
                     const render: Record<string, any> = {
                       partida: editing
@@ -373,20 +386,20 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                         : <div style={{ font: "600 13.5px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={g.nombre}>{g.nombre}</div>,
                       unidad: iEd("unidad")
                         ? <select autoFocus value={itemEdit!.val} onChange={(e) => setItemEdit({ key, field: "unidad", val: e.target.value })} onBlur={() => saveItem(c, g, it, "unidad")} onKeyDown={itemKD("unidad")} style={{ ...editInput, padding: "4px 4px", textAlign: "center" }}>{UNIDADES.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-                        : <span onClick={singleItem ? () => openItem("unidad", it?.unidad || "xUni.") : undefined} style={{ font: "500 12.5px Poppins", color: "#6b6b72", cursor: singleItem ? "pointer" : "default" }}>{it?.unidad || "—"}</span>,
+                        : <span onClick={canEditItem ? () => openItem("unidad", it?.unidad || "xUni.") : undefined} style={{ font: "500 12.5px Poppins", color: "#6b6b72", cursor: canEditItem ? "pointer" : "default" }}>{it?.unidad || "—"}</span>,
                       cantidad: iEd("cantidad")
                         ? <input autoFocus value={itemEdit!.val} onChange={(e) => setItemEdit({ key, field: "cantidad", val: e.target.value })} onBlur={() => saveItem(c, g, it, "cantidad")} onKeyDown={itemKD("cantidad")} style={{ ...editInput, textAlign: "center" }} />
-                        : <span onClick={(singleItem && it?.unidad === "xUni.") ? () => openItem("cantidad", String(it?.cantidad ?? 0)) : undefined} title={(it && it.unidad !== "xUni." && it.unidad) ? t("Derivada del nº de invitados", { defaultValue: "Derivada del nº de invitados" }) as string : undefined} style={{ font: "500 12.5px Poppins", color: "#6b6b72", cursor: (singleItem && it?.unidad === "xUni.") ? "text" : "default" }}>{it ? (effCantidad(it) ?? "—") : "—"}</span>,
+                        : <span onClick={(canEditItem && (!it || it?.unidad === "xUni.")) ? () => openItem("cantidad", String(it?.cantidad ?? 1)) : undefined} title={(it && it.unidad !== "xUni." && it.unidad) ? t("Derivada del nº de invitados", { defaultValue: "Derivada del nº de invitados" }) as string : undefined} style={{ font: "500 12.5px Poppins", color: "#6b6b72", cursor: (canEditItem && (!it || it?.unidad === "xUni.")) ? "text" : "default" }}>{it ? (effCantidad(it) ?? "—") : "—"}</span>,
                       valor: iEd("valor")
                         ? <input autoFocus value={itemEdit!.val} onChange={(e) => setItemEdit({ key, field: "valor", val: e.target.value })} onBlur={() => saveItem(c, g, it, "valor")} onKeyDown={itemKD("valor")} style={{ ...editInput, textAlign: "center" }} />
-                        : <span onClick={singleItem ? () => openItem("valor", String(it?.valor_unitario ?? 0)) : undefined} style={{ font: "500 12.5px Poppins", color: "#6b6b72", cursor: singleItem ? "text" : "default" }}>{it ? getCurrency(it.valor_unitario || 0, cur) : "—"}</span>,
+                        : <span onClick={canEditItem ? () => openItem("valor", String(it?.valor_unitario ?? 0)) : undefined} style={{ font: "500 12.5px Poppins", color: "#6b6b72", cursor: canEditItem ? "text" : "default" }}>{it ? getCurrency(it.valor_unitario || 0, cur) : "—"}</span>,
                       coste: (editing && !hasItems)
                         ? <input value={editVals.coste_final} onChange={(e) => setEditVals((v) => ({ ...v, coste_final: e.target.value }))} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveEdit(c, g); } else if (e.key === "Escape") setEditRow(null); }} style={{ ...editInput, textAlign: "right" }} />
                         : <span title={hasItems ? t("Suma de las partidas (cantidad × valor)", { defaultValue: "Suma de las partidas (cantidad × valor)" }) as string : undefined} style={{ font: "700 12.5px Poppins", color: "#3A3A42" }}>{getCurrency(ct, cur)}</span>,
                       estimado: editing
                         ? <input value={editVals.coste_estimado} onChange={(e) => setEditVals((v) => ({ ...v, coste_estimado: e.target.value }))} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveEdit(c, g); } else if (e.key === "Escape") setEditRow(null); }} style={{ ...editInput, textAlign: "right" }} />
                         : <span style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{getCurrency(g.coste_estimado || 0, cur)}</span>,
-                      pagado: <button onClick={(e) => { e.stopPropagation(); setPayOpen((o) => ({ ...o, [key]: !o[key] })); }} title={t("Ver pagos", { defaultValue: "Ver pagos" }) as string} style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", font: "600 12.5px Poppins", color: "#2FB37E", padding: 0 }}>{getCurrency(pag, cur)}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" style={{ transform: payOpen[key] ? "rotate(180deg)" : "none", transition: "transform .15s", opacity: .65 }}><path d="M6 9l6 6 6-6" /></svg></button>,
+                      pagado: <button onClick={(e) => { e.stopPropagation(); if (!isAllowed()) { ht(); return; } setPagoTarget({ cat: c._id, gasto: g._id }); }} title={t("Relacionar pago", { defaultValue: "Relacionar pago" }) as string} style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", font: "600 12.5px Poppins", color: "#2FB37E", padding: 0 }}>{getCurrency(pag, cur)}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" style={{ opacity: .55 }}><path d="M12 5v14M5 12h14" /></svg></button>,
                       pendiente: pen > 0 ? (
                         <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#FBF0DA", color: "#B4801F", borderRadius: 999, padding: "4px 5px 4px 11px", font: "700 12px Poppins", whiteSpace: "nowrap" }}>
                           {getCurrency(pen, cur)}

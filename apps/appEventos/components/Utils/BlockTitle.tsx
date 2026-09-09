@@ -4,7 +4,6 @@ import { AuthContextProvider, EventContextProvider } from '../../context'
 import { defaultImagenes } from '../Home/Card'
 import { ModalAddUserToEvent, UsuariosCompartidos } from './Compartir'
 import { IoShareSocial } from 'react-icons/io5'
-import { DiGoogleDrive } from "react-icons/di";
 import { Modal } from './Modal'
 import { useTranslation } from 'react-i18next'
 import { PermissionIndicator } from '../Servicios/Utils/PermissionIndicator'
@@ -24,7 +23,6 @@ export const BlockTitle = ({ title }) => {
   const { forCms, user } = AuthContextProvider()
   const { event } = EventContextProvider()
   const [openModal, setOpenModal] = useState(false)
-  const [openModalDrive, setOpenModalDrive] = useState(false)
 
   const isOwner = event?.usuario_id === user?.uid
   const canShare = isOwner && user?.displayName !== "guest"
@@ -79,12 +77,7 @@ export const BlockTitle = ({ title }) => {
           />
         </div>
 
-        {/* extra Presupuesto: Google Drive (WIP, comportamiento intacto) */}
-        {title === "Presupuesto" && (
-          <div onClick={() => "setOpenModalDrive(!openModalDrive)"} className="flex items-center justify-center cursor-pointer hover:bg-[#FCE7F0] rounded-[10px] transition" style={{ width: 38, height: 38, color: "#EF5B94" }}>
-            <DiGoogleDrive style={{ width: 22, height: 22 }} />
-          </div>
-        )}
+        {/* Icono de Google Drive retirado del header de Presupuesto (petición). */}
 
         {/* compartir */}
         <span
@@ -96,13 +89,6 @@ export const BlockTitle = ({ title }) => {
         </span>
       </div>
 
-      {openModalDrive ? (
-        <Modal {...({ openIcon: openModalDrive, setOpenIcon: setOpenModalDrive, classe: "h-max w-[40%] flex items-center justify-center" } as any)}>
-          <div className='my-10 mx-32'>
-            <img alt="Work in progress" src='/WIP.png' />
-          </div>
-        </Modal>
-      ) : null}
     </div>
   )
 }
