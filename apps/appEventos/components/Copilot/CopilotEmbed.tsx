@@ -141,6 +141,10 @@ export interface CopilotEmbedProps {
   isGuest?: boolean;
   loginPath?: string;
   onFirstMessage?: (firstMsg: string) => void;
+  // Mensaje a enviar automáticamente al montar (p. ej. "Generar con IA" del presupuesto).
+  // Se envía UNA sola vez cuando el chat está listo; onAutoSent avisa para limpiarlo.
+  autoSendMessage?: string;
+  onAutoSent?: () => void;
 }
 
 // ── Tool result card ─────────────────────────────────────────────────────────
@@ -569,6 +573,8 @@ export const CopilotEmbed = ({
   isGuest,
   loginPath,
   onFirstMessage,
+  autoSendMessage,
+  onAutoSent,
 }: CopilotEmbedProps) => {
   const router = useRouter();
   const toast = useToast();
@@ -947,6 +953,20 @@ export const CopilotEmbed = ({
     });
     handleSend(retryContent);
   }, [retryContent, loading, handleSend]);
+
+  // Auto-envío del prompt pendiente (p. ej. "Generar con IA" del presupuesto): al montar el
+  // copilot con un autoSendMessage, se envía UNA sola vez tras un respiro para que la sesión
+  // esté lista. Los invitados no auto-generan. onAutoSent limpia el pendiente en el contexto.
+  const autoSentRef = useRef(false);
+  useEffect(() => {
+    if (!autoSendMessage || autoSentRef.current || isGuest) return;
+    autoSentRef.current = true;
+    const timer = setTimeout(() => {
+      try { handleSend(autoSendMessage); } catch { /* noop */ }
+      onAutoSent?.();
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [autoSendMessage, isGuest, handleSend, onAutoSent]);
 
   // Interceptar clicks en links markdown internos
   const messageListRef = useRef<HTMLDivElement>(null);

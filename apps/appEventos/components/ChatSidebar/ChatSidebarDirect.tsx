@@ -85,7 +85,7 @@ type ChatSidebarDirectProps = {
 };
 
 const ChatSidebarDirect: FC<ChatSidebarDirectProps> = ({ forceOverlay, overlayBreakpoint }) => {
-  const { isOpen, width, closeSidebar, setWidth } = useChatSidebar();
+  const { isOpen, width, closeSidebar, setWidth, pendingPrompt, clearPendingPrompt } = useChatSidebar();
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === 'undefined') return !!forceOverlay;
     const bp = typeof overlayBreakpoint === 'number' ? overlayBreakpoint : MOBILE_BREAKPOINT;
@@ -618,6 +618,8 @@ const ChatSidebarDirect: FC<ChatSidebarDirectProps> = ({ forceOverlay, overlayBr
                 pageContext={pageContext}
                 className="w-full h-full"
                 onFirstMessage={handleSessionLabelUpdate}
+                autoSendMessage={pendingPrompt || undefined}
+                onAutoSent={clearPendingPrompt}
               />
             </ModuleErrorBoundary>
             )}
