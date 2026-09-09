@@ -43,7 +43,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
   const [viewLevel, setViewLevel] = useState(3);
   const [guestMode, setGuestMode] = useState<"conf" | "est">("conf");
   const [editRow, setEditRow] = useState<string | null>(null);
-  const [editVals, setEditVals] = useState<{ nombre: string; coste_estimado: string; coste_final: string }>({ nombre: "", coste_estimado: "", coste_final: "" });
+  const [editVals, setEditVals] = useState<{ nombre: string; coste_estimado: string; coste_final: string; unidad: string; cantidad: string; valor: string }>({ nombre: "", coste_estimado: "", coste_final: "", unidad: "xUni.", cantidad: "0", valor: "0" });
   const [wide, setWide] = useState(false);       // "Expandir": ensancha la tabla a casi todo el viewport
   const [hintOff, setHintOff] = useState(false); // pastilla "Haz clic en cualquier celda…" (se cierra o tras 1ª edición)
   const [highlight, setHighlight] = useState<string | null>(null);            // barra rosa 4s tras "Editar en Gastos"
@@ -216,20 +216,54 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
 
   const addPartida = async (cat: any) => { if (!isAllowed()) { ht(); return; } try { applyPO(await fetchApiEventos({ query: queries.nuevoGasto, variables: { evento_id: event._id, categoria_id: cat._id, nombre: t("Nueva partida de gasto") } })); } catch { toast("error", t("Ha ocurrido un error")); } };
 
-  const startEdit = (cat: any, g: any, key: string) => { if (!isAllowed()) { ht(); return; } setHintOff(true); setMenuAt(null); setEditRow(key); setEditVals({ nombre: g.nombre || "", coste_estimado: String(g.coste_estimado || 0), coste_final: String(g.coste_final || 0) }); };
+  const startEdit = (cat: any, g: any, key: string) => {
+    if (!isAllowed()) { ht(); return; }
+    setHintOff(true); setMenuAt(null); setItemEdit(null); setEditRow(key);
+    const it0 = (g.items_array || [])[0];
+    setEditVals({
+      nombre: g.nombre || "",
+      coste_estimado: String(g.coste_estimado || 0),
+      coste_final: String(g.coste_final || 0),
+      unidad: it0?.unidad || "xUni.",
+      cantidad: String(it0?.cantidad ?? 0),
+      valor: String(it0?.valor_unitario ?? 0),
+    });
+  };
   const saveEdit = async (cat: any, g: any) => {
     try {
+      const it0 = (g.items_array || [])[0];
+      const singleI = (g.items_array || []).length <= 1; // solo tocamos el item si hay 0 o 1
+      const uni = editVals.unidad || "xUni.";
+      const cant = parseEs(editVals.cantidad);
+      const val = parseEs(editVals.valor);
+      // ¿la partida tendrá item? (ya lo tiene, o el usuario puso un valor unitario). Si es así,
+      // el coste_final se DERIVA (cantidad × valor) → no se manda coste_final a mano.
+      const willHaveItem = singleI && (!!it0?._id || val > 0);
       const changes: [string, string][] = [];
       if (editVals.nombre.trim() && editVals.nombre.trim() !== (g.nombre || "")) changes.push(["nombre", editVals.nombre.trim()]);
       const est = parseEs(editVals.coste_estimado); if (est !== (g.coste_estimado || 0)) changes.push(["coste_estimado", String(est)]);
-      const fin = parseEs(editVals.coste_final); if (fin !== (g.coste_final || 0)) changes.push(["coste_final", String(fin)]);
+      if (!willHaveItem) { const fin = parseEs(editVals.coste_final); if (fin !== (g.coste_final || 0)) changes.push(["coste_final", String(fin)]); }
       let last: any = null;
       for (const [variable, valor] of changes) {
         last = await fetchApiEventos({ query: queries.editGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, variable_reemplazar: variable, valor_reemplazar: valor } });
       }
+      // Item (unidad/cantidad/valor): crear si no hay, editar si hay (solo con 0/1 items).
+      if (singleI) {
+        if (!it0?._id && willHaveItem) {
+          last = await fetchApiEventos({ query: queries.nuevoItemGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, itemGasto: { unidad: uni, cantidad: cant || 1, valor_unitario: val } } });
+        } else if (it0?._id) {
+          const iChanges: [string, any][] = [];
+          if (uni !== (it0.unidad || "")) iChanges.push(["unidad", uni]);
+          if (cant !== (it0.cantidad || 0)) iChanges.push(["cantidad", cant]);
+          if (val !== (it0.valor_unitario || 0)) iChanges.push(["valor_unitario", val]);
+          for (const [variable, valor] of iChanges) {
+            last = await fetchApiEventos({ query: queries.editItemGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, itemGasto_id: it0._id, variable, valor } });
+          }
+        }
+      }
       if (last) applyPO(last);
       setEditRow(null);
-      if (changes.length) toast("success", t("Cambios guardados"));
+      toast("success", t("Cambios guardados"));
     } catch { toast("error", t("Ha ocurrido un error")); }
   };
 
@@ -390,13 +424,19 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                         : <div style={{ font: "600 13.5px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={g.nombre}>{g.nombre}</div>,
                       unidad: iEd("unidad")
                         ? <select autoFocus value={itemEdit!.val} onChange={(e) => setItemEdit({ key, field: "unidad", val: e.target.value })} onBlur={() => saveItem(c, g, it, "unidad")} onKeyDown={itemKD("unidad")} style={{ ...editInput, padding: "4px 4px", textAlign: "center" }}>{UNIDADES.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-                        : <span style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{it?.unidad || "—"}</span>,
+                        : editing
+                          ? <select value={editVals.unidad} onChange={(e) => setEditVals((v) => ({ ...v, unidad: e.target.value }))} style={{ ...editInput, padding: "4px 4px", textAlign: "center" }}>{UNIDADES.map((u) => <option key={u} value={u}>{u}</option>)}</select>
+                          : <span style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{it?.unidad || "—"}</span>,
                       cantidad: iEd("cantidad")
                         ? <input autoFocus value={itemEdit!.val} onChange={(e) => setItemEdit({ key, field: "cantidad", val: e.target.value })} onBlur={() => saveItem(c, g, it, "cantidad")} onKeyDown={itemKD("cantidad")} style={{ ...editInput, textAlign: "center" }} />
-                        : <span title={(it && it.unidad !== "xUni." && it.unidad) ? t("Derivada del nº de invitados", { defaultValue: "Derivada del nº de invitados" }) as string : undefined} style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{it ? (effCantidad(it) ?? "—") : "—"}</span>,
+                        : editing
+                          ? <input value={editVals.cantidad} onChange={(e) => setEditVals((v) => ({ ...v, cantidad: e.target.value }))} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveEdit(c, g); } else if (e.key === "Escape") setEditRow(null); }} style={{ ...editInput, textAlign: "center" }} />
+                          : <span title={(it && it.unidad !== "xUni." && it.unidad) ? t("Derivada del nº de invitados", { defaultValue: "Derivada del nº de invitados" }) as string : undefined} style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{it ? (effCantidad(it) ?? "—") : "—"}</span>,
                       valor: iEd("valor")
                         ? <input autoFocus value={itemEdit!.val} onChange={(e) => setItemEdit({ key, field: "valor", val: e.target.value })} onBlur={() => saveItem(c, g, it, "valor")} onKeyDown={itemKD("valor")} style={{ ...editInput, textAlign: "center" }} />
-                        : <span style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{it ? getCurrency(it.valor_unitario || 0, cur) : "—"}</span>,
+                        : editing
+                          ? <input value={editVals.valor} onChange={(e) => setEditVals((v) => ({ ...v, valor: e.target.value }))} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveEdit(c, g); } else if (e.key === "Escape") setEditRow(null); }} style={{ ...editInput, textAlign: "center" }} />
+                          : <span style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{it ? getCurrency(it.valor_unitario || 0, cur) : "—"}</span>,
                       coste: (editing && !hasItems)
                         ? <input value={editVals.coste_final} onChange={(e) => setEditVals((v) => ({ ...v, coste_final: e.target.value }))} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveEdit(c, g); } else if (e.key === "Escape") setEditRow(null); }} style={{ ...editInput, textAlign: "right" }} />
                         : <span title={hasItems ? t("Suma de las partidas (cantidad × valor)", { defaultValue: "Suma de las partidas (cantidad × valor)" }) as string : undefined} style={{ font: "700 12.5px Poppins", color: "#3A3A42" }}>{getCurrency(ct, cur)}</span>,
