@@ -36,31 +36,42 @@ const SocketProvider: FC<any> = ({ children }): React.ReactElement => {
   const lastTokenRef = useRef<string | null>(null)
 
   useEffect(() => {
-    const token = Cookies.get("idTokenV0.1.0")
+    const cookieToken = Cookies.get("idTokenV0.1.0")
     const development = config?.development
     const father = searchParams?.get("father")
     if (!development) return
-    // api.socketIO ahora es async (carga diferida de socket.io-client). El flag evita
-    // montar un socket huérfano si el efecto se re-ejecuta antes de que resuelva.
+    // api.socketIO es async (carga diferida de socket.io-client). El flag evita montar un
+    // socket huérfano si el efecto se re-ejecuta antes de que resuelva.
     let cancelled = false
-    if ((token && !socket?.connected) || (user?.displayName === "anonymous" && !socket?.connected)) {
-      lastTokenRef.current = token ?? null
-      api.socketIO({
-        token,
-        development,
-        father,
-        origin: window?.origin
-      }).then((s) => {
-        if (cancelled) { s?.disconnect(); return }
-        setSocket(s ?? null)
-      }).catch((err) => {
-        // El import dinámico puede fallar (ChunkLoadError tras un deploy, red caída). Sin
-        // esto sería un unhandled rejection y el realtime se quedaría muerto en silencio:
-        // ni notificaciones ni refresco de evento, sin ningún rastro en consola.
-        console.error("[SocketProvider] no se pudo cargar socket.io-client:", err)
-      })
+    const shouldConnect =
+      (cookieToken && !socket?.connected) ||
+      (user?.displayName === "anonymous" && !socket?.connected)
+    if (shouldConnect) {
+      // Conectar con token FRESCO (getIdToken auto-refresca si está cerca de expirar), NO el
+      // de la cookie —que en flujos de dev/local-login puede venir caducado y provoca
+      // `token_invalid` en el socket de api-ia (verify_firebase_token falla)—. Alineado con
+      // ApiBodas. Sin currentUser (anónimo / SSR-solo-cookie) cae al token de la cookie.
+      ;(async () => {
+        let token: string | undefined = cookieToken
+        try {
+          const fresh = await getAuth().currentUser?.getIdToken()
+          if (fresh) { token = fresh; setCrossAppIdToken(fresh) }
+        } catch { /* Firebase no inicializado (anónimo/SSR): usar el token de la cookie */ }
+        if (cancelled) return
+        lastTokenRef.current = token ?? null
+        try {
+          const s = await api.socketIO({ token, development, father, origin: window?.origin })
+          if (cancelled) { s?.disconnect(); return }
+          setSocket(s ?? null)
+        } catch (err) {
+          // El import dinámico puede fallar (ChunkLoadError tras un deploy, red caída). Sin
+          // esto sería un unhandled rejection y el realtime se quedaría muerto en silencio:
+          // ni notificaciones ni refresco de evento, sin ningún rastro en consola.
+          console.error("[SocketProvider] no se pudo cargar socket.io-client:", err)
+        }
+      })()
     }
-    if (!token && socket) {
+    if (!cookieToken && socket) {
       socket.disconnect();
     }
     return () => { cancelled = true }
