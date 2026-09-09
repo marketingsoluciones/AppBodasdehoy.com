@@ -238,7 +238,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
       const val = parseEs(editVals.valor);
       // ¿la partida tendrá item? (ya lo tiene, o el usuario puso un valor unitario). Si es así,
       // el coste_final se DERIVA (cantidad × valor) → no se manda coste_final a mano.
-      const willHaveItem = singleI && (!!it0?._id || val > 0);
+      const willHaveItem = singleI && (!!it0?._id || val > 0 || cant > 0 || uni !== "xUni.");
       const changes: [string, string][] = [];
       if (editVals.nombre.trim() && editVals.nombre.trim() !== (g.nombre || "")) changes.push(["nombre", editVals.nombre.trim()]);
       const est = parseEs(editVals.coste_estimado); if (est !== (g.coste_estimado || 0)) changes.push(["coste_estimado", String(est)]);
@@ -262,6 +262,30 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
         }
       }
       if (last) applyPO(last);
+      // Refuerzo local del COSTE REAL = cantidad efectiva × valor, por si el backend no
+      // recalcula coste_final al crear el item. Preserva el _id del item que haya devuelto el
+      // backend (para no duplicarlo en la próxima edición). Solo con 0/1 items.
+      if (willHaveItem) {
+        const effCant = uni === "xUni." ? cant : uni === "xNiños." ? (stGuests.children || 0) : uni === "xAdultos." ? (stGuests.adults || 0) : ((stGuests.children || 0) + (stGuests.adults || 0));
+        const finalCost = effCant * val;
+        setEvent((prev: any) => {
+          const po = prev?.presupuesto_objeto; if (!po) return prev;
+          return {
+            ...prev,
+            presupuesto_objeto: {
+              ...po,
+              categorias_array: (po.categorias_array || []).map((cc: any) => cc._id !== cat._id ? cc : ({
+                ...cc,
+                gastos_array: (cc.gastos_array || []).map((gg: any) => gg._id !== g._id ? gg : ({
+                  ...gg,
+                  coste_final: finalCost,
+                  items_array: [{ ...((gg.items_array || [])[0] || {}), unidad: uni, cantidad: cant, valor_unitario: val }],
+                })),
+              })),
+            },
+          };
+        });
+      }
       setEditRow(null);
       toast("success", t("Cambios guardados"));
     } catch { toast("error", t("Ha ocurrido un error")); }
