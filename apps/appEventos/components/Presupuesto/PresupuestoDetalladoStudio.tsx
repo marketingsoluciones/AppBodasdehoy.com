@@ -153,9 +153,17 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
   const saveItem = async (c: any, g: any, it: any, field: "unidad" | "cantidad" | "valor") => {
     const raw = itemEdit?.val ?? "";
     setItemEdit(null);
-    if (!it?._id) return;
     const variable = field === "valor" ? "valor_unitario" : field;
     const valor: any = field === "unidad" ? raw : parseEs(raw);
+    if (!it?._id) {
+      // Sin item aún: crear uno con el valor editado (+ defaults). El backend calcula coste_final
+      // = cantidad × valor. Así el "coste real" queda automático.
+      const base: any = { unidad: "xUni.", cantidad: 1, valor_unitario: g.coste_final || 0 };
+      base[variable] = valor;
+      try { applyPO(await fetchApiEventos({ query: queries.nuevoItemGasto, variables: { evento_id: event._id, categoria_id: c._id, gasto_id: g._id, itemGasto: base } })); setHintOff(true); toast("success", t("Cambios guardados")); }
+      catch { toast("error", t("Ha ocurrido un error")); }
+      return;
+    }
     const current = field === "valor" ? (it.valor_unitario || 0) : field === "cantidad" ? (it.cantidad || 0) : (it.unidad || "");
     if (String(valor) === String(current)) return;
     try { applyPO(await fetchApiEventos({ query: queries.editItemGasto, variables: { evento_id: event._id, categoria_id: c._id, gasto_id: g._id, itemGasto_id: it._id, variable, valor } })); setHintOff(true); toast("success", t("Cambios guardados")); }
@@ -368,15 +376,11 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                     // Editable si la partida tiene 0 o 1 items (0 → se crea uno por defecto al editar).
                     // Con 2+ items la fila resumen no representa uno solo → no editable aquí.
                     const canEditItem = !hasItems || singleItem;
-                    const openItem = async (f: "unidad" | "cantidad" | "valor", v: string) => {
+                    // Síncrono: abre el editor al instante (como el nombre de la partida). Si la partida
+                    // no tiene item, se crea al GUARDAR (en saveItem), no aquí.
+                    const openItem = (f: "unidad" | "cantidad" | "valor", v: string) => {
                       if (!isAllowed()) { ht(); return; }
                       setEditRow(null); setMenuAt(null); setHintOff(true);
-                      if (!it?._id) {
-                        // Sin item aún: crear uno por defecto (xUni., 1, valor = coste actual) para poder
-                        // editar unidad/cantidad/valor como pide el usuario. El backend recalcula el coste.
-                        try { applyPO(await fetchApiEventos({ query: queries.nuevoItemGasto, variables: { evento_id: event._id, categoria_id: c._id, gasto_id: g._id, itemGasto: { unidad: "xUni.", cantidad: 1, valor_unitario: g.coste_final || 0 } } })); }
-                        catch { toast("error", t("Ha ocurrido un error")); return; }
-                      }
                       setItemEdit({ key, field: f, val: v });
                     };
                     const itemKD = (f: "unidad" | "cantidad" | "valor") => (e: any) => { if (e.key === "Enter") { e.preventDefault(); saveItem(c, g, it, f); } else if (e.key === "Escape") setItemEdit(null); };
