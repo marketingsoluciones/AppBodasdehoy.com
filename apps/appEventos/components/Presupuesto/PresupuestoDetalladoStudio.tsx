@@ -479,9 +479,17 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                     // Editable si la partida tiene 0 o 1 items (0 → se crea uno por defecto al editar).
                     // Con 2+ items la fila resumen no representa uno solo → no editable aquí.
                     const canEditItem = !hasItems || singleItem;
-                    // Bajo los filtros "Pagado"/"Pendiente" auto-desplegamos el historial de pagos de la
-                    // partida (además del toggle manual), para verlos agrupados por categoría y partida.
-                    const showPagos = payOpen[key] || filters.paymentStatus === "paid" || filters.paymentStatus === "pending";
+                    // Lista de pagos a mostrar en el panel según el filtro:
+                    //  · "pending" (Pendiente) → SOLO pagos programados (estado pendiente), NO los pagados.
+                    //  · resto → pagos realizados (monto>0, no pendientes).
+                    const pagosVisibles = (g.pagos_array || []).filter((p: any) => {
+                      if (p?.estatus === false) return false;
+                      if (undo?.kind === "pago" && undo.p?._id === p._id) return false;
+                      if (filters.paymentStatus === "pending") return p.estado === "pendiente";
+                      return montoOf(p) > 0 && p.estado !== "pendiente";
+                    });
+                    // Auto-desplegamos bajo Pagado/Pendiente (además del toggle manual), SOLO si hay pagos que mostrar.
+                    const showPagos = payOpen[key] || ((filters.paymentStatus === "paid" || filters.paymentStatus === "pending") && pagosVisibles.length > 0);
                     // Síncrono: abre el editor al instante (como el nombre de la partida). Si la partida
                     // no tiene item, se crea al GUARDAR (en saveItem), no aquí.
                     const openItem = (f: "unidad" | "cantidad" | "valor", v: string) => {
@@ -561,8 +569,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                           })}
                         </div>
                         {showPagos && (() => {
-                          // Solo pagos con importe > 0 (los antiguos con monto:0 eran basura del bug de contrato previo).
-                          const pagos = (g.pagos_array || []).filter((p: any) => p?.estatus !== false && montoOf(p) > 0 && !(undo?.kind === "pago" && undo.p?._id === p._id));
+                          const pagos = pagosVisibles; // ya filtrado por estado según el tab (pagados vs pendientes) y monto>0
                           const fmtF = (f: any) => { if (!f) return "—"; try { const d = new Date(f); return isNaN(d.getTime()) ? String(f) : `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`; } catch { return String(f); } };
                           return (
                             <div style={{ padding: "8px 20px 12px 46px", background: "#fbfbfc", borderBottom: "1px solid #f4f4f6" }}>
@@ -592,7 +599,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                       </div>
                     );
                   })}
-                  {abierto && (
+                  {abierto && filters.paymentStatus === "all" && (
                     <div className="pd-addpartida" onClick={() => addPartida(c)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 20px 10px 22px", borderBottom: "1px solid #f4f4f6", cursor: "pointer", font: "600 12px Poppins", color: "#EF5B94" }}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Añadir partida", { defaultValue: "Añadir partida" })}
                     </div>
