@@ -19,8 +19,6 @@ import ClickAwayListener from "react-click-away-listener";
 import { CopiarLink } from "../../Utils/Compartir";
 import { useSearchParams } from "next/navigation";
 
-import axios from "axios";
-import { buildSchemaPdfHtml } from "../../../utils/buildSchemaPdfHtml";
 import { isStudioPathname } from "../../../utils/studioPaths";
 
 interface props {
@@ -65,6 +63,8 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
     const isStudio = searchParams.get("studio") !== "legacy"
         && (typeof window !== "undefined" && isStudioPathname(window.location.pathname))
 
+    // PDF del esquema 100% en el navegador (html2canvas-pro + jsPDF): sin servicio externo
+    // ni CONVERT_TOKEN. Captura el nodo [data-pdf-root] y lo pagina en formato carta.
     const downloadPdf = async () => {
         try {
             setLoading(true);
@@ -73,18 +73,39 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
                 toast("error", "No se encontró el esquema para exportar");
                 return;
             }
-            const html = buildSchemaPdfHtml(root);
-            const response = await axios.post('/api/generate-pdf', {
-                html,
-                format: "letter"
-            });
-            const blob = new Blob([Uint8Array.from(atob(response.data.base64), c => c.charCodeAt(0))], { type: 'application/pdf' });
-            const objectUrl = window.URL.createObjectURL(blob);
-            const anchor = document.createElement('a');
-            anchor.href = objectUrl;
-            anchor.download = `${event.nombre} ${itinerario.title}`.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, "_") + '.pdf';
-            anchor.click();
-            window.URL.revokeObjectURL(objectUrl);
+            const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+                import('html2canvas-pro'),
+                import('jspdf'),
+            ]);
+            const canvas = await html2canvas(root, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                useCORS: true,
+                logging: false,
+                // No pintar elementos marcados para ocultar en el PDF (ej: popover de compartir).
+                ignoreElements: (el: Element) => el instanceof HTMLElement && el.hasAttribute('data-pdf-hide'),
+            } as any);
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'letter' });
+            const pageW = pdf.internal.pageSize.getWidth();
+            const pageH = pdf.internal.pageSize.getHeight();
+            const margin = 24;
+            const imgW = pageW - margin * 2;
+            const imgH = (canvas.height * imgW) / canvas.width;
+            // Paginación: si el alto supera una página, se reparte en varias.
+            let heightLeft = imgH;
+            let position = margin;
+            pdf.addImage(imgData, 'PNG', margin, position, imgW, imgH);
+            heightLeft -= (pageH - margin * 2);
+            while (heightLeft > 0) {
+                position = margin - (imgH - heightLeft);
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', margin, position, imgW, imgH);
+                heightLeft -= (pageH - margin * 2);
+            }
+            const fileName = `${event?.nombre || 'evento'} ${itinerario?.title || 'itinerario'}`
+                .replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, "_") + '.pdf';
+            pdf.save(fileName);
         } catch (error) {
             console.error('[SubHeader] generate-pdf', error);
             toast("error", "Error al generar PDF");
