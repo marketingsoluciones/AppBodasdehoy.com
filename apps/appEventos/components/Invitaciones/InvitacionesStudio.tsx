@@ -5,7 +5,8 @@ import BlockTitle from "../Utils/BlockTitle";
 import { EventContextProvider } from "../../context/EventContext";
 import { AuthContextProvider } from "../../context/AuthContext";
 import { useToast } from "../../hooks/useToast";
-import { fetchApiEventos, fetchApiBodas, queries } from "../../utils/Fetching";
+import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { subir_archivo } from "./ModuloSubida";
 
 /**
  * InvitacionesStudio — Rediseño UI (wizard 2 pasos). FASE A: paso "Diseñar invitación".
@@ -164,15 +165,10 @@ export const InvitacionesStudio: FC = () => {
     setCoverLocal(URL.createObjectURL(file));
     setUploadingCover(true);
     try {
-      // Subir por el MISMO camino que funciona en el resto (fetchApiBodas formData → api.ApiApp → proxy),
-      // NO por el fetch crudo de subir_archivo (el multipart por fetch crudo fallaba en el proxy → singleUpload).
-      const up: any = await fetchApiBodas({
-        query: queries.singleUpload,
-        variables: { file, development: auth?.config?.development || auth?.config?.develop || "bodasdehoy", eventId: event._id, category: "invitacion" },
-        type: "formData",
-      });
-      if (up?.success === false) { toast("error", up?.errors?.[0]?.message || "No se pudo subir la imagen"); return; }
-      const url = up?.file?.publicUrls?.optimized800w ?? up?.file?.publicUrls?.original ?? up?.file?.publicUrls?.optimized400w ?? null;
+      // subir_archivo hace el fetch multipart CORRECTO (boundary automático + x-apollo-operation-name),
+      // que el proxy reenvía bien. (api.ApiApp forzaba Content-Type json → 400.)
+      const r: any = await subir_archivo({ imagePreviewUrl: { file }, event, use: "invitacion" });
+      const url = r?.i1024 || r?.i800 || r?.i640;
       if (url) update({ cover: url }); else toast("error", "No se pudo subir la imagen");
     } catch (e: any) { toast("error", e?.message ? `No se pudo subir la imagen: ${String(e.message).slice(0, 140)}` : "No se pudo subir la imagen"); }
     finally { setUploadingCover(false); }
