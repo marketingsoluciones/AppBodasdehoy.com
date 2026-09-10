@@ -37,7 +37,7 @@ const DashboardStudio: FC<Props> = ({ categorias }) => {
   const costeRealGasto = (g: any) => { const items = (g?.items_array || []); return items.length ? items.reduce((a: number, it: any) => a + (Number(it?.coste_final) || 0), 0) : (Number(g?.coste_final) || 0); };
   const data = useMemo(() => {
     const allPagos: any[] = [];
-    cats.forEach((c) => (c.gastos_array || []).filter((g: any) => g?.estatus !== false).forEach((g: any) => (g.pagos_array || []).filter((p: any) => p?.estatus !== false).forEach((p: any) => allPagos.push({ ...p, catName: c.nombre, gastoName: g.nombre }))));
+    cats.forEach((c) => (c.gastos_array || []).filter((g: any) => g?.estatus !== false).forEach((g: any) => (g.pagos_array || []).filter((p: any) => p?.estatus !== false && montoOf(p) > 0).forEach((p: any) => allPagos.push({ ...p, catName: c.nombre, gastoName: g.nombre }))));
     // WP vs directo se marca por pagado_por/metodo (api-mcp aún no guarda un flag propio → por ahora
     // casi todo cae en "directos"; ver nota al usuario sobre separar WP en backend).
     const isWP = (p: any) => (p.pagado_por || "") === WP || String(p.metodo || "").toLowerCase().includes("wedding");

@@ -104,7 +104,8 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
   const estimadoOf = (g: any) => { const items = (g?.items_array || []); return items.length ? items.reduce((a: number, it: any) => a + (Number(it?.coste_estimado) || 0), 0) : (Number(g?.coste_estimado) || 0); };
   // PAGADO: el pago de api-mcp guarda `monto`. Sumamos monto de pagos_array (robusto aunque el backend
   // no agregue a gasto.pagado). Fallback a gasto.pagado por si vinieran datos sin pagos_array.
-  const pagadoOf = (g: any) => { const ps = (g?.pagos_array || []); return ps.length ? ps.reduce((a: number, pp: any) => a + (Number(pp?.monto) || 0), 0) : (Number(g?.pagado) || 0); };
+  const montoOf = (p: any) => Number(p?.monto ?? p?.importe) || 0;
+  const pagadoOf = (g: any) => { const ps = (g?.pagos_array || []); return ps.length ? ps.reduce((a: number, pp: any) => a + montoOf(pp), 0) : (Number(g?.pagado) || 0); };
 
   const totals = useMemo(() => {
     let tot = 0, pag = 0, est = 0, nP = 0;
@@ -560,7 +561,8 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                           })}
                         </div>
                         {showPagos && (() => {
-                          const pagos = (g.pagos_array || []).filter((p: any) => p?.estatus !== false && !(undo?.kind === "pago" && undo.p?._id === p._id));
+                          // Solo pagos con importe > 0 (los antiguos con monto:0 eran basura del bug de contrato previo).
+                          const pagos = (g.pagos_array || []).filter((p: any) => p?.estatus !== false && montoOf(p) > 0 && !(undo?.kind === "pago" && undo.p?._id === p._id));
                           const fmtF = (f: any) => { if (!f) return "—"; try { const d = new Date(f); return isNaN(d.getTime()) ? String(f) : `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`; } catch { return String(f); } };
                           return (
                             <div style={{ padding: "8px 20px 12px 46px", background: "#fbfbfc", borderBottom: "1px solid #f4f4f6" }}>
