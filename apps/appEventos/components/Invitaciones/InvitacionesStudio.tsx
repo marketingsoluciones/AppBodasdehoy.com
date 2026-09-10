@@ -89,7 +89,7 @@ const chanIcon = (c: ChannelKey, color: string): ReactNode => {
 
 export const InvitacionesStudio: FC = () => {
   const { i18n } = useTranslation();
-  const { event } = EventContextProvider() as any;
+  const { event, setEvent } = EventContextProvider() as any;
   const auth = AuthContextProvider() as any;
   const toast = useToast();
 
@@ -134,12 +134,19 @@ export const InvitacionesStudio: FC = () => {
     setSaveState("saving");
     const html = renderEmailHtml(d);
     const done = (id?: string) => { if (id) setTemplateId(id); setSaveState("saved"); };
+    // Enlaza la plantilla al evento (templateEmailSelect) para que al volver al módulo se RECARGUE.
+    // Sin esto, tras crear el diseño quedaba huérfano y el editor volvía a los valores por defecto.
+    const linkToEvent = (id?: string) => {
+      if (!id || event?.templateEmailSelect === id) return;
+      fetchApiEventos({ query: queries.eventUpdate, variables: { idEvento: event._id, variable: "templateEmailSelect", value: id } }).catch(() => {/* noop */});
+      setEvent((prev: any) => ({ ...prev, templateEmailSelect: id }));
+    };
     if (templateId) {
       fetchApiEventos({ query: queries.updateEmailTemplate, variables: { evento_id: event._id, template_id: templateId, design: d, html } })
-        .then((res: any) => done(Array.isArray(res) ? res[0]?._id : res?._id)).catch(() => setSaveState("idle"));
+        .then((res: any) => { const id = Array.isArray(res) ? res[0]?._id : res?._id; linkToEvent(id || templateId); done(id); }).catch(() => setSaveState("idle"));
     } else {
       fetchApiEventos({ query: queries.createEmailTemplate, variables: { evento_id: event._id, design: d, html, configTemplate: { name: "Invitación", subject: d.title || "Invitación" }, domain: auth?.config?.dominio || auth?.config?.domain } })
-        .then((res: any) => done(res?._id)).catch(() => setSaveState("idle"));
+        .then((res: any) => { const id = res?._id; linkToEvent(id); done(id); }).catch(() => setSaveState("idle"));
     }
   }, [event?._id, templateId, auth]);
 
