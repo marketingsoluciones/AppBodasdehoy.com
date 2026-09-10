@@ -107,13 +107,20 @@ export const InvitadosStudio: FC = () => {
   const q = search.trim().toLowerCase();
   // Agrupar padres por rol (grupo), como BlockTableroInvitados
   const groups = [...grupos, "no asignado"].map((name) => {
-    const guests = fathers.filter((g) => {
+    const principals = fathers.filter((g) => {
       const rol = (g?.rol || "").toLowerCase();
       const inGroup = name === "no asignado" ? !grupos.some((gr) => gr.toLowerCase() === rol) : rol === name.toLowerCase();
       return inGroup && (!q || (g?.nombre || "").toLowerCase().includes(q));
     });
-    return { name, guests };
-  }).filter((gr) => gr.guests.length > 0 || (!q && gr.name !== "no asignado"));
+    // Aplanar: cada principal seguido de SUS acompañantes (father === principal._id), marcados isChild,
+    // para mostrarlos anidados debajo (antes solo se contaban → aparecían filas sueltas sin nombre).
+    const guests: any[] = [];
+    principals.forEach((p) => {
+      guests.push(p);
+      all.filter((x) => x?.father === p._id).forEach((child) => guests.push({ ...child, isChild: true, parentName: p?.nombre }));
+    });
+    return { name, guests, nPrincipals: principals.length };
+  }).filter((gr) => gr.nPrincipals > 0 || (!q && gr.name !== "no asignado"));
 
   const GRID = "2.4fr 1.1fr 1fr 1.2fr 1.2fr 1.2fr 80px";
   const th: React.CSSProperties = { font: "700 10.5px Poppins", color: "#5a5a62", letterSpacing: ".5px", textTransform: "uppercase" };
@@ -125,8 +132,8 @@ export const InvitadosStudio: FC = () => {
   const genPDF = () => {
     const stC: Record<string, string> = { confirmado: "#2FB37E", pendiente: "#E0A32B", cancelado: "#D83E7C" };
     const body = groups.map((gr) => {
-      const head = `<tr><td colspan="6" style="background:#fbfbfc;font-weight:600;color:#6b6b72;padding:8px 12px;text-transform:capitalize;">${gr.name} (${gr.guests.length})</td></tr>`;
-      const rows = gr.guests.map((r) => {
+      const head = `<tr><td colspan="6" style="background:#fbfbfc;font-weight:600;color:#6b6b72;padding:8px 12px;text-transform:capitalize;">${gr.name} (${gr.nPrincipals})</td></tr>`;
+      const rows = gr.guests.filter((r) => !r.isChild).map((r) => {
         const st = (r?.asistencia || "pendiente").toLowerCase();
         return `<tr><td>${r?.nombre || ""}</td><td style="color:${stC[st] || "#E0A32B"};text-transform:capitalize;">${cap(st)}</td><td>${r?.nombre_menu || "—"}</td><td>${seatOf(r._id, 0)}</td><td>${seatOf(r._id, 1)}</td><td>${all.filter((x) => x?.father === r._id).length}</td></tr>`;
       }).join("");
@@ -221,7 +228,7 @@ export const InvitadosStudio: FC = () => {
                 <div onClick={() => setClosed((c) => ({ ...c, [gr.name]: !c[gr.name] }))} style={{ display: "flex", alignItems: "center", gap: 9, padding: "14px 24px", background: "#fbfbfc", borderBottom: "1px solid #f2f2f4", cursor: "pointer" }}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c4c4cc" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" style={{ transition: "transform .18s", transform: `rotate(${open ? 90 : 0}deg)` }}><path d="M9 6l6 6-6 6" /></svg>
                   <span style={{ font: "500 14px Poppins", color: "#6b6b72", textTransform: "capitalize" }}>{gr.name}</span>
-                  <span style={{ font: "600 10px Poppins", color: "#c4c4cc", background: "#f2f2f4", padding: "2px 8px", borderRadius: 10 }}>{gr.guests.length}</span>
+                  <span style={{ font: "600 10px Poppins", color: "#c4c4cc", background: "#f2f2f4", padding: "2px 8px", borderRadius: 10 }}>{gr.nPrincipals}</span>
                   <div style={{ flex: 1 }} />
                   {gr.name !== "no asignado" && (
                     <div style={{ position: "relative" }} onClick={(e) => e.stopPropagation()}>
@@ -238,12 +245,33 @@ export const InvitadosStudio: FC = () => {
                 </div>
                 {open && (
                   <div style={{ animation: "fadein .18s ease" }}>
-                    {gr.guests.length === 0 && <div style={{ padding: "20px 24px", font: "500 12.5px Poppins", color: "#c4c4cc", textAlign: "center" }}>No hay invitados</div>}
+                    {gr.nPrincipals === 0 && <div style={{ padding: "20px 24px", font: "500 12.5px Poppins", color: "#c4c4cc", textAlign: "center" }}>No hay invitados</div>}
                     {gr.guests.map((r) => {
                       const st = (r?.asistencia || "pendiente").toLowerCase();
                       const c = stMap[st] || stMap.pendiente;
                       const acomp = all.filter((x) => x?.father === r._id).length;
                       const isWoman = (r?.sexo || "").toLowerCase() === "mujer";
+                      // Fila ACOMPAÑANTE: indentada bajo su principal con flecha ↑ (como en Mesas). No recibe
+                      // invitación propia; se muestra para saber que va con el principal. Acciones mínimas (borrar).
+                      if (r.isChild) {
+                        return (
+                          <div key={r._id} style={{ display: "grid", gridTemplateColumns: GRID, alignItems: "center", gap: 10, padding: "10px 24px 10px 24px", borderBottom: "1px solid #f5f5f7", background: "#fbfbfc" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 9, minWidth: 0, paddingLeft: 34 }}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c4c4cc" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ flex: "none", transform: "translateY(-1px)" }}><path d="M12 19V5M5 12l7-7 7 7" /></svg>
+                              <div style={{ width: 26, height: 26, borderRadius: "50%", flex: "none", overflow: "hidden", background: "#d7d7dd" }}><img src={isWoman ? "/profile_woman.png" : "/profile_men.png"} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} /></div>
+                              <span style={{ font: "500 12.5px Poppins", color: "#8a8a90", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r?.nombre || "Acompañante"} <span style={{ color: "#c4c4cc", fontSize: 11 }}>· acompañante</span></span>
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "center" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span style={{ width: 14, height: 14, borderRadius: "50%", background: c[0], display: "flex", alignItems: "center", justifyContent: "center", flex: "none", transform: "scale(.8)" }}>{stIcon(st)}</span><span style={{ font: "500 11px Poppins", color: c[0] }}>{cap(st)}</span></span></div>
+                            <div style={{ font: "500 11.5px Poppins", color: "#a0a0a8" }}>{r?.nombre_menu || "—"}</div>
+                            <div />
+                            <div />
+                            <div />
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+                              <span onClick={() => delGuest(r)} title="Eliminar acompañante" style={{ width: 30, height: 30, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#c4c4cc" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" /></svg></span>
+                            </div>
+                          </div>
+                        );
+                      }
                       return (
                         <div key={r._id} style={{ display: "grid", gridTemplateColumns: GRID, alignItems: "center", gap: 10, padding: "16px 24px", borderBottom: "1px solid #f5f5f7" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
