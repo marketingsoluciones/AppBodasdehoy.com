@@ -29,7 +29,9 @@ const ListInvitados: FC<propsListInvitados> = ({ editInv, setEditInv, setSelecte
   const sortedGuests = useMemo(() => {
     if (!filterGuests?.noSentados) return [];
 
-    const guests = filterGuests.noSentados.filter((g) => g != null) as guests[];
+    // Excluir stubs VACÍOS (sin nombre y sin father): registros basura que salían como "Acompañante"
+    // sueltos. Los acompañantes REALES (con father) se conservan y se anidan bajo su principal.
+    const guests = (filterGuests.noSentados.filter((g) => g != null) as guests[]).filter((g: any) => !!(g?.nombre || "").trim() || g?.father);
     const result: any[] = [];
     const processed = new Set();
 
@@ -74,7 +76,7 @@ const ListInvitados: FC<propsListInvitados> = ({ editInv, setEditInv, setSelecte
 
   // Sentados agrupando acompañantes DEBAJO de su invitado (para saber que van juntos).
   const seated = useMemo(() => {
-    const arr = (filterGuests?.sentados ?? []).filter((g) => g != null) as any[];
+    const arr = ((filterGuests?.sentados ?? []).filter((g) => g != null) as any[]).filter((g: any) => !!(g?.nombre || "").trim() || g?.father);
     const result: any[] = [];
     const processed = new Set();
     arr.forEach((g) => {

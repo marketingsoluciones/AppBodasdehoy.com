@@ -113,18 +113,21 @@ export const InvitacionesStudio: FC = () => {
   const [sending, setSending] = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const loadedRef = useRef(false);
+  const editedRef = useRef(false);                       // el usuario ya tocó el diseño → no dejar que la carga lo pise
+  const templateIdRef = useRef<string | undefined>(event?.templateEmailSelect); // id vivo → persist siempre ACTUALIZA (no duplica)
   const saveTimer = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     const id = event?.templateEmailSelect;
     if (!id || loadedRef.current) return;
     loadedRef.current = true;
-    setTemplateId(id);
+    setTemplateId(id); templateIdRef.current = id;
     fetchApiEventos({ query: queries.getEmailTemplate, variables: { template_id: id } })
       .then((res: any) => {
         const tpl = Array.isArray(res) ? res[0] : res;
         const dz = tpl?.design;
-        if (dz && dz._studio === "v1") setDesign({ ...defaultDesign(event), ...dz });
+        // NO pisar lo que el usuario ya editó (carrera: el fetch puede resolver tras la 1ª edición).
+        if (dz && dz._studio === "v1" && !editedRef.current) setDesign({ ...defaultDesign(event), ...dz });
       })
       .catch(() => {/* plantilla antigua → defaults */});
   }, [event?._id, event?.templateEmailSelect]);
@@ -133,24 +136,27 @@ export const InvitacionesStudio: FC = () => {
     if (!event?._id) return;
     setSaveState("saving");
     const html = renderEmailHtml(d);
-    const done = (id?: string) => { if (id) setTemplateId(id); setSaveState("saved"); };
+    const done = (id?: string) => { if (id) { setTemplateId(id); templateIdRef.current = id; } setSaveState("saved"); };
     // Enlaza la plantilla al evento (templateEmailSelect) para que al volver al módulo se RECARGUE.
-    // Sin esto, tras crear el diseño quedaba huérfano y el editor volvía a los valores por defecto.
     const linkToEvent = (id?: string) => {
       if (!id || event?.templateEmailSelect === id) return;
       fetchApiEventos({ query: queries.eventUpdate, variables: { idEvento: event._id, variable: "templateEmailSelect", value: id } }).catch(() => {/* noop */});
       setEvent((prev: any) => ({ ...prev, templateEmailSelect: id }));
     };
-    if (templateId) {
-      fetchApiEventos({ query: queries.updateEmailTemplate, variables: { evento_id: event._id, template_id: templateId, design: d, html } })
-        .then((res: any) => { const id = Array.isArray(res) ? res[0]?._id : res?._id; linkToEvent(id || templateId); done(id); }).catch(() => setSaveState("idle"));
+    // templateIdRef (no el closure) → una vez creada/enlazada, SIEMPRE actualiza la misma plantilla
+    // (evita crear duplicados en cada edición, que era la causa de que los cambios "se perdieran").
+    const tid = templateIdRef.current;
+    if (tid) {
+      fetchApiEventos({ query: queries.updateEmailTemplate, variables: { evento_id: event._id, template_id: tid, design: d, html } })
+        .then((res: any) => { const id = Array.isArray(res) ? res[0]?._id : res?._id; linkToEvent(id || tid); done(id || tid); }).catch(() => setSaveState("idle"));
     } else {
       fetchApiEventos({ query: queries.createEmailTemplate, variables: { evento_id: event._id, design: d, html, configTemplate: { name: "Invitación", subject: d.title || "Invitación" }, domain: auth?.config?.dominio || auth?.config?.domain } })
-        .then((res: any) => { const id = res?._id; linkToEvent(id); done(id); }).catch(() => setSaveState("idle"));
+        .then((res: any) => { const id = res?._id; templateIdRef.current = id; linkToEvent(id); done(id); }).catch(() => setSaveState("idle"));
     }
-  }, [event?._id, templateId, auth]);
+  }, [event?._id, auth]);
 
   const update = useCallback((patch: Partial<DesignData>) => {
+    editedRef.current = true;
     setDesign((prev) => {
       const next = { ...prev, ...patch };
       setSaveState("saving");
