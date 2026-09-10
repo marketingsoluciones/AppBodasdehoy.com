@@ -97,13 +97,17 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
   const effCantidad = (it: any) => { if (!it) return undefined; const u = it.unidad || "xUni."; return u === "xUni." ? it.cantidad : u === "xNiños." ? (stGuests.children || 0) : u === "xAdultos." ? (stGuests.adults || 0) : ((stGuests.children || 0) + (stGuests.adults || 0)); };
   const valorUnitOf = (it: any) => { const c = Number(it?.cantidad) || 1; return (Number(it?.coste_final) || 0) / (c || 1); };
   const costeRealOf = (g: any) => { const items = (g?.items_array || []); return items.length ? items.reduce((a: number, it: any) => a + (Number(it?.coste_final) || 0), 0) : (Number(g?.coste_final) || 0); };
+  // ESTIMADO: cuando el gasto tiene items, api-mcp DERIVA gasto.coste_estimado = Σ items.coste_estimado
+  // (por eso al crear un item con estimado 0 se borraba el estimado del gasto). Guardamos el estimado
+  // EN el item y lo leemos desde ahí. Sin items → coste_estimado del propio gasto.
+  const estimadoOf = (g: any) => { const items = (g?.items_array || []); return items.length ? items.reduce((a: number, it: any) => a + (Number(it?.coste_estimado) || 0), 0) : (Number(g?.coste_estimado) || 0); };
   // PAGADO: el pago de api-mcp guarda `monto`. Sumamos monto de pagos_array (robusto aunque el backend
   // no agregue a gasto.pagado). Fallback a gasto.pagado por si vinieran datos sin pagos_array.
   const pagadoOf = (g: any) => { const ps = (g?.pagos_array || []); return ps.length ? ps.reduce((a: number, pp: any) => a + (Number(pp?.monto) || 0), 0) : (Number(g?.pagado) || 0); };
 
   const totals = useMemo(() => {
     let tot = 0, pag = 0, est = 0, nP = 0;
-    cats.forEach((c) => (c.gastos_array || []).filter((g: any) => g?.estatus !== false).forEach((g: any) => { tot += costeRealOf(g); pag += pagadoOf(g); est += g.coste_estimado || 0; nP++; }));
+    cats.forEach((c) => (c.gastos_array || []).filter((g: any) => g?.estatus !== false).forEach((g: any) => { tot += costeRealOf(g); pag += pagadoOf(g); est += estimadoOf(g); nP++; }));
     return { tot, pag, est, pen: tot - pag, nCat: cats.length, nPart: nP };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cats]);
@@ -248,7 +252,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
     const it0 = (g.items_array || [])[0];
     setEditVals({
       nombre: g.nombre || "",
-      coste_estimado: String(g.coste_estimado || 0),
+      coste_estimado: String(estimadoOf(g)),
       coste_final: String(g.coste_final || 0),
       unidad: it0?.unidad || "xUni.",
       cantidad: String(it0?.cantidad ?? 0),
@@ -265,19 +269,24 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
       // guarda { nombre, cantidad, coste_final }; coste_final del item = total de la línea = cantidad × valor.
       const willHaveItem = !!it0?._id || val > 0 || cant > 0;
       const lineTotal = (cant || 1) * val;
+      const est = parseEs(editVals.coste_estimado);
       const changes: [string, string][] = [];
       if (editVals.nombre.trim() && editVals.nombre.trim() !== (g.nombre || "")) changes.push(["nombre", editVals.nombre.trim()]);
-      const est = parseEs(editVals.coste_estimado); if (est !== (g.coste_estimado || 0)) changes.push(["coste_estimado", String(est)]);
-      if (!willHaveItem) { const fin = parseEs(editVals.coste_final); if (fin !== (g.coste_final || 0)) changes.push(["coste_final", String(fin)]); }
+      // Con item: ESTIMADO y COSTE van EN el item (api-mcp deriva gasto.coste_estimado/coste_final = Σ items).
+      // Sin item: se guardan a nivel de gasto. (Enviar estimado al gasto teniendo items lo borraría.)
+      if (!willHaveItem) {
+        if (est !== (g.coste_estimado || 0)) changes.push(["coste_estimado", String(est)]);
+        const fin = parseEs(editVals.coste_final); if (fin !== (g.coste_final || 0)) changes.push(["coste_final", String(fin)]);
+      }
       let last: any = null;
       for (const [variable, valor] of changes) {
         last = await fetchApiEventos({ query: queries.editGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, variable_reemplazar: variable, valor_reemplazar: valor } });
         if (last?.success === false) { toast("error", last?.errors?.[0]?.message || t("No se pudo guardar")); return; }
       }
-      // Item: contrato REAL api-mcp { nombre, cantidad, coste_final } (NO valor_unitario/unidad/total).
+      // Item: contrato REAL api-mcp { nombre, cantidad, coste_final, coste_estimado } (NO valor_unitario/unidad).
       if (willHaveItem) {
         if (!it0?._id) {
-          last = await fetchApiEventos({ query: queries.nuevoItemGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, itemGasto: { nombre: g.nombre || t("Item", { defaultValue: "Item" }), cantidad: cant || 1, coste_final: lineTotal, coste_estimado: 0 } } });
+          last = await fetchApiEventos({ query: queries.nuevoItemGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, itemGasto: { nombre: g.nombre || t("Item", { defaultValue: "Item" }), cantidad: cant || 1, coste_final: lineTotal, coste_estimado: est } } });
           if (last?.success === false) { toast("error", last?.errors?.[0]?.message || t("No se pudo guardar")); return; }
         } else {
           if (cant !== (it0.cantidad || 0)) {
@@ -286,6 +295,10 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
           }
           last = await fetchApiEventos({ query: queries.editItemGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, itemGasto_id: it0._id, variable: "coste_final", valor: lineTotal } });
           if (last?.success === false) { toast("error", last?.errors?.[0]?.message || t("No se pudo guardar")); return; }
+          if (est !== (it0.coste_estimado || 0)) {
+            last = await fetchApiEventos({ query: queries.editItemGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, itemGasto_id: it0._id, variable: "coste_estimado", valor: est } });
+            if (last?.success === false) { toast("error", last?.errors?.[0]?.message || t("No se pudo guardar")); return; }
+          }
         }
       }
       if (last) applyPO(last);
@@ -303,8 +316,8 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                   if (gg._id !== g._id) return gg;
                   const prevItems = gg.items_array || [];
                   const nextItems = prevItems.length
-                    ? prevItems.map((iii: any, idx: number) => idx === 0 ? { ...iii, cantidad: cant || 1, coste_final: lineTotal } : iii)
-                    : [{ nombre: g.nombre || "Item", cantidad: cant || 1, coste_final: lineTotal, coste_estimado: 0 }];
+                    ? prevItems.map((iii: any, idx: number) => idx === 0 ? { ...iii, cantidad: cant || 1, coste_final: lineTotal, coste_estimado: est } : iii)
+                    : [{ nombre: g.nombre || "Item", cantidad: cant || 1, coste_final: lineTotal, coste_estimado: est }];
                   return { ...gg, items_array: nextItems };
                 }),
               })),
@@ -492,7 +505,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                         : <span title={hasItems ? t("Suma de las partidas (cantidad × valor)", { defaultValue: "Suma de las partidas (cantidad × valor)" }) as string : undefined} style={{ font: "700 12.5px Poppins", color: "#3A3A42" }}>{getCurrency(ct, cur)}</span>,
                       estimado: editing
                         ? <input value={editVals.coste_estimado} onChange={(e) => setEditVals((v) => ({ ...v, coste_estimado: e.target.value }))} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveEdit(c, g); } else if (e.key === "Escape") setEditRow(null); }} style={{ ...editInput, textAlign: "right" }} />
-                        : <span style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{getCurrency(g.coste_estimado || 0, cur)}</span>,
+                        : <span style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{getCurrency(estimadoOf(g), cur)}</span>,
                       pagado: <button onClick={(e) => { e.stopPropagation(); if (!isAllowed()) { ht(); return; } setPagoTarget({ cat: c._id, gasto: g._id }); }} title={t("Relacionar pago", { defaultValue: "Relacionar pago" }) as string} style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", font: "600 12.5px Poppins", color: "#2FB37E", padding: 0 }}>{getCurrency(pag, cur)}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" style={{ opacity: .55 }}><path d="M12 5v14M5 12h14" /></svg></button>,
                       pendiente: pen > 0 ? (
                         <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#FBF0DA", color: "#B4801F", borderRadius: 999, padding: "4px 5px 4px 11px", font: "700 12px Poppins", whiteSpace: "nowrap" }}>

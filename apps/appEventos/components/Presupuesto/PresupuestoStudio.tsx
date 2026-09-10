@@ -57,6 +57,10 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
   // Item api-mcp guarda { cantidad, coste_final } (sin valor_unitario/unidad). COSTE REAL = Σ coste_final.
   const costeRealGasto = (g: any) => { const items = (g?.items_array || []); return items.length ? items.reduce((a: number, it: any) => a + (Number(it?.coste_final) || 0), 0) : (Number(g?.coste_final) || 0); };
   const costeRealCat = (c: any) => (c?.gastos_array || []).filter((g: any) => g?.estatus !== false).reduce((s: number, g: any) => s + costeRealGasto(g), 0);
+  // ESTIMADO: api-mcp deriva gasto.coste_estimado = Σ items.coste_estimado; lo calculamos igual desde
+  // items (robusto ante el refuerzo optimista, que actualiza el item y no el gasto).
+  const estimadoGasto = (g: any) => { const items = (g?.items_array || []); return items.length ? items.reduce((a: number, it: any) => a + (Number(it?.coste_estimado) || 0), 0) : (Number(g?.coste_estimado) || 0); };
+  const estimadoCat = (c: any) => (c?.gastos_array || []).filter((g: any) => g?.estatus !== false).reduce((s: number, g: any) => s + estimadoGasto(g), 0);
   // PAGADO: sumar `monto` de los pagos (contrato real api-mcp); fallback a gasto.pagado.
   const pagadoGasto = (g: any) => { const ps = (g?.pagos_array || []); return ps.length ? ps.reduce((a: number, pp: any) => a + (Number(pp?.monto) || 0), 0) : (Number(g?.pagado) || 0); };
   const pagadoCat = (c: any) => (c?.gastos_array || []).filter((g: any) => g?.estatus !== false).reduce((s: number, g: any) => s + pagadoGasto(g), 0);
@@ -69,9 +73,9 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
     const disponible = total - costeFinal;
     const paidW = total > 0 ? Math.min(100, (pagado / total) * 100) : 0;
     const dueW = total > 0 ? Math.min(100 - paidW, (porPagar / total) * 100) : 0;
-    const active = cats.filter((c) => costeRealCat(c) > 0 || (c.coste_estimado || 0) > 0);
-    const zero = cats.filter((c) => !(costeRealCat(c) > 0 || (c.coste_estimado || 0) > 0));
-    const sumEst = cats.reduce((s, c) => s + (c.coste_estimado || 0), 0);
+    const active = cats.filter((c) => costeRealCat(c) > 0 || estimadoCat(c) > 0);
+    const zero = cats.filter((c) => !(costeRealCat(c) > 0 || estimadoCat(c) > 0));
+    const sumEst = cats.reduce((s, c) => s + estimadoCat(c), 0);
     const sumFinal = costeFinal;
     return { total, pagado, costeFinal, porPagar, disponible, paidW, dueW, catsActive: active, catsZero: zero, sumEst, sumFinal };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -233,7 +237,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
   `;
 
   const catRow = (c: any, faded = false) => {
-    const est = c.coste_estimado || 0;
+    const est = estimadoCat(c);
     const fin = costeRealCat(c);
     const barW = est > 0 ? Math.min(100, (fin / est) * 100) : (fin > 0 ? 100 : 0);
     const stColor = fin === 0 ? "#d6d6dc" : fin > est ? "#D83E7C" : "#2FB37E";
@@ -448,7 +452,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
                   <div style={{ font: "700 15px Poppins", color: "#3A3A42", whiteSpace: "nowrap" }}>{t("¿Cómo va tu presupuesto?", { defaultValue: "¿Cómo va tu presupuesto?" })}</div>
                 </div>
                 {(() => {
-                  const over = (cats || []).filter((c: any) => costeRealCat(c) > (c.coste_estimado || 0) && (c.coste_estimado || 0) > 0);
+                  const over = (cats || []).filter((c: any) => costeRealCat(c) > estimadoCat(c) && estimadoCat(c) > 0);
                   if (!over.length) return null;
                   const txt = over.length === 1
                     ? `${t("Atención:", { defaultValue: "Atención:" })} ${cap1(over[0].nombre)} ${t("supera su estimado", { defaultValue: "supera su estimado" })}`
