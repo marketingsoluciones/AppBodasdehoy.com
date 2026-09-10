@@ -82,7 +82,7 @@ const ModalImportarStudio: FC<Props> = ({ onClose }) => {
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#a0a0a8" strokeWidth={2.2} strokeLinecap="round"><path d="M6 9l6 6 6-6" /></svg>
                 </div>
                 {open && (
-                  <div style={{ position: "absolute", top: "100%", left: 0, right: 0, marginTop: 2, border: "1.5px solid #E7E7EA", borderRadius: 12, overflow: "hidden", background: "#fff", zIndex: 5, maxHeight: 220, overflowY: "auto", boxShadow: "0 12px 32px rgba(0,0,0,.12)" }}>
+                  <div className="imp-scroll" style={{ position: "absolute", top: "100%", left: 0, right: 0, marginTop: 2, border: "1.5px solid #E7E7EA", borderRadius: 12, overflow: "hidden", background: "#fff", zIndex: 5, maxHeight: 220, overflowY: "auto", boxShadow: "0 12px 32px rgba(0,0,0,.12)" }}>
                     {options.length === 0 && <div style={{ padding: "12px 14px", font: "500 13px Poppins", color: "#a0a0a8" }}>{t("No hay otros eventos", { defaultValue: "No hay otros eventos" })}</div>}
                     {options.map((ev: any) => (
                       <div key={ev._id} className="imp-opt-studio" onClick={() => { setSel(ev); setOpen(false); }} style={{ padding: "10px 14px", font: "500 13px Poppins", color: "#3A3A42", cursor: "pointer", borderBottom: "1px solid #f2f2f4" }}>{ev.nombre}</div>
@@ -116,7 +116,7 @@ const ModalImportarStudio: FC<Props> = ({ onClose }) => {
           <button onClick={onClose} style={{ padding: "10px 18px", borderRadius: 12, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 12.5px Poppins", cursor: "pointer" }}>{t("cancel", "Cancelar")}</button>
           <button onClick={handleImport} disabled={!sel || saving} style={{ padding: "10px 20px", borderRadius: 12, background: sel ? "#EF5B94" : "#F5A8C7", border: "none", color: "#fff", font: "600 12.5px Poppins", cursor: sel && !saving ? "pointer" : "not-allowed" }}>{t("import", "Importar")}</button>
         </div>
-        <style dangerouslySetInnerHTML={{ __html: ".imp-opt-studio:hover{background:#FCE7F0 !important;}" }} />
+        <style dangerouslySetInnerHTML={{ __html: ".imp-opt-studio:hover{background:#FCE7F0 !important;}.imp-scroll{scrollbar-width:none;-ms-overflow-style:none;}.imp-scroll::-webkit-scrollbar{display:none;width:0;height:0;}" }} />
       </div>
     </div>,
     document.body
