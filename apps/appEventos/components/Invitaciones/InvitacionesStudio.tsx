@@ -167,7 +167,9 @@ export const InvitacionesStudio: FC = () => {
     try {
       // subir_archivo hace el fetch multipart CORRECTO (boundary automático + x-apollo-operation-name),
       // que el proxy reenvía bien. (api.ApiApp forzaba Content-Type json → 400.)
-      const r: any = await subir_archivo({ imagePreviewUrl: { file }, event, use: "invitacion" });
+      // `category` DEBE ser un enum válido del backend: documents|photos|videos|memories.
+      // (Antes "portada"/"invitacion" → FileMetadata validation failed → singleUpload rechazado.)
+      const r: any = await subir_archivo({ imagePreviewUrl: { file }, event, use: "photos" });
       const url = r?.i1024 || r?.i800 || r?.i640;
       if (url) update({ cover: url }); else toast("error", "No se pudo subir la imagen");
     } catch (e: any) { toast("error", e?.message ? `No se pudo subir la imagen: ${String(e.message).slice(0, 140)}` : "No se pudo subir la imagen"); }
