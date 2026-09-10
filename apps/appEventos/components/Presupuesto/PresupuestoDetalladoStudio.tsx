@@ -123,8 +123,9 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
     let gastos = (c.gastos_array || []).filter((g: any) => filters.visibilityStatus === "hidden" ? g?.estatus === false : g?.estatus !== false);
     gastos = gastos.filter((g: any) => {
       const ct = costeRealOf(g), pag = pagadoOf(g), pen = ct - pag;
-      if (filters.paymentStatus === "paid") return ct > 0 && pen <= 0;
-      if (filters.paymentStatus === "pending") return pen > 0 && pag <= 0;
+      // "Pagado" = partidas que TIENEN algún pago; "Pendiente" = partidas con saldo por pagar.
+      if (filters.paymentStatus === "paid") return pag > 0;
+      if (filters.paymentStatus === "pending") return pen > 0;
       if (filters.paymentStatus === "partial") return pag > 0 && pen > 0;
       return true;
     });
@@ -193,9 +194,8 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
       return;
     }
     try {
-      let res: any = null;
-      if (newCant !== curCant) res = await fetchApiEventos({ query: queries.editItemGasto, variables: { evento_id: event._id, categoria_id: c._id, gasto_id: g._id, itemGasto_id: it._id, variable: "cantidad", valor: newCant } });
-      res = await fetchApiEventos({ query: queries.editItemGasto, variables: { evento_id: event._id, categoria_id: c._id, gasto_id: g._id, itemGasto_id: it._id, variable: "coste_final", valor: newCoste } });
+      // UNA sola llamada con cantidad + coste_final (antes eran 2).
+      const res: any = await fetchApiEventos({ query: queries.editItemGasto, variables: { evento_id: event._id, categoria_id: c._id, gasto_id: g._id, itemGasto_id: it._id, datos: { cantidad: newCant, coste_final: newCoste } } });
       if (res?.success === false) { toast("error", res?.errors?.[0]?.message || t("No se pudo guardar")); return; }
       applyPO(res); setHintOff(true); toast("success", t("Cambios guardados"));
     } catch { toast("error", t("Ha ocurrido un error")); }
@@ -261,73 +261,77 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
     });
   };
   const saveEdit = async (cat: any, g: any) => {
+    const items = g.items_array || [];
+    const it0 = items[0];
+    const cant = parseEs(editVals.cantidad);
+    const val = parseEs(editVals.valor);
+    const est = parseEs(editVals.coste_estimado);
+    const finManual = parseEs(editVals.coste_final);
+    const nombre = editVals.nombre.trim();
+    // ¿la partida usa un item? (ya lo tiene, o el usuario puso cantidad/valor). Item api-mcp:
+    // { nombre, cantidad, coste_final, coste_estimado }; coste_final = total de la línea = cantidad × valor.
+    const willHaveItem = !!it0?._id || val > 0 || cant > 0;
+    const lineTotal = (cant || 1) * val;
+
+    // (1) INSTANTÁNEO: cerrar la fila y reflejar los valores en la tabla YA. El guardado real va en
+    // 2º plano (api-mcp free-tier es lento); si falla se avisa y basta recargar para ver el estado real.
+    setEditRow(null);
+    setEvent((prev: any) => {
+      const po = prev?.presupuesto_objeto; if (!po) return prev;
+      return {
+        ...prev,
+        presupuesto_objeto: {
+          ...po,
+          categorias_array: (po.categorias_array || []).map((cc: any) => cc._id !== cat._id ? cc : ({
+            ...cc,
+            gastos_array: (cc.gastos_array || []).map((gg: any) => {
+              if (gg._id !== g._id) return gg;
+              const next: any = { ...gg };
+              if (nombre) next.nombre = nombre;
+              if (willHaveItem) {
+                const prevItems = gg.items_array || [];
+                next.items_array = prevItems.length
+                  ? prevItems.map((iii: any, idx: number) => idx === 0 ? { ...iii, cantidad: cant || 1, coste_final: lineTotal, coste_estimado: est } : iii)
+                  : [{ nombre: nombre || gg.nombre || "Item", cantidad: cant || 1, coste_final: lineTotal, coste_estimado: est }];
+              } else {
+                next.coste_estimado = est;
+                next.coste_final = finManual;
+              }
+              return next;
+            }),
+          })),
+        },
+      };
+    });
+
+    // (2) Sincronizar con backend.
     try {
-      const items = g.items_array || [];
-      const it0 = items[0];
-      const cant = parseEs(editVals.cantidad);
-      const val = parseEs(editVals.valor);
-      // ¿la partida usa un item? (ya lo tiene, o el usuario puso cantidad/valor). El item de api-mcp
-      // guarda { nombre, cantidad, coste_final }; coste_final del item = total de la línea = cantidad × valor.
-      const willHaveItem = !!it0?._id || val > 0 || cant > 0;
-      const lineTotal = (cant || 1) * val;
-      const est = parseEs(editVals.coste_estimado);
-      const changes: [string, string][] = [];
-      if (editVals.nombre.trim() && editVals.nombre.trim() !== (g.nombre || "")) changes.push(["nombre", editVals.nombre.trim()]);
-      // Con item: ESTIMADO y COSTE van EN el item (api-mcp deriva gasto.coste_estimado/coste_final = Σ items).
-      // Sin item: se guardan a nivel de gasto. (Enviar estimado al gasto teniendo items lo borraría.)
-      if (!willHaveItem) {
-        if (est !== (g.coste_estimado || 0)) changes.push(["coste_estimado", String(est)]);
-        const fin = parseEs(editVals.coste_final); if (fin !== (g.coste_final || 0)) changes.push(["coste_final", String(fin)]);
+      let last: any = null; let failed: any = null;
+      if (nombre && nombre !== (g.nombre || "")) {
+        last = await fetchApiEventos({ query: queries.editGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, variable_reemplazar: "nombre", valor_reemplazar: nombre } });
+        if (last?.success === false) failed = last;
       }
-      let last: any = null;
-      for (const [variable, valor] of changes) {
-        last = await fetchApiEventos({ query: queries.editGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, variable_reemplazar: variable, valor_reemplazar: valor } });
-        if (last?.success === false) { toast("error", last?.errors?.[0]?.message || t("No se pudo guardar")); return; }
-      }
-      // Item: contrato REAL api-mcp { nombre, cantidad, coste_final, coste_estimado } (NO valor_unitario/unidad).
-      if (willHaveItem) {
-        if (!it0?._id) {
-          last = await fetchApiEventos({ query: queries.nuevoItemGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, itemGasto: { nombre: g.nombre || t("Item", { defaultValue: "Item" }), cantidad: cant || 1, coste_final: lineTotal, coste_estimado: est } } });
-          if (last?.success === false) { toast("error", last?.errors?.[0]?.message || t("No se pudo guardar")); return; }
-        } else {
-          if (cant !== (it0.cantidad || 0)) {
-            last = await fetchApiEventos({ query: queries.editItemGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, itemGasto_id: it0._id, variable: "cantidad", valor: cant || 1 } });
-            if (last?.success === false) { toast("error", last?.errors?.[0]?.message || t("No se pudo guardar")); return; }
-          }
-          last = await fetchApiEventos({ query: queries.editItemGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, itemGasto_id: it0._id, variable: "coste_final", valor: lineTotal } });
-          if (last?.success === false) { toast("error", last?.errors?.[0]?.message || t("No se pudo guardar")); return; }
-          if (est !== (it0.coste_estimado || 0)) {
-            last = await fetchApiEventos({ query: queries.editItemGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, itemGasto_id: it0._id, variable: "coste_estimado", valor: est } });
-            if (last?.success === false) { toast("error", last?.errors?.[0]?.message || t("No se pudo guardar")); return; }
-          }
+      if (!failed && !willHaveItem) {
+        // Sin item: estimado y coste manual van al gasto (solo lo que cambió).
+        const gChanges: [string, string][] = [];
+        if (est !== (g.coste_estimado || 0)) gChanges.push(["coste_estimado", String(est)]);
+        if (finManual !== (g.coste_final || 0)) gChanges.push(["coste_final", String(finManual)]);
+        for (const [variable, valor] of gChanges) {
+          last = await fetchApiEventos({ query: queries.editGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, variable_reemplazar: variable, valor_reemplazar: valor } });
+          if (last?.success === false) { failed = last; break; }
         }
       }
-      if (last) applyPO(last);
-      // Refuerzo optimista: fijar coste_final + cantidad del primer item (o crearlo), preservando el resto.
-      if (willHaveItem) {
-        setEvent((prev: any) => {
-          const po = prev?.presupuesto_objeto; if (!po) return prev;
-          return {
-            ...prev,
-            presupuesto_objeto: {
-              ...po,
-              categorias_array: (po.categorias_array || []).map((cc: any) => cc._id !== cat._id ? cc : ({
-                ...cc,
-                gastos_array: (cc.gastos_array || []).map((gg: any) => {
-                  if (gg._id !== g._id) return gg;
-                  const prevItems = gg.items_array || [];
-                  const nextItems = prevItems.length
-                    ? prevItems.map((iii: any, idx: number) => idx === 0 ? { ...iii, cantidad: cant || 1, coste_final: lineTotal, coste_estimado: est } : iii)
-                    : [{ nombre: g.nombre || "Item", cantidad: cant || 1, coste_final: lineTotal, coste_estimado: est }];
-                  return { ...gg, items_array: nextItems };
-                }),
-              })),
-            },
-          };
-        });
+      if (!failed && willHaveItem) {
+        if (!it0?._id) {
+          last = await fetchApiEventos({ query: queries.nuevoItemGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, itemGasto: { nombre: nombre || g.nombre || t("Item", { defaultValue: "Item" }), cantidad: cant || 1, coste_final: lineTotal, coste_estimado: est } } });
+        } else {
+          // UNA sola llamada con todos los campos del item (antes eran hasta 3 → más lento).
+          last = await fetchApiEventos({ query: queries.editItemGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, itemGasto_id: it0._id, datos: { cantidad: cant || 1, coste_final: lineTotal, coste_estimado: est } } });
+        }
+        if (last?.success === false) failed = last;
       }
-      setEditRow(null);
-      toast("success", t("Cambios guardados"));
+      if (failed) { toast("error", failed?.errors?.[0]?.message || t("No se pudo guardar. Recarga para ver el estado real.", { defaultValue: "No se pudo guardar. Recarga para ver el estado real." })); return; }
+      if (last) applyPO(last);
     } catch { toast("error", t("Ha ocurrido un error")); }
   };
 
@@ -474,6 +478,9 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                     // Editable si la partida tiene 0 o 1 items (0 → se crea uno por defecto al editar).
                     // Con 2+ items la fila resumen no representa uno solo → no editable aquí.
                     const canEditItem = !hasItems || singleItem;
+                    // Bajo los filtros "Pagado"/"Pendiente" auto-desplegamos el historial de pagos de la
+                    // partida (además del toggle manual), para verlos agrupados por categoría y partida.
+                    const showPagos = payOpen[key] || filters.paymentStatus === "paid" || filters.paymentStatus === "pending";
                     // Síncrono: abre el editor al instante (como el nombre de la partida). Si la partida
                     // no tiene item, se crea al GUARDAR (en saveItem), no aquí.
                     const openItem = (f: "unidad" | "cantidad" | "valor", v: string) => {
@@ -540,7 +547,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                     };
                     return (
                       <div key={g._id}>
-                        <div className="pd-row" style={{ display: "grid", gridTemplateColumns: gridTemplate, gap: 8, alignItems: "center", padding: "11px 20px 11px 22px", borderBottom: payOpen[key] ? "none" : "1px solid #f4f4f6" }}>
+                        <div className="pd-row" style={{ display: "grid", gridTemplateColumns: gridTemplate, gap: 8, alignItems: "center", padding: "11px 20px 11px 22px", borderBottom: showPagos ? "none" : "1px solid #f4f4f6" }}>
                           {visibleCols.map((col) => {
                             const editable = !editing && (col.key === "partida" || (col.key === "coste" && !hasItems) || col.key === "estimado");
                             // Columnas de item: TODA la celda clicable (no solo el "—" diminuto). La cantidad
@@ -552,7 +559,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                             return <div key={col.key} onClick={onClick} style={{ ...cellStyle(col.align), ...((editable || itemClickable) ? { cursor: itemField === "unidad" ? "pointer" : "text" } : {}) }}>{render[col.key]}</div>;
                           })}
                         </div>
-                        {payOpen[key] && (() => {
+                        {showPagos && (() => {
                           const pagos = (g.pagos_array || []).filter((p: any) => p?.estatus !== false && !(undo?.kind === "pago" && undo.p?._id === p._id));
                           const fmtF = (f: any) => { if (!f) return "—"; try { const d = new Date(f); return isNaN(d.getTime()) ? String(f) : `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`; } catch { return String(f); } };
                           return (
