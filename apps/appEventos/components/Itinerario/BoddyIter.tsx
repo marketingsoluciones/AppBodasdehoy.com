@@ -20,6 +20,7 @@ import { getStorage } from "firebase/storage";
 import { ModalDuplicate } from "../Servicios/Utils/ModalDuplicate";
 import { PermissionWrapper } from "../Servicios/Utils/PermissionWrapper";
 import ItinerarioVacioStudio from "./ItinerarioVacioStudio";
+import TareasVacioStudio from "./TareasVacioStudio";
 
 interface Modal {
     state: boolean
@@ -428,6 +429,14 @@ export const BoddyIter = () => {
         return (
             <PermissionWrapper>
                 <ItinerarioVacioStudio event={event} setEvent={setEvent} config={config} isOwner={isOwner} pathSlice={pathSliceIter} />
+            </PermissionWrapper>
+        )
+    }
+    // Estado vacío del módulo Tareas (/servicios), fiel a tareasvacio{desktop,movil}.html.
+    if (studioIter && event?._id && pathSliceIter === "servicios" && isEmptyTipo) {
+        return (
+            <PermissionWrapper>
+                <TareasVacioStudio event={event} setEvent={setEvent} config={config} isOwner={isOwner} pathSlice={pathSliceIter} />
             </PermissionWrapper>
         )
     }
