@@ -75,9 +75,12 @@ const ModalAddPagoStudio: FC<Props> = ({ categoriaId, gastoId, onClose, pago }) 
         ...(editing ? { _id: pago?._id } : {}),
         monto: imp,
         fecha,
-        metodo: (esPago ? medioPago : "") || "efectivo",
+        // Si es "por Wedding Planner" lo marcamos en `metodo` (campo que api-mcp SÍ guarda) para poder
+        // separarlo del pago directo en Gestión financiera — el backend no tiene un flag propio.
+        metodo: wp ? "wedding planner" : ((esPago ? medioPago : "") || "efectivo"),
         referencia: "",
         notas: concepto || "",
+        pagado_por: wp ? "wedding planer" : (esPago ? pagadoPor : ""), // por si el backend añade el campo
         ...(soporte ? { soporte } : {}),
       };
       const result: any = editing

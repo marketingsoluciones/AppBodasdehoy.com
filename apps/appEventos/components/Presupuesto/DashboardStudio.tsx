@@ -31,20 +31,28 @@ const DashboardStudio: FC<Props> = ({ categorias }) => {
   const cats = Array.isArray(categorias) ? categorias : [];
   const deposits = event?.presupuesto_objeto?.weddingPlannerIngresos || [];
 
+  // Contrato REAL api-mcp: pago = { monto, fecha, metodo, referencia, notas } (sin importe/estado/
+  // pagado_por). Item = { cantidad, coste_final }. Coherente con la tabla y el resumen.
+  const montoOf = (p: any) => Number(p?.monto ?? p?.importe) || 0;
+  const costeRealGasto = (g: any) => { const items = (g?.items_array || []); return items.length ? items.reduce((a: number, it: any) => a + (Number(it?.coste_final) || 0), 0) : (Number(g?.coste_final) || 0); };
   const data = useMemo(() => {
     const allPagos: any[] = [];
-    cats.forEach((c) => (c.gastos_array || []).filter((g: any) => g?.estatus !== false).forEach((g: any) => (g.pagos_array || []).filter((p: any) => p?.estado === "pagado").forEach((p: any) => allPagos.push({ ...p, catName: c.nombre, gastoName: g.nombre }))));
-    const directos = allPagos.filter((p) => p.pagado_por !== WP);
-    const wpPagos = allPagos.filter((p) => p.pagado_por === WP);
+    cats.forEach((c) => (c.gastos_array || []).filter((g: any) => g?.estatus !== false).forEach((g: any) => (g.pagos_array || []).filter((p: any) => p?.estatus !== false).forEach((p: any) => allPagos.push({ ...p, catName: c.nombre, gastoName: g.nombre }))));
+    // WP vs directo se marca por pagado_por/metodo (api-mcp aún no guarda un flag propio → por ahora
+    // casi todo cae en "directos"; ver nota al usuario sobre separar WP en backend).
+    const isWP = (p: any) => (p.pagado_por || "") === WP || String(p.metodo || "").toLowerCase().includes("wedding");
+    const directos = allPagos.filter((p) => !isWP(p));
+    const wpPagos = allPagos.filter((p) => isWP(p));
     const recibido = deposits.reduce((a: number, d: any) => a + (Number(d.monto) || 0), 0);
-    const totalDirectos = directos.reduce((a, p) => a + (Number(p.importe) || 0), 0);
-    const totalWP = wpPagos.reduce((a, p) => a + (Number(p.importe) || 0), 0);
-    const presupuestoTotal = cats.reduce((a, c) => a + (c.coste_final || 0), 0);
-    const totalPagado = event?.presupuesto_objeto?.pagado || 0;
+    const totalDirectos = directos.reduce((a, p) => a + montoOf(p), 0);
+    const totalWP = wpPagos.reduce((a, p) => a + montoOf(p), 0);
+    const presupuestoTotal = cats.reduce((a, c) => a + (c.gastos_array || []).filter((g: any) => g?.estatus !== false).reduce((s: number, g: any) => s + costeRealGasto(g), 0), 0);
+    const totalPagado = allPagos.reduce((a, p) => a + montoOf(p), 0);
     const utilizado = totalWP;
     const disponible = recibido - utilizado;
     return { allPagos, directos, wpPagos, recibido, totalDirectos, totalWP, presupuestoTotal, totalPagado, utilizado, disponible };
-  }, [cats, deposits, event?.presupuesto_objeto?.pagado]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cats, deposits]);
 
   const pctDisp = data.recibido > 0 ? Math.round((data.disponible / data.recibido) * 100) : 0;
   const pctPag = data.presupuestoTotal > 0 ? Math.round((data.totalPagado / data.presupuestoTotal) * 100) : 0;
@@ -150,13 +158,13 @@ const DashboardStudio: FC<Props> = ({ categorias }) => {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ font: "600 13.5px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.gastoName}</div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3, font: "500 11.5px Poppins", color: "#a0a0a8", flexWrap: "wrap" }}>
-                      <span>{fmtFecha(p.fecha_pago)}</span>
+                      <span>{fmtFecha(p.fecha || p.fecha_pago)}</span>
                       <span style={{ background: "#faf9fb", border: "1px solid #ececef", borderRadius: 999, padding: "2px 9px", font: "600 10.5px Poppins", color: "#6b6b72" }}>{cap1(p.catName)}</span>
                       {p.pagado_por && <span>{t("Por")}: {p.pagado_por}</span>}
                     </div>
                   </div>
                   <div style={{ textAlign: "right", flex: "none" }}>
-                    <div style={{ font: "700 13.5px Poppins", color: "#3A3A42" }}>{getCurrency(p.importe || 0, cur)}</div>
+                    <div style={{ font: "700 13.5px Poppins", color: "#3A3A42" }}>{getCurrency(montoOf(p), cur)}</div>
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "#E4F5EE", color: "#2FB37E", borderRadius: 999, padding: "3px 10px", font: "600 10.5px Poppins", marginTop: 4 }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#2FB37E" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>{t("Pagado")}</span>
                   </div>
                 </div>
@@ -176,8 +184,8 @@ const DashboardStudio: FC<Props> = ({ categorias }) => {
                 </div>
               ) : data.wpPagos.map((p: any, i: number) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 20px", borderBottom: "1px solid #f6f6f8" }}>
-                  <div style={{ flex: 1, minWidth: 0 }}><div style={{ font: "600 13.5px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.gastoName}</div><div style={{ font: "500 11.5px Poppins", color: "#a0a0a8", marginTop: 3 }}>{fmtFecha(p.fecha_pago)} · {cap1(p.catName)}</div></div>
-                  <div style={{ font: "700 13.5px Poppins", color: "#3A3A42" }}>{getCurrency(p.importe || 0, cur)}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}><div style={{ font: "600 13.5px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.gastoName}</div><div style={{ font: "500 11.5px Poppins", color: "#a0a0a8", marginTop: 3 }}>{fmtFecha(p.fecha || p.fecha_pago)} · {cap1(p.catName)}</div></div>
+                  <div style={{ font: "700 13.5px Poppins", color: "#3A3A42" }}>{getCurrency(montoOf(p), cur)}</div>
                 </div>
               ))}
             </div>
