@@ -94,8 +94,9 @@ export const subir_archivo = async ({ imagePreviewUrl, event, use }) => {
       i320: f.publicUrls?.thumbnail ?? f.publicUrls?.optimized400w ?? null,
       createdAt: f.createdAt,
     };
-  } catch (error) {
-    throw new Error(error);
+  } catch (error: any) {
+    // Propagar el mensaje REAL (HTTP status / mensaje backend) — antes `new Error(error)` lo perdía.
+    throw error instanceof Error ? error : new Error(typeof error === "string" ? error : (error?.message || "singleUpload failed"));
   }
 };
 

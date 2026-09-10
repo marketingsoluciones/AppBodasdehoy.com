@@ -512,9 +512,10 @@ export const InvitacionesStudio: FC = () => {
         )}
 
         {tab === "envio" && (() => {
-          // Solo invitados PRINCIPALES: los acompañantes (con `father` = id del principal) NO reciben
-          // invitación directa — los gestiona el invitado principal. Por eso salían como "Sin nombre".
-          const invitados: any[] = (event?.invitados_array || []).filter((inv: any) => !inv?.father);
+          // Solo invitados PRINCIPALES CON NOMBRE: los acompañantes (con `father`) los gestiona el
+          // principal (no reciben invitación directa); y un invitado sin nombre no puede recibir invitación.
+          // Ambos son los que salían como "Sin nombre / Sin correo".
+          const invitados: any[] = (event?.invitados_array || []).filter((inv: any) => !inv?.father && !!(inv?.nombre || "").trim());
           const isSent = (inv: any) => !!inv.invitacion;
           const total = invitados.length;
           const sentN = invitados.filter(isSent).length;
