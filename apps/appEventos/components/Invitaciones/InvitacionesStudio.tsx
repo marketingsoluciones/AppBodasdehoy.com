@@ -121,6 +121,7 @@ export const InvitacionesStudio: FC = () => {
   const [sendChan, setSendChan] = useState<ChannelKey>("email");
   const [sendMode, setSendMode] = useState<"now" | "sched">("now");
   const [sending, setSending] = useState(false);
+  const [sentIds, setSentIds] = useState<Record<string, boolean>>({}); // marcados como enviados en esta sesión (optimista)
   const coverInputRef = useRef<HTMLInputElement>(null);
   const loadedRef = useRef(false);
   const editedRef = useRef(false);                       // el usuario ya tocó el diseño → no dejar que la carga lo pise
@@ -229,19 +230,42 @@ export const InvitacionesStudio: FC = () => {
           fetchApiEventos({ query: queries.updateWhatsappInvitationTemplate, variables: { evento_id: event?._id, template_id: waId, data } }).catch(() => {/* noop */});
         }
       }
-      await fetchApiEventos({
+      const dev = auth?.config?.development || auth?.config?.dominio || auth?.config?.domain || "bodasdehoy";
+      const res: any = await fetchApiEventos({
         query: queries.sendComunications,
         variables: {
           evento_id: event?._id,
           invitados_ids_array: ids,
           dominio: auth?.config?.dominio || auth?.config?.domain,
+          development: dev,               // el backend lo exige (String!); explícito por si el adapter no lo rellena
           transport: sendChan,
           lang: i18n?.language || "es",
           template_id: sendChan === "email" ? templateId : waId,
         },
       });
-      toast("success", sendChan === "email" ? "Envío por email exitoso" : "Envío por WhatsApp exitoso");
-      setChecked({});
+      // Leer la respuesta REAL del backend (sent/failed/errors) en vez de decir siempre "exitoso".
+      const sent = Number(res?.sent || 0);
+      const failed = Number(res?.failed || 0);
+      const results: any[] = Array.isArray(res?.results) ? res.results : [];
+      const errMsg = res?.errors?.[0]?.message || (res?.success === false ? "El servidor rechazó el envío" : "");
+      if (!res || (sent === 0 && failed === 0)) {
+        toast("error", errMsg || "No se pudo enviar (el servidor no devolvió resultado). Recarga la página (Cmd+Shift+R) e inténtalo de nuevo.");
+        return;
+      }
+      if (sent > 0) {
+        // Marca como enviados solo los que el backend confirma (o todos si no detalla y sent === seleccionados).
+        const okIds = results.filter((r) => r?.enviado).map((r) => r?.invitado_id || r?._id).filter(Boolean);
+        const marked = okIds.length ? okIds : (sent >= ids.length ? ids : []);
+        if (marked.length) setSentIds((prev) => { const n = { ...prev }; marked.forEach((id: string) => { n[id] = true; }); return n; });
+        setChecked({});
+        const chLabel = sendChan === "email" ? "email" : "WhatsApp";
+        toast("success", failed > 0
+          ? `Enviado a ${sent} · ${failed} sin enviar${errMsg ? ` (${errMsg})` : ""}`
+          : `Invitación enviada a ${sent} invitado${sent > 1 ? "s" : ""} por ${chLabel}`);
+      } else {
+        // sent === 0 && failed > 0 → ninguno se envió; motivo real del backend.
+        toast("error", errMsg || `No se envió ninguna (${failed} ${failed > 1 ? "fallaron" : "falló"}). ${sendChan === "whatsapp" ? "Revisa que los invitados tengan número de teléfono." : ""}`);
+      }
     } catch {
       toast("error", "Error al enviar invitaciones");
     } finally {
@@ -564,7 +588,7 @@ export const InvitacionesStudio: FC = () => {
           // principal (no reciben invitación directa); y un invitado sin nombre no puede recibir invitación.
           // Ambos son los que salían como "Sin nombre / Sin correo".
           const invitados: any[] = (event?.invitados_array || []).filter((inv: any) => !inv?.father && !!(inv?.nombre || "").trim());
-          const isSent = (inv: any) => !!inv.invitacion;
+          const isSent = (inv: any) => !!inv.invitacion || !!sentIds[inv._id];
           const total = invitados.length;
           const sentN = invitados.filter(isSent).length;
           const unsentN = total - sentN;
@@ -583,11 +607,16 @@ export const InvitacionesStudio: FC = () => {
           const q = searchB.trim().toLowerCase();
           const rows = invitados.map((inv, i) => {
             const st = isSent(inv) ? "Enviada" : "Sin enviar";
-            const ch: ChannelKey = inv.correo ? "email" : (inv.telefono ? "whatsapp" : "email");
+            // El CANAL refleja el canal elegido para el envío (sendChan), no un fijo por invitado:
+            // al cambiar a WhatsApp abajo, las filas muestran WhatsApp. Marcamos si le falta el
+            // dato de contacto para ese canal (sin correo / sin teléfono).
+            const ch: ChannelKey = sendChan;
+            const phoneOf = (x: any) => x?.telefono || x?.whatsapp || x?.movil || x?.celular;
+            const missingContact = (ch === "email" && !inv.correo) || (ch === "whatsapp" && !phoneOf(inv)) || ch === "sms";
             return {
               id: inv._id as string, initial: ((inv.nombre || "?").trim().charAt(0) || "?").toUpperCase(),
               name: inv.nombre || "Sin nombre", email: inv.correo || "Sin correo",
-              channel: ch === "email" ? "Email" : ch === "whatsapp" ? "WhatsApp" : "SMS", channelKey: ch,
+              channel: ch === "email" ? "Email" : ch === "whatsapp" ? "WhatsApp" : "SMS", channelKey: ch, missingContact,
               status: st, action: st === "Sin enviar" ? "Enviar" : "Reenviar", avBg: avPal[i % avPal.length],
             };
           });
@@ -678,7 +707,7 @@ export const InvitacionesStudio: FC = () => {
                           <div style={{ font: "500 10.5px Poppins", color: "#a0a0a8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.email}</div>
                         </div>
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, font: "600 11.5px Poppins", color: "#8a8a90" }}>{chanIcon(g.channelKey, "#8a8a90")}{g.channel}</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, font: "600 11.5px Poppins", color: g.missingContact ? "#E76F51" : "#8a8a90" }} title={g.missingContact ? (g.channelKey === "whatsapp" ? "Sin número de teléfono" : g.channelKey === "email" ? "Sin correo" : "SMS no disponible") : undefined}>{chanIcon(g.channelKey, g.missingContact ? "#E76F51" : "#8a8a90")}{g.channel}{g.missingContact && <span style={{ font: "600 9.5px Poppins", color: "#E76F51" }}>⚠</span>}</div>
                       <div><span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: st[1], color: st[0], font: "600 10.5px Poppins", padding: "5px 10px", borderRadius: 20 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: st[0] }} />{g.status}</span></div>
                       <div style={{ justifySelf: "start" }}><button onClick={() => setChecked((c) => ({ ...c, [g.id]: true }))} style={{ padding: "7px 15px", borderRadius: 9, border: "1.5px solid #EF5B94", background: "#fff", color: "#EF5B94", font: "600 11px Poppins", cursor: "pointer" }}>{g.action}</button></div>
                     </div>
