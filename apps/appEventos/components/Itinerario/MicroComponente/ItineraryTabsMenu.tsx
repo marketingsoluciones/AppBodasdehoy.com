@@ -34,9 +34,50 @@ export const ItineraryTabsMenu: FC<props> = ({ setModalDuplicate, itinerario, it
     const { t } = useTranslation();
     const toast = useToast();
     const [isAllowed, ht] = useAllowed()
-    const { user } = AuthContextProvider()
-    const { event } = EventContextProvider()
+    const { user, config } = AuthContextProvider()
+    const { event, setEvent } = EventContextProvider()
     const isOwner = user?.uid && event?.usuario_id && user.uid === event.usuario_id
+
+    // Duplicar la lista DIRECTO en el mismo evento (sin el modal de elegir destino).
+    // Réplica de la rama "mismo evento" de ModalDuplicate.handleDuplicateItinerario.
+    const duplicarLista = async () => {
+        try {
+            const path = window?.location?.pathname.slice(1)
+            const rawResult: any = await fetchApiEventos({
+                query: queries.duplicateItinerario,
+                variables: { evento_id: event._id, itinerario_id: item._id },
+                domain: config.domain,
+            })
+            const result: any = rawResult?.itinerario || rawResult
+            if (!result?._id) { toast("error", t("Error al duplicar", { defaultValue: "No se pudo duplicar la lista" })); return }
+            const f1 = event.itinerarios_array.findIndex((elem: any) => elem._id === item._id)
+            fetchApiEventos({
+                query: queries.editItinerario,
+                variables: { eventID: event._id, itinerarioID: item._id, variable: "next_id", valor: result._id },
+                domain: config.domain,
+            }).catch(() => {/* noop */})
+            const fListId = event?.listIdentifiers?.findIndex((elem: any) => elem.table === path)
+            const needsListIdUpdate = fListId >= 0 && event.listIdentifiers[fListId]?.end_Id === item._id
+            if (needsListIdUpdate) {
+                const newListIdentifiers = event.listIdentifiers.map((li: any, i: number) => (i !== fListId ? li : { ...li, end_Id: result._id }))
+                fetchApiEventos({ query: queries.eventUpdate, variables: { idEvento: event._id, variable: "listIdentifiers", value: JSON.stringify(newListIdentifiers) } }).catch(() => {/* noop */})
+            }
+            setEvent((prev: any) => ({
+                ...prev,
+                itinerarios_array: [
+                    ...prev.itinerarios_array.map((it: any, i: number) => (i !== f1 ? it : { ...it, next_id: result._id })),
+                    result,
+                ],
+                listIdentifiers: needsListIdUpdate
+                    ? prev.listIdentifiers.map((li: any, i: number) => (i !== fListId ? li : { ...li, end_Id: result._id }))
+                    : prev.listIdentifiers,
+            }))
+            toast("success", t("¡Lista duplicada!", { defaultValue: "¡Lista duplicada!" }))
+        } catch (error: any) {
+            console.warn("[ItineraryTabsMenu] duplicarLista error:", error?.message ?? error)
+            toast("error", t("Error al duplicar", { defaultValue: "No se pudo duplicar la lista" }))
+        }
+    }
 
     const isStudio = typeof window !== "undefined"
         && isStudioPathname(window.location.pathname)
@@ -69,7 +110,7 @@ export const ItineraryTabsMenu: FC<props> = ({ setModalDuplicate, itinerario, it
         ...(isOwner ? [{
             title: t("Duplicar lista", { defaultValue: "Duplicar lista" }),
             value: "duplicar",
-            onClick: () => { setModalDuplicate({ state: true, data: item }) },
+            onClick: duplicarLista,
             icon: icDup
         }] : []),
         {

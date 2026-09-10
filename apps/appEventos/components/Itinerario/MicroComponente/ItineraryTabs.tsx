@@ -611,10 +611,20 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 {/* Solo Tareas: Itinerario ya muestra el nombre de la lista abajo, en SubHeader,
                     y aquí salía duplicado. */}
                 <div className="flex items-center" style={{ gap: 10, minWidth: 0 }}>
-                    {isTareas && <div style={{ font: "700 17px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 340 }}>
-                        {itinerario?.title}
-                    </div>}
-                    {isTareas && isAllowed() && !!itinerario && (
+                    {isTareas && (
+                        (editTitle && !["/itinerario"].includes(window?.location?.pathname))
+                            ? <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                                <input type="text" autoFocus value={title} onChange={(e) => setTitle(e.target.value)}
+                                    onKeyDown={(e) => { if (e.key === "Enter") handleUpdateTitle(); else if (e.key === "Escape") setEditTitle(false) }}
+                                    style={{ font: "700 16px Poppins", color: "#3A3A42", border: "1.5px solid #EF5B94", borderRadius: 10, padding: "6px 12px", outline: "none", maxWidth: 300 }} />
+                                <button type="button" onClick={() => handleUpdateTitle()} style={{ padding: "7px 16px", borderRadius: 9, background: "#EF5B94", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer" }}>{t("save", { defaultValue: "Guardar" })}</button>
+                                <button type="button" onClick={() => setEditTitle(false)} style={{ padding: "7px 14px", borderRadius: 9, background: "#fff", color: "#8a8a90", font: "600 12.5px Poppins", border: "1.5px solid #E7E7EA", cursor: "pointer" }}>{t("Cancelar", { defaultValue: "Cancelar" })}</button>
+                            </div>
+                            : <div style={{ font: "700 17px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 340 }}>
+                                {itinerario?.title}
+                            </div>
+                    )}
+                    {isTareas && isAllowed() && !!itinerario && !editTitle && (
                         <ItineraryTabsMenu
                             item={itinerario}
                             itinerario={itinerario}
