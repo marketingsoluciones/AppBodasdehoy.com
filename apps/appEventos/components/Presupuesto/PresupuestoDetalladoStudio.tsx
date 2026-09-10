@@ -88,17 +88,22 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
   const visibleCols = ALL_COLS.filter((c) => columnConfig[COLMAP[c.key]]?.visible !== false);
   const gridTemplate = visibleCols.map((c) => c.w).join(" ");
 
-  // COSTE REAL: si la partida tiene items, se DERIVA de ellos (Σ cantidad_efectiva × valor_unitario).
-  // api-mcp no siempre recalcula coste_final al crear/editar un item, así que la tabla lo calcula desde
-  // los items (que sí se persisten). Sin items → coste_final manual. UNIDADES: 'xUni.' = cantidad manual;
-  // el resto se deriva del nº de invitados estimados (misma regla que ExcelView).
+  // MODELO REAL de item en api-mcp (verificado por captura de red): { nombre, cantidad, coste_final,
+  // coste_estimado, notas }. NO existe `valor_unitario` ni `unidad` (el backend los descarta). Así que:
+  //  · COSTE REAL de la partida = Σ coste_final de sus items (el coste_final del item = total de la línea).
+  //  · VALOR UNIT. mostrado = coste_final / cantidad (derivado). CANTIDAD = item.cantidad.
+  // Sin items → coste_final del propio gasto (manual).
   const stGuests = event?.presupuesto_objeto?.totalStimatedGuests || {};
-  const effCantidad = (it: any) => !it ? undefined : it.unidad === "xUni." ? it.cantidad : it.unidad === "xNiños." ? (stGuests.children || 0) : it.unidad === "xAdultos." ? (stGuests.adults || 0) : ((stGuests.children || 0) + (stGuests.adults || 0));
-  const costeRealOf = (g: any) => { const items = (g?.items_array || []); return items.length ? items.reduce((a: number, it: any) => a + (effCantidad(it) ?? 0) * (it?.valor_unitario || 0), 0) : (g?.coste_final || 0); };
+  const effCantidad = (it: any) => { if (!it) return undefined; const u = it.unidad || "xUni."; return u === "xUni." ? it.cantidad : u === "xNiños." ? (stGuests.children || 0) : u === "xAdultos." ? (stGuests.adults || 0) : ((stGuests.children || 0) + (stGuests.adults || 0)); };
+  const valorUnitOf = (it: any) => { const c = Number(it?.cantidad) || 1; return (Number(it?.coste_final) || 0) / (c || 1); };
+  const costeRealOf = (g: any) => { const items = (g?.items_array || []); return items.length ? items.reduce((a: number, it: any) => a + (Number(it?.coste_final) || 0), 0) : (Number(g?.coste_final) || 0); };
+  // PAGADO: el pago de api-mcp guarda `monto`. Sumamos monto de pagos_array (robusto aunque el backend
+  // no agregue a gasto.pagado). Fallback a gasto.pagado por si vinieran datos sin pagos_array.
+  const pagadoOf = (g: any) => { const ps = (g?.pagos_array || []); return ps.length ? ps.reduce((a: number, pp: any) => a + (Number(pp?.monto) || 0), 0) : (Number(g?.pagado) || 0); };
 
   const totals = useMemo(() => {
     let tot = 0, pag = 0, est = 0, nP = 0;
-    cats.forEach((c) => (c.gastos_array || []).filter((g: any) => g?.estatus !== false).forEach((g: any) => { tot += costeRealOf(g); pag += g.pagado || 0; est += g.coste_estimado || 0; nP++; }));
+    cats.forEach((c) => (c.gastos_array || []).filter((g: any) => g?.estatus !== false).forEach((g: any) => { tot += costeRealOf(g); pag += pagadoOf(g); est += g.coste_estimado || 0; nP++; }));
     return { tot, pag, est, pen: tot - pag, nCat: cats.length, nPart: nP };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cats]);
@@ -112,7 +117,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
     const catMatch = String(c.nombre || "").toLowerCase().includes(ql);
     let gastos = (c.gastos_array || []).filter((g: any) => filters.visibilityStatus === "hidden" ? g?.estatus === false : g?.estatus !== false);
     gastos = gastos.filter((g: any) => {
-      const ct = costeRealOf(g), pag = g.pagado || 0, pen = ct - pag;
+      const ct = costeRealOf(g), pag = pagadoOf(g), pen = ct - pag;
       if (filters.paymentStatus === "paid") return ct > 0 && pen <= 0;
       if (filters.paymentStatus === "pending") return pen > 0 && pag <= 0;
       if (filters.paymentStatus === "partial") return pag > 0 && pen > 0;
@@ -159,23 +164,22 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
     catch { toast("error", t("Ha ocurrido un error")); }
   };
 
-  // Edición inline de item (unidad/cantidad/valor). El backend recalcula coste_final y devuelve el
-  // presupuesto_objeto, así que NO recalculamos a mano. Regla de negocio (idéntica a ExcelView):
-  // 'xUni.' = cantidad manual; el resto se deriva del nº de invitados estimados.
+  // Edición inline de item (celda cantidad/valor). Contrato REAL api-mcp: el item guarda
+  // { nombre, cantidad, coste_final } — sin unidad ni valor_unitario. Al editar valor/cantidad
+  // recalculamos coste_final = cantidad × valor y lo escribimos. 'unidad' no se persiste (se ignora).
   const UNIDADES = ["xUni.", "xNiños.", "xAdultos.", "xInvitados."];
   const saveItem = async (c: any, g: any, it: any, field: "unidad" | "cantidad" | "valor") => {
     const raw = itemEdit?.val ?? "";
     setItemEdit(null);
-    const variable = field === "valor" ? "valor_unitario" : field;
-    const valor: any = field === "unidad" ? raw : parseEs(raw);
+    if (field === "unidad") return; // api-mcp no guarda 'unidad' en el item → no-op
+    const num = parseEs(raw);
+    const curCant = Number(it?.cantidad) || 1;
+    const curValor = valorUnitOf(it);
+    const newCant = field === "cantidad" ? (num || 1) : curCant;
+    const newValor = field === "valor" ? num : curValor;
+    const newCoste = newCant * newValor;
     if (!it?._id) {
-      // Sin item aún: crear uno con el valor editado (+ defaults). El backend calcula coste_final
-      // = cantidad × valor. Así el "coste real" queda automático.
-      // Payload COMPLETO (idéntico a la vista legacy handleCreateItem/tableBudgetV8): el backend
-      // exige nombre/total/estatus; con un item parcial devuelve success:false y NO persiste.
-      const base: any = { nombre: g.nombre || t("Item", { defaultValue: "Item" }), cantidad: 1, valor_unitario: g.coste_final || 0, total: g.coste_final || 0, unidad: "xUni.", estatus: false };
-      base[variable] = valor;
-      base.total = (Number(base.cantidad) || 0) * (Number(base.valor_unitario) || 0);
+      const base: any = { nombre: g.nombre || t("Item", { defaultValue: "Item" }), cantidad: newCant, coste_final: newCoste, coste_estimado: 0 };
       try {
         const res: any = await fetchApiEventos({ query: queries.nuevoItemGasto, variables: { evento_id: event._id, categoria_id: c._id, gasto_id: g._id, itemGasto: base } });
         if (res?.success === false) { toast("error", res?.errors?.[0]?.message || t("No se pudo guardar")); return; }
@@ -183,10 +187,10 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
       } catch { toast("error", t("Ha ocurrido un error")); }
       return;
     }
-    const current = field === "valor" ? (it.valor_unitario || 0) : field === "cantidad" ? (it.cantidad || 0) : (it.unidad || "");
-    if (String(valor) === String(current)) return;
     try {
-      const res: any = await fetchApiEventos({ query: queries.editItemGasto, variables: { evento_id: event._id, categoria_id: c._id, gasto_id: g._id, itemGasto_id: it._id, variable, valor } });
+      let res: any = null;
+      if (newCant !== curCant) res = await fetchApiEventos({ query: queries.editItemGasto, variables: { evento_id: event._id, categoria_id: c._id, gasto_id: g._id, itemGasto_id: it._id, variable: "cantidad", valor: newCant } });
+      res = await fetchApiEventos({ query: queries.editItemGasto, variables: { evento_id: event._id, categoria_id: c._id, gasto_id: g._id, itemGasto_id: it._id, variable: "coste_final", valor: newCoste } });
       if (res?.success === false) { toast("error", res?.errors?.[0]?.message || t("No se pudo guardar")); return; }
       applyPO(res); setHintOff(true); toast("success", t("Cambios guardados"));
     } catch { toast("error", t("Ha ocurrido un error")); }
@@ -248,19 +252,19 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
       coste_final: String(g.coste_final || 0),
       unidad: it0?.unidad || "xUni.",
       cantidad: String(it0?.cantidad ?? 0),
-      valor: String(it0?.valor_unitario ?? 0),
+      valor: String(it0 ? valorUnitOf(it0) : 0),
     });
   };
   const saveEdit = async (cat: any, g: any) => {
     try {
-      const it0 = (g.items_array || [])[0];
-      const singleI = (g.items_array || []).length <= 1; // solo tocamos el item si hay 0 o 1
-      const uni = editVals.unidad || "xUni.";
+      const items = g.items_array || [];
+      const it0 = items[0];
       const cant = parseEs(editVals.cantidad);
       const val = parseEs(editVals.valor);
-      // ¿la partida tendrá item? (ya lo tiene, o el usuario puso un valor unitario). Si es así,
-      // el coste_final se DERIVA (cantidad × valor) → no se manda coste_final a mano.
-      const willHaveItem = singleI && (!!it0?._id || val > 0 || cant > 0 || uni !== "xUni.");
+      // ¿la partida usa un item? (ya lo tiene, o el usuario puso cantidad/valor). El item de api-mcp
+      // guarda { nombre, cantidad, coste_final }; coste_final del item = total de la línea = cantidad × valor.
+      const willHaveItem = !!it0?._id || val > 0 || cant > 0;
+      const lineTotal = (cant || 1) * val;
       const changes: [string, string][] = [];
       if (editVals.nombre.trim() && editVals.nombre.trim() !== (g.nombre || "")) changes.push(["nombre", editVals.nombre.trim()]);
       const est = parseEs(editVals.coste_estimado); if (est !== (g.coste_estimado || 0)) changes.push(["coste_estimado", String(est)]);
@@ -270,31 +274,23 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
         last = await fetchApiEventos({ query: queries.editGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, variable_reemplazar: variable, valor_reemplazar: valor } });
         if (last?.success === false) { toast("error", last?.errors?.[0]?.message || t("No se pudo guardar")); return; }
       }
-      // Item (unidad/cantidad/valor): crear si no hay, editar si hay (solo con 0/1 items).
-      if (singleI) {
-        if (!it0?._id && willHaveItem) {
-          // Payload COMPLETO (idéntico a la vista legacy): el backend exige nombre/total/estatus;
-          // con un item parcial devuelve success:false y NO persiste (F5 borra lo "guardado").
-          last = await fetchApiEventos({ query: queries.nuevoItemGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, itemGasto: { nombre: g.nombre || t("Item", { defaultValue: "Item" }), cantidad: cant || 1, valor_unitario: val, total: (cant || 1) * val, unidad: uni, estatus: false } } });
+      // Item: contrato REAL api-mcp { nombre, cantidad, coste_final } (NO valor_unitario/unidad/total).
+      if (willHaveItem) {
+        if (!it0?._id) {
+          last = await fetchApiEventos({ query: queries.nuevoItemGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, itemGasto: { nombre: g.nombre || t("Item", { defaultValue: "Item" }), cantidad: cant || 1, coste_final: lineTotal, coste_estimado: 0 } } });
           if (last?.success === false) { toast("error", last?.errors?.[0]?.message || t("No se pudo guardar")); return; }
-        } else if (it0?._id) {
-          const iChanges: [string, any][] = [];
-          if (uni !== (it0.unidad || "")) iChanges.push(["unidad", uni]);
-          if (cant !== (it0.cantidad || 0)) iChanges.push(["cantidad", cant]);
-          if (val !== (it0.valor_unitario || 0)) iChanges.push(["valor_unitario", val]);
-          for (const [variable, valor] of iChanges) {
-            last = await fetchApiEventos({ query: queries.editItemGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, itemGasto_id: it0._id, variable, valor } });
+        } else {
+          if (cant !== (it0.cantidad || 0)) {
+            last = await fetchApiEventos({ query: queries.editItemGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, itemGasto_id: it0._id, variable: "cantidad", valor: cant || 1 } });
             if (last?.success === false) { toast("error", last?.errors?.[0]?.message || t("No se pudo guardar")); return; }
           }
+          last = await fetchApiEventos({ query: queries.editItemGasto, variables: { evento_id: event._id, categoria_id: cat._id, gasto_id: g._id, itemGasto_id: it0._id, variable: "coste_final", valor: lineTotal } });
+          if (last?.success === false) { toast("error", last?.errors?.[0]?.message || t("No se pudo guardar")); return; }
         }
       }
       if (last) applyPO(last);
-      // Refuerzo local del COSTE REAL = cantidad efectiva × valor, por si el backend no
-      // recalcula coste_final al crear el item. Preserva el _id del item que haya devuelto el
-      // backend (para no duplicarlo en la próxima edición). Solo con 0/1 items.
+      // Refuerzo optimista: fijar coste_final + cantidad del primer item (o crearlo), preservando el resto.
       if (willHaveItem) {
-        const effCant = uni === "xUni." ? cant : uni === "xNiños." ? (stGuests.children || 0) : uni === "xAdultos." ? (stGuests.adults || 0) : ((stGuests.children || 0) + (stGuests.adults || 0));
-        const finalCost = effCant * val;
         setEvent((prev: any) => {
           const po = prev?.presupuesto_objeto; if (!po) return prev;
           return {
@@ -303,11 +299,14 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
               ...po,
               categorias_array: (po.categorias_array || []).map((cc: any) => cc._id !== cat._id ? cc : ({
                 ...cc,
-                gastos_array: (cc.gastos_array || []).map((gg: any) => gg._id !== g._id ? gg : ({
-                  ...gg,
-                  coste_final: finalCost,
-                  items_array: [{ ...((gg.items_array || [])[0] || {}), unidad: uni, cantidad: cant, valor_unitario: val }],
-                })),
+                gastos_array: (cc.gastos_array || []).map((gg: any) => {
+                  if (gg._id !== g._id) return gg;
+                  const prevItems = gg.items_array || [];
+                  const nextItems = prevItems.length
+                    ? prevItems.map((iii: any, idx: number) => idx === 0 ? { ...iii, cantidad: cant || 1, coste_final: lineTotal } : iii)
+                    : [{ nombre: g.nombre || "Item", cantidad: cant || 1, coste_final: lineTotal, coste_estimado: 0 }];
+                  return { ...gg, items_array: nextItems };
+                }),
               })),
             },
           };
@@ -451,7 +450,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                   </div>
                   {abierto && gastos.map((g: any) => {
                     const it = (g.items_array || [])[0];
-                    const ct = costeRealOf(g), pag = g.pagado || 0, pen = ct - pag;
+                    const ct = costeRealOf(g), pag = pagadoOf(g), pen = ct - pag;
                     const key = c._id + "|" + g._id;
                     const editing = editRow === key;
                     const items = (g.items_array || []);
@@ -487,7 +486,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                         ? <input autoFocus value={itemEdit!.val} onChange={(e) => setItemEdit({ key, field: "valor", val: e.target.value })} onBlur={() => saveItem(c, g, it, "valor")} onKeyDown={itemKD("valor")} style={{ ...editInput, textAlign: "center" }} />
                         : editing
                           ? <input value={editVals.valor} onChange={(e) => setEditVals((v) => ({ ...v, valor: e.target.value }))} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveEdit(c, g); } else if (e.key === "Escape") setEditRow(null); }} style={{ ...editInput, textAlign: "center" }} />
-                          : <span style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{it ? getCurrency(it.valor_unitario || 0, cur) : "—"}</span>,
+                          : <span style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{it ? getCurrency(valorUnitOf(it), cur) : "—"}</span>,
                       coste: (editing && !hasItems)
                         ? <input value={editVals.coste_final} onChange={(e) => setEditVals((v) => ({ ...v, coste_final: e.target.value }))} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveEdit(c, g); } else if (e.key === "Escape") setEditRow(null); }} style={{ ...editInput, textAlign: "right" }} />
                         : <span title={hasItems ? t("Suma de las partidas (cantidad × valor)", { defaultValue: "Suma de las partidas (cantidad × valor)" }) as string : undefined} style={{ font: "700 12.5px Poppins", color: "#3A3A42" }}>{getCurrency(ct, cur)}</span>,
@@ -533,8 +532,8 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                             // Columnas de item: TODA la celda clicable (no solo el "—" diminuto). La cantidad
                             // solo si aún no hay item o la unidad es "xUni." (el resto se deriva de invitados).
                             const itemField = (col.key === "unidad" || col.key === "cantidad" || col.key === "valor") ? (col.key as "unidad" | "cantidad" | "valor") : null;
-                            const itemClickable = !editing && !!itemField && canEditItem && !iEd(itemField) && (itemField !== "cantidad" || !it || it?.unidad === "xUni.");
-                            const itemDef = itemField === "unidad" ? (it?.unidad || "xUni.") : itemField === "cantidad" ? String(it?.cantidad ?? 1) : String(it?.valor_unitario ?? 0);
+                            const itemClickable = !editing && !!itemField && itemField !== "unidad" && canEditItem && !iEd(itemField);
+                            const itemDef = itemField === "unidad" ? (it?.unidad || "xUni.") : itemField === "cantidad" ? String(it?.cantidad ?? 1) : String(it ? valorUnitOf(it) : 0);
                             const onClick = editable ? () => startEdit(c, g, key) : itemClickable ? () => openItem(itemField as "unidad" | "cantidad" | "valor", itemDef) : undefined;
                             return <div key={col.key} onClick={onClick} style={{ ...cellStyle(col.align), ...((editable || itemClickable) ? { cursor: itemField === "unidad" ? "pointer" : "text" } : {}) }}>{render[col.key]}</div>;
                           })}
@@ -546,7 +545,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                             <div style={{ padding: "8px 20px 12px 46px", background: "#fbfbfc", borderBottom: "1px solid #f4f4f6" }}>
                               {pagos.length === 0 && <div style={{ font: "500 12px Poppins", color: "#a0a0a8", padding: "6px 0 10px" }}>{t("Sin pagos registrados", { defaultValue: "Sin pagos registrados" })}</div>}
                               {pagos.map((p: any, pi: number) => {
-                                const pagado = p.estado !== "pendiente";
+                                const pagado = p.estado !== "pendiente"; // api-mcp no guarda estado → se muestran como pagados
                                 return (
                                   <div key={p._id || pi} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0", borderBottom: "1px solid #f4f4f6" }}>
                                     <span style={{ display: "inline-flex", alignItems: "center", gap: 5, background: pagado ? "#E4F5EE" : "#FBF0DA", color: pagado ? "#2FB37E" : "#B4801F", borderRadius: 999, padding: "3px 10px", font: "600 10.5px Poppins", flex: "none" }}>
@@ -555,9 +554,9 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                                         : <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 8v4l3 2" /></svg>}
                                       {pagado ? t("Pagado") : t("Próximo", { defaultValue: "Próximo" })}
                                     </span>
-                                    <span style={{ font: "500 11.5px Poppins", color: "#8a8a90", flex: "none" }}>{fmtF(pagado ? p.fecha_pago : p.fecha_vencimiento)}</span>
-                                    <span style={{ flex: 1, minWidth: 0, font: "500 12px Poppins", color: "#6b6b72", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.concepto || p.medio_pago || (p.pagado_por === "wedding planer" ? "Wedding Planner" : p.pagado_por) || ""}</span>
-                                    <span style={{ font: "700 12.5px Poppins", color: "#3A3A42", flex: "none" }}>{getCurrency(p.importe || 0, cur)}</span>
+                                    <span style={{ font: "500 11.5px Poppins", color: "#8a8a90", flex: "none" }}>{fmtF(p.fecha || p.fecha_pago || p.fecha_vencimiento)}</span>
+                                    <span style={{ flex: 1, minWidth: 0, font: "500 12px Poppins", color: "#6b6b72", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.notas || p.concepto || p.metodo || p.medio_pago || ""}</span>
+                                    <span style={{ font: "700 12.5px Poppins", color: "#3A3A42", flex: "none" }}>{getCurrency(p.monto ?? p.importe ?? 0, cur)}</span>
                                     <button title={t("Editar") as string} onClick={() => { if (!isAllowed()) { ht(); return; } setPagoTarget({ cat: c._id, gasto: g._id, pago: p }); }} style={{ width: 26, height: 26, borderRadius: 7, display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#a0a0a8", background: "none", border: "none", cursor: "pointer", flex: "none" }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" /></svg></button>
                                     <button title={t("Borrar") as string} onClick={() => { if (!isAllowed()) { ht(); return; } setConfirmDel({ kind: "pago", c, g, p }); }} style={{ width: 26, height: 26, borderRadius: 7, display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#c8c8ce", background: "none", border: "none", cursor: "pointer", flex: "none" }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" /></svg></button>
                                   </div>

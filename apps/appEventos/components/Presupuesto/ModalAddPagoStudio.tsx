@@ -28,14 +28,16 @@ const ModalAddPagoStudio: FC<Props> = ({ categoriaId, gastoId, onClose, pago }) 
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
+  // Contrato REAL api-mcp del pago: { monto, fecha, metodo, referencia, notas } (sin importe/estado/…).
+  // Al editar leemos esos campos (con fallback a los nombres antiguos por si hay datos viejos).
   const [tab, setTab] = useState<"pago" | "prox">(pago?.estado === "pendiente" ? "prox" : "pago");
-  const [importe, setImporte] = useState(pago ? String(pago.importe ?? "") : "");
-  const [fecha, setFecha] = useState(() => pago ? (pago.fecha_pago || pago.fecha_vencimiento || new Date().toISOString().slice(0, 10)) : new Date().toISOString().slice(0, 10));
+  const [importe, setImporte] = useState(pago ? String(pago.monto ?? pago.importe ?? "") : "");
+  const [fecha, setFecha] = useState(() => pago ? (pago.fecha || pago.fecha_pago || pago.fecha_vencimiento || new Date().toISOString().slice(0, 10)).slice(0, 10) : new Date().toISOString().slice(0, 10));
   const [detOpen, setDetOpen] = useState(!!pago);
-  const [medioPago, setMedioPago] = useState(pago?.medio_pago || "");
+  const [medioPago, setMedioPago] = useState(pago?.metodo || pago?.medio_pago || "");
   const [pagadoPor, setPagadoPor] = useState(pago?.pagado_por && pago.pagado_por !== "wedding planer" ? pago.pagado_por : "");
   const [wp, setWp] = useState(pago?.pagado_por === "wedding planer");
-  const [concepto, setConcepto] = useState(pago?.concepto || "");
+  const [concepto, setConcepto] = useState(pago?.notas || pago?.concepto || "");
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -67,15 +69,15 @@ const ModalAddPagoStudio: FC<Props> = ({ categoriaId, gastoId, onClose, pago }) 
           if (url) soporte = { image_url: url, medium_url: url, thumb_url: url };
         } catch { toast("error", t("Error al subir la imagen")); }
       }
-      const pagoObj = {
-        ...(editing ? pago : {}),
-        importe: imp,
-        estado: esPago ? "pagado" : "pendiente",
-        fecha_pago: esPago ? fecha : "",
-        fecha_vencimiento: esPago ? "" : fecha,
-        pagado_por: esPago ? (wp ? "wedding planer" : pagadoPor) : "",
-        medio_pago: esPago ? medioPago : "",
-        concepto,
+      // Contrato REAL api-mcp: { monto, fecha, metodo, referencia, notas }. El backend descarta
+      // importe/estado/fecha_pago/medio_pago (por eso antes guardaba monto:0 y el pago no se veía).
+      const pagoObj: any = {
+        ...(editing ? { _id: pago?._id } : {}),
+        monto: imp,
+        fecha,
+        metodo: (esPago ? medioPago : "") || "efectivo",
+        referencia: "",
+        notas: concepto || "",
         ...(soporte ? { soporte } : {}),
       };
       const result: any = editing

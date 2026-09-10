@@ -54,11 +54,12 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
   // COSTE REAL derivado de los items (Σ cantidad_efectiva × valor_unitario) — igual que la tabla
   // detallada (PresupuestoDetalladoStudio). api-mcp no siempre recalcula coste_final al editar items,
   // así que el resumen/donut también lo calculan desde items para no quedar desincronizados en 0.
-  const stGuests = p?.totalStimatedGuests || {};
-  const effCant = (it: any) => !it ? 0 : it.unidad === "xUni." ? (it.cantidad || 0) : it.unidad === "xNiños." ? (stGuests.children || 0) : it.unidad === "xAdultos." ? (stGuests.adults || 0) : ((stGuests.children || 0) + (stGuests.adults || 0));
-  const costeRealGasto = (g: any) => { const items = (g?.items_array || []); return items.length ? items.reduce((a: number, it: any) => a + effCant(it) * (it?.valor_unitario || 0), 0) : (g?.coste_final || 0); };
+  // Item api-mcp guarda { cantidad, coste_final } (sin valor_unitario/unidad). COSTE REAL = Σ coste_final.
+  const costeRealGasto = (g: any) => { const items = (g?.items_array || []); return items.length ? items.reduce((a: number, it: any) => a + (Number(it?.coste_final) || 0), 0) : (Number(g?.coste_final) || 0); };
   const costeRealCat = (c: any) => (c?.gastos_array || []).filter((g: any) => g?.estatus !== false).reduce((s: number, g: any) => s + costeRealGasto(g), 0);
-  const pagadoCat = (c: any) => (c?.gastos_array || []).filter((g: any) => g?.estatus !== false).reduce((s: number, g: any) => s + (g?.pagado || 0), 0);
+  // PAGADO: sumar `monto` de los pagos (contrato real api-mcp); fallback a gasto.pagado.
+  const pagadoGasto = (g: any) => { const ps = (g?.pagos_array || []); return ps.length ? ps.reduce((a: number, pp: any) => a + (Number(pp?.monto) || 0), 0) : (Number(g?.pagado) || 0); };
+  const pagadoCat = (c: any) => (c?.gastos_array || []).filter((g: any) => g?.estatus !== false).reduce((s: number, g: any) => s + pagadoGasto(g), 0);
 
   const { total, pagado, costeFinal, porPagar, disponible, paidW, dueW, catsActive, catsZero, sumEst, sumFinal } = useMemo(() => {
     const total = typeof p.presupuesto_total === "number" ? p.presupuesto_total : (p.coste_estimado || 0);
