@@ -72,16 +72,19 @@ export const InvitadosStudio: FC = () => {
   };
 
   const all: any[] = event?.invitados_array || [];
-  const fathers = all.filter((inv) => !inv?.father);
+  // Ocultar registros VACÍOS (sin nombre y sin father): son stubs basura (solo _id + asistencia,
+  // p.ej. de confirmaciones por enlace/imports) que aparecían como filas "No Asignado" sin nombre.
+  const fathers = all.filter((inv) => !inv?.father && !!(inv?.nombre || "").trim());
   const grupos: string[] = event?.grupos_array || [];
 
-  // Stats reales (como BlockCabecera)
-  const total = all.length;
-  const adultos = all.filter((x) => x?.grupo_edad === "adulto").length;
-  const ninos = all.filter((x) => x?.grupo_edad === "niño").length;
-  const conf = all.filter((x) => x?.asistencia === "confirmado").length;
-  const pend = all.filter((x) => x?.asistencia === "pendiente").length;
-  const canc = all.filter((x) => x?.asistencia === "cancelado").length;
+  // Stats sobre invitados REALES (con nombre o acompañantes), excluyendo stubs vacíos.
+  const reales = all.filter((x) => !!(x?.nombre || "").trim() || x?.father);
+  const total = reales.length;
+  const adultos = reales.filter((x) => x?.grupo_edad === "adulto").length;
+  const ninos = reales.filter((x) => x?.grupo_edad === "niño").length;
+  const conf = reales.filter((x) => x?.asistencia === "confirmado").length;
+  const pend = reales.filter((x) => x?.asistencia === "pendiente").length;
+  const canc = reales.filter((x) => x?.asistencia === "cancelado").length;
 
   // Asientos recepción/ceremonia (mismo derivado que BlockTableroInvitados)
   const tablesRec = event?.planSpace?.find((e: any) => e?.title === "recepción")?.tables;
