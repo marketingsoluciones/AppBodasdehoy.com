@@ -79,6 +79,16 @@ const renderEmailHtml = (d: DesignData): string => {
   </div></body></html>`;
 };
 
+// Asunto del correo derivado del diseño: nombres + fecha (mucho más claro que el título en
+// mayúsculas). Ej: "Ana & Marcos · ¡Nos casamos! 💍 12 de junio de 2028".
+const emailSubject = (d: DesignData): string => {
+  const names = (d.names || "").trim();
+  const when = (d.date || "").trim();
+  if (names && when) return `${names} · ¡Nos casamos! 💍 ${when}`;
+  if (names) return `${names} · ¡Nos casamos! 💍`;
+  return (d.title || "").trim() || "Estáis invitados a nuestra boda 💍";
+};
+
 // SVG de canales (como el HTML: iconos, no emoji)
 const chanIcon = (c: ChannelKey, color: string): ReactNode => {
   const common = { width: 15, height: 15, viewBox: "0 0 24 24", fill: "none", stroke: color, strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
@@ -146,11 +156,12 @@ export const InvitacionesStudio: FC = () => {
     // templateIdRef (no el closure) → una vez creada/enlazada, SIEMPRE actualiza la misma plantilla
     // (evita crear duplicados en cada edición, que era la causa de que los cambios "se perdieran").
     const tid = templateIdRef.current;
+    const configTemplate = { name: "Invitación", subject: emailSubject(d) };
     if (tid) {
-      fetchApiEventos({ query: queries.updateEmailTemplate, variables: { evento_id: event._id, template_id: tid, design: d, html } })
+      fetchApiEventos({ query: queries.updateEmailTemplate, variables: { evento_id: event._id, template_id: tid, design: d, html, configTemplate } })
         .then((res: any) => { const id = Array.isArray(res) ? res[0]?._id : res?._id; linkToEvent(id || tid); done(id || tid); }).catch(() => setSaveState("idle"));
     } else {
-      fetchApiEventos({ query: queries.createEmailTemplate, variables: { evento_id: event._id, design: d, html, configTemplate: { name: "Invitación", subject: d.title || "Invitación" }, domain: auth?.config?.dominio || auth?.config?.domain } })
+      fetchApiEventos({ query: queries.createEmailTemplate, variables: { evento_id: event._id, design: d, html, configTemplate, domain: auth?.config?.dominio || auth?.config?.domain } })
         .then((res: any) => { const id = res?._id; templateIdRef.current = id; linkToEvent(id); done(id); }).catch(() => setSaveState("idle"));
     }
   }, [event?._id, auth]);
@@ -655,7 +666,17 @@ export const InvitacionesStudio: FC = () => {
                     <div style={{ width: 30, height: 30, borderRadius: 8, flex: "none", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}>{chanIcon(sendChan, "#EF5B94")}</div>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ font: "700 10px Poppins", color: "#a0a0a8", letterSpacing: ".5px", textTransform: "uppercase" }}>Vista previa · {sendChanLabel}</div>
-                      <div style={{ font: "500 12px Poppins", color: "#4a4a52", marginTop: 3, lineHeight: 1.5 }}>{sendPreview}</div>
+                      {sendChan === "email" ? (
+                        <div style={{ marginTop: 3 }}>
+                          <div style={{ font: "600 12px Poppins", color: "#3A3A42", lineHeight: 1.4 }}>Asunto: <span style={{ fontWeight: 500, color: "#4a4a52" }}>{emailSubject(design)}</span></div>
+                          <div onClick={() => setShowPreview(true)} style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 5, font: "600 11px Poppins", color: "#EF5B94", cursor: "pointer" }}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" /><circle cx="12" cy="12" r="3" /></svg>
+                            Ver invitación completa
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ font: "500 12px Poppins", color: "#4a4a52", marginTop: 3, lineHeight: 1.5 }}>{sendPreview}</div>
+                      )}
                     </div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
