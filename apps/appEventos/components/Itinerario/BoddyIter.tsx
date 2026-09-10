@@ -78,12 +78,19 @@ export const BoddyIter = () => {
     useEffect(() => {
         try {
             if (typeof window !== "undefined") {
-                const saved = window.localStorage.getItem(`OAD${window?.location?.pathname.slice(1)}`)
+                const path = window?.location?.pathname?.slice(1) || ""
+                const saved = window.localStorage.getItem(`OAD${path}`)
                 if (saved) {
                     const parsed = JSON.parse(saved)
                     if (parsed?.order && parsed?.direction) {
                         setOrderAndDirection(parsed)
+                        return
                     }
+                }
+                // Por defecto en Itinerario: ordenar las tareas por fecha ascendente
+                // (si el usuario no tiene una preferencia guardada). Scoped a itinerario.
+                if (path === "itinerario") {
+                    setOrderAndDirection({ order: "fecha", direction: "asc" })
                 }
             }
         } catch (error) {
