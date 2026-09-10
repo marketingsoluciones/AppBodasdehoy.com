@@ -125,6 +125,7 @@ export const InvitacionesStudio: FC = () => {
   const loadedRef = useRef(false);
   const editedRef = useRef(false);                       // el usuario ya tocó el diseño → no dejar que la carga lo pise
   const templateIdRef = useRef<string | undefined>(event?.templateEmailSelect); // id vivo → persist siempre ACTUALIZA (no duplica)
+  const waTemplateIdRef = useRef<string | undefined>(event?.templateWhatsappSelect); // id de la plantilla WhatsApp
   const saveTimer = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
@@ -193,15 +194,41 @@ export const InvitacionesStudio: FC = () => {
     finally { setUploadingCover(false); }
   }, [event, update, toast]);
 
+  // Plantilla WhatsApp a partir del MISMO diseño (la previa ya se ajusta al canal).
+  const whatsData = (d: DesignData) => ({
+    templateName: `invitacion-${(event?._id || "").slice(-6) || "boda"}`,
+    category: { _id: "INVITATION", title: "INVITATION" },
+    mediaType: d.cover ? { _id: "image", title: "image" } : { _id: "none", title: "none" },
+    mediaUrl: d.cover || "",
+    bodyContent: `*${d.names}* · ¡Nos casamos! 💍\n\n${d.message}\n\n📅 ${d.date}${d.venue ? `\n📍 ${d.venue}` : ""}${d.time ? `\n🕐 ${d.time}` : ""}\n\n${d.rsvp || "Confirma tu asistencia"}`,
+    buttons: [],
+  });
+
   // Envío real — mismo backend que el módulo actual (sendComunications: email/whatsapp).
   const doSend = useCallback(async () => {
     const ids = Object.keys(checked).filter((k) => checked[k]);
     if (!ids.length) { toast("error", "Selecciona al menos un invitado"); return; }
     if (sendChan === "sms") { toast("error", "El envío por SMS aún no está disponible"); return; }
     if (sendChan === "email" && !templateId) { toast("error", "Diseña y guarda la invitación antes de enviar"); return; }
-    if (sendChan === "whatsapp" && !event?.templateWhatsappSelect) { toast("error", "Configura una plantilla de WhatsApp antes de enviar"); return; }
     setSending(true);
     try {
+      // WhatsApp: NO se pide "configurar plantilla" aparte — se crea/actualiza al vuelo desde
+      // el diseño actual (la vista previa YA es ese diseño ajustado al canal) y se enlaza al evento.
+      let waId = event?.templateWhatsappSelect || waTemplateIdRef.current;
+      if (sendChan === "whatsapp") {
+        const data = whatsData(design);
+        if (!waId) {
+          const res: any = await fetchApiEventos({ query: queries.createWhatsappInvitationTemplate, variables: { evento_id: event?._id, data } });
+          waId = Array.isArray(res) ? res[0]?._id : res?._id;
+          if (!waId) { toast("error", "No se pudo preparar la plantilla de WhatsApp"); setSending(false); return; }
+          waTemplateIdRef.current = waId;
+          fetchApiEventos({ query: queries.eventUpdate, variables: { idEvento: event?._id, variable: "templateWhatsappSelect", value: waId } }).catch(() => {/* noop */});
+          setEvent((prev: any) => ({ ...prev, templateWhatsappSelect: waId }));
+        } else {
+          // mantener el contenido al día con el diseño (best-effort; update pasa raw a api-mcp)
+          fetchApiEventos({ query: queries.updateWhatsappInvitationTemplate, variables: { evento_id: event?._id, template_id: waId, data } }).catch(() => {/* noop */});
+        }
+      }
       await fetchApiEventos({
         query: queries.sendComunications,
         variables: {
@@ -210,7 +237,7 @@ export const InvitacionesStudio: FC = () => {
           dominio: auth?.config?.dominio || auth?.config?.domain,
           transport: sendChan,
           lang: i18n?.language || "es",
-          template_id: sendChan === "email" ? templateId : event?.templateWhatsappSelect,
+          template_id: sendChan === "email" ? templateId : waId,
         },
       });
       toast("success", sendChan === "email" ? "Envío por email exitoso" : "Envío por WhatsApp exitoso");
@@ -220,7 +247,7 @@ export const InvitacionesStudio: FC = () => {
     } finally {
       setSending(false);
     }
-  }, [checked, sendChan, templateId, event, auth, i18n, toast]);
+  }, [checked, sendChan, templateId, event, design, auth, i18n, toast, setEvent]);
 
   const grad = PRESETS[design.template].grad;
   const invFont = FONTS[design.font].family;
