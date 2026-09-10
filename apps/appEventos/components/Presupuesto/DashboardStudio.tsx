@@ -36,6 +36,7 @@ const DashboardStudio: FC<Props> = ({ categorias }) => {
   // pagado_por). Item = { cantidad, coste_final }. Coherente con la tabla y el resumen.
   const montoOf = (p: any) => Number(p?.monto ?? p?.importe) || 0;
   const costeRealGasto = (g: any) => { const items = (g?.items_array || []); return items.length ? items.reduce((a: number, it: any) => a + (Number(it?.coste_final) || 0), 0) : (Number(g?.coste_final) || 0); };
+  const costeRealCat = (c: any) => (c?.gastos_array || []).filter((g: any) => g?.estatus !== false).reduce((s: number, g: any) => s + costeRealGasto(g), 0);
   const data = useMemo(() => {
     const allPagos: any[] = [];
     cats.forEach((c) => (c.gastos_array || []).filter((g: any) => g?.estatus !== false).forEach((g: any) => (g.pagos_array || []).filter((p: any) => p?.estatus !== false && montoOf(p) > 0).forEach((p: any) => allPagos.push({ ...p, catName: c.nombre, gastoName: g.nombre }))));
@@ -93,6 +94,42 @@ const DashboardStudio: FC<Props> = ({ categorias }) => {
     if (!isAllowed()) { ht(); return; }
     try { applyPO(await fetchApiEventos({ query: queries.deleteWeddingPlannerIngreso, variables: { evento_id: event._id, ingreso_id: dep._id } })); toast("success", t("Depósito eliminado")); }
     catch { toast("error", t("Ha ocurrido un error")); }
+  };
+
+  // Informe imprimible AUTÓNOMO (ventana propia con su HTML/estilos) — window.print() de la app salía
+  // en blanco porque su CSS no está pensado para imprimir. Aquí replicamos el "Resumen financiero
+  // detallado" (KPIs + distribución por categorías) para que se vea bien y se pueda guardar como PDF.
+  const generarReporte = () => {
+    try {
+      const w = window.open("", "_blank");
+      if (!w) { toast("error", t("Permite ventanas emergentes para generar el reporte", { defaultValue: "Permite ventanas emergentes para generar el reporte" })); return; }
+      const esc = (s: any) => String(s ?? "").replace(/[&<>"]/g, (m: string) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m] || m));
+      const money = (n: number) => esc(getCurrency(n, cur));
+      const hoy = new Date().toLocaleDateString("es-ES");
+      const kpi = (label: string, val: number, tone: string, bg: string) => `<div style="flex:1;min-width:160px;background:${bg};border-radius:14px;padding:16px 18px"><div style="font-size:10.5px;color:#6b6b72;text-transform:uppercase;letter-spacing:.5px;font-weight:700">${esc(label)}</div><div style="font-size:22px;font-weight:800;color:${tone};margin-top:8px">${money(val)}</div></div>`;
+      const catRows = cats
+        .map((c: any) => ({ n: c.nombre || "—", real: costeRealCat(c) }))
+        .sort((a: any, b: any) => b.real - a.real)
+        .map((c: any) => `<tr><td style="padding:9px 14px;border-bottom:1px solid #f2f2f4;font-weight:600;color:#3A3A42">${esc(c.n)}</td><td style="padding:9px 14px;border-bottom:1px solid #f2f2f4;text-align:right;font-weight:700;color:${c.real > 0 ? "#3A3A42" : "#b3b3ba"}">${money(c.real)}</td></tr>`)
+        .join("");
+      const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${esc("Reporte financiero — " + (event?.nombre || ""))}</title>
+<style>@page{margin:16mm} body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#3A3A42;margin:0;padding:24px}h1{font-size:20px;margin:0}.sub{color:#8a8a90;font-size:12px;margin-top:4px}.kpis{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0}table{width:100%;border-collapse:collapse;font-size:13px}.sec{font-size:15px;font-weight:700;margin:22px 0 8px}.brand{color:#EF5B94;font-weight:800;font-size:18px}</style></head>
+<body>
+<div class="brand">Bodasdehoy.com</div>
+<h1>${esc("Resumen financiero detallado")}</h1>
+<div class="sub">${esc(event?.nombre || "")} · ${esc(hoy)}</div>
+<div class="kpis">
+${kpi("Presupuesto total", data.presupuestoTotal, "#3A3A42", "#faf9fb")}
+${kpi("Total pagado", data.totalPagado, "#2FB37E", "#E4F5EE")}
+${kpi("Pagos directos", data.totalDirectos, "#B4801F", "#FBF0DA")}
+${kpi("Por Wedding Planner", data.totalWP, "#D83E7C", "#FBE4EF")}
+</div>
+<div class="sec">${esc("Distribución por categorías")}</div>
+<table><thead><tr><th style="text-align:left;padding:9px 14px;border-bottom:2px solid #eee;font-size:11px;color:#8a8a90;text-transform:uppercase">${esc("Categoría")}</th><th style="text-align:right;padding:9px 14px;border-bottom:2px solid #eee;font-size:11px;color:#8a8a90;text-transform:uppercase">${esc("Coste real")}</th></tr></thead><tbody>${catRows}</tbody></table>
+<script>window.onload=function(){setTimeout(function(){window.print();},250);};<\/script>
+</body></html>`;
+      w.document.open(); w.document.write(html); w.document.close();
+    } catch { toast("error", t("Ha ocurrido un error")); }
   };
 
   const card: any = { background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, boxShadow: "0 4px 14px rgba(0,0,0,.05)" };
@@ -196,7 +233,7 @@ const DashboardStudio: FC<Props> = ({ categorias }) => {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
               <div style={{ font: "700 15px Poppins", color: "#3A3A42" }}>{t("Resumen financiero detallado")}</div>
               <div style={{ display: "flex", gap: 8 }}>
-                <button className="ds-ghost" onClick={() => { try { window.print(); } catch { /* noop */ } }} style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "9px 14px", borderRadius: 10, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 12px Poppins", cursor: "pointer" }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6M9 13h6M9 17h6" /></svg>{t("Generar reporte")}</button>
+                <button className="ds-ghost" onClick={generarReporte} style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "9px 14px", borderRadius: 10, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 12px Poppins", cursor: "pointer" }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6M9 13h6M9 17h6" /></svg>{t("Generar reporte")}</button>
                 <ExportExcelPresupuesto studio />
               </div>
             </div>
