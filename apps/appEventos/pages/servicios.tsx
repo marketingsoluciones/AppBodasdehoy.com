@@ -67,7 +67,7 @@ const Itinerario: FC<any> = (props) => {
                 {/* En móvil studio, TareasStudioMovil trae su propia cabecera "Tareas";
                     el holder de escritorio se oculta para no duplicarla. */}
                 <div className={isStudioTareas ? "hidden md:block" : ""}>
-                    <BlockTitle title={"Tasks"} />
+                    <BlockTitle title={"Lista de tareas"} />
                     <CopilotFilterBar entity="services" />
                 </div>
                 <BoddyIter />

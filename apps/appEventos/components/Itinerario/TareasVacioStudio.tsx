@@ -164,7 +164,7 @@ const TareasVacioStudio: FC<Props> = ({ event, setEvent, config, isOwner, pathSl
         <div style={{ background: "#fff", padding: "18px 16px 12px", boxShadow: "0 2px 10px rgba(0,0,0,.04)", flex: "none" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ font: "700 17px Poppins", color: "#3A3A42" }}>{t("Tasks", { defaultValue: "Tareas" })}</div>
+              <div style={{ font: "700 17px Poppins", color: "#3A3A42" }}>{t("Lista de tareas", { defaultValue: "Lista de tareas" })}</div>
               <div style={{ font: "500 10px Poppins", color: "#a0a0a8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 <span style={{ color: "#EF5B94", fontWeight: 600 }}>{(event?.tipo || "BODA").toUpperCase()}</span> · {event?.nombre || ""}
               </div>
