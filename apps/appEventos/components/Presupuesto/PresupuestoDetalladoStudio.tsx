@@ -75,7 +75,8 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
   // Columnas (algunas ocultables desde "Columnas")
   const ALL_COLS = [
     { key: "partida", label: t("Partida de gasto"), w: "minmax(180px,2.2fr)", always: true, align: "left" },
-    { key: "unidad", label: t("Unidad"), w: "60px", align: "center" },
+    // Columna UNIDAD retirada: api-mcp no persiste `unidad` en el item (solo cantidad + coste). El
+    // COSTE REAL = cantidad × valor unit. Si el backend añade el campo, restaurar el auto-relleno por invitados.
     { key: "cantidad", label: t("Cantidad"), w: "68px", align: "center" },
     { key: "valor", label: t("Valor unit."), w: "92px", align: "center" },
     { key: "estimado", label: t("Estimado"), w: "96px", align: "center" },
@@ -345,7 +346,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
   const pct = totals.tot > 0 ? Math.round((totals.pag / totals.tot) * 100) : 0;
   const totalGastos = cats.reduce((a, c) => a + ((c.gastos_array?.length) || 0), 0);
   const COLUMNAS = [
-    { k: "gasto", l: t("Partida de gasto") }, { k: "unidad", l: t("Unidad") }, { k: "cantidad", l: t("Cantidad") },
+    { k: "gasto", l: t("Partida de gasto") }, { k: "cantidad", l: t("Cantidad") },
     { k: "valor_unitario", l: t("Valor unitario") }, { k: "coste_final", l: t("Coste total") }, { k: "coste_estimado", l: t("Coste estimado") },
     { k: "pagado", l: t("Pagado") }, { k: "pendiente_pagar", l: t("Pendiente") }, { k: "options", l: t("Acciones") },
   ];
