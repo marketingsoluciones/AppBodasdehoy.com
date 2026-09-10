@@ -1,32 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import twilio from 'twilio';
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
+import { genOtp, setOtp } from '../_otpStore';
 
 export const runtime = 'nodejs';
 
-const ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
-const AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
-const VERIFY_SID = process.env.TWILIO_VERIFY_SERVICE_SID;
-
-// Canal: 'whatsapp' si está configurado, 'sms' como fallback
-const OTP_CHANNEL = process.env.TWILIO_OTP_CHANNEL || 'whatsapp';
+// api-ia es el orquestador de WhatsApp (envío real por el gateway QR conectado del
+// whitelabel / WAB). Antes esto iba por Twilio Verify; ahora usamos NUESTRO WhatsApp.
+const API_IA_ORIGIN = resolveServerBackendOrigin();
 
 /**
  * POST /api/auth/whatsapp-otp-send
  * Body: { phone: string, development?: string }
  *
- * Envía un OTP al número vía WhatsApp (o SMS como fallback).
- * Twilio Verify gestiona la generación, almacenamiento y expiración del código.
- * TTL por defecto: 10 minutos.
+ * Genera un código de 6 dígitos, lo guarda (TTL 10 min) y lo envía por WhatsApp
+ * usando el WhatsApp del whitelabel (gateway conectado) vía api-ia:
+ *   POST {api-ia}/api/whatsapp/messages/send?development={dev}  { phone_number, content }
+ * Sin emisor explícito → sale por el número por defecto del whitelabel.
  */
 export async function POST(request: NextRequest) {
-  if (!ACCOUNT_SID || !AUTH_TOKEN || !VERIFY_SID) {
-    console.error('[whatsapp-otp-send] Twilio env vars missing');
-    return NextResponse.json(
-      { detail: 'Servicio OTP no configurado.' },
-      { status: 503 },
-    );
-  }
-
   let phone: string;
   let development: string;
 
@@ -38,7 +29,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ detail: 'Body inválido.' }, { status: 400 });
   }
 
-  // Validación básica E.164 (+34612345678, mínimo 8 dígitos)
+  // Validación E.164 (+34612345678, mínimo 8 dígitos)
   if (!phone || !/^\+[1-9]\d{7,14}$/.test(phone)) {
     return NextResponse.json(
       { detail: 'Número de teléfono inválido. Usa formato internacional: +34612345678' },
@@ -46,46 +37,51 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  try {
-    const client = twilio(ACCOUNT_SID, AUTH_TOKEN);
-    const verification = await client.verify.v2
-      .services(VERIFY_SID)
-      .verifications.create({
-        channel: OTP_CHANNEL as 'whatsapp' | 'sms',
-        to: phone,
-      });
+  const code = genOtp();
+  setOtp(phone, code);
 
-    console.log(
-      `[whatsapp-otp-send] sid=${verification.sid} status=${verification.status} channel=${OTP_CHANNEL} phone=${phone.slice(0, 6)}***`,
+  const content =
+    `🔐 Tu código de acceso a Bodas de Hoy es: *${code}*\n\n` +
+    `Caduca en 10 minutos. No lo compartas con nadie.`;
+
+  try {
+    const res = await fetch(
+      `${API_IA_ORIGIN}/api/whatsapp/messages/send?development=${encodeURIComponent(development)}`,
+      {
+        body: JSON.stringify({ content, phone_number: phone }),
+        headers: { 'Content-Type': 'application/json', 'X-Development': development },
+        method: 'POST',
+        signal: AbortSignal.timeout(15_000),
+      },
     );
 
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok || data?.success === false) {
+      console.error(
+        `[whatsapp-otp-send] api-ia send falló status=${res.status}:`,
+        JSON.stringify(data).slice(0, 200),
+      );
+      return NextResponse.json(
+        { detail: data?.detail || data?.error || 'No se pudo enviar el código por WhatsApp.' },
+        { status: 502 },
+      );
+    }
+
+    console.log(`[whatsapp-otp-send] enviado phone=${phone.slice(0, 6)}*** dev=${development}`);
+
     return NextResponse.json({
-      channel: OTP_CHANNEL,
+      channel: 'whatsapp',
       development,
       expiresIn: 600, // 10 minutos
-      phone,          // devolver normalizado
-      status: verification.status,
+      phone,          // normalizado
       success: true,
     });
   } catch (err: any) {
-    const code = err?.code;
-    const message = err?.message || 'Error al enviar el código.';
-    console.error(`[whatsapp-otp-send] Twilio error code=${code}:`, message);
-
-    // Errores conocidos de Twilio
-    if (code === 60_200) {
-      return NextResponse.json(
-        { detail: 'Número de teléfono inválido.' },
-        { status: 400 },
-      );
-    }
-    if (code === 60_203) {
-      return NextResponse.json(
-        { detail: 'Demasiados intentos. Espera unos minutos.' },
-        { status: 429 },
-      );
-    }
-
-    return NextResponse.json({ detail: message }, { status: 502 });
+    console.error('[whatsapp-otp-send] error de red al enviar:', err?.message || err);
+    return NextResponse.json(
+      { detail: 'Error al enviar el código por WhatsApp.' },
+      { status: 502 },
+    );
   }
 }
