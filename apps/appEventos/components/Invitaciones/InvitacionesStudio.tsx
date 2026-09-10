@@ -168,7 +168,7 @@ export const InvitacionesStudio: FC = () => {
       const r: any = await subir_archivo({ imagePreviewUrl: { file }, event, use: "portada" });
       const url = r?.i1024 || r?.i800 || r?.i640;
       if (url) update({ cover: url }); else toast("error", "No se pudo subir la imagen");
-    } catch { toast("error", "No se pudo subir la imagen"); }
+    } catch (e: any) { toast("error", e?.message ? `No se pudo subir la imagen: ${String(e.message).slice(0, 140)}` : "No se pudo subir la imagen"); }
     finally { setUploadingCover(false); }
   }, [event, update, toast]);
 
@@ -512,7 +512,9 @@ export const InvitacionesStudio: FC = () => {
         )}
 
         {tab === "envio" && (() => {
-          const invitados: any[] = event?.invitados_array || [];
+          // Solo invitados PRINCIPALES: los acompañantes (con `father` = id del principal) NO reciben
+          // invitación directa — los gestiona el invitado principal. Por eso salían como "Sin nombre".
+          const invitados: any[] = (event?.invitados_array || []).filter((inv: any) => !inv?.father);
           const isSent = (inv: any) => !!inv.invitacion;
           const total = invitados.length;
           const sentN = invitados.filter(isSent).length;
