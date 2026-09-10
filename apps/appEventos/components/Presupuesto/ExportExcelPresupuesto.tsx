@@ -36,6 +36,21 @@ const ExportExcelPresupuesto = ({ className = "", studio = false }: { className?
       const presupuesto = event.presupuesto_objeto;
       const workbook = XLSX.utils.book_new();
 
+      // Helpers (contrato REAL api-mcp): item = { cantidad, coste_final, coste_estimado }, pago = { monto,... }.
+      // NO existe valor_unitario/unidad → coste real = Σ coste_final; valor unitario = coste_final/cantidad.
+      const itemCant = (it: any) => Number(it?.cantidad) || 0;
+      const itemCoste = (it: any) => Number(it?.coste_final) || 0;
+      const itemValor = (it: any) => { const c = itemCant(it) || 1; return itemCoste(it) / (c || 1); };
+      const costeRealGasto = (g: any) => { const its = (g?.items_array || []); return its.length ? its.reduce((a: number, it: any) => a + itemCoste(it), 0) : (Number(g?.coste_final) || 0); };
+      const estimadoGasto = (g: any) => { const its = (g?.items_array || []); return its.length ? its.reduce((a: number, it: any) => a + (Number(it?.coste_estimado) || 0), 0) : (Number(g?.coste_estimado) || 0); };
+      const costeRealCat = (c: any) => (c?.gastos_array || []).reduce((s: number, g: any) => s + costeRealGasto(g), 0);
+      const estimadoCat = (c: any) => (c?.gastos_array || []).reduce((s: number, g: any) => s + estimadoGasto(g), 0);
+      const pagadoGasto = (g: any) => (g?.pagos_array || []).reduce((a: number, p: any) => a + (Number(p?.monto ?? p?.importe) || 0), 0);
+      const cats0 = Array.isArray(presupuesto.categorias_array) ? presupuesto.categorias_array : [];
+      const totEstimado = cats0.reduce((s: number, c: any) => s + estimadoCat(c), 0);
+      const totCosteReal = cats0.reduce((s: number, c: any) => s + costeRealCat(c), 0);
+      const totPagado = cats0.reduce((s: number, c: any) => s + (c?.gastos_array || []).reduce((a: number, g: any) => a + pagadoGasto(g), 0), 0);
+
       // Hoja 1: Resumen General
       const resumenData: any[] = [
         ['RESUMEN DEL PRESUPUESTO'],
@@ -47,10 +62,10 @@ const ExportExcelPresupuesto = ({ className = "", studio = false }: { className?
         [''],
         ['TOTALES GENERALES'],
         ['Presupuesto Total:', formatCurrency(presupuesto.presupuesto_total || 0)],
-        ['Coste Estimado:', formatCurrency(presupuesto.coste_estimado || 0)],
-        ['Coste Final:', formatCurrency(presupuesto.coste_final || 0)],
-        ['Total Pagado:', formatCurrency(presupuesto.pagado || 0)],
-        ['Pendiente por Pagar:', formatCurrency((presupuesto.coste_final || 0) - (presupuesto.pagado || 0))],
+        ['Coste Estimado:', formatCurrency(totEstimado)],
+        ['Coste Final:', formatCurrency(totCosteReal)],
+        ['Total Pagado:', formatCurrency(totPagado)],
+        ['Pendiente por Pagar:', formatCurrency(Math.max(0, totCosteReal - totPagado))],
         [''],
         ['INVITADOS ESTIMADOS'],
         ['Adultos:', presupuesto.totalStimatedGuests?.adults || 0],
@@ -120,91 +135,40 @@ const ExportExcelPresupuesto = ({ className = "", studio = false }: { className?
       // Procesar categorías, gastos e items
       if (presupuesto.categorias_array && Array.isArray(presupuesto.categorias_array)) {
         presupuesto.categorias_array.forEach(categoria => {
-          // Calcular total de la categoría
-          let totalCosteFinalCategoria = 0;
-
-          if (categoria.gastos_array && Array.isArray(categoria.gastos_array)) {
-            categoria.gastos_array.forEach(gasto => {
-              if (gasto.items_array && Array.isArray(gasto.items_array) && gasto.items_array.length > 0) {
-                gasto.items_array.forEach(item => {
-                  const cantidad = item.unidad === "xUni." 
-                    ? item.cantidad 
-                    : item.unidad === "xNiños." 
-                      ? presupuesto.totalStimatedGuests?.children || 0
-                      : item.unidad === "xAdultos." 
-                        ? presupuesto.totalStimatedGuests?.adults || 0
-                        : (presupuesto.totalStimatedGuests?.children || 0) + (presupuesto.totalStimatedGuests?.adults || 0);
-                  
-                  totalCosteFinalCategoria += cantidad * (item.valor_unitario || 0);
-                });
-              } else {
-                totalCosteFinalCategoria += gasto.coste_final || 0;
-              }
-            });
-          }
-
-          // Agregar fila de categoría
+          // Fila de categoría
           detalleData.push([
             categoria.nombre || 'Sin nombre',
             '', '', '',
             '',
-            formatCurrency(categoria.coste_estimado || 0),
-            formatCurrency(totalCosteFinalCategoria)
+            formatCurrency(estimadoCat(categoria)),
+            formatCurrency(costeRealCat(categoria))
           ]);
 
-          // Procesar gastos
           if (categoria.gastos_array && Array.isArray(categoria.gastos_array)) {
             categoria.gastos_array.forEach(gasto => {
-              let totalCosteFinalGasto = 0;
-              let hasItems = gasto.items_array && Array.isArray(gasto.items_array) && gasto.items_array.length > 0;
+              const hasItems = gasto.items_array && Array.isArray(gasto.items_array) && gasto.items_array.length > 0;
 
-              if (hasItems) {
-                gasto.items_array.forEach(item => {
-                  const cantidad = item.unidad === "xUni." 
-                    ? item.cantidad 
-                    : item.unidad === "xNiños." 
-                      ? presupuesto.totalStimatedGuests?.children || 0
-                      : item.unidad === "xAdultos." 
-                        ? presupuesto.totalStimatedGuests?.adults || 0
-                        : (presupuesto.totalStimatedGuests?.children || 0) + (presupuesto.totalStimatedGuests?.adults || 0);
-                  
-                  totalCosteFinalGasto += cantidad * (item.valor_unitario || 0);
-                });
-              } else {
-                totalCosteFinalGasto = gasto.coste_final || 0;
-              }
-
-              // Agregar fila de gasto
+              // Fila de gasto (partida)
               detalleData.push([
                 '',
                 gasto.nombre || 'Sin nombre',
                 '', '',
                 '',
-                formatCurrency(gasto.coste_estimado || 0),
-                formatCurrency(totalCosteFinalGasto)
+                formatCurrency(estimadoGasto(gasto)),
+                formatCurrency(costeRealGasto(gasto))
               ]);
 
-              // Agregar items
+              // Filas de items
               if (hasItems) {
                 gasto.items_array.forEach(item => {
-                  const cantidad = item.unidad === "xUni." 
-                    ? item.cantidad 
-                    : item.unidad === "xNiños." 
-                      ? presupuesto.totalStimatedGuests?.children || 0
-                      : item.unidad === "xAdultos." 
-                        ? presupuesto.totalStimatedGuests?.adults || 0
-                        : (presupuesto.totalStimatedGuests?.children || 0) + (presupuesto.totalStimatedGuests?.adults || 0);
-                  
-                  const costeTotal = cantidad * (item.valor_unitario || 0);
-                  
                   detalleData.push([
                     '',
                     '',
                     item.nombre || 'Sin nombre',
-                    cantidad,
-                    formatCurrency(item.valor_unitario || 0),
-                    '',
-                    formatCurrency(costeTotal)
+                    itemCant(item),
+                    formatCurrency(itemValor(item)),
+                    formatCurrency(Number((item as any).coste_estimado) || 0),
+                    formatCurrency(itemCoste(item))
                   ]);
                 });
               }
@@ -313,18 +277,22 @@ const ExportExcelPresupuesto = ({ className = "", studio = false }: { className?
           if (categoria.gastos_array && Array.isArray(categoria.gastos_array)) {
             categoria.gastos_array.forEach(gasto => {
               if (gasto.pagos_array && Array.isArray(gasto.pagos_array) && gasto.pagos_array.length > 0) {
-                hasPagos = true;
-                gasto.pagos_array.forEach(pago => {
-                  pagosData.push([
-                    categoria.nombre || 'Sin categoría',
-                    gasto.nombre || 'Sin gasto',
-                    pago.fecha_pago || 'Sin fecha',
-                    formatCurrency(pago.importe || 0),
-                    pago.estado || 'Sin estado',
-                    pago.medio_pago || 'Sin método',
-                    pago.concepto || 'Sin concepto'
-                  ]);
-                });
+                // Contrato REAL api-mcp: pago = { monto, fecha, metodo, referencia, notas }. Solo pagos con monto>0
+                // (los antiguos con monto:0 eran basura del bug de contrato previo).
+                gasto.pagos_array
+                  .filter((pago: any) => (Number(pago?.monto ?? pago?.importe) || 0) > 0)
+                  .forEach((pago: any) => {
+                    hasPagos = true;
+                    pagosData.push([
+                      categoria.nombre || 'Sin categoría',
+                      gasto.nombre || 'Sin gasto',
+                      pago.fecha || pago.fecha_pago || 'Sin fecha',
+                      formatCurrency(Number(pago.monto ?? pago.importe) || 0),
+                      pago.estado === 'pendiente' ? 'Pendiente' : 'Pagado',
+                      pago.metodo || pago.medio_pago || 'Sin método',
+                      pago.notas || pago.concepto || 'Sin concepto'
+                    ]);
+                  });
               }
             });
           }
