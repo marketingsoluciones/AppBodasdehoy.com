@@ -58,12 +58,20 @@ export const ResumenStudio: FC = () => {
   };
 
   const inv: any[] = event?.invitados_array || [];
-  const total = inv.length;
-  const pendientes = inv.filter((x) => x?.asistencia === "pendiente").length;
-  const confirmados = inv.filter((x) => x?.asistencia === "confirmado").length;
-  const cancelados = inv.filter((x) => x?.asistencia === "cancelado").length;
-  const seated = inv.filter((x) => x?.nombre_mesa && String(x.nombre_mesa).toLowerCase() !== "no asignado").length;
-  const enviadas = inv.filter((x) => !!x?.invitacion).length;
+  // INVITADOS: contar como el módulo Invitados → `reales` = con nombre O acompañante (father),
+  // EXCLUYENDO stubs vacíos (solo _id + asistencia). Antes inv.length contaba los stubs → el
+  // Resumen decía 9 y el módulo Invitados 5, y confirmadas/canceladas también descuadraban.
+  const reales = inv.filter((x) => !!(x?.nombre || "").trim() || x?.father);
+  const total = reales.length;
+  const pendientes = reales.filter((x) => x?.asistencia === "pendiente").length;
+  const confirmados = reales.filter((x) => x?.asistencia === "confirmado").length;
+  const cancelados = reales.filter((x) => x?.asistencia === "cancelado").length;
+  // SENTADOS: invitados ÚNICOS sentados en planSpace[].tables[].guests (misma fuente de verdad
+  // que el módulo Mesas / BlockResumen), NO por nombre_mesa (que puede desincronizarse).
+  const seatedIds = new Set<string>();
+  (event?.planSpace || []).forEach((ps: any) => (ps?.tables || []).forEach((tb: any) => (tb?.guests || []).forEach((g: any) => { if (g?._id) seatedIds.add(g._id); })));
+  const seated = seatedIds.size;
+  const enviadas = reales.filter((x) => !!x?.invitacion).length;
   const sinEnviar = total - enviadas;
 
   // Presupuesto FIEL al módulo: estimado y gastado se DERIVAN de items/pagos (igual que
@@ -136,13 +144,13 @@ export const ResumenStudio: FC = () => {
     { count: `${cancelados} de ${total}`, label: "canceladas", soft: "#FBE4EF", fg: "#D83E7C", icon: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M6 6l12 12M18 6L6 18" /></svg> },
   ];
 
-  // Mesas por espacio (planSpace → tables; sentados por coincidencia de nombre_mesa)
+  // Mesas por espacio (planSpace → tables). Sentados = invitados en tables[].guests (fuente de
+  // verdad de Mesas), NO por nombre_mesa.
   const spaces: any[] = event?.planSpace || [];
   const mesasList = spaces.map((sp: any) => {
     const tables: any[] = sp?.tables || [];
-    const names = new Set(tables.map((t: any) => t?.title));
     const capacity = tables.reduce((s: number, t: any) => s + (Number(t?.numberChair) || 0), 0);
-    const seatedHere = inv.filter((g) => g?.nombre_mesa && names.has(g.nombre_mesa)).length;
+    const seatedHere = tables.map((t: any) => t?.guests).flat().filter(Boolean).length;
     return { name: sp?.title || "Espacio", total: tables.length, seated: seatedHere, capacity };
   });
 

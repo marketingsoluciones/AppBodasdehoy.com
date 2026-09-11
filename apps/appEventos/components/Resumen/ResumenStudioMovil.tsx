@@ -44,12 +44,17 @@ const ResumenStudioMovil: FC = () => {
   const [lugarOpen, setLugarOpen] = useState(false);
 
   const inv: any[] = event?.invitados_array || [];
-  const total = inv.length;
-  const pendientes = inv.filter((x) => x?.asistencia === "pendiente").length;
-  const confirmados = inv.filter((x) => x?.asistencia === "confirmado").length;
-  const enviadas = inv.filter((x) => !!x?.invitacion).length;
+  // Igual que el módulo Invitados: `reales` excluye stubs vacíos (sin nombre y sin father).
+  const reales = inv.filter((x) => !!(x?.nombre || "").trim() || x?.father);
+  const total = reales.length;
+  const pendientes = reales.filter((x) => x?.asistencia === "pendiente").length;
+  const confirmados = reales.filter((x) => x?.asistencia === "confirmado").length;
+  const enviadas = reales.filter((x) => !!x?.invitacion).length;
   const sinEnviar = total - enviadas;
-  const seatedGlobal = inv.filter((x) => x?.nombre_mesa && String(x.nombre_mesa).toLowerCase() !== "no asignado").length;
+  // Sentados = invitados únicos en planSpace[].tables[].guests (fuente de verdad de Mesas).
+  const seatedIds = new Set<string>();
+  (event?.planSpace || []).forEach((ps: any) => (ps?.tables || []).forEach((tb: any) => (tb?.guests || []).forEach((g: any) => { if (g?._id) seatedIds.add(g._id); })));
+  const seatedGlobal = seatedIds.size;
 
   // Presupuesto FIEL al módulo: derivar de items/pagos (gastado = Σ pagos.monto), no del
   // top-level coste_final (stale 0). Igual que ResumenStudio / DashboardStudio.
@@ -85,8 +90,7 @@ const ResumenStudioMovil: FC = () => {
   const spaces: any[] = event?.planSpace || [];
   const mesasList = spaces.map((sp: any) => {
     const tables: any[] = sp?.tables || [];
-    const names = new Set(tables.map((t: any) => t?.title));
-    const seatedHere = inv.filter((g) => g?.nombre_mesa && names.has(g.nombre_mesa)).length;
+    const seatedHere = tables.map((t: any) => t?.guests).flat().filter(Boolean).length;
     return { name: sp?.title || "Espacio", total: tables.length, seated: seatedHere };
   });
   const totalMesas = mesasList.reduce((s, m) => s + m.total, 0);
