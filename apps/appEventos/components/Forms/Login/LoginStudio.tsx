@@ -266,16 +266,31 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
     onClose();
   };
 
+  // ── Color de marca ────────────────────────────────────────────────────────
+  // bodasdehoy conserva su rosa EXACTO (byte-idéntico al HTML original); las demás
+  // marcas usan su propio color de `config.theme` (eventosorganizador → azul, etc.).
+  // El acento oscuro sale de theme.secondaryColor, y si no existe se deriva del
+  // primario con color-mix (soportado en los navegadores que usamos).
+  const _brandPrimary = config?.theme?.primaryColor;
+  const isBodas = !_brandPrimary || config?.development === 'bodasdehoy';
+  const cLight = isBodas ? '#EF5B94' : _brandPrimary;
+  const cDark = isBodas ? '#D83E7C' : (config?.theme?.secondaryColor || _brandPrimary);
+  const cDisabled = isBodas ? '#f2c9d9' : `color-mix(in srgb, ${cLight} 38%, white)`;
+  const cShadow = isBodas ? 'rgba(239,91,148,.3)' : `color-mix(in srgb, ${cLight} 32%, transparent)`;
+  const cPanelGrad = isBodas
+    ? 'linear-gradient(200deg,rgba(216,62,124,.22) 0%,rgba(216,62,124,.5) 55%,rgba(122,20,60,.85) 100%)'
+    : `linear-gradient(200deg, color-mix(in srgb, ${cDark} 25%, transparent) 0%, color-mix(in srgb, ${cDark} 55%, transparent) 55%, color-mix(in srgb, ${cDark} 90%, black) 100%)`;
+
   return (
     <div style={{ height: "100vh", minHeight: 640, display: "flex", background: "#fff", overflow: "hidden", fontFamily: "'Poppins',sans-serif" }}>
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes ls-fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
         @keyframes ls-spin{to{transform:rotate(360deg);}}
-        .ls-in:focus{border-color:#EF5B94 !important;}
+        .ls-in:focus{border-color:${cLight} !important;}
         .ls-prov:hover{border-color:#c8c8ce !important;background:#faf9fb !important;}
-        .ls-primary:hover:not(:disabled){background:#D83E7C !important;}
-        .ls-link{color:#EF5B94;text-decoration:none;}
-        .ls-link:hover{color:#D83E7C;}
+        .ls-primary:hover:not(:disabled){background:${cDark} !important;}
+        .ls-link{color:${cLight};text-decoration:none;}
+        .ls-link:hover{color:${cDark};}
         .ls-eye:hover{background:#faf9fb;color:#6b6b72;}
         .ls-topback:hover{color:#3A3A42 !important;}
         .ls-role:hover{filter:none !important;transform:scale(1.04);}
@@ -294,17 +309,17 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
       ` }} />
 
       {/* PANEL IZQUIERDO · marca */}
-      <div className="ls-left" style={{ width: 440, flex: "none", color: "#fff", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden", background: "#D83E7C" }}>
+      <div className="ls-left" style={{ width: 440, flex: "none", color: "#fff", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden", background: cDark }}>
         {/* Foto floral del panel (image-slot del HTML, extraída del bundle) — bajo el gradiente */}
         <img src="/login-hero.jpg" alt="" aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} />
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(200deg,rgba(216,62,124,.22) 0%,rgba(216,62,124,.5) 55%,rgba(122,20,60,.85) 100%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, background: cPanelGrad, pointerEvents: "none" }} />
         <div style={{ position: "relative", flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", padding: "56px 46px 52px", pointerEvents: "none" }}>
           <div style={{ font: "700 31px/1.25 Poppins", marginBottom: 10, textShadow: "0 2px 14px rgba(0,0,0,.2)" }}>Todos tus eventos, <span style={{ color: "#FCE7F0" }}>bajo control</span></div>
           <div style={{ font: "500 13px/1.55 Poppins", marginBottom: 26, textShadow: "0 1px 8px rgba(0,0,0,.2)" }}>La herramienta profesional para wedding planners, organizadores y novios.</div>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 10, alignSelf: "flex-start", padding: "10px 16px", borderRadius: 999, background: "rgba(255,255,255,.16)", border: "1px solid rgba(255,255,255,.4)", backdropFilter: "blur(6px)" }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.8 4.8 4.7 1.2-4.7 1.2L12 15l-1.8-4.8L5.5 9l4.7-1.2z" /><path d="M18.5 15l.9 2.3 2.3.9-2.3.9-.9 2.3-.9-2.3-2.3-.9 2.3-.9z" /></svg>
             <span style={{ font: "600 12.5px Poppins", color: "#fff", whiteSpace: "nowrap" }}>Copiloto IA para planificar</span>
-            <span style={{ padding: "2px 9px", borderRadius: 999, background: "#fff", color: "#D83E7C", font: "700 9.5px Poppins", letterSpacing: ".5px" }}>NUEVO</span>
+            <span style={{ padding: "2px 9px", borderRadius: 999, background: "#fff", color: cDark, font: "700 9.5px Poppins", letterSpacing: ".5px" }}>NUEVO</span>
           </div>
         </div>
       </div>
@@ -328,7 +343,7 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
           <div style={{ width: 400, maxWidth: "100%", margin: "auto", padding: "16px 0", animation: "ls-fadein .4s ease" }}>
             {showHeader && (
               <div style={{ textAlign: "center", marginBottom: 18 }}>
-                {logo ? <div style={{ display: "flex", justifyContent: "center", maxWidth: 225, margin: "0 auto" }}>{logo}</div> : <div style={{ font: "800 24px Poppins", color: "#EF5B94" }}>{config?.brand || "Bodas de Hoy"}</div>}
+                {logo ? <div style={{ display: "flex", justifyContent: "center", maxWidth: 225, margin: "0 auto" }}>{logo}</div> : <div style={{ font: "800 24px Poppins", color: cLight }}>{config?.brand || "Bodas de Hoy"}</div>}
                 {!!headSub && <div style={{ font: "500 12.5px Poppins", color: "#8a8a90", marginTop: 8 }}>{headSub}</div>}
               </div>
             )}
@@ -351,8 +366,8 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
                       <input id="ls-email" className="ls-in" type="email" autoComplete="email" value={email} placeholder="nombre@correo.com"
                         onChange={(e) => { setEmail(e.target.value); setEmailErr(""); setAuthErr(""); }}
                         onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
-                        style={{ ...inSt, border: `1.5px solid ${emailErr ? "#D83E7C" : "#E7E7EA"}` }} />
-                      {emailErr && <div style={{ font: "500 11.5px Poppins", color: "#D83E7C", marginTop: 5 }}>{emailErr}</div>}
+                        style={{ ...inSt, border: `1.5px solid ${emailErr ? cDark : "#E7E7EA"}` }} />
+                      {emailErr && <div style={{ font: "500 11.5px Poppins", color: cDark, marginTop: 5 }}>{emailErr}</div>}
                     </div>
                     <div>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 5 }}>
@@ -363,24 +378,24 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
                         <input id="ls-pw" className="ls-in" type={showPw ? "text" : "password"} autoComplete="current-password" value={pw}
                           onChange={(e) => { setPw(e.target.value); setPwErr(""); setAuthErr(""); }}
                           onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
-                          style={{ ...inSt, padding: "11px 42px 11px 15px", border: `1.5px solid ${pwErr ? "#D83E7C" : "#E7E7EA"}` }} />
+                          style={{ ...inSt, padding: "11px 42px 11px 15px", border: `1.5px solid ${pwErr ? cDark : "#E7E7EA"}` }} />
                         <button type="button" className="ls-eye" title="Mostrar u ocultar contraseña" onClick={() => setShowPw(!showPw)} style={{ position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)", width: 32, height: 32, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#a0a0a8", background: "none", border: "none", cursor: "pointer" }}>{eye(showPw)}</button>
                       </div>
-                      {pwErr && <div style={{ font: "500 11.5px Poppins", color: "#D83E7C", marginTop: 5 }}>{pwErr}</div>}
+                      {pwErr && <div style={{ font: "500 11.5px Poppins", color: cDark, marginTop: 5 }}>{pwErr}</div>}
                     </div>
                     <label style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer" }}>
-                      <span onClick={() => setRemember(!remember)} style={{ width: 18, height: 18, borderRadius: 5, border: `1.5px solid ${remember ? "#EF5B94" : "#cfced4"}`, background: remember ? "#EF5B94" : "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
+                      <span onClick={() => setRemember(!remember)} style={{ width: 18, height: 18, borderRadius: 5, border: `1.5px solid ${remember ? cLight : "#cfced4"}`, background: remember ? cLight : "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
                         {remember && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>}
                       </span>
                       <span onClick={() => setRemember(!remember)} style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>Mantener sesión iniciada</span>
                     </label>
                     {authErr && (
                       <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "10px 15px", borderRadius: 999, background: "#FBE4EF", border: "1px solid #f2b9d3" }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D83E7C" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></svg>
-                        <span style={{ font: "600 12px Poppins", color: "#D83E7C" }} role="alert" data-testid="login-inline-error">{authErr}</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={cDark} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></svg>
+                        <span style={{ font: "600 12px Poppins", color: cDark }} role="alert" data-testid="login-inline-error">{authErr}</span>
                       </div>
                     )}
-                    <button type="button" className="ls-primary" onClick={submit} disabled={!canSubmit} style={{ width: "100%", padding: 12, borderRadius: 10, background: canSubmit || loading ? "#EF5B94" : "#f2c9d9", border: "none", color: "#fff", font: "600 14px Poppins", cursor: canSubmit ? "pointer" : "default", boxShadow: canSubmit ? "0 6px 16px rgba(239,91,148,.3)" : "none", marginTop: 2, display: "flex", alignItems: "center", justifyContent: "center", gap: 9 }}>
+                    <button type="button" className="ls-primary" onClick={submit} disabled={!canSubmit} style={{ width: "100%", padding: 12, borderRadius: 10, background: canSubmit || loading ? cLight : cDisabled, border: "none", color: "#fff", font: "600 14px Poppins", cursor: canSubmit ? "pointer" : "default", boxShadow: canSubmit ? `0 6px 16px ${cShadow}` : "none", marginTop: 2, display: "flex", alignItems: "center", justifyContent: "center", gap: 9 }}>
                       {loading && <span style={{ width: 15, height: 15, borderRadius: "50%", border: "2.5px solid rgba(255,255,255,.35)", borderTopColor: "#fff", animation: "ls-spin .8s linear infinite", display: "inline-block" }} />}
                       {loading ? "Iniciando sesión…" : "Iniciar sesión"}
                     </button>
@@ -392,15 +407,15 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
 
             {view === "register" && (
               <div style={{ textAlign: "center" }}>
-                <div style={{ font: "600 24px Poppins", color: "#EF5B94", marginBottom: 34 }}>¿Quién eres?</div>
+                <div style={{ font: "600 24px Poppins", color: cLight, marginBottom: 34 }}>¿Quién eres?</div>
                 {/* ESCRITORIO: roles en fila (columnas con círculo) */}
                 <div className="ls-roles-desk" style={{ display: "flex", justifyContent: "center", gap: 30, marginBottom: 36, flexWrap: "nowrap" }}>
                   {ROLES.map((r) => {
                     const sel = role === r.key;
                     return (
                       <button key={r.key} type="button" onClick={() => setRole(r.key)} style={{ minWidth: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-                        <span className="ls-role" style={{ width: 96, height: 96, borderRadius: "50%", background: "#f0f0f2", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", filter: sel ? "none" : "grayscale(1) opacity(.55)", transition: "filter .2s, transform .2s", boxShadow: sel ? "0 8px 20px rgba(239,91,148,.28)" : "none" }}>{r.icon}</span>
-                        <span style={{ font: "500 15px Poppins", color: sel ? "#EF5B94" : "#6b6b72", textAlign: "center" }}>{r.label}</span>
+                        <span className="ls-role" style={{ width: 96, height: 96, borderRadius: "50%", background: "#f0f0f2", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", filter: sel ? "none" : "grayscale(1) opacity(.55)", transition: "filter .2s, transform .2s", boxShadow: sel ? `0 8px 20px ${cShadow}` : "none" }}>{r.icon}</span>
+                        <span style={{ font: "500 15px Poppins", color: sel ? cLight : "#6b6b72", textAlign: "center" }}>{r.label}</span>
                       </button>
                     );
                   })}
@@ -410,17 +425,17 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
                   {ROLES.map((r) => {
                     const sel = role === r.key;
                     return (
-                      <button key={r.key} type="button" onClick={() => setRole(r.key)} style={{ display: "flex", alignItems: "center", gap: 16, background: "#fff", border: `1.5px solid ${sel ? "#EF5B94" : "#f0f0f2"}`, borderRadius: 16, padding: "14px 18px", minHeight: 76, width: "100%", cursor: "pointer" }}>
+                      <button key={r.key} type="button" onClick={() => setRole(r.key)} style={{ display: "flex", alignItems: "center", gap: 16, background: "#fff", border: `1.5px solid ${sel ? cLight : "#f0f0f2"}`, borderRadius: 16, padding: "14px 18px", minHeight: 76, width: "100%", cursor: "pointer" }}>
                         <span style={{ width: 56, height: 56, flex: "none", borderRadius: "50%", background: "#f0f0f2", display: "flex", alignItems: "center", justifyContent: "center", filter: sel ? "none" : "grayscale(1) opacity(.55)", transition: "filter .2s" }}>{r.icon}</span>
-                        <span style={{ font: "600 14.5px Poppins", color: sel ? "#EF5B94" : "#6b6b72" }}>{r.label}</span>
-                        <span style={{ marginLeft: "auto", flex: "none", width: 22, height: 22, borderRadius: "50%", border: `1.5px solid ${sel ? "#EF5B94" : "#cfced4"}`, background: sel ? "#EF5B94" : "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <span style={{ font: "600 14.5px Poppins", color: sel ? cLight : "#6b6b72" }}>{r.label}</span>
+                        <span style={{ marginLeft: "auto", flex: "none", width: 22, height: 22, borderRadius: "50%", border: `1.5px solid ${sel ? cLight : "#cfced4"}`, background: sel ? cLight : "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
                           {sel && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>}
                         </span>
                       </button>
                     );
                   })}
                 </div>
-                <button type="button" className="ls-primary" onClick={() => { if (role) setView("regform"); }} disabled={!role} style={{ padding: "13px 48px", borderRadius: 12, background: role ? "#EF5B94" : "#f2c9d9", border: "none", color: "#fff", font: "600 14px Poppins", cursor: role ? "pointer" : "default", boxShadow: role ? "0 6px 16px rgba(239,91,148,.3)" : "none" }}>Siguiente</button>
+                <button type="button" className="ls-primary" onClick={() => { if (role) setView("regform"); }} disabled={!role} style={{ padding: "13px 48px", borderRadius: 12, background: role ? cLight : cDisabled, border: "none", color: "#fff", font: "600 14px Poppins", cursor: role ? "pointer" : "default", boxShadow: role ? `0 6px 16px ${cShadow}` : "none" }}>Siguiente</button>
                 <div style={{ font: "500 12.5px Poppins", color: "#6b6b72", marginTop: 22 }}>¿Ya tienes cuenta? <a href="#" className="ls-link" onClick={(e) => { e.preventDefault(); setView("login"); }} style={{ fontWeight: 600 }}>Inicia sesión</a></div>
               </div>
             )}
@@ -443,9 +458,9 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a0a0a8" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={iconWrap}><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5" /></svg>
                       <input id="ls-rname" className="ls-in" autoComplete="name" value={rName} placeholder="María González"
                         onChange={(e) => { setRName(e.target.value); setRNameErr(""); }}
-                        style={{ ...inSt, padding: "11px 15px 11px 38px", border: `1.5px solid ${rNameErr ? "#D83E7C" : "#E7E7EA"}` }} />
+                        style={{ ...inSt, padding: "11px 15px 11px 38px", border: `1.5px solid ${rNameErr ? cDark : "#E7E7EA"}` }} />
                     </div>
-                    {rNameErr && <div style={{ font: "500 11.5px Poppins", color: "#D83E7C", marginTop: 5 }}>{rNameErr}</div>}
+                    {rNameErr && <div style={{ font: "500 11.5px Poppins", color: cDark, marginTop: 5 }}>{rNameErr}</div>}
                   </div>
                   <div>
                     <label htmlFor="ls-remail" style={lbl}>Correo electrónico</label>
@@ -453,9 +468,9 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a0a0a8" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={iconWrap}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg>
                       <input id="ls-remail" className="ls-in" type="email" autoComplete="email" value={rEmail} placeholder="nombre@correo.com"
                         onChange={(e) => { setREmail(e.target.value); setREmailErr(""); setRAuthErr(""); }}
-                        style={{ ...inSt, padding: "11px 15px 11px 38px", border: `1.5px solid ${rEmailErr ? "#D83E7C" : "#E7E7EA"}` }} />
+                        style={{ ...inSt, padding: "11px 15px 11px 38px", border: `1.5px solid ${rEmailErr ? cDark : "#E7E7EA"}` }} />
                     </div>
-                    {rEmailErr && <div style={{ font: "500 11.5px Poppins", color: "#D83E7C", marginTop: 5 }}>{rEmailErr}</div>}
+                    {rEmailErr && <div style={{ font: "500 11.5px Poppins", color: cDark, marginTop: 5 }}>{rEmailErr}</div>}
                   </div>
                   <div>
                     <label htmlFor="ls-rpw" style={lbl}>Contraseña</label>
@@ -463,10 +478,10 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a0a0a8" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={iconWrap}><rect x="4" y="11" width="16" height="9" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
                       <input id="ls-rpw" className="ls-in" type={rShowPw ? "text" : "password"} autoComplete="new-password" value={rPw} placeholder="Mínimo 8 caracteres"
                         onChange={(e) => { setRPw(e.target.value); setRPwErr(""); }}
-                        style={{ ...inSt, padding: "11px 42px 11px 38px", border: `1.5px solid ${rPwErr ? "#D83E7C" : "#E7E7EA"}` }} />
+                        style={{ ...inSt, padding: "11px 42px 11px 38px", border: `1.5px solid ${rPwErr ? cDark : "#E7E7EA"}` }} />
                       <button type="button" className="ls-eye" title="Mostrar u ocultar contraseña" onClick={() => setRShowPw(!rShowPw)} style={{ position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)", width: 32, height: 32, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#a0a0a8", background: "none", border: "none", cursor: "pointer" }}>{eye(rShowPw)}</button>
                     </div>
-                    {rPwErr && <div style={{ font: "500 11.5px Poppins", color: "#D83E7C", marginTop: 5 }}>{rPwErr}</div>}
+                    {rPwErr && <div style={{ font: "500 11.5px Poppins", color: cDark, marginTop: 5 }}>{rPwErr}</div>}
                   </div>
                   <div>
                     <label htmlFor="ls-rphone" style={lbl}>Número de teléfono <span style={{ font: "500 11px Poppins", color: "#b3b3ba" }}>(opcional)</span></label>
@@ -479,11 +494,11 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
                   </div>
                   {rAuthErr && (
                     <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "10px 15px", borderRadius: 999, background: "#FBE4EF", border: "1px solid #f2b9d3" }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D83E7C" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></svg>
-                      <span style={{ font: "600 12px Poppins", color: "#D83E7C" }} role="alert">{rAuthErr}</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={cDark} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></svg>
+                      <span style={{ font: "600 12px Poppins", color: cDark }} role="alert">{rAuthErr}</span>
                     </div>
                   )}
-                  <button type="button" className="ls-primary" onClick={handleRegister} disabled={!canCreate || rLoading} style={{ width: "100%", padding: 12, borderRadius: 10, background: canCreate || rLoading ? "#EF5B94" : "#f2c9d9", border: "none", color: "#fff", font: "600 14px Poppins", cursor: canCreate ? "pointer" : "default", boxShadow: canCreate ? "0 6px 16px rgba(239,91,148,.3)" : "none", marginTop: 2, display: "flex", alignItems: "center", justifyContent: "center", gap: 9 }}>
+                  <button type="button" className="ls-primary" onClick={handleRegister} disabled={!canCreate || rLoading} style={{ width: "100%", padding: 12, borderRadius: 10, background: canCreate || rLoading ? cLight : cDisabled, border: "none", color: "#fff", font: "600 14px Poppins", cursor: canCreate ? "pointer" : "default", boxShadow: canCreate ? `0 6px 16px ${cShadow}` : "none", marginTop: 2, display: "flex", alignItems: "center", justifyContent: "center", gap: 9 }}>
                     {rLoading && <span style={{ width: 15, height: 15, borderRadius: "50%", border: "2.5px solid rgba(255,255,255,.35)", borderTopColor: "#fff", animation: "ls-spin .8s linear infinite", display: "inline-block" }} />}
                     {rLoading ? "Creando cuenta…" : "Crear cuenta"}
                   </button>
@@ -500,9 +515,9 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
                   <input id="ls-femail" className="ls-in" type="email" autoComplete="email" value={fEmail} placeholder="nombre@correo.com"
                     onChange={(e) => { setFEmail(e.target.value); setFErr(""); }}
                     onKeyDown={(e) => { if (e.key === "Enter") sendLink(); }}
-                    style={{ ...inSt, border: `1.5px solid ${fErr ? "#D83E7C" : "#E7E7EA"}` }} />
-                  {fErr && <div style={{ font: "500 11.5px Poppins", color: "#D83E7C", marginTop: 5 }}>{fErr}</div>}
-                  <button type="button" className="ls-primary" onClick={sendLink} disabled={fEmail.trim() === "" || fLoading} style={{ width: "100%", padding: 12, borderRadius: 10, background: fEmail.trim() !== "" || fLoading ? "#EF5B94" : "#f2c9d9", border: "none", color: "#fff", font: "600 14px Poppins", cursor: fEmail.trim() !== "" ? "pointer" : "default", boxShadow: fEmail.trim() !== "" ? "0 6px 16px rgba(239,91,148,.3)" : "none", marginTop: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 9 }}>
+                    style={{ ...inSt, border: `1.5px solid ${fErr ? cDark : "#E7E7EA"}` }} />
+                  {fErr && <div style={{ font: "500 11.5px Poppins", color: cDark, marginTop: 5 }}>{fErr}</div>}
+                  <button type="button" className="ls-primary" onClick={sendLink} disabled={fEmail.trim() === "" || fLoading} style={{ width: "100%", padding: 12, borderRadius: 10, background: fEmail.trim() !== "" || fLoading ? cLight : cDisabled, border: "none", color: "#fff", font: "600 14px Poppins", cursor: fEmail.trim() !== "" ? "pointer" : "default", boxShadow: fEmail.trim() !== "" ? `0 6px 16px ${cShadow}` : "none", marginTop: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 9 }}>
                     {fLoading && <span style={{ width: 15, height: 15, borderRadius: "50%", border: "2.5px solid rgba(255,255,255,.35)", borderTopColor: "#fff", animation: "ls-spin .8s linear infinite", display: "inline-block" }} />}
                     {fLoading ? "Enviando…" : "Enviar enlace"}
                   </button>
@@ -525,7 +540,7 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
                   <div style={{ font: "500 12.5px/1.6 Poppins", color: "#8a8a90", marginBottom: 4 }}>Hemos enviado un enlace de recuperación a</div>
                   <div style={{ font: "600 13px Poppins", color: "#3A3A42", marginBottom: 16 }}>{fEmail}</div>
                   <div style={{ font: "500 11.5px/1.6 Poppins", color: "#a0a0a8", marginBottom: 18 }}>Si no lo ves en unos minutos, mira en la carpeta de spam.</div>
-                  <button type="button" onClick={async () => { await resetPassword({ identifier: fEmail.trim() }, () => { }); setResent(true); }} style={{ padding: "11px 20px", borderRadius: 10, background: "#fff", border: "1.5px solid #EF5B94", color: "#EF5B94", font: "600 13px Poppins", cursor: "pointer" }}>{resent ? "Enlace reenviado ✓" : "Reenviar enlace"}</button>
+                  <button type="button" onClick={async () => { await resetPassword({ identifier: fEmail.trim() }, () => { }); setResent(true); }} style={{ padding: "11px 20px", borderRadius: 10, background: "#fff", border: `1.5px solid ${cLight}`, color: cLight, font: "600 13px Poppins", cursor: "pointer" }}>{resent ? "Enlace reenviado ✓" : "Reenviar enlace"}</button>
                 </div>
                 <div style={{ textAlign: "center", marginTop: 14 }}>
                   <a href="#" className="ls-link" onClick={(e) => { e.preventDefault(); setView("login"); setResent(false); }} style={{ display: "inline-flex", alignItems: "center", gap: 7, font: "600 12.5px Poppins" }}>
