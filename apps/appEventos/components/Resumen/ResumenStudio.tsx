@@ -66,8 +66,23 @@ export const ResumenStudio: FC = () => {
   const enviadas = inv.filter((x) => !!x?.invitacion).length;
   const sinEnviar = total - enviadas;
 
-  const estimado = Number(event?.presupuesto_objeto?.coste_estimado || 0);
-  const gastado = Number(event?.presupuesto_objeto?.coste_final || 0);
+  // Presupuesto FIEL al módulo: estimado y gastado se DERIVAN de items/pagos (igual que
+  // DashboardStudio), no del top-level coste_final (que el backend deja en 0/stale).
+  // "Gastado" = lo PAGADO (Σ pagos.monto), que es lo que el usuario espera ver.
+  const poResumen = (() => {
+    const p: any = event?.presupuesto_objeto;
+    if (typeof p === "string") { try { return JSON.parse(p); } catch { return {}; } }
+    return p || {};
+  })();
+  const catsResumen: any[] = Array.isArray(poResumen?.categorias_array) ? poResumen.categorias_array : [];
+  const montoOf = (p: any) => Number(p?.monto ?? p?.importe) || 0;
+  const gastosActivos = (c: any) => (c?.gastos_array || []).filter((g: any) => g?.estatus !== false);
+  const estimadoGasto = (g: any) => { const items = g?.items_array || []; return items.length ? items.reduce((a: number, it: any) => a + (Number(it?.coste_estimado) || 0), 0) : (Number(g?.coste_estimado) || 0); };
+  const pagadoGasto = (g: any) => (g?.pagos_array || []).filter((p: any) => p?.estatus !== false && montoOf(p) > 0).reduce((s: number, p: any) => s + montoOf(p), 0);
+  const estimadoDerivado = catsResumen.reduce((a, c) => a + gastosActivos(c).reduce((s: number, g: any) => s + estimadoGasto(g), 0), 0);
+  const pagadoDerivado = catsResumen.reduce((a, c) => a + gastosActivos(c).reduce((s: number, g: any) => s + pagadoGasto(g), 0), 0);
+  const estimado = estimadoDerivado > 0 ? estimadoDerivado : Number(event?.presupuesto_objeto?.coste_estimado || 0);
+  const gastado = pagadoDerivado;
   const curSym = (c?: string) => {
     const m: Record<string, string> = { EUR: "€", USD: "$", GBP: "£", MXN: "$", ARS: "$", COP: "$", CLP: "$", PEN: "S/", BRL: "R$", USB: "$" };
     if (!c) return "€";

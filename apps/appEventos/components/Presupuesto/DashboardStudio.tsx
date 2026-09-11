@@ -113,7 +113,8 @@ const DashboardStudio: FC<Props> = ({ categorias }) => {
         .map((c: any) => `<tr><td style="padding:9px 14px;border-bottom:1px solid #f2f2f4;font-weight:600;color:#3A3A42">${esc(c.n)}</td><td style="padding:9px 14px;border-bottom:1px solid #f2f2f4;text-align:right;font-weight:700;color:${c.real > 0 ? "#3A3A42" : "#b3b3ba"}">${money(c.real)}</td></tr>`)
         .join("");
       const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${esc("Reporte financiero — " + (event?.nombre || ""))}</title>
-<style>@page{margin:16mm} body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#3A3A42;margin:0;padding:24px}h1{font-size:20px;margin:0}.sub{color:#8a8a90;font-size:12px;margin-top:4px}.kpis{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0}table{width:100%;border-collapse:collapse;font-size:13px}.sec{font-size:15px;font-weight:700;margin:22px 0 8px}.brand{color:#EF5B94;font-weight:800;font-size:18px}</style></head>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>@page{margin:16mm} *{font-family:'Poppins',-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif} body{font-family:'Poppins',-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#3A3A42;margin:0;padding:24px;-webkit-print-color-adjust:exact;print-color-adjust:exact}h1{font-size:20px;margin:0}.sub{color:#8a8a90;font-size:12px;margin-top:4px}.kpis{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0}table{width:100%;border-collapse:collapse;font-size:13px}.sec{font-size:15px;font-weight:700;margin:22px 0 8px}.brand{color:#EF5B94;font-weight:800;font-size:18px}</style></head>
 <body>
 <div class="brand">Bodasdehoy.com</div>
 <h1>${esc("Resumen financiero detallado")}</h1>
@@ -126,7 +127,7 @@ ${kpi("Por Wedding Planner", data.totalWP, "#D83E7C", "#FBE4EF")}
 </div>
 <div class="sec">${esc("Distribución por categorías")}</div>
 <table><thead><tr><th style="text-align:left;padding:9px 14px;border-bottom:2px solid #eee;font-size:11px;color:#8a8a90;text-transform:uppercase">${esc("Categoría")}</th><th style="text-align:right;padding:9px 14px;border-bottom:2px solid #eee;font-size:11px;color:#8a8a90;text-transform:uppercase">${esc("Coste real")}</th></tr></thead><tbody>${catRows}</tbody></table>
-<script>window.onload=function(){setTimeout(function(){window.print();},250);};<\/script>
+<script>window.onload=function(){var done=false;var go=function(){if(done)return;done=true;window.print();};if(document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){setTimeout(go,200);});setTimeout(go,1500);}else{setTimeout(go,600);}};<\/script>
 </body></html>`;
       w.document.open(); w.document.write(html); w.document.close();
     } catch { toast("error", t("Ha ocurrido un error")); }

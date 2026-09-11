@@ -51,8 +51,22 @@ const ResumenStudioMovil: FC = () => {
   const sinEnviar = total - enviadas;
   const seatedGlobal = inv.filter((x) => x?.nombre_mesa && String(x.nombre_mesa).toLowerCase() !== "no asignado").length;
 
-  const estimado = Number(event?.presupuesto_objeto?.coste_estimado || 0);
-  const gastado = Number(event?.presupuesto_objeto?.coste_final || 0);
+  // Presupuesto FIEL al módulo: derivar de items/pagos (gastado = Σ pagos.monto), no del
+  // top-level coste_final (stale 0). Igual que ResumenStudio / DashboardStudio.
+  const poResumen = (() => {
+    const p: any = event?.presupuesto_objeto;
+    if (typeof p === "string") { try { return JSON.parse(p); } catch { return {}; } }
+    return p || {};
+  })();
+  const catsResumen: any[] = Array.isArray(poResumen?.categorias_array) ? poResumen.categorias_array : [];
+  const montoOf = (p: any) => Number(p?.monto ?? p?.importe) || 0;
+  const gastosActivos = (c: any) => (c?.gastos_array || []).filter((g: any) => g?.estatus !== false);
+  const estimadoGasto = (g: any) => { const items = g?.items_array || []; return items.length ? items.reduce((a: number, it: any) => a + (Number(it?.coste_estimado) || 0), 0) : (Number(g?.coste_estimado) || 0); };
+  const pagadoGasto = (g: any) => (g?.pagos_array || []).filter((p: any) => p?.estatus !== false && montoOf(p) > 0).reduce((s: number, p: any) => s + montoOf(p), 0);
+  const estimadoDerivado = catsResumen.reduce((a, c) => a + gastosActivos(c).reduce((s: number, g: any) => s + estimadoGasto(g), 0), 0);
+  const pagadoDerivado = catsResumen.reduce((a, c) => a + gastosActivos(c).reduce((s: number, g: any) => s + pagadoGasto(g), 0), 0);
+  const estimado = estimadoDerivado > 0 ? estimadoDerivado : Number(event?.presupuesto_objeto?.coste_estimado || 0);
+  const gastado = pagadoDerivado;
   const cur = curSym(event?.presupuesto_objeto?.currency);
   const over = gastado > estimado && estimado > 0;
   const fmt = (n: number) => `${Math.round(n).toLocaleString("es-ES")} ${cur}`;
