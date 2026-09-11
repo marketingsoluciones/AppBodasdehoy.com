@@ -301,7 +301,7 @@ const Profile = ({ user, state, set, studio = false, ...rest }) => {
           <div className="items-center hidden md:flex gap-1 relative cursor-default shrink-0">
             <div onClick={() => {
               !event ? toast("error", t("nohaveeventscreated")) : !isAllowedRouter("/servicios") ? ht() : router.push("/servicios")
-            }} title={t("Servicios")} style={studio ? { width: 42, height: 42, flexShrink: 0 } : undefined} className={`${!event ? "opacity-40" : ""} ${studio ? "bg-[#F7F6F8] hover:bg-[#FCE7F0] text-[#6b6b72] hover:text-[#EF5B94]" : "bg-slate-100 w-8 h-8 hover:bg-primary/10"} rounded-full flex items-center justify-center cursor-pointer transition`} >
+            }} title={t("Lista de tareas", { defaultValue: "Lista de tareas" })} style={studio ? { width: 42, height: 42, flexShrink: 0 } : undefined} className={`${!event ? "opacity-40" : ""} ${studio ? "bg-[#F7F6F8] hover:bg-[#FCE7F0] text-[#6b6b72] hover:text-[#EF5B94]" : "bg-slate-100 w-8 h-8 hover:bg-primary/10"} rounded-full flex items-center justify-center cursor-pointer transition`} >
               {studio ? (
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" style={{ width: 19, height: 19, flexShrink: 0 }}><path d="M4.5 6.5l1 1 2-2M4.5 12l1 1 2-2M4.5 17.5l1 1 2-2" /><path d="M11 6.5h8.5M11 12h8.5M11 17.5h8.5" /></svg>
               ) : (

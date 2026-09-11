@@ -8,6 +8,7 @@ import { useToast } from "../../../hooks/useToast";
 import { useAllowed, } from "../../../hooks/useAllowed";
 import { useServicePermissions } from "../../../hooks/useServicePermissions";
 import { WarningMessage } from "./WarningMessage";
+import { ModalWorkflowProximamente } from "./ModalWorkflowProximamente";
 import { useTranslation } from 'react-i18next';
 import { ItineraryColumns } from "./ItineraryColumns";
 import ModalLeft from "../../Utils/ModalLeft";
@@ -1203,10 +1204,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         <WarningMessage setModal={setModalStatus} modal={modalStatus} title={t("visibility")} />
       </Modal>
       }
-      {modalWorkFlow && <Modal set={setModalWorkFlow} state={modalWorkFlow} classe={"w-[95%] md:w-[450px] h-[370px]"}>
-        <WarningMessage setModal={setModalWorkFlow} modal={modalWorkFlow} title={t("workflow")} />
-      </Modal>
-      }
+      {modalWorkFlow && <ModalWorkflowProximamente onClose={() => setModalWorkFlow(false)} />}
       {modalCompartirTask && <Modal set={setModalCompartirTask} state={modalCompartirTask} classe={"w-[95%] md:w-[450px] h-[370px]"}>
         <WarningMessage setModal={setModalCompartirTask} modal={modalCompartirTask} title={t("share")} />
       </Modal>

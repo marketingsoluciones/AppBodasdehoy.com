@@ -12,6 +12,7 @@ import { LuCopy, LuLink } from "react-icons/lu";
 import { AuthContextProvider, EventContextProvider } from "../../../context";
 import { isStudioPathname } from "../../../utils/studioPaths";
 import { useToast } from "../../../hooks/useToast";
+import { fetchApiEventos, queries } from "../../../utils/Fetching";
 
 
 interface props {
