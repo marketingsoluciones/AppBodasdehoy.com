@@ -154,16 +154,14 @@ export const ResumenStudio: FC = () => {
     return { name: sp?.title || "Espacio", total: tables.length, seated: seatedHere, capacity };
   });
 
-  // Lista de regalos (misma lógica que BlockListaRegalos)
-  const lista: any = event?.listaRegalos ?? null;
-  const regItems: any[] = Array.isArray(lista?.items) ? lista.items : Array.isArray(lista?.regalos) ? lista.regalos : Array.isArray(lista) ? lista : [];
-  const raised = regItems.reduce((s: number, it: any) => {
-    const c = Array.isArray(it?.contribuciones) ? it.contribuciones : [];
-    const cs = c.reduce((a: number, x: any) => a + (Number(x?.monto ?? x?.importe ?? 0) || 0), 0);
-    return s + (cs || (Number(it?.conseguido ?? 0) || 0));
-  }, 0);
-  const participantes = regItems.reduce((s: number, it: any) => s + (Array.isArray(it?.contribuciones) ? it.contribuciones.length : 0), 0);
-  const listaActiva = regItems.length > 0;
+  // Itinerarios (tipo "itinerario"): nombre + nº de actividades + rango horario (fiel al HTML).
+  const itinerariosList = (event?.itinerarios_array || [])
+    .filter((it: any) => it?.tipo === "itinerario")
+    .map((it: any) => {
+      const tasks: any[] = Array.isArray(it?.tasks) ? it.tasks : [];
+      const conHora = tasks.filter((t) => t?.hora).sort((a, b) => new Date(a?.fecha || 0).getTime() - new Date(b?.fecha || 0).getTime());
+      return { name: it?.title || "Itinerario", acts: tasks.length, desde: conHora[0]?.hora, hasta: conHora[conHora.length - 1]?.hora };
+    });
 
   // Momentos
   const albumes = Number((event as any)?.memoriesAlbumCount || 0);
@@ -381,7 +379,7 @@ export const ResumenStudio: FC = () => {
           </div>
         </div>
 
-        {/* MESAS + LISTA DE REGALOS */}
+        {/* MESAS + ITINERARIOS */}
         <div className="rs-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, marginBottom: 18, alignItems: "stretch" }}>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
@@ -397,7 +395,7 @@ export const ResumenStudio: FC = () => {
                       <div style={{ font: "600 13px Poppins", color: "#3A3A42" }}>{m.name}</div>
                       <div style={{ font: "500 11px Poppins", color: "#a0a0a8", marginTop: 1 }}>{m.total} mesas</div>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#FCE7F0", padding: "5px 11px", borderRadius: 20 }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="3.2" /></svg><span style={{ font: "600 12px Poppins", color: "#EF5B94" }}>{m.seated}{m.capacity ? ` de ${m.capacity}` : ""} sentados</span></div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#FCE7F0", padding: "5px 11px", borderRadius: 20 }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="3.2" /></svg><span style={{ font: "600 12px Poppins", color: "#EF5B94" }}>{m.seated} de {total} sentados</span></div>
                   </div>
                 ))}
               </div>
@@ -406,26 +404,22 @@ export const ResumenStudio: FC = () => {
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-              <div style={{ font: "600 16px Poppins", color: "#6b6b72" }}>Lista de regalos</div>
+              <div style={{ font: "600 16px Poppins", color: "#6b6b72" }}>Itinerarios</div>
             </div>
-            <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, padding: 18, display: "flex", flexDirection: "column", gap: 16, flex: 1, boxShadow: "0 4px 14px rgba(0,0,0,.06)" }}>
-              <div style={{ display: "flex", gap: 12, flex: 1, alignItems: "center" }}>
-                <div style={{ flex: 1, background: "#faf9fb", borderRadius: 12, padding: "16px 14px", textAlign: "center" }}><div style={{ font: "600 16px Poppins", color: "#3A3A42" }}>{Math.round(raised).toLocaleString("es-ES")}€</div><div style={{ font: "500 10.5px Poppins", color: "#a0a0a8", marginTop: 2 }}>Recaudado</div></div>
-                <div style={{ flex: 1, background: "#faf9fb", borderRadius: 12, padding: "16px 14px", textAlign: "center" }}><div style={{ font: "600 16px Poppins", color: "#3A3A42" }}>{participantes}</div><div style={{ font: "500 10.5px Poppins", color: "#a0a0a8", marginTop: 2 }}>Participantes</div></div>
+            <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, padding: "8px 18px 18px", flex: 1, display: "flex", flexDirection: "column", boxShadow: "0 4px 14px rgba(0,0,0,.06)" }}>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                {itinerariosList.length === 0 && <div style={{ textAlign: "center", padding: "22px 0", font: "500 12px Poppins", color: "#a0a0a8" }}>Aún no has creado itinerarios.</div>}
+                {itinerariosList.map((it, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 0", borderBottom: `1px solid ${i < itinerariosList.length - 1 ? "#f0f0f2" : "transparent"}` }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, flex: "none", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M4 10h16M8 3v4M16 3v4" /></svg></div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ font: "600 13px Poppins", color: "#3A3A42" }}>{it.name}</div>
+                      <div style={{ font: "500 11px Poppins", color: "#a0a0a8", marginTop: 1 }}>{it.acts} actividades{it.desde ? ` · ${it.desde} – ${it.hasta}` : ""}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <button onClick={() => router.push("/lista-regalos")} style={dashBtn}>{listaActiva ? "Ver lista" : "Activar lista"}</button>
-            </div>
-          </div>
-        </div>
-
-        {/* ACCESOS RÁPIDOS */}
-        <div className="rs-hero" style={{ display: "grid", gridTemplateColumns: "44% 1fr", gap: 18, marginBottom: 16 }}>
-          <button onClick={() => router.push("/itinerario")} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 9, padding: "9px 13px", borderRadius: 12, background: "#FCE7F0", color: "#EF5B94", font: "600 13px Poppins", border: "none", cursor: "pointer" }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M4 10h16M8 3v4M16 3v4" /></svg>Ver itinerarios</button>
-          <div style={{ display: "flex", alignItems: "stretch", borderRadius: 12, overflow: "hidden", boxShadow: "0 4px 14px rgba(0,0,0,.06)" }}>
-            <button title="Directorio de lugares (próximamente)" style={{ flex: "none", padding: "9px 20px", background: "#EF5B94", color: "#fff", font: "600 13px Poppins", border: "none", cursor: "default" }}>Lugar del evento</button>
-            <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, background: "#fff", padding: "8px 16px" }}>
-              <input type="text" placeholder="Buscar lugar en el directorio de Bodasdehoy…" style={{ flex: 1, border: "none", outline: "none", background: "transparent", font: "500 13px Poppins", color: "#3A3A42" }} />
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+              <button onClick={() => router.push("/itinerario")} style={dashBtn}>Ver itinerarios</button>
             </div>
           </div>
         </div>
