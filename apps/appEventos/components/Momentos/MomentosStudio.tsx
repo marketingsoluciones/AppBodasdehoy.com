@@ -162,13 +162,11 @@ export const MomentosStudio: FC<{ chatBase: string }> = ({ chatBase }) => {
       </Head>
       <style dangerouslySetInnerHTML={{ __html: "@keyframes mom-fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}.mom-card{transition:box-shadow .18s}.mom-card:hover{box-shadow:0 10px 26px rgba(0,0,0,.09)}.mom-ghost:hover{border-color:#EF5B94 !important;color:#EF5B94 !important}.mom-link:hover{color:#D83E7C !important}.mom-cta:hover{background:#D83E7C !important}" }} />
 
-      <div style={{ minHeight: "100vh", padding: "26px 0 60px" }}>
-        {/* Mismo ancho que BlockTitle, que se autolimita a max-w-screen-lg (1024px). Con un
-            maxWidth propio las tarjetas salían ~100px más anchas que la barra del título.
-            Se usa la MISMA clase en vez de un valor fijo para que, si cambia el breakpoint,
-            las tres se muevan juntas. El padding no descuadra: al reducir el ancho
-            disponible, BlockTitle deja de tocar su máximo y ocupa lo mismo que el resto. */}
-        <div className="max-w-screen-lg mx-auto px-4" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      {/* Mismo top (pt-2 md:py-0) y padding horizontal (px-2 md:px-0) que el holder de
+          Presupuesto, para que TODOS los módulos tengan el mismo tamaño y la misma
+          distancia con el menú superior. (Antes: 26px top + px-4 → más ancho/más abajo.) */}
+      <div className="pt-2 md:py-0" style={{ minHeight: "100vh", paddingBottom: 60 }}>
+        <div className="max-w-screen-lg mx-auto px-2 md:px-0" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
 
           {/* HOLDER — misma barra compartida que el resto de módulos */}
           <BlockTitle title={"Momentos"} />
