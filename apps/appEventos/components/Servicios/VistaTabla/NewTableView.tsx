@@ -419,18 +419,6 @@ export const NewTableView: React.FC<TableProps & { expandida?: boolean; onToggle
     }
   };
 
-  // Primero definimos la validación de la respuesta
-  const isValidTaskResponse = (response: unknown): response is Task => {
-    return (
-      typeof response === 'object' &&
-      response !== null &&
-      '_id' in response &&
-      typeof (response as any)._id === 'string' &&
-      'descripcion' in response &&
-      typeof (response as any).descripcion === 'string'
-    );
-  };
-
   // Manejar creación de tarea mejorada
   const handleAddTask = async () => {
     try {
@@ -452,20 +440,26 @@ export const NewTableView: React.FC<TableProps & { expandida?: boolean; onToggle
       const hours = String(defaultDate.getHours()).padStart(2, '0');
       const minutes = String(defaultDate.getMinutes()).padStart(2, '0');
       // Hacer la petición con type assertion seguro
-      const apiResponse = await fetchApiEventos({
+      // Forma CANÓNICA del adapter (evento_id + task:{itinerario_id,...TareaInput}).
+      const resCreate: any = await fetchApiEventos({
         query: queries.createTask,
         variables: {
-          eventID: event._id,
-          itinerarioID: itinerario._id,
-          descripcion: t('Nueva tarea'),
-          fecha: `${year}-${month}-${day}`,
-          hora: `${hours}:${minutes}`,
-          duracion: 30
+          evento_id: event._id,
+          development: config.development || "bodasdehoy",
+          task: {
+            itinerario_id: itinerario._id,
+            descripcion: t('Nueva tarea'),
+            fecha: `${year}-${month}-${day}`,
+            hora: `${hours}:${minutes}`,
+            horaActiva: true,
+            duracion: 30,
+          },
         },
         domain: config.domain
       });
-      // Validar la respuesta usando el type guard
-      if (isValidTaskResponse(apiResponse)) {
+      const apiResponse: any = resCreate?.task || resCreate;
+      // Validar la respuesta
+      if (apiResponse && apiResponse._id) {
         // Construir una tarea completa con los valores por defecto
         const newTask: Task = {
           _id: apiResponse._id,
@@ -574,12 +568,16 @@ export const NewTableView: React.FC<TableProps & { expandida?: boolean; onToggle
               await fetchApiEventos({
                 query: queries.createTask,
                 variables: {
-                  eventID: event._id,
-                  itinerarioID: itinerario._id,
-                  descripcion: row[t('Título')] || t('Tarea importada'),
-                  fecha: fecha.toISOString().split('T')[0],
-                  hora: `${hours}:${minutes}`,
-                  duracion: parseInt(row[t('Duración (min)')] || '30')
+                  evento_id: event._id,
+                  development: config.development || "bodasdehoy",
+                  task: {
+                    itinerario_id: itinerario._id,
+                    descripcion: row[t('Título')] || t('Tarea importada'),
+                    fecha: fecha.toISOString().split('T')[0],
+                    hora: `${hours}:${minutes}`,
+                    horaActiva: true,
+                    duracion: parseInt(row[t('Duración (min)')] || '30'),
+                  },
                 },
                 domain: config.domain
               });
