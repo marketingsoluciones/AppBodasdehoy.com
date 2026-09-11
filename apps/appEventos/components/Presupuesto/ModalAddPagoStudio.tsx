@@ -69,11 +69,15 @@ const ModalAddPagoStudio: FC<Props> = ({ categoriaId, gastoId, onClose, pago }) 
           if (url) soporte = { image_url: url, medium_url: url, thumb_url: url };
         } catch { toast("error", t("Error al subir la imagen")); }
       }
-      // Contrato REAL api-mcp: { monto, fecha, metodo, referencia, notas }. El backend descarta
-      // importe/estado/fecha_pago/medio_pago (por eso antes guardaba monto:0 y el pago no se veía).
+      // Contrato canónico api-mcp (confirmado por backend 11sep): pago = JSON libre, el esquema
+      // VIVO es `importe` (no `monto`) + `estado` ('pagado' | 'pendiente'). El recálculo del
+      // backend es tolerante (importe ?? monto). Escribimos SIEMPRE el vocabulario vivo para no
+      // crear un tercer dialecto; `estado` marca los "próximos pagos" (pestaña prox) como
+      // pendiente para que NO cuenten como pagado en los agregados.
       const pagoObj: any = {
         ...(editing ? { _id: pago?._id } : {}),
-        monto: imp,
+        importe: imp,
+        estado: esPago ? "pagado" : "pendiente",
         fecha,
         // Si es "por Wedding Planner" lo marcamos en `metodo` (campo que api-mcp SÍ guarda) para poder
         // separarlo del pago directo en Gestión financiera — el backend no tiene un flag propio.

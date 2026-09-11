@@ -17,7 +17,9 @@ import { useAllowed } from "../../hooks/useAllowed";
 
 const WP = "wedding planer";
 const parseEs = (s: string) => { const n = parseFloat(String(s).replace(/[^\d.,]/g, "").replace(/\./g, "").replace(",", ".")); return Number.isNaN(n) ? 0 : n; };
-const gastoPagado = (g: any) => (g?.pagos_array || []).filter((p: any) => p?.estado === "pagado").reduce((a: number, p: any) => a + (Number(p.importe) || 0), 0);
+// "Pagado" = pagos NO pendientes (los legacy sin estado siguen contando); importe tolerante (importe ?? monto).
+const montoOf = (p: any) => Number(p?.importe ?? p?.monto) || 0;
+const gastoPagado = (g: any) => (g?.pagos_array || []).filter((p: any) => p?.estado !== "pendiente").reduce((a: number, p: any) => a + montoOf(p), 0);
 const gastoEstaPagado = (g: any) => (g?.coste_final || 0) > 0 && gastoPagado(g) >= (g?.coste_final || 0);
 
 const PresupuestoStudioMovil: FC = () => {
@@ -47,10 +49,10 @@ const PresupuestoStudioMovil: FC = () => {
   // ── Planner (gestión financiera) ──
   const fin = useMemo(() => {
     const allPagos: any[] = [];
-    cats.forEach((c) => (c.gastos_array || []).filter((g: any) => g?.estatus !== false).forEach((g: any) => (g.pagos_array || []).filter((p: any) => p?.estado === "pagado").forEach((p: any) => allPagos.push(p))));
+    cats.forEach((c) => (c.gastos_array || []).filter((g: any) => g?.estatus !== false).forEach((g: any) => (g.pagos_array || []).filter((p: any) => p?.estado !== "pendiente").forEach((p: any) => allPagos.push(p))));
     const wpPagos = allPagos.filter((p) => p.pagado_por === WP);
     const recibido = deposits.reduce((a, d) => a + (Number(d.monto) || 0), 0);
-    const utilizado = wpPagos.reduce((a, p) => a + (Number(p.importe) || 0), 0);
+    const utilizado = wpPagos.reduce((a, p) => a + montoOf(p), 0);
     const disponible = recibido - utilizado;
     return { nPagos: allPagos.length, wpUsos: wpPagos.length, recibido, utilizado, disponible };
   }, [cats, deposits]);
@@ -328,7 +330,7 @@ const PresupuestoStudioMovil: FC = () => {
                   <div style={{ minWidth: 0 }}><div style={{ font: "500 12px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</div><div style={{ font: "500 10px Poppins", color: "#a0a0a8" }}>{p.cat}</div></div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, whiteSpace: "nowrap" }}>
-                  <span style={{ font: "600 12.5px Poppins", color: "#3A3A42" }}>{fmt(p.monto)}</span>
+                  <span style={{ font: "600 12.5px Poppins", color: "#3A3A42" }}>{fmt(montoOf(p))}</span>
                   <div onClick={() => { const c = cats.find((x) => x._id === p.catId); if (c) openCategory(c); }} style={{ font: "600 10.5px Poppins", color: "#EF5B94", background: "#FCE7F0", padding: "6px 12px", borderRadius: 999, cursor: "pointer" }}>Ver</div>
                 </div>
               </div>

@@ -61,16 +61,23 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
   // items (robusto ante el refuerzo optimista, que actualiza el item y no el gasto).
   const estimadoGasto = (g: any) => { const items = (g?.items_array || []); return items.length ? items.reduce((a: number, it: any) => a + (Number(it?.coste_estimado) || 0), 0) : (Number(g?.coste_estimado) || 0); };
   const estimadoCat = (c: any) => (c?.gastos_array || []).filter((g: any) => g?.estatus !== false).reduce((s: number, g: any) => s + estimadoGasto(g), 0);
-  // PAGADO: sumar el importe de cada pago. ⚠️DOS esquemas coexisten: eventos nuevos usan
-  // `monto`; eventos LEGACY (p.ej. Isabel & Raúl, 2024) usan `importe`. La tabla de Gastos usa
-  // `monto ?? importe` → el resumen DEBE hacer lo mismo o queda en 0 para eventos legacy.
-  const pagadoGasto = (g: any) => { const ps = (g?.pagos_array || []); return ps.length ? ps.reduce((a: number, pp: any) => a + (Number(pp?.monto ?? pp?.importe) || 0), 0) : (Number(g?.pagado) || 0); };
+  // PAGADO / PENDIENTE: el pago es JSON libre; el esquema vivo (confirmado backend 11sep) es
+  // `importe` (+ `estado` 'pagado'|'pendiente'); `monto` solo en datos de QA antiguos → leemos
+  // tolerante (importe ?? monto). "Pagado" = pagos NO pendientes (los sin estado = pagos reales
+  // legacy → siguen contando, no regresa el histórico); "Pendiente" = estado === 'pendiente'
+  // (próximos pagos programados). Así el pagado no se infla y el pendiente se ve aparte.
+  const montoOf = (pp: any) => Number(pp?.importe ?? pp?.monto) || 0;
+  const esPendiente = (pp: any) => pp?.estado === "pendiente";
+  const pagadoGasto = (g: any) => { const ps = (g?.pagos_array || []); return ps.length ? ps.filter((pp: any) => !esPendiente(pp)).reduce((a: number, pp: any) => a + montoOf(pp), 0) : (Number(g?.pagado) || 0); };
   const pagadoCat = (c: any) => (c?.gastos_array || []).filter((g: any) => g?.estatus !== false).reduce((s: number, g: any) => s + pagadoGasto(g), 0);
+  const pendienteGasto = (g: any) => (g?.pagos_array || []).filter((pp: any) => esPendiente(pp)).reduce((a: number, pp: any) => a + montoOf(pp), 0);
+  const pendienteCat = (c: any) => (c?.gastos_array || []).filter((g: any) => g?.estatus !== false).reduce((s: number, g: any) => s + pendienteGasto(g), 0);
 
-  const { total, pagado, costeFinal, porPagar, disponible, paidW, dueW, catsActive, catsZero, sumEst, sumFinal } = useMemo(() => {
+  const { total, pagado, pendiente, costeFinal, porPagar, disponible, paidW, dueW, catsActive, catsZero, sumEst, sumFinal } = useMemo(() => {
     const total = typeof p.presupuesto_total === "number" ? p.presupuesto_total : (p.coste_estimado || 0);
     const costeFinal = cats.reduce((s, c) => s + costeRealCat(c), 0);
     const pagado = cats.reduce((s, c) => s + pagadoCat(c), 0);
+    const pendiente = cats.reduce((s, c) => s + pendienteCat(c), 0);
     const porPagar = Math.max(0, costeFinal - pagado);
     const disponible = total - costeFinal;
     const paidW = total > 0 ? Math.min(100, (pagado / total) * 100) : 0;
@@ -79,7 +86,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
     const zero = cats.filter((c) => !(costeRealCat(c) > 0 || estimadoCat(c) > 0));
     const sumEst = cats.reduce((s, c) => s + estimadoCat(c), 0);
     const sumFinal = costeFinal;
-    return { total, pagado, costeFinal, porPagar, disponible, paidW, dueW, catsActive: active, catsZero: zero, sumEst, sumFinal };
+    return { total, pagado, pendiente, costeFinal, porPagar, disponible, paidW, dueW, catsActive: active, catsZero: zero, sumEst, sumFinal };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p, cats]);
 
@@ -434,6 +441,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
                 <div style={{ display: "flex", alignItems: "center", gap: 22, marginTop: 12, flexWrap: "wrap" }}>
                   {[
                     { c: "#EF5B94", l: t("Ya pagado"), v: getCurrency(pagado, cur), col: "#3A3A42" },
+                    ...(pendiente > 0 ? [{ c: "#E0A32B", l: t("Pendiente (programado)"), v: getCurrency(pendiente, cur), col: "#3A3A42" }] : []),
                     { c: "#F8A9C6", l: t("Comprometido sin pagar"), v: getCurrency(porPagar, cur), col: "#3A3A42" },
                     { c: "#e4e4e8", l: t("Aún libre"), v: getCurrency(disponible, cur), col: excedido ? "#D83E7C" : "#2FB37E" },
                   ].map((it, i) => (

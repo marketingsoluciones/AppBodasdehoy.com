@@ -56,14 +56,18 @@ const ResumenStudioMovil: FC = () => {
     return p || {};
   })();
   const catsResumen: any[] = Array.isArray(poResumen?.categorias_array) ? poResumen.categorias_array : [];
-  const montoOf = (p: any) => Number(p?.monto ?? p?.importe) || 0;
+  const montoOf = (p: any) => Number(p?.importe ?? p?.monto) || 0;
+  const esPendiente = (p: any) => p?.estado === "pendiente";
   const gastosActivos = (c: any) => (c?.gastos_array || []).filter((g: any) => g?.estatus !== false);
   const estimadoGasto = (g: any) => { const items = g?.items_array || []; return items.length ? items.reduce((a: number, it: any) => a + (Number(it?.coste_estimado) || 0), 0) : (Number(g?.coste_estimado) || 0); };
-  const pagadoGasto = (g: any) => (g?.pagos_array || []).filter((p: any) => p?.estatus !== false && montoOf(p) > 0).reduce((s: number, p: any) => s + montoOf(p), 0);
+  const pagadoGasto = (g: any) => (g?.pagos_array || []).filter((p: any) => p?.estatus !== false && !esPendiente(p) && montoOf(p) > 0).reduce((s: number, p: any) => s + montoOf(p), 0);
+  const pendienteGasto = (g: any) => (g?.pagos_array || []).filter((p: any) => p?.estatus !== false && esPendiente(p) && montoOf(p) > 0).reduce((s: number, p: any) => s + montoOf(p), 0);
   const estimadoDerivado = catsResumen.reduce((a, c) => a + gastosActivos(c).reduce((s: number, g: any) => s + estimadoGasto(g), 0), 0);
   const pagadoDerivado = catsResumen.reduce((a, c) => a + gastosActivos(c).reduce((s: number, g: any) => s + pagadoGasto(g), 0), 0);
+  const pendienteDerivado = catsResumen.reduce((a, c) => a + gastosActivos(c).reduce((s: number, g: any) => s + pendienteGasto(g), 0), 0);
   const estimado = estimadoDerivado > 0 ? estimadoDerivado : Number(event?.presupuesto_objeto?.coste_estimado || 0);
   const gastado = pagadoDerivado;
+  const pendiente = pendienteDerivado;
   const cur = curSym(event?.presupuesto_objeto?.currency);
   const over = gastado > estimado && estimado > 0;
   const fmt = (n: number) => `${Math.round(n).toLocaleString("es-ES")} ${cur}`;
@@ -192,9 +196,15 @@ const ResumenStudioMovil: FC = () => {
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{ width: 38, height: 38, borderRadius: 11, flex: "none", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round"><path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2V5z" /><path d="M2 9v1c0 1.1.9 2 2 2h1" /></svg></div>
             <div style={{ flex: 1 }}><div style={{ font: "500 10.5px Poppins", color: "#a0a0a8" }}>Estimado</div><div style={{ font: "600 15px Poppins", color: "#3A3A42" }}>{fmt(estimado)}</div></div>
-            <div style={{ textAlign: "right" }}><div style={{ font: "500 10.5px Poppins", color: "#a0a0a8" }}>Gastado</div><div style={{ font: "600 15px Poppins", color: presupColor }}>{fmt(gastado)}</div></div>
+            <div style={{ textAlign: "right" }}><div style={{ font: "500 10.5px Poppins", color: "#a0a0a8" }}>Pagado</div><div style={{ font: "600 15px Poppins", color: presupColor }}>{fmt(gastado)}</div></div>
           </div>
           <div style={{ height: 7, borderRadius: 6, background: "#f2f2f4", overflow: "hidden", marginTop: 12 }}><div style={{ height: "100%", width: `${presupPct.toFixed(0)}%`, borderRadius: 6, background: presupColor }} /></div>
+          {pendiente > 0 && (
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
+              <span style={{ font: "500 10.5px Poppins", color: "#a0a0a8" }}>Pendiente</span>
+              <span style={{ font: "600 12.5px Poppins", color: "#E0A32B" }}>{fmt(pendiente)}</span>
+            </div>
+          )}
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: over ? "#FDF6E7" : "#EAF7F0", border: `1px solid ${over ? "#F2E2B8" : "#C3E8D5"}`, borderRadius: 999, padding: "5px 12px", marginTop: 12 }}>
             {over
               ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#B4801F" strokeWidth={2.1} strokeLinecap="round" strokeLinejoin="round"><path d="M12 9v4M12 17h0" /><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" /></svg>

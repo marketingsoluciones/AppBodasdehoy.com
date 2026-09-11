@@ -32,14 +32,16 @@ const DashboardStudio: FC<Props> = ({ categorias }) => {
   const cats = Array.isArray(categorias) ? categorias : [];
   const deposits = event?.presupuesto_objeto?.weddingPlannerIngresos || [];
 
-  // Contrato REAL api-mcp: pago = { monto, fecha, metodo, referencia, notas } (sin importe/estado/
-  // pagado_por). Item = { cantidad, coste_final }. Coherente con la tabla y el resumen.
-  const montoOf = (p: any) => Number(p?.monto ?? p?.importe) || 0;
+  // Pago = JSON libre; esquema vivo (backend 11sep) = `importe` (+ `estado`); `monto` solo en QA
+  // antiguo → leer tolerante. El panel muestra MOVIMIENTOS de dinero real → excluimos los pagos
+  // en estado 'pendiente' (programados, aún no desembolsados). Coherente con Resumen y Gastos.
+  const montoOf = (p: any) => Number(p?.importe ?? p?.monto) || 0;
+  const esPendiente = (p: any) => p?.estado === "pendiente";
   const costeRealGasto = (g: any) => { const items = (g?.items_array || []); return items.length ? items.reduce((a: number, it: any) => a + (Number(it?.coste_final) || 0), 0) : (Number(g?.coste_final) || 0); };
   const costeRealCat = (c: any) => (c?.gastos_array || []).filter((g: any) => g?.estatus !== false).reduce((s: number, g: any) => s + costeRealGasto(g), 0);
   const data = useMemo(() => {
     const allPagos: any[] = [];
-    cats.forEach((c) => (c.gastos_array || []).filter((g: any) => g?.estatus !== false).forEach((g: any) => (g.pagos_array || []).filter((p: any) => p?.estatus !== false && montoOf(p) > 0).forEach((p: any) => allPagos.push({ ...p, catName: c.nombre, gastoName: g.nombre }))));
+    cats.forEach((c) => (c.gastos_array || []).filter((g: any) => g?.estatus !== false).forEach((g: any) => (g.pagos_array || []).filter((p: any) => p?.estatus !== false && !esPendiente(p) && montoOf(p) > 0).forEach((p: any) => allPagos.push({ ...p, catName: c.nombre, gastoName: g.nombre }))));
     // WP vs directo se marca por pagado_por/metodo (api-mcp aún no guarda un flag propio → por ahora
     // casi todo cae en "directos"; ver nota al usuario sobre separar WP en backend).
     const isWP = (p: any) => (p.pagado_por || "") === WP || String(p.metodo || "").toLowerCase().includes("wedding");

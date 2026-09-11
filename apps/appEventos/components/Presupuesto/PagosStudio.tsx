@@ -37,7 +37,9 @@ const PagosStudio: FC<Props> = ({ categorias, estado }) => {
   const grupos = cats.map((c) => {
     const rows: any[] = [];
     (c.gastos_array || []).filter((g: any) => g?.estatus !== false).forEach((g: any) => {
-      (g.pagos_array || []).filter((p: any) => p?.estado === estado).forEach((p: any) => rows.push({ gasto: g, pago: p }));
+      // "pagado" = todo lo que NO está pendiente (los pagos legacy sin estado son pagos reales →
+      // deben salir aquí y cuadrar con el total "Ya pagado"); "pendiente" = estado === 'pendiente'.
+      (g.pagos_array || []).filter((p: any) => estado === "pendiente" ? p?.estado === "pendiente" : p?.estado !== "pendiente").forEach((p: any) => rows.push({ gasto: g, pago: p }));
     });
     return { c, rows };
   }).filter((x) => x.rows.length > 0);
@@ -98,16 +100,16 @@ const PagosStudio: FC<Props> = ({ categorias, estado }) => {
                         <div><span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: chip.bg, color: chip.fg, borderRadius: 999, padding: "5px 12px", font: "600 11.5px Poppins", whiteSpace: "nowrap" }}>{chip.icon}{chip.label}</span></div>
                         {isPagado ? (
                           <>
-                            <div style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{pago.fecha_pago || "—"}</div>
-                            <div style={{ textAlign: "right", font: "700 13px Poppins", color: "#3A3A42" }}>{getCurrency(pago.importe || 0, cur)}</div>
+                            <div style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{pago.fecha_pago || pago.fecha || "—"}</div>
+                            <div style={{ textAlign: "right", font: "700 13px Poppins", color: "#3A3A42" }}>{getCurrency((pago.importe ?? pago.monto) || 0, cur)}</div>
                             <div />
-                            <div style={{ font: "500 12.5px Poppins", color: "#6b6b72", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={pago.medio_pago}>{pago.medio_pago || "—"}</div>
-                            <div style={{ font: "500 12.5px Poppins", color: "#6b6b72", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={pago.concepto}>{pago.concepto || "—"}</div>
+                            <div style={{ font: "500 12.5px Poppins", color: "#6b6b72", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={pago.medio_pago || pago.metodo}>{pago.medio_pago || pago.metodo || "—"}</div>
+                            <div style={{ font: "500 12.5px Poppins", color: "#6b6b72", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={pago.concepto || pago.notas}>{pago.concepto || pago.notas || "—"}</div>
                           </>
                         ) : (
                           <>
-                            <div style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{pago.fecha_vencimiento || pago.fecha_pago || "—"}</div>
-                            <div style={{ font: "500 12.5px Poppins", color: "#6b6b72", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={pago.concepto}>{pago.concepto || "—"}</div>
+                            <div style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{pago.fecha_vencimiento || pago.fecha_pago || pago.fecha || "—"}</div>
+                            <div style={{ font: "500 12.5px Poppins", color: "#6b6b72", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={pago.concepto || pago.notas}>{pago.concepto || pago.notas || "—"}</div>
                           </>
                         )}
                         <div style={{ position: "relative", display: "flex", justifyContent: "center" }} onClick={(e) => e.stopPropagation()}>

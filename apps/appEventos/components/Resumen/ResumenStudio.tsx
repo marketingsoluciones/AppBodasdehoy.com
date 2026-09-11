@@ -83,14 +83,22 @@ export const ResumenStudio: FC = () => {
     return p || {};
   })();
   const catsResumen: any[] = Array.isArray(poResumen?.categorias_array) ? poResumen.categorias_array : [];
-  const montoOf = (p: any) => Number(p?.monto ?? p?.importe) || 0;
+  // Importe tolerante: esquema vivo = `importe`; `monto` solo en datos de QA antiguos.
+  const montoOf = (p: any) => Number(p?.importe ?? p?.monto) || 0;
+  // "Pagado" = pagos que NO están en estado pendiente (los sin estado = pagos reales legacy →
+  // siguen contando). "Pendiente" = estado === 'pendiente'. Así el pagado no se infla y el
+  // pendiente se muestra aparte, sin perder el total (pagado + pendiente).
+  const esPendiente = (p: any) => p?.estado === "pendiente";
   const gastosActivos = (c: any) => (c?.gastos_array || []).filter((g: any) => g?.estatus !== false);
   const estimadoGasto = (g: any) => { const items = g?.items_array || []; return items.length ? items.reduce((a: number, it: any) => a + (Number(it?.coste_estimado) || 0), 0) : (Number(g?.coste_estimado) || 0); };
-  const pagadoGasto = (g: any) => (g?.pagos_array || []).filter((p: any) => p?.estatus !== false && montoOf(p) > 0).reduce((s: number, p: any) => s + montoOf(p), 0);
+  const pagadoGasto = (g: any) => (g?.pagos_array || []).filter((p: any) => p?.estatus !== false && !esPendiente(p) && montoOf(p) > 0).reduce((s: number, p: any) => s + montoOf(p), 0);
+  const pendienteGasto = (g: any) => (g?.pagos_array || []).filter((p: any) => p?.estatus !== false && esPendiente(p) && montoOf(p) > 0).reduce((s: number, p: any) => s + montoOf(p), 0);
   const estimadoDerivado = catsResumen.reduce((a, c) => a + gastosActivos(c).reduce((s: number, g: any) => s + estimadoGasto(g), 0), 0);
   const pagadoDerivado = catsResumen.reduce((a, c) => a + gastosActivos(c).reduce((s: number, g: any) => s + pagadoGasto(g), 0), 0);
+  const pendienteDerivado = catsResumen.reduce((a, c) => a + gastosActivos(c).reduce((s: number, g: any) => s + pendienteGasto(g), 0), 0);
   const estimado = estimadoDerivado > 0 ? estimadoDerivado : Number(event?.presupuesto_objeto?.coste_estimado || 0);
   const gastado = pagadoDerivado;
+  const pendiente = pendienteDerivado;
   const curSym = (c?: string) => {
     const m: Record<string, string> = { EUR: "€", USD: "$", GBP: "£", MXN: "$", ARS: "$", COP: "$", CLP: "$", PEN: "S/", BRL: "R$", USB: "$" };
     if (!c) return "€";
@@ -333,9 +341,15 @@ export const ResumenStudio: FC = () => {
                   <div style={{ height: "100%", width: `${presupPct.toFixed(0)}%`, borderRadius: 6, background: presupColor, transition: "width .9s cubic-bezier(.2,.7,.2,1)" }} />
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginTop: 7 }}>
-                  <span style={{ font: "500 11px Poppins", color: "#a0a0a8" }}>Gastado</span>
+                  <span style={{ font: "500 11px Poppins", color: "#a0a0a8" }}>Pagado</span>
                   <span style={{ font: "600 16px Poppins", color: presupColor }}>{fmt(gastado)}</span>
                 </div>
+                {pendiente > 0 && (
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 5 }}>
+                    <span style={{ font: "500 11px Poppins", color: "#a0a0a8" }}>Pendiente</span>
+                    <span style={{ font: "600 13px Poppins", color: "#E0A32B" }}>{fmt(pendiente)}</span>
+                  </div>
+                )}
               </div>
               <div style={{ display: "inline-flex", alignSelf: "flex-start", alignItems: "center", gap: 6, background: over ? "#FDF6E7" : "#EAF7F0", border: `1px solid ${over ? "#F2E2B8" : "#C3E8D5"}`, borderRadius: 999, padding: "5px 12px" }}>
                 {over
