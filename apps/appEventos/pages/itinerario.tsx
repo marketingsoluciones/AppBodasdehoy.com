@@ -64,7 +64,7 @@ const Itinerario = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="max-w-screen-lg mx-auto inset-x-0 w-full pl-2 pr-[1px] md:px-0 gap-4 relative ">
+                className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 relative ">
                 {/* ESCRITORIO: cabecera estándar + filtro copilot */}
                 <div className="hidden md:block"><BlockTitle title={"Itinerario"} /></div>
                 <div className="hidden md:block"><CopilotFilterBar entity="moments" /></div>

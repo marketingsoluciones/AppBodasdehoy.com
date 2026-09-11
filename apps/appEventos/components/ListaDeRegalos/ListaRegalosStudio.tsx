@@ -56,7 +56,7 @@ export const ListaRegalosStudio: FC = () => {
         </ModalGuardarRegalo>
       )}
 
-      <div style={{ maxWidth: 1040, margin: "0 auto", padding: "22px 20px 60px", animation: "fadein .2s ease" }}>
+      <div className="max-w-screen-lg mx-auto" style={{ padding: "12px 16px 60px", animation: "fadein .2s ease" }}>
         {/* Cabecera estándar */}
         <div style={{ marginBottom: 16 }}><BlockTitle title={"Lista de regalos"} /></div>
 

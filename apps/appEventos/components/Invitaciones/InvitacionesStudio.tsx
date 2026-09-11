@@ -333,7 +333,7 @@ export const InvitacionesStudio: FC = () => {
           .inv-invsel{width:100% !important;}
         }
       ` }} />
-      <div className="inv-container" style={{ maxWidth: 1000, margin: "0 auto", padding: "22px 30px 60px" }}>
+      <div className="inv-container max-w-screen-lg mx-auto" style={{ padding: "12px 16px 60px" }}>
 
         {/* Cabecera estándar compartida */}
         {/* ESCRITORIO: cabecera estándar (BlockTitle con avatares/compartir) */}

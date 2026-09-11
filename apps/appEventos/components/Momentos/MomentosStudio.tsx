@@ -162,11 +162,11 @@ export const MomentosStudio: FC<{ chatBase: string }> = ({ chatBase }) => {
       </Head>
       <style dangerouslySetInnerHTML={{ __html: "@keyframes mom-fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}.mom-card{transition:box-shadow .18s}.mom-card:hover{box-shadow:0 10px 26px rgba(0,0,0,.09)}.mom-ghost:hover{border-color:#EF5B94 !important;color:#EF5B94 !important}.mom-link:hover{color:#D83E7C !important}.mom-cta:hover{background:#D83E7C !important}" }} />
 
-      {/* Mismo top (pt-2 md:py-0) y padding horizontal (px-2 md:px-0) que el holder de
-          Presupuesto, para que TODOS los módulos tengan el mismo tamaño y la misma
-          distancia con el menú superior. (Antes: 26px top + px-4 → más ancho/más abajo.) */}
-      <div className="pt-2 md:py-0" style={{ minHeight: "100vh", paddingBottom: 60 }}>
-        <div className="max-w-screen-lg mx-auto px-2 md:px-0" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      {/* Contenedor del holder IDÉNTICO al de PresupuestoStudio (referencia): max-w-screen-lg
+          mx-auto + padding "12px 16px" → mismo ancho, alto y distancia con el menú en TODOS
+          los módulos studio. */}
+      <div style={{ minHeight: "100vh" }}>
+        <div className="max-w-screen-lg mx-auto" style={{ padding: "12px 16px 60px", display: "flex", flexDirection: "column", gap: 14 }}>
 
           {/* HOLDER — misma barra compartida que el resto de módulos */}
           <BlockTitle title={"Momentos"} />
