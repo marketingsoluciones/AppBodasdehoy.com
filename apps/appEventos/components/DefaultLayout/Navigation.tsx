@@ -216,6 +216,16 @@ const Navigation: FC = () => {
     setIsActiveStateSwiper(0);
   };
 
+  // Color de marca de la nav studio: bodasdehoy conserva su rosa EXACTO; otras
+  // marcas usan su config.theme (mismo gate isBodas que LoginStudio).
+  const _navPrimary = config?.theme?.primaryColor;
+  const navIsBodas = !_navPrimary || config?.development === 'bodasdehoy';
+  const navLight = navIsBodas ? '#EF5B94' : _navPrimary;
+  const navGrad = navIsBodas
+    ? 'linear-gradient(180deg,#F473A4,#EF5B94 55%,#E94F89)'
+    : `linear-gradient(180deg, color-mix(in srgb, ${navLight} 82%, white), ${navLight} 55%, color-mix(in srgb, ${navLight} 88%, black))`;
+  const navShadow = navIsBodas ? '0 14px 30px rgba(239,91,148,.35)' : `0 14px 30px color-mix(in srgb, ${navLight} 35%, transparent)`;
+
   return (
     <>
       {shouldRenderChild && user?.displayName !== 'guest' && (
@@ -305,9 +315,9 @@ const Navigation: FC = () => {
                   className="flex items-center justify-center gap-2 rounded-b-[22px] px-[26px] transition-colors"
                   style={{
                     height: 74,
-                    background: pathname === '/' ? 'linear-gradient(180deg,#F473A4,#EF5B94 55%,#E94F89)' : '#fff',
-                    boxShadow: pathname === '/' ? '0 14px 30px rgba(239,91,148,.35)' : '0 14px 30px rgba(0,0,0,.08)',
-                    ['--hole' as any]: pathname === '/' ? '#EF5B94' : '#fff',
+                    background: pathname === '/' ? navGrad : '#fff',
+                    boxShadow: pathname === '/' ? navShadow : '0 14px 30px rgba(0,0,0,.08)',
+                    ['--hole' as any]: pathname === '/' ? navLight : '#fff',
                   }}
                 >
                   {Navbar
@@ -317,7 +327,7 @@ const Navigation: FC = () => {
                     .map((item, idx) => {
                       const active = isActiveRoute(pathname, item.route);
                       const pink = pathname === '/';
-                      const color = pink ? (active ? '#fff' : 'rgba(255,255,255,.75)') : (active ? '#EF5B94' : '#6b6b72');
+                      const color = pink ? (active ? '#fff' : 'rgba(255,255,255,.75)') : (active ? navLight : '#6b6b72');
                       return (
                         <button
                           key={idx}
@@ -341,7 +351,7 @@ const Navigation: FC = () => {
                         >
                           {STUDIO_ICONS[item.title] ?? item.icon}
                           <span style={{ font: `${active ? 600 : 500} 12px Poppins`, whiteSpace: 'nowrap' }}>{t(item.title)}</span>
-                          <i style={{ display: 'block', width: 26, height: 3, borderRadius: 3, background: active ? (pink ? '#fff' : '#EF5B94') : 'transparent' }} />
+                          <i style={{ display: 'block', width: 26, height: 3, borderRadius: 3, background: active ? (pink ? '#fff' : navLight) : 'transparent' }} />
                         </button>
                       );
                     })}
