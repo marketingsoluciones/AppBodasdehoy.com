@@ -70,15 +70,20 @@ function getJWT(): string | null {
       }
     }
 
-    // 2) appEventos: cookie Firebase SSO (mismo que ApiApp / fetchApiBodas)
-    const idToken = readCookie('idTokenV0.1.0');
-    if (idToken) return idToken;
-
-    // 3) appEventos: sessionBodas (JWT api-mcp) + fallback si cookie >4KB
+    // 2) appEventos: sessionBodas = JWT de sesión api-mcp (larga duración), el MISMO
+    //    Bearer que usan las demás llamadas GraphQL de appEventos (Fetching.ts). Va ANTES
+    //    que idTokenV0.1.0 porque el idToken de Firebase caduca en ~1h: si el cliente CRM
+    //    manda un idToken caducado, api-mcp lo rechaza → Anonymous → createCRMNote falla la
+    //    validación de la entidad y la nota no se publica.
     const sessionBodas = readCookie('sessionBodas');
     if (sessionBodas) return sessionBodas;
     const sessionFallback = localStorage.getItem('sessionBodas_fallback');
     if (sessionFallback && sessionFallback !== 'null') return sessionFallback;
+
+    // 3) Último recurso: cookie Firebase SSO (idTokenV0.1.0). Sirve justo tras el login
+    //    (token fresco) cuando aún no hay sessionBodas; puede estar caducado más tarde.
+    const idToken = readCookie('idTokenV0.1.0');
+    if (idToken) return idToken;
   } catch {
     /* ignorar */
   }
