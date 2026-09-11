@@ -106,6 +106,9 @@ const TareasVacioStudio: FC<Props> = ({ event, setEvent, config, isOwner, pathSl
     <div style={{ width: "100%", fontFamily: "'Poppins',sans-serif" }}>
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes tv-spin{to{transform:rotate(360deg);}}
+        /* El estado vacío trae su propia cabecera móvil → ocultamos la barra de BlockTitle
+           mientras está montado para no duplicar el header en móvil. */
+        .bt-mob{display:none !important;}
         .tv-desk{display:none;}
         .tv-mob{display:flex;}
         @media(min-width:768px){.tv-desk{display:flex;}.tv-mob{display:none;}}

@@ -65,23 +65,11 @@ const Itinerario = () => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="max-w-screen-lg mx-auto inset-x-0 w-full px-4 pt-3 gap-4 relative ">
-                {/* ESCRITORIO: cabecera estándar + filtro copilot */}
-                <div className="hidden md:block"><BlockTitle title={"Itinerario"} /></div>
+                {/* Header unificado: BlockTitle pinta la cabecera (tarjeta en escritorio, barra
+                    limpia full-width en móvil, idéntica al resto de módulos). El filtro copilot
+                    queda solo en escritorio. */}
+                <BlockTitle title={"Itinerario"} />
                 <div className="hidden md:block"><CopilotFilterBar entity="moments" /></div>
-                {/* MÓVIL: cabecera limpia a todo el ancho (fiel al HTML).
-                    El contenedor de arriba lleva `pl-2 pr-[1px]` en móvil (md:px-0 solo lo
-                    quita en escritorio), así que la tarjeta blanca quedaba despegada 8px del
-                    borde izquierdo. Los márgenes negativos cancelan EXACTAMENTE ese padding
-                    (pl-2 = 8px, pr-[1px] = 1px) para que sangre hasta el borde, igual que
-                    hace .inv-header-mob en InvitacionesStudio. Si cambia el padding del
-                    contenedor, hay que ajustar estos dos valores. */}
-                <div className="md:hidden" style={{ background: "#fff", padding: "13px 16px 11px", borderBottom: "1px solid #f0f0f2", boxShadow: "0 2px 10px rgba(0,0,0,.04)", marginLeft: -8, marginRight: -1 }}>
-                    <div style={{ font: "700 17px Poppins", color: "#3A3A42" }}>Itinerario</div>
-                    <div style={{ marginTop: 1 }}>
-                        <span style={{ font: "700 10px Poppins", color: "#EF5B94", letterSpacing: ".5px", textTransform: "uppercase" }}>{event?.tipo || "Boda"}</span>
-                        <span style={{ font: "500 10px Poppins", color: "#a0a0a8", marginLeft: 4 }}>· {event?.nombre}</span>
-                    </div>
-                </div>
                 <BoddyIter />
             </motion.div>
         </section>
