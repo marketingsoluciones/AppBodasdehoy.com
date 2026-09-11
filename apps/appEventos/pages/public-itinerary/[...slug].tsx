@@ -220,33 +220,35 @@ export async function getServerSideProps({ params, req }) {
       };
     }
     const development = developmentFromRequestHost(req?.headers?.host)
-    let evento: Event | null = null;
+    // Visor PÚBLICO sin login → getPublicItinerario (backend, 11-sep): devuelve SOLO el
+    // itinerario con tareas spectatorView=true (nunca el evento ni tareas privadas).
+    let itinerario: any = null;
     try {
-      const data = await fetchApiEventosServer({
-        query: queries.getItinerario,
-        variables: {
-          evento_id,
-          itinerario_id
-        },
+      const data: any = await fetchApiEventosServer({
+        query: queries.getPublicItinerario,
+        variables: { evento_id, itinerario_id },
         development,
       });
-      evento = data.getItinerario;
+      itinerario = data?.getPublicItinerario ?? data;
     } catch (error) {
       try {
-        evento = await fetchApiEventos({
-          query: queries.getItinerario,
-          variables: {
-            evento_id,
-            itinerario_id
-          }
-        }) as any;
+        const data2: any = await fetchApiEventos({
+          query: queries.getPublicItinerario,
+          variables: { evento_id, itinerario_id }
+        });
+        itinerario = data2?.getPublicItinerario ?? data2;
       } catch (error2) {
         throw error2;
       }
     }
+    // Envolver el itinerario público en la forma que espera la página (evento con
+    // itinerarios_array). No exponemos datos del evento (nombre/imagen) por privacidad.
+    const evento: Event | null = (itinerario && itinerario._id)
+      ? ({ _id: evento_id, nombre: itinerario.title || "", tipo: "", itinerarios_array: [itinerario] } as any)
+      : null;
     if (evento) {
-      openGraphData.openGraph.title = `${evento?.itinerarios_array?.[0]?.title || "Itinerario"}`
-      openGraphData.openGraph.description = `Mira el itinerario del evento ${evento?.nombre} y no te pierdas de nada`
+      openGraphData.openGraph.title = `${itinerario?.title || "Itinerario"}`
+      openGraphData.openGraph.description = `Mira el itinerario y no te pierdas de nada`
     }
     return {
       props: {

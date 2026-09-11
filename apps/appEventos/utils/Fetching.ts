@@ -944,6 +944,35 @@ export const queries = {
       }
     }
   }`,
+  getPublicItinerario: ` query($evento_id:ID!, $itinerario_id:ID!){
+    getPublicItinerario(evento_id:$evento_id, itinerario_id:$itinerario_id){
+      _id
+      next_id
+      title
+      tasks{
+        _id
+        fecha
+        hora
+        horaActiva
+        icon
+        descripcion
+        responsable
+        duracion
+        tags
+        tips
+        estatus
+        attachments{ _id name url size createdAt updatedAt }
+        spectatorView
+        estado
+        prioridad
+        fecha_creacion
+      }
+      viewers
+      tipo
+      estatus
+      fecha_creacion
+    }
+  }`,
   getPreregister: `query ($_id :ID){
     getPreregister(_id:$_id)
   }`,
