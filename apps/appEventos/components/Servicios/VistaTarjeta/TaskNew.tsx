@@ -218,35 +218,49 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
     }
     try {
       const fecha = new Date();
-      const response = await fetchApiEventos({
+      // Forma CANÓNICA del adapter: { evento_id, development, task:{ itinerario_id, ...TareaInput } }.
+      // (Antes usaba eventID + campos planos → mapVariables devolvía null → "adapter no pudo mapear".)
+      // TareaInput NO tiene estado/prioridad, así que no se envían (el backend los rechazaría).
+      const res: any = await fetchApiEventos({
         query: queries.createTask,
         variables: {
-          eventID: event._id,
-          itinerarioID: itinerario._id,
-          descripcion: `${localTask.descripcion} (copia)`,
-          fecha: fecha.toISOString(),
-          duracion: localTask.duracion || 30,
-          tags: JSON.stringify(localTask.tags || []),
-          responsable: JSON.stringify(localTask.responsable || []),
-          tips: localTask.tips || '',
-          estado: localTask.estado || 'pending',
-          prioridad: localTask.prioridad || 'media'
+          evento_id: event._id,
+          development: config.development || "bodasdehoy",
+          task: {
+            itinerario_id: itinerario._id,
+            descripcion: `${localTask.descripcion || ''} (copia)`,
+            fecha: fecha.toISOString(),
+            duracion: localTask.duracion || 30,
+            tags: Array.isArray(localTask.tags) ? localTask.tags.filter((x: any) => typeof x === 'string') : [],
+            responsable: Array.isArray(localTask.responsable) ? localTask.responsable.filter((x: any) => typeof x === 'string') : [],
+            tips: localTask.tips || '',
+            ...(localTask.icon ? { icon: localTask.icon } : {}),
+            ...((localTask as any).hora ? { hora: (localTask as any).hora, horaActiva: !!(localTask as any).horaActiva } : {}),
+            ...(typeof localTask.spectatorView === 'boolean' ? { spectatorView: localTask.spectatorView } : {}),
+          },
         },
         domain: config.domain
       });
-      if (response && typeof response === 'object' && '_id' in response) {
+      // El adapter devuelve { success, errors, task } (la última tarea creada).
+      const created: any = res?.task || res;
+      if (created && created._id) {
         toast('success', t('Tarea duplicada correctamente'));
         setEvent((oldEvent) => {
           const newEvent = { ...oldEvent };
           const itineraryIndex = newEvent.itinerarios_array.findIndex(it => it._id === itinerario._id);
           if (itineraryIndex !== -1) {
-            newEvent.itinerarios_array[itineraryIndex].tasks.push(response as Task);
+            newEvent.itinerarios_array[itineraryIndex] = {
+              ...newEvent.itinerarios_array[itineraryIndex],
+              tasks: [...(newEvent.itinerarios_array[itineraryIndex].tasks || []), created as Task],
+            };
           }
           return newEvent;
         });
-        if (setSelectTask && response._id && typeof response._id === 'string') {
-          setSelectTask(response._id);
+        if (setSelectTask && typeof created._id === 'string') {
+          setSelectTask(created._id);
         }
+      } else {
+        toast('error', t('Error al duplicar la tarea'));
       }
     } catch (error) {
       console.error('Error al duplicar tarea:', error);

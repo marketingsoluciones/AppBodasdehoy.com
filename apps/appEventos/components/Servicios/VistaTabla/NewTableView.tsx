@@ -691,27 +691,34 @@ export const NewTableView: React.FC<TableProps & { expandida?: boolean; onToggle
     },
     handleDuplicate: async (task: any) => {
       try {
-        const apiResponse = await fetchApiEventos({
+        // Forma CANÓNICA del adapter (evento_id + task:{itinerario_id,...TareaInput}); antes usaba
+        // eventID/itinerarioID planos → mapVariables null → "Error al duplicar". TareaInput no tiene estado.
+        const res: any = await fetchApiEventos({
           query: queries.createTask,
           variables: {
-            eventID: event._id,
-            itinerarioID: itinerario._id,
-            descripcion: `${task.descripcion} (copia)`,
-            fecha: new Date().toISOString().split('T')[0],
-            hora: new Date().toTimeString().substring(0, 5),
-            duracion: task.duracion || 30,
-            variable: "estado",
-            valor: task.estado || "pending"
+            evento_id: event._id,
+            development: config.development || "bodasdehoy",
+            task: {
+              itinerario_id: itinerario._id,
+              descripcion: `${task.descripcion || ''} (copia)`,
+              fecha: new Date().toISOString(),
+              duracion: task.duracion || 30,
+              tags: Array.isArray(task.tags) ? task.tags.filter((x: any) => typeof x === 'string') : [],
+              responsable: Array.isArray(task.responsable) ? task.responsable.filter((x: any) => typeof x === 'string') : [],
+              tips: task.tips || '',
+              ...(task.icon ? { icon: task.icon } : {}),
+            },
           },
           domain: config.domain
         });
-        if (isValidTaskResponse(apiResponse)) {
+        const apiResponse: any = res?.task || res;
+        if (apiResponse && apiResponse._id) {
           // Construir la nueva tarea con todos los campos necesarios
           const newTask: Task = {
             _id: apiResponse._id,
-            fecha: new Date(apiResponse.fecha),
+            fecha: new Date(apiResponse.fecha || Date.now()),
             icon: task.icon || '',
-            descripcion: apiResponse.descripcion,
+            descripcion: apiResponse.descripcion || `${task.descripcion || ''} (copia)`,
             duracion: apiResponse.duracion || task.duracion || 30,
             estado: task.estado || 'pending',
             estatus: false,
