@@ -61,8 +61,10 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
   // items (robusto ante el refuerzo optimista, que actualiza el item y no el gasto).
   const estimadoGasto = (g: any) => { const items = (g?.items_array || []); return items.length ? items.reduce((a: number, it: any) => a + (Number(it?.coste_estimado) || 0), 0) : (Number(g?.coste_estimado) || 0); };
   const estimadoCat = (c: any) => (c?.gastos_array || []).filter((g: any) => g?.estatus !== false).reduce((s: number, g: any) => s + estimadoGasto(g), 0);
-  // PAGADO: sumar `monto` de los pagos (contrato real api-mcp); fallback a gasto.pagado.
-  const pagadoGasto = (g: any) => { const ps = (g?.pagos_array || []); return ps.length ? ps.reduce((a: number, pp: any) => a + (Number(pp?.monto) || 0), 0) : (Number(g?.pagado) || 0); };
+  // PAGADO: sumar el importe de cada pago. ⚠️DOS esquemas coexisten: eventos nuevos usan
+  // `monto`; eventos LEGACY (p.ej. Isabel & Raúl, 2024) usan `importe`. La tabla de Gastos usa
+  // `monto ?? importe` → el resumen DEBE hacer lo mismo o queda en 0 para eventos legacy.
+  const pagadoGasto = (g: any) => { const ps = (g?.pagos_array || []); return ps.length ? ps.reduce((a: number, pp: any) => a + (Number(pp?.monto ?? pp?.importe) || 0), 0) : (Number(g?.pagado) || 0); };
   const pagadoCat = (c: any) => (c?.gastos_array || []).filter((g: any) => g?.estatus !== false).reduce((s: number, g: any) => s + pagadoGasto(g), 0);
 
   const { total, pagado, costeFinal, porPagar, disponible, paidW, dueW, catsActive, catsZero, sumEst, sumFinal } = useMemo(() => {
