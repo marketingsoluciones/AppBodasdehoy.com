@@ -116,11 +116,14 @@ const InvitadosStudioMovil: FC = () => {
 
       {isOwner && shareOpen && <ModalCompartirEventoStudio event={event} onClose={() => setShareOpen(false)} />}
 
-      {/* HEADER DEL MÓDULO (sticky) */}
-      <div style={{ background: "#fff", padding: "14px 16px", display: "flex", alignItems: "center", gap: 10, position: "sticky", top: 0, zIndex: 10 }}>
+      {/* HEADER DEL MÓDULO (sticky) — unificado (título 19px + TIPO · nombre + borde inferior) */}
+      <div style={{ background: "#fff", padding: "13px 16px 12px", display: "flex", alignItems: "flex-start", gap: 10, position: "sticky", top: 0, zIndex: 10, borderBottom: "1px solid #f0f0f2" }}>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ font: "700 17px Poppins", color: "#3A3A42" }}>Invitados</div>
-          <div style={{ font: "500 10px Poppins", color: "#a0a0a8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}><b style={{ color: "#EF5B94", fontWeight: 600 }}>{tipoTxt}</b> · {event?.nombre}</div>
+          <div style={{ font: "700 19px Poppins", color: "#3A3A42" }}>Invitados</div>
+          <div style={{ marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <span style={{ font: "700 10px Poppins", color: "#EF5B94", letterSpacing: ".5px", textTransform: "uppercase" }}>{tipoTxt}</span>
+            <span style={{ font: "500 11px Poppins", color: "#8a8a90", marginLeft: 5 }}>· {event?.nombre}</span>
+          </div>
         </div>
         <button onClick={() => setSearchOpen((v) => !v)} title="Buscar" style={{ width: 34, height: 34, borderRadius: "50%", background: "#F7F6F8", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", cursor: "pointer", border: "none" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3A3A42" strokeWidth={2}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg></button>
         <button onClick={() => isOwner && setShareOpen(true)} title="Compartir" style={{ width: 34, height: 34, borderRadius: "50%", background: "#F7F6F8", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", cursor: isOwner ? "pointer" : "default", border: "none", color: "#EF5B94" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="12" r="2.6" /><circle cx="17.5" cy="5.5" r="2.6" /><circle cx="17.5" cy="18.5" r="2.6" /><path d="M8.3 10.8l6.9-4M8.3 13.2l6.9 4" /></svg></button>

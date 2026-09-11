@@ -97,13 +97,14 @@ export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks,
     <div className="md:hidden" style={{ width: "100%", background: "#F6F5F7", minHeight: "100%", fontFamily: "'Poppins',sans-serif", position: "relative", paddingBottom: 96, overflowX: "hidden" }}>
       <style dangerouslySetInnerHTML={{ __html: ".tm-hs{scrollbar-width:none;-ms-overflow-style:none;}.tm-hs::-webkit-scrollbar{display:none;height:0;}.tm-resp-sheet .w-80{width:100%!important;border:none!important;box-shadow:none!important;border-radius:0!important;}" }} />
 
-      {/* HEADER MÓDULO — borde a borde. Buscador oculto hasta pulsar la lupa (fiel al HTML). */}
-      <div style={{ background: "#fff", padding: "16px 16px 10px", position: "sticky", top: 0, zIndex: 10, boxShadow: "0 2px 10px rgba(0,0,0,.04)" }}>
+      {/* HEADER MÓDULO — borde a borde, unificado (título 19px + TIPO · nombre + borde inferior). */}
+      <div style={{ background: "#fff", padding: "13px 16px 12px", position: "sticky", top: 0, zIndex: 10, borderBottom: "1px solid #f0f0f2" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ font: "700 17px Poppins", color: "#3A3A42" }}>{t("Tareas", { defaultValue: "Tareas" })}</div>
-            <div style={{ font: "500 10px Poppins", color: "#a0a0a8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              <span style={{ color: "#EF5B94", fontWeight: 600 }}>{(event?.tipo || "EVENTO").toUpperCase()}</span> · {event?.nombre}
+            <div style={{ font: "700 19px Poppins", color: "#3A3A42" }}>{t("Tareas", { defaultValue: "Tareas" })}</div>
+            <div style={{ marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <span style={{ font: "700 10px Poppins", color: "#EF5B94", letterSpacing: ".5px", textTransform: "uppercase" }}>{event?.tipo || "Boda"}</span>
+              <span style={{ font: "500 11px Poppins", color: "#8a8a90", marginLeft: 5 }}>· {event?.nombre}</span>
             </div>
           </div>
           <span

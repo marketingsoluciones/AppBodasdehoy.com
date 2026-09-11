@@ -134,13 +134,14 @@ export const ListaRegalosStudioMovil: FC = () => {
 
       <div style={{ maxWidth: 420, margin: "0 auto", position: "relative", paddingBottom: 40 }}>
 
-        {/* ── CABECERA DEL MÓDULO (sticky) ── */}
-        <div style={{ background: "#fff", padding: "13px 16px 10px", position: "sticky", top: 0, zIndex: 10, boxShadow: "0 2px 10px rgba(0,0,0,.04)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {/* ── CABECERA DEL MÓDULO (sticky) — unificada (fiel a Invitaciones): título 19px + TIPO · nombre + borde inferior ── */}
+        <div style={{ background: "#fff", padding: "13px 16px 12px", position: "sticky", top: 0, zIndex: 10, borderBottom: "1px solid #f0f0f2" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ font: "700 17px Poppins", color: "#3A3A42" }}>Lista de regalos</div>
-              <div style={{ font: "500 10px Poppins", color: "#a0a0a8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                <span style={{ color: "#EF5B94", fontWeight: 600 }}>{(event?.tipo || "EVENTO").toUpperCase()}</span> · {event?.nombre}
+              <div style={{ font: "700 19px Poppins", color: "#3A3A42" }}>Lista de regalos</div>
+              <div style={{ marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <span style={{ font: "700 10px Poppins", color: "#EF5B94", letterSpacing: ".5px", textTransform: "uppercase" }}>{event?.tipo || "Boda"}</span>
+                <span style={{ font: "500 11px Poppins", color: "#8a8a90", marginLeft: 5 }}>· {event?.nombre}</span>
               </div>
             </div>
             {conectada && (

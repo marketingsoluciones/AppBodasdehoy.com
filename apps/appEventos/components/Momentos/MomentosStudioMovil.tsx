@@ -1,5 +1,4 @@
 import Head from "next/head";
-import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
 import { useMemoriesStore } from "@bodasdehoy/memories";
 import { EventContextProvider } from "../../context";
@@ -17,7 +16,6 @@ import { AlbumMenu } from "./MomentosStudio";
  * móvil anterior y es funcionalidad viva, así que se conserva al pie de los álbumes.
  */
 
-const icoAtras = <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>;
 const icoCompartir = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><circle cx="6" cy="12" r="2.6" /><circle cx="17.5" cy="5.5" r="2.6" /><circle cx="17.5" cy="18.5" r="2.6" /><path d="M8.3 10.8l6.9-4M8.3 13.2l6.9 4" /></svg>;
 const icoSubir = <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v13M7 8l5-5 5 5" /><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" /></svg>;
 const icoCopiar = <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></svg>;
@@ -44,7 +42,6 @@ const btnIcono: React.CSSProperties = {
 export const MomentosStudioMovil: FC<{ chatBase: string }> = ({ chatBase }) => {
   const { albums, albumsLoading, fetchAlbums, createEventAlbumStructure, createAlbum } = useMemoriesStore();
   const { event } = EventContextProvider() as any;
-  const router = useRouter();
 
   const [copiado, setCopiado] = useState(false);
   const [generando, setGenerando] = useState(false);
@@ -109,18 +106,18 @@ export const MomentosStudioMovil: FC<{ chatBase: string }> = ({ chatBase }) => {
       </Head>
       <style dangerouslySetInnerHTML={{ __html: "@keyframes momm-fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}.momm-hs{scrollbar-width:none;-ms-overflow-style:none;}.momm-hs::-webkit-scrollbar{display:none;height:0;width:0;}" }} />
 
-      {/* CABECERA */}
-      <div style={{ background: "#fff", padding: "14px 18px 12px", flex: "none" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-            <span onClick={() => router.back()} style={{ width: 32, height: 32, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", color: "#3A3A42", flex: "none", cursor: "pointer" }}>{icoAtras}</span>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ font: "700 9.5px Poppins", color: "#EF5B94", letterSpacing: 1 }}>{(event?.tipo || "EVENTO").toUpperCase()}</div>
-              <div style={{ font: "600 15px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Momentos</div>
+      {/* CABECERA — unificada (fiel a Invitaciones): título 19px + TIPO · nombre + borde inferior */}
+      <div style={{ background: "#fff", padding: "13px 16px 12px", borderBottom: "1px solid #f0f0f2", flex: "none" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ font: "700 19px Poppins", color: "#3A3A42" }}>Momentos</div>
+            <div style={{ marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <span style={{ font: "700 10px Poppins", color: "#EF5B94", letterSpacing: ".5px", textTransform: "uppercase" }}>{event?.tipo || "Boda"}</span>
+              <span style={{ font: "500 11px Poppins", color: "#8a8a90", marginLeft: 5 }}>· {event?.nombre}</span>
             </div>
           </div>
           {portalUrl && (
-            <span onClick={compartirPortal} style={{ width: 32, height: 32, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", flex: "none", cursor: "pointer" }}>{icoCompartir}</span>
+            <span onClick={compartirPortal} style={{ width: 34, height: 34, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", flex: "none", cursor: "pointer", background: "#F7F6F8" }}>{icoCompartir}</span>
           )}
         </div>
       </div>

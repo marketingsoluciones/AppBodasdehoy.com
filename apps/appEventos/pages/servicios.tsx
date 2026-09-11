@@ -64,12 +64,11 @@ const Itinerario: FC<any> = (props) => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className={`max-w-screen-lg mx-auto inset-x-0 w-full ${isStudioTareas ? "px-4 pt-3" : "pl-2 pr-[1px] md:px-4"} gap-4 relative`}>
-                {/* Header unificado: BlockTitle pinta la cabecera (tarjeta en escritorio, barra
-                    limpia en móvil, idéntica al resto de módulos). El estado vacío
-                    (TareasVacioStudio) trae su propia cabecera y oculta la barra móvil (.bt-mob)
-                    para no duplicar. El filtro Copilot queda solo en escritorio. */}
-                <BlockTitle title={"Lista de tareas"} />
+                {/* En móvil studio, TareasStudioMovil (vía ItineraryPanel) y TareasVacioStudio
+                    traen su propia cabecera "Lista de tareas"; el holder de escritorio se oculta
+                    en móvil para no duplicarla. */}
                 <div className={isStudioTareas ? "hidden md:block" : ""}>
+                    <BlockTitle title={"Lista de tareas"} />
                     <CopilotFilterBar entity="services" />
                 </div>
                 <BoddyIter />

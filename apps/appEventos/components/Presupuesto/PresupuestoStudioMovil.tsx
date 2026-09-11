@@ -165,7 +165,7 @@ const PresupuestoStudioMovil: FC = () => {
       <div style={{ background: "#fff", padding: "12px 18px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 4px 14px rgba(0,0,0,.05)" }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ font: "700 19px Poppins", color: "#3A3A42", whiteSpace: "nowrap" }}>Presupuesto</div>
-          <div style={{ font: "700 10px Poppins", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}><span style={{ color: "#EF5B94" }}>{(event?.tipo || "EVENTO").toUpperCase()}</span><span style={{ color: "#9aa2ab", fontWeight: 600 }}> · {event?.nombre}</span></div>
+          <div style={{ marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}><span style={{ font: "700 10px Poppins", color: "#EF5B94", letterSpacing: ".5px", textTransform: "uppercase" }}>{event?.tipo || "Boda"}</span><span style={{ font: "500 11px Poppins", color: "#8a8a90", marginLeft: 5 }}>· {event?.nombre}</span></div>
         </div>
       </div>
 
