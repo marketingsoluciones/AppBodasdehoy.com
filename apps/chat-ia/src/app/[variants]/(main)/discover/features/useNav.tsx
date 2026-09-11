@@ -1,4 +1,3 @@
-import { MCP } from '@lobehub/icons';
 import { Icon } from '@lobehub/ui';
 import { Bot, Brain, BrainCircuit, House } from 'lucide-react';
 import { ReactNode, useMemo, useState, useEffect } from 'react';
@@ -55,15 +54,8 @@ export const useNav = () => {
           </Link>
         ),
       },
-      {
-        icon: <MCP className={'anticon'} size={ICON_SIZE} />,
-        key: DiscoverTab.Mcp,
-        label: (
-          <Link style={{ color: 'inherit' }} to={`/${DiscoverTab.Mcp}`}>
-            {`MCP ${t('tab.plugin')}`}
-          </Link>
-        ),
-      },
+      // MCP oculto (decisión producto 1-ago): el marketplace MCP (hub público LobeHub) falla
+      // su endpoint MCP; se oculta la pestaña hasta tener marketplace propio. Ver HomePage.tsx.
       {
         icon: <Icon icon={Brain} size={ICON_SIZE} />,
         key: DiscoverTab.Models,

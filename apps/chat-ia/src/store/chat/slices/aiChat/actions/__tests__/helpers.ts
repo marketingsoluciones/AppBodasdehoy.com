@@ -96,9 +96,9 @@ export const resetTestEnvironment = () => {
     {
       activeId: TEST_IDS.SESSION_ID,
       activeTopicId: TEST_IDS.TOPIC_ID,
-      currentUserId: 'user@bodasdehoy.com',
       chatLoadingIds: [],
       chatLoadingIdsAbortController: undefined,
+      currentUserId: 'user@bodasdehoy.com',
       messagesMap: {},
       toolCallingStreamIds: {},
     },

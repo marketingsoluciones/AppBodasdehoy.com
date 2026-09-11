@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Probar desde terminal que las URLs del tunnel (app-test, chat-test y el resto) responden.
+# Probar desde terminal que las URLs del tunnel (app-dev, chat-dev y el resto) responden.
 # Uso: ./scripts/probar-urls-tunnel.sh
 # Requiere: curl
 
@@ -23,10 +23,10 @@ test_url() {
   echo ""
 }
 
-echo "--- Básicos (app-test, chat-test) ---"
-test_url "https://app-test.bodasdehoy.com/" "app-test (web)"
-test_url "https://app-test.bodasdehoy.com/login?d=app" "app-test login"
-test_url "https://chat-test.bodasdehoy.com/" "chat-test (Copilot)"
+echo "--- Básicos (app-dev, chat-dev) ---"
+test_url "https://app-dev.bodasdehoy.com/" "app-dev (web)"
+test_url "https://app-dev.bodasdehoy.com/login?d=app" "app-dev login"
+test_url "https://chat-dev.bodasdehoy.com/" "chat-dev (Copilot)"
 
 echo "--- Otros dominios en este equipo (mismo tunnel) ---"
 test_url "https://chat-test.eventosorganizador.com/" "chat-test eventosorganizador"

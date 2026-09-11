@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import * as yup from 'yup'
 import InputField from "./InputField";
 import { Form, Formik, FormikValues } from "formik";
+import { formikValidateUx } from "./formikValidateUx";
 import { AuthContextProvider, EventContextProvider } from "../../context";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
@@ -171,6 +172,7 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
     <>
       <div className='mb-2 h-[400px]'>
         <Formik
+      {...formikValidateUx}
           initialValues={initialValues}
           enableReinitialize
           validationSchema={validationSchema}

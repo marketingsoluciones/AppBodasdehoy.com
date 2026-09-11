@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-// apiapp.bodasdehoy.com para queries de eventos (queryenEvento, getPsTemplate, updateActivity)
-const BODAS_API_URL = 'https://apiapp.bodasdehoy.com';
+// api-mcp.eventosorganizador.com — canónico unificado (migrado 2026-05-16 post Sprint 1 P0)
+const BODAS_API_URL = 'https://api-mcp.eventosorganizador.com';
 
 export default async function handler(
   req: NextApiRequest,
@@ -45,6 +45,10 @@ export default async function handler(
     }
     if (req.headers['isproduction']) {
       requestHeaders['IsProduction'] = req.headers['isproduction'] as string;
+    }
+    // Unificación secretos api-mcp v2 (29-jun): X-Internal-Secret server-side.
+    if (process.env.INTERNAL_SECRET) {
+      requestHeaders['X-Internal-Secret'] = process.env.INTERNAL_SECRET;
     }
 
     const response = await fetch(targetUrl, {

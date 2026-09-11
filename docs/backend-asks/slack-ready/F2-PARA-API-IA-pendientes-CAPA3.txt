@@ -1,0 +1,201 @@
+DE: COORD-AppEventos
+PARA: API-IA
+DRI: api_ia_oncall
+CANAL: #coordinacion · workspace eventosorganizador.slack.com
+HILO: 1778170638.897419
+ASUNTO: 🟦 CAPA 3 PASO C — 11 archivos cliente bloqueados, necesito 13 endpoints REST
+
+
+Brutal trabajo cerrando CAPA 2 hoy (Thread + A/B/C + registration-duration
++ fix userConfig LIVE). Integrado todo del lado front. Branch
+tj/feat/inbox-fase1 con 24 commits hoy.
+
+Estoy en CAPA 3: borrar drizzle/pglite/@trpc/* del front. Fase 3a hecha
+(commits 58571ecf + b0f70a9b): borrados 12 routers + mobile + thread/server
++ upload presign. -3700 líneas brutas, refs lambdaClient: 44 → 11 archivos.
+
+Para cerrar Fase 3b necesito endpoints REST equivalentes para los 11
+archivos cliente que aún usan lambdaClient.X.Y. Lista priorizada:
+
+
+═══════════════════════════════════════════════════════════
+🔴 PRIORIDAD ALTA — features producción usuario final
+═══════════════════════════════════════════════════════════
+
+[1] aiModel — CRUD modelos custom del usuario (11 métodos)
+    Caller: services/aiModel/server.ts
+
+      getAiProviderModelList, getAiModelById,
+      createAiModel, updateAiModel, removeAiModel, updateAiModelOrder,
+      toggleModelEnabled, batchToggleAiModels, batchUpdateAiModels,
+      clearModelsByProvider, clearRemoteModels
+
+    Usuario añade "gpt-4o personalizado" o configura modelos custom.
+    PROPUESTA opción (c) → userConfig.aiModels[] = [{providerId, modelId,
+    enabled, order, config}]. Mismo patrón que aiProvider/plugin.
+    ¿OK?
+
+
+[2] apiKey — CRUD API keys del usuario (4 métodos)
+    Caller: app/[variants]/(main)/profile/apikey/Client.tsx
+
+      getApiKeys, createApiKey, updateApiKey, deleteApiKey
+
+    Settings page donde el user gestiona sus API keys (OpenAI, Anthropic, etc.).
+    PROPUESTA opción (c) → userConfig.apiKeys[] = [{id, providerId, label,
+    keyRef}] con la key real bajo userConfig.api_keys[keyRef].key (CIFRADO
+    automático por save-user-config, como ya hacéis con aiProvider).
+    ¿OK?
+
+
+[3] agent — files + knowledge bases por agente (7 métodos)
+    Caller: services/agent.ts, features/AgentSetting/*
+
+      getKnowledgeBasesAndFiles, createAgentFiles, deleteAgentFile,
+      createAgentKnowledgeBase, deleteAgentKnowledgeBase,
+      toggleFile, toggleKnowledgeBase
+
+    Vincular archivos y KBs a un agente concreto.
+    PROPUESTA opción (c) → userConfig.agents[agentId] = {fileIds[],
+    knowledgeBaseIds[], enabledFiles{}, enabledKBs{}}.
+    Los archivos siguen en R2 vía /storage/upload, KBs en lobechat-kb.
+    Solo metadata vinculante en userConfig.
+    ¿OK?
+
+
+[4] generation + generationBatch + generationTopic (8 métodos)
+    Caller: services/generation.ts (stub), services/generationBatch.ts,
+            services/generationTopic.ts
+
+      generation.getGenerationStatus, deleteGeneration
+      generationBatch.getGenerationBatches, deleteGenerationBatch
+      generationTopic.getAllGenerationTopics, createTopic, updateTopic,
+                     updateTopicCover, deleteTopic
+
+    Galería de imágenes generadas por el user (DALL-E/etc).
+    PROPUESTA opción (c) → userConfig.generationTopics[],
+    userConfig.generationBatches[]. Solo metadata + IDs.
+    Los archivos imagen siguen en R2.
+    ¿OK?
+
+
+═══════════════════════════════════════════════════════════
+🟡 PRIORIDAD MEDIA — features avanzadas
+═══════════════════════════════════════════════════════════
+
+[5] aiChat — 3 métodos orquestación server-side
+    Caller: store/chat/slices/aiChat/actions/generateAIChat.ts
+
+      sendMessageInServer({ messages, model, ... })
+      sendGroupMessageInServer({ ... })
+      outputJSON({ messages, schema, model })
+
+    Orquestación que pasa por server (post-process, tool calling).
+    Vuestro /webapi/chat/{provider} cubre el chat normal. Estos 3 son
+    variantes:
+      - outputJSON: chat que fuerza salida estructurada (JSON schema)
+      - sendGroupMessageInServer: chat multi-agente
+      - sendMessageInServer: chat con tool calling server-side
+
+    ¿Endpoints nuevos REST tipo /webapi/chat/output-json y
+    /webapi/chat/group/send? ¿O ya los cubre /webapi/chat con flags?
+
+
+[6] memory — 2 métodos memoria conversacional
+    Caller: store/chat/slices/aiChat/actions/memory.ts
+
+      memory.recallForQuery({ query, userId }) → relevant memories
+      memory.extractFromSummary({ summary }) → extracted memories
+
+    Long-term memory del chat (recuerda preferencias del user entre
+    conversaciones). ¿Endpoint REST nuevo o cubierto por
+    /api/lobechat-kb/search?
+
+
+[7] chunk — visualización chunks de archivos para RAG (1 método cliente)
+    Caller: features/FileManager/ChunkDrawer/ChunkList/index.tsx
+            features/FileViewer/Renderer/PDF/index.tsx
+
+      chunk.* (varios métodos del router, principalmente getChunksByFileId)
+
+    UI que muestra cómo se trocea un PDF/doc para embedding/RAG.
+    ¿Extender /api/files/{id}/chunks o nuevo /api/chunks?
+
+
+═══════════════════════════════════════════════════════════
+🟢 PRIORIDAD BAJA — features marginales
+═══════════════════════════════════════════════════════════
+
+[8] market — 17 métodos marketplace
+    Caller: services/discover.ts
+
+      getAssistantList, getAssistantDetail, getMcpList, getModelList,
+      getPluginList, getProviderList, getMcpManifest, etc.
+
+    Descubrimiento de assistants/plugins/models/mcps del marketplace
+    centralizado. ¿Endpoint /webapi/marketplace o deprecar entero?
+    Con plugin (c) ya está deprecada la INSTALACIÓN. Si DISCOVERY también
+    se deprecira → quitamos discover entero.
+
+
+[9] exporter — 1 método exportData
+    Caller: services/export/server.ts
+
+    Exportar la base de datos del usuario a JSON. Los datos ya viven en
+    api-mcp por session/topic/message. ¿Endpoint REST o deprecar (el user
+    no puede exportar desde el front, sería responsabilidad server-side)?
+
+
+[10] importer — 3 métodos (importByFile, importByPost, importPgByPost)
+     Caller: services/import/server.ts
+
+     Importar JSON con sesiones/topics/messages. Similar a exporter.
+     ¿Endpoint REST o deprecar?
+
+
+[11] ShareModal SharePdf usePdfGeneration (×2 archivos)
+     Caller: features/Conversation/components/ChatItem/ShareMessageModal/SharePdf/usePdfGeneration.ts
+             features/ShareModal/SharePdf/usePdfGeneration.ts
+
+     Hook que genera PDF de un mensaje/conversación para compartir.
+     Usa algún método tRPC para renderizado server-side de PDF.
+     ¿Endpoint REST tipo /api/pdf/generate-share?
+
+
+═══════════════════════════════════════════════════════════
+📋 RESUMEN POR ACCIÓN
+═══════════════════════════════════════════════════════════
+
+ATAJO IDEAL: si los 4 servicios CRUD ([1] aiModel, [2] apiKey, [3] agent,
+[4] generation*) los aprobáis como opción (c) "userConfig" igual que
+plugin/aiProvider/chatGroup/knowledgeBase, los migro YO en 2-3h sin
+endpoints nuevos. Solo dependo del fix get-user-config ya LIVE.
+
+PARA EL FRONT:
+  - 4 servicios opción (c) → migro YO (2-3h)
+  - 7 servicios necesitan endpoints REST nuevos vuestros
+
+CUANDO los 11 archivos estén migrados → borro:
+  drizzle-orm, drizzle-zod, @electric-sql/pglite, pg, @neondatabase/serverless,
+  @trpc/client, @trpc/react-query, @trpc/server
+  + src/libs/trpc/, src/server/routers/lambda/, src/database/
+
+REDUCCIÓN ESPERADA: -25k módulos, build chat-ia 10min → 3-4min.
+
+
+═══════════════════════════════════════════════════════════
+RESPUESTA QUE NECESITAMOS
+═══════════════════════════════════════════════════════════
+
+A) ¿OK opción (c) para [1] aiModel, [2] apiKey, [3] agent, [4] generation*?
+   → "ABCD = c, c, c, c" desbloquea 31 métodos en 4 servicios.
+
+B) Para [5] aiChat orquestación: ¿endpoints nuevos o flags en /webapi/chat?
+
+C) Para [6] memory, [7] chunk, [11] PDF gen: ¿endpoints REST o deprecar?
+
+D) Para [8] market, [9] exporter, [10] importer: ¿endpoints o deprecar?
+
+
+DRI: coord_appeventos — gracias por la respuesta rápida estas semanas.
+Con esto cerramos CAPA 3 → -25k módulos.

@@ -92,9 +92,13 @@ const updateConversationTitle = async (
   development?: string
 ): Promise<boolean> => {
   try {
-    const backendURL = EVENTOS_API_CONFIG.BACKEND_URL || 'http://localhost:8030';
+    const backendURL = EVENTOS_API_CONFIG.BACKEND_URL;
+    const baseURL =
+      backendURL && backendURL.startsWith('http')
+        ? backendURL
+        : `${window.location.origin}/api/backend`;
     const response = await fetch(
-      `${backendURL}/api/conversations/${encodeURIComponent(sessionId)}?titulo=${encodeURIComponent(titulo)}&development=${development || 'bodasdehoy'}`,
+      `${baseURL}/api/conversations/${encodeURIComponent(sessionId)}?titulo=${encodeURIComponent(titulo)}&development=${development || 'bodasdehoy'}`,
       {
         credentials: 'include',
         headers: buildAuthHeaders({
@@ -135,9 +139,13 @@ const sendExternalMessage = async (
     sessionType,
   } = variables;
 
-  const backendURL = EVENTOS_API_CONFIG.BACKEND_URL || 'http://localhost:8030';
+  const backendURL = EVENTOS_API_CONFIG.BACKEND_URL;
+  const baseURL =
+    backendURL && backendURL.startsWith('http')
+      ? backendURL
+      : `${window.location.origin}/api/backend`;
   const response = await fetch(
-    `${backendURL}/api/conversations/${encodeURIComponent(sessionId)}/messages`,
+    `${baseURL}/api/conversations/${encodeURIComponent(sessionId)}/messages`,
     {
       body: JSON.stringify({
         channel,
@@ -165,11 +173,11 @@ const sendExternalMessage = async (
       console.log('✅ Sesión renovada, reintentando petición...');
       return sendExternalMessage(variables, true);
     }
-    throw new Error('Sesión no válida. Inicia sesión nuevamente en dev-login.');
+    throw new Error('Sesión no válida. Inicia sesión nuevamente en /login.');
   }
 
   if (response.status === 401 || response.status === 403) {
-    throw new Error('Sesión no válida. Inicia sesión nuevamente en dev-login.');
+    throw new Error('Sesión no válida. Inicia sesión nuevamente en /login.');
   }
 
   let data: SendExternalMessageResponse | null = null;
@@ -318,5 +326,4 @@ export const useSendExternalMessage = (sessionId?: string | null) => {
     },
   });
 };
-
 

@@ -1,13 +1,6 @@
-import { isDesktop } from '@/const/version';
+import { ApiIaTopicService } from './apiIa';
 
-import { ClientService as DeprecatedService } from './_deprecated';
-import { ClientService } from './client';
-import { ServerService } from './server';
-
-const clientService =
-  process.env.NEXT_PUBLIC_CLIENT_DB === 'pglite' ? new ClientService() : new DeprecatedService();
-
-export const topicService =
-  process.env.NEXT_PUBLIC_SERVICE_MODE === 'server' || isDesktop
-    ? new ServerService()
-    : clientService;
+// CAPA 1 PASO C 2026-06-04: topics 100% vía api-ia (REST).
+// Eliminado el ternary tRPC/drizzle/pglite — server.ts, client.ts, _deprecated.ts
+// dejaron de importarse. Ver docs/PASO-C-BORRAR-DRIZZLE-PLAN.md.
+export const topicService = new ApiIaTopicService();

@@ -15,11 +15,13 @@ import { PhotoGrid } from '../../../../components/album-detail/PhotoGrid';
 import Toast from '../../../../components/shared/Toast';
 import { convertHeicIfNeeded, PHOTO_VIDEO_ACCEPT } from '@bodasdehoy/shared/upload';
 
+import { resolvePublicApiIaOrigin } from '../../../../utils/endpoints';
+
 const Lightbox = dynamic(() => import('../../../../components/shared/Lightbox'));
 const ShareModal = dynamic(() => import('../../../../components/album-detail/ShareModal'));
 const InviteModal = dynamic(() => import('../../../../components/album-detail/InviteModal'));
 
-const API_BASE = process.env.NEXT_PUBLIC_MEMORIES_API_URL || 'https://api-ia.bodasdehoy.com';
+const API_BASE = resolvePublicApiIaOrigin();
 const DEVELOPMENT = (process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy').trim();
 
 function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: string }) {

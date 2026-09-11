@@ -25,6 +25,7 @@ import { useUserStore } from '@/store/user';
 import { userGeneralSettingsSelectors } from '@/store/user/selectors';
 import { GlobalStyle } from '@/styles';
 import { setCookie } from '@/utils/client/cookie';
+import { getCurrentDevelopmentConfig } from '@/utils/developmentDetector';
 
 const useStyles = createStyles(({ css, token }) => ({
   app: css`
@@ -118,6 +119,11 @@ const AppTheme = memo<AppThemeProps>(
       setCookie(LOBE_THEME_NEUTRAL_COLOR, neutralColor);
     }, [neutralColor]);
 
+    // FIX marca (6-sep, JCP): el tema por defecto salía en morado. Forzamos el color de marca
+    // del tenant (bodasdehoy = rosa #F7628C, misma fuente que las CSS vars) como colorPrimary,
+    // PERO solo cuando el usuario NO ha elegido un color propio en ajustes (primaryColor).
+    const brandPrimary = getCurrentDevelopmentConfig().colors.primary;
+
     return (
       <ThemeProvider
         appearance={themeMode !== 'auto' ? themeMode : undefined}
@@ -135,6 +141,7 @@ const AppTheme = memo<AppThemeProps>(
         theme={{
           cssVar: true,
           token: {
+            colorPrimary: primaryColor ? undefined : brandPrimary,
             fontFamily: customFontFamily ? `${customFontFamily},${theme.fontFamily}` : undefined,
             motion: animationMode !== 'disabled',
             motionUnit: animationMode === 'agile' ? 0.05 : 0.1,

@@ -1,0 +1,193 @@
+'use client';
+
+/**
+ * useWebPushSubscription — SPRINT 4 iMessage (6-jul).
+ *
+ * Gestiona el ciclo de vida de Web Push Notifications:
+ *   - Detecta si el browser soporta Push API + Service Worker.
+ *   - Lee estado actual del permiso (default | granted | denied).
+ *   - Suscribe (con VAPID public key) → POST al backend con la
+ *     PushSubscription serializada.
+ *   - Desuscribe → DELETE al backend con el endpoint.
+ *
+ * La VAPID public key se pide en runtime al proxy /api/push/vapid-public-key
+ * (que reenvía a api-ia). No se inyecta en build: así una rotación de la clave
+ * en api-ia NO obliga a rebuildar el front. La pública NO es secreta.
+ *
+ * Uso:
+ *   const push = useWebPushSubscription();
+ *   if (push.supported && push.permission === 'default') {
+ *     <button onClick={push.subscribe}>Activar notificaciones</button>
+ *   }
+ */
+import { useCallback, useEffect, useState } from 'react';
+
+export type PushPermissionState = 'default' | 'granted' | 'denied' | 'unsupported';
+
+export interface UseWebPushSubscription {
+  /** Último error de subscribe/unsubscribe. null si OK. */
+  error: string | null;
+  /** true mientras la operación está en curso. */
+  loading: boolean;
+  /** Estado actual del permiso. 'unsupported' si el browser no lo tiene. */
+  permission: PushPermissionState;
+  /** Inicia el flujo de permiso + subscribe + POST al backend. */
+  subscribe: () => Promise<void>;
+  /** true si ya hay suscripción activa registrada en el SW. */
+  subscribed: boolean;
+  /** true si el browser soporta ServiceWorker + PushManager. */
+  supported: boolean;
+  /** Elimina la suscripción del SW + DELETE al backend. */
+  unsubscribe: () => Promise<void>;
+}
+
+// ─── Utils ──────────────────────────────────────────────────────────────────
+
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replaceAll('-', '+').replaceAll('_', '/');
+  const rawData = atob(base64);
+  const output = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i++) {
+    output[i] = rawData.codePointAt(i)!;
+  }
+  return output;
+}
+
+function serializeSubscription(sub: PushSubscription): Record<string, unknown> {
+  const json = sub.toJSON();
+  return {
+    endpoint: sub.endpoint,
+    keys: json.keys,
+    // Fecha para que backend pueda purgar suscripciones viejas
+    subscribedAt: new Date().toISOString(),
+    // UA para diagnóstico
+    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+  };
+}
+
+// ─── Hook ───────────────────────────────────────────────────────────────────
+
+export function useWebPushSubscription(): UseWebPushSubscription {
+  const [supported, setSupported] = useState(false);
+  const [permission, setPermission] = useState<PushPermissionState>('unsupported');
+  const [subscribed, setSubscribed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Detectar soporte + estado inicial (una sola vez).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const hasSupport =
+      'serviceWorker' in navigator &&
+      'PushManager' in window &&
+      'Notification' in window;
+    setSupported(hasSupport);
+    if (!hasSupport) {
+      setPermission('unsupported');
+      return;
+    }
+    setPermission(Notification.permission as PushPermissionState);
+
+    // Comprobar si ya hay suscripción activa
+    (async () => {
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        const existing = await reg.pushManager.getSubscription();
+        setSubscribed(!!existing);
+      } catch {
+        setSubscribed(false);
+      }
+    })();
+  }, []);
+
+  const subscribe = useCallback(async () => {
+    if (!supported) {
+      setError('Este navegador no soporta notificaciones push.');
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      // 1. Pedir permiso al usuario.
+      const perm = await Notification.requestPermission();
+      setPermission(perm as PushPermissionState);
+      if (perm !== 'granted') {
+        setError(perm === 'denied' ? 'Permiso denegado.' : 'Permiso no concedido.');
+        return;
+      }
+
+      // 2. Obtener la VAPID public key desde api-ia en runtime (vía proxy).
+      //    Se pide al servidor en cada suscripción en vez de inyectarla en
+      //    build: una rotación de la clave en api-ia NO obliga a rebuildar.
+      const keyRes = await fetch('/api/push/vapid-public-key', {
+        credentials: 'include',
+      });
+      if (!keyRes.ok) {
+        throw new Error(`No se pudo obtener la clave VAPID (HTTP ${keyRes.status}).`);
+      }
+      const keyJson = await keyRes.json().catch(() => null);
+      const vapidPublic = keyJson?.publicKey;
+      if (!vapidPublic || typeof vapidPublic !== 'string') {
+        throw new Error('Clave VAPID pública no disponible en el servidor (api-ia).');
+      }
+
+      // 3. Suscribir con el Service Worker registrado.
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.subscribe({
+        applicationServerKey: urlBase64ToUint8Array(vapidPublic),
+        userVisibleOnly: true,
+      });
+
+      // 4. POST al backend con la suscripción serializada.
+      const res = await fetch('/api/push/subscribe', {
+        body: JSON.stringify(serializeSubscription(sub)),
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+      });
+      if (!res.ok) {
+        // Rollback: quitar suscripción local si backend rechazó.
+        await sub.unsubscribe().catch(() => {});
+        throw new Error(`Backend rechazó suscripción: HTTP ${res.status}`);
+      }
+
+      setSubscribed(true);
+    } catch (e: any) {
+      setError(e?.message || 'Error al suscribir a notificaciones.');
+    } finally {
+      setLoading(false);
+    }
+  }, [supported]);
+
+  const unsubscribe = useCallback(async () => {
+    if (!supported) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        // DELETE al backend antes de invalidar local (para que el emisor
+        // deje de enviar a un endpoint muerto ASAP).
+        await fetch('/api/push/subscribe', {
+          body: JSON.stringify({ endpoint: sub.endpoint }),
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          method: 'DELETE',
+        }).catch(() => {
+          // Si backend falla, seguimos con unsubscribe local. Backend
+          // debe tener una purga por TTL de endpoints muertos.
+        });
+        await sub.unsubscribe();
+      }
+      setSubscribed(false);
+    } catch (e: any) {
+      setError(e?.message || 'Error al desuscribir.');
+    } finally {
+      setLoading(false);
+    }
+  }, [supported]);
+
+  return { error, loading, permission, subscribe, subscribed, supported, unsubscribe };
+}

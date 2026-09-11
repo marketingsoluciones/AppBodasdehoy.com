@@ -1,5 +1,5 @@
 import { AiProviderModelListItem } from 'model-bank';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { lambdaClient } from '@/libs/trpc/client';
 
@@ -26,6 +26,34 @@ vi.mock('@/libs/trpc/client', () => ({
 describe('ServerService', () => {
   const service = new ServerService();
 
+  // toggleModelEnabled + updateAiModelOrder usan userConfig (CAPA 3 patrón c).
+  // Mock localStorage user + fetch (load+save).
+  beforeEach(() => {
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: {
+        getItem: (k: string) =>
+          k === 'dev-user-config'
+            ? JSON.stringify({ development: 'bodasdehoy', token: 'tok', userId: 'u1' })
+            : null,
+      },
+    });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => {
+        if (String(url).includes('get-user-config')) {
+          return new Response(JSON.stringify({ config: { aiModels: { disabled: [], order: {} } } }), {
+            status: 200,
+          });
+        }
+        return new Response('{}', { status: 200 });
+      }),
+    );
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it('should create AI model', async () => {
     const params = {
       id: 'test-id',
@@ -50,10 +78,23 @@ describe('ServerService', () => {
     });
   });
 
-  it('should toggle model enabled', async () => {
-    const params = { id: '123', providerId: 'test', enabled: true };
+  it('should toggle model enabled via userConfig (CAPA 3 patrón c)', async () => {
+    const params = { id: '123', providerId: 'test', enabled: false };
     await service.toggleModelEnabled(params);
-    expect(vi.mocked(lambdaClient.aiModel.toggleModelEnabled.mutate)).toHaveBeenCalledWith(params);
+
+    const fetchMock = vi.mocked(globalThis.fetch);
+    const saveCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).includes('save-user-config'),
+    );
+    expect(saveCall, 'save-user-config debe llamarse').toBeTruthy();
+
+    const body = JSON.parse(String((saveCall![1] as RequestInit).body));
+    expect(body.user_id).toBe('u1');
+    expect(body.development).toBe('bodasdehoy');
+    expect(body.config.aiModels.disabled).toContain('test:123');
+
+    // NO debe llamar al lambdaClient legacy
+    expect(vi.mocked(lambdaClient.aiModel.toggleModelEnabled.mutate)).not.toHaveBeenCalled();
   });
 
   it('should update AI model', async () => {
@@ -105,13 +146,20 @@ describe('ServerService', () => {
     });
   });
 
-  it('should update AI model order', async () => {
+  it('should update AI model order via userConfig (CAPA 3 patrón c)', async () => {
     const items = [{ id: '123', sort: 1 }];
     await service.updateAiModelOrder('provider1', items);
-    expect(vi.mocked(lambdaClient.aiModel.updateAiModelOrder.mutate)).toHaveBeenCalledWith({
-      providerId: 'provider1',
-      sortMap: items,
-    });
+
+    const fetchMock = vi.mocked(globalThis.fetch);
+    const saveCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).includes('save-user-config'),
+    );
+    expect(saveCall, 'save-user-config debe llamarse').toBeTruthy();
+
+    const body = JSON.parse(String((saveCall![1] as RequestInit).body));
+    expect(body.config.aiModels.order['provider1:123']).toBe(1);
+
+    expect(vi.mocked(lambdaClient.aiModel.updateAiModelOrder.mutate)).not.toHaveBeenCalled();
   });
 
   it('should delete AI model', async () => {

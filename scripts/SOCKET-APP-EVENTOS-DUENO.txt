@@ -1,0 +1,4 @@
+BASE acordada (api-ia, alineada cert IA): https://api-ia.bodasdehoy.com — Infra (Nginx
+server_name + SAN) +
+quien publique app eventos (`NEXT_PUBLIC_SOCKET_URL` = origen solo, sin `/socket.io`).
+Implementación servidor compatible (anunciada en #copilot-api-ia): código en **repo api-ia** (ASGI + python-socketio); contrato casos de uso: scripts/SOCKET-EVENTOS-ESPECIFICACION-COMPLETA.txt

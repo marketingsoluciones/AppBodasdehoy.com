@@ -321,16 +321,16 @@ export const validateTaskPriority = (priority: string): boolean => {
 // Configuración de colores para diferentes temas
 export const THEME_COLORS = {
   primary: {
-    50: '#fdf2f8',
-    100: '#fce7f3',
-    200: '#fbcfe8',
-    300: '#f9a8d4',
-    400: '#f472b6',
-    500: '#ec4899',
-    600: '#db2777',
-    700: '#be185d',
-    800: '#9d174d',
-    900: '#831843'
+    50: 'color-mix(in srgb, var(--color-primary, #ec4899) 10%, white)',
+    100: 'color-mix(in srgb, var(--color-primary, #ec4899) 15%, white)',
+    200: 'color-mix(in srgb, var(--color-primary, #ec4899) 25%, white)',
+    300: 'color-mix(in srgb, var(--color-primary, #ec4899) 35%, white)',
+    400: 'color-mix(in srgb, var(--color-primary, #ec4899) 55%, white)',
+    500: 'var(--color-primary, #ec4899)',
+    600: 'color-mix(in srgb, var(--color-primary, #ec4899) 85%, black)',
+    700: 'color-mix(in srgb, var(--color-primary, #ec4899) 75%, black)',
+    800: 'color-mix(in srgb, var(--color-primary, #ec4899) 65%, black)',
+    900: 'color-mix(in srgb, var(--color-primary, #ec4899) 55%, black)'
   },
   gray: {
     50: '#f9fafb',

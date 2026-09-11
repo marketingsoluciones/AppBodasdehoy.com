@@ -86,7 +86,11 @@ export const InputComments: FC<props> = ({
             .then(() => {
               elem.loading = false
             })
-            .catch(() => {})
+            .catch((error) => {
+              elem.loading = false
+              ;(elem as any).error = error?.code ?? error?.message ?? 'upload_failed'
+              console.warn('[InputComments] uploadBytesResumable falló:', elem.file?.name, error?.message ?? error)
+            })
         })
         Promise.all(promises).then(() => {
           setTempPastedAndDropFiles([...tempPastedAndDropFiles])
@@ -116,23 +120,30 @@ export const InputComments: FC<props> = ({
       })
 
       try {
-        const results = await fetchApiEventos({
+        const commentResult = await fetchApiEventos({
           query: queries.createComment,
           variables: {
-            eventID: event?._id,
-            itinerarioID: itinerario?._id,
-            taskID: task?._id,
-            comment: valueSend,
-            attachments,
-            nicknameUnregistered
+            task_id: task?._id,
+            development: config?.development || "bodasdehoy",
+            comment: { mensaje: valueSend }
           },
-          domain: config.domain
-        }) as Comment;
+          development: config?.development
+        });
 
-        if (!results || typeof results !== 'object' || !('_id' in results)) {
-          console.error('La respuesta de la API no es válida:', results);
+        if (!commentResult || commentResult.success === false) {
+          console.error('Error creando comentario:', commentResult?.errors);
           return;
         }
+
+        // Construir objeto Comment compatible con el estado local
+        const results = {
+          _id: commentResult._id || `temp-${Date.now()}`,
+          comment: valueSend,
+          uid: user?.uid,
+          createdAt: new Date(),
+          nicknameUnregistered,
+          attachments: [],
+        } as unknown as Comment;
 
         // Actualizar estado global
         setEvent((prevEvent) => {

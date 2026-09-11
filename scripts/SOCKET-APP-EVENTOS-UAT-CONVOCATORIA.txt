@@ -1,0 +1,79 @@
+================================================================================
+  UAT Socket App Eventos (colaboración tiempo real) — convocatoria + guion breve
+================================================================================
+  Objetivo: 2–3 cuentas reales en el **mismo evento**, 60–90 min, validar que la
+  colaboración en tiempo real vuelve a comportarse como antes (joinRoom, mensajes
+  app:message, planSpaceActive, setEvent, etc.).
+
+  Guion detallado y tabla multi-equipo (api-ia):
+    repo **api-ia** → `docs/SOCKET_APP_EVENTOS_PLAN_UAT_MULTIEQUIPO.md`
+
+  Contrato técnico cliente ↔ servidor (este monorepo):
+    `scripts/SOCKET-EVENTOS-ESPECIFICACION-COMPLETA.txt` (§11 checklist, §12 impl.)
+
+  Checklist P0 operativo:
+    `scripts/OPERATIVO-CHECKLIST.txt`
+
+--------------------------------------------------------------------------------
+1. BLOQUE PARA PEGAR EN SLACK (#copilot-api-ia o canal acordado)
+--------------------------------------------------------------------------------
+  Copiar desde la línea siguiente hasta el cierre ``` (sin las comillas del fence).
+
+---
+[api-ia / App Bodas] *Prueba Socket App Eventos*
+
+*Cuándo:* [día, hora, zona horaria, ej. vie 25 abr 2026 10:00–11:30 Europe/Madrid]
+
+*Entorno de la app:* [ej. `https://app-dev.bodasdehoy.com` — o preview Vercel / prod según acuerdo]
+
+*URL del socket (BASE = DNS → api-ia; sin `/socket.io` en la variable):*
+`https://api-ia.bodasdehoy.com` *(misma base que IA; si el UAT usa otro entorno, anotar aquí)*
+
+*Participantes:*
+• 2–3 personas con cuentas reales en el *mismo* evento (mismo `development`/whitelabel que el deploy).
+• *Ops:* confirmar DNS/TLS y que `GET …/socket.io/?EIO=4&transport=polling` responde (no 502 / no ERR_NAME_NOT_RESOLVED).
+• *Front/deploy:* la build de la app debe llevar `NEXT_PUBLIC_SOCKET_URL` (o la base acordada) **exactamente** apuntando a esa URL (prioridad sobre `NEXT_PUBLIC_BASE_API_BODAS`; ver `apps/appEventos/api.js` → `resolveSocketBaseUrl`).
+• *Testigo (opcional):* guía pasos del doc api-ia y anota OK/NOK por escenario.
+
+*Referencias repo App Bodasdehoy.com:*
+`scripts/SOCKET-APP-EVENTOS-UAT-CONVOCATORIA.txt` · especificación `SOCKET-EVENTOS-ESPECIFICACION-COMPLETA.txt`
+
+*Referencias repo api-ia:*
+`docs/SOCKET_APP_EVENTOS_PLAN_UAT_MULTIEQUIPO.md`
+
+Gracias.
+---
+
+--------------------------------------------------------------------------------
+2. PRERREQUISITOS (antes de convocar)
+--------------------------------------------------------------------------------
+  [ ] Host socket desplegado y estable (api-ia backend según §12 especificación).
+  [ ] DNS público resuelve al host correcto; certificado válido (HTTPS).
+  [ ] `…/socket.io/?EIO=4&transport=polling` devuelve cuerpo típico engine.io (no HTML error).
+  [ ] Variable `NEXT_PUBLIC_SOCKET_URL` aplicada en el **mismo** entorno donde abrirán la app
+      (Vercel / env del build; requiere redeploy si se añade o cambia).
+  [ ] Testers pueden iniciar sesión en la app y abrir el mismo evento (IDs conocidos).
+
+--------------------------------------------------------------------------------
+3. MINI TABLA PARA EL TESTIGO (OK / NOK / notas)
+--------------------------------------------------------------------------------
+  Ajustar filas al doc api-ia; ejemplo mínimo alineado al cliente actual:
+
+  | # | Escenario                         | OK | NOK | Notas / hora |
+  |---|-----------------------------------|----|-----|--------------|
+  | 1 | Los 3 conectan sin error consola|    |     |              |
+  | 2 | joinRoom / mismo evento         |    |     |              |
+  | 3 | Cambio plano visible otro user  |    |     |              |
+  | 4 | setEvent / datos coherentes     |    |     |              |
+  | 5 | Desconexión y reconexión        |    |     |              |
+
+--------------------------------------------------------------------------------
+4. SI FALLA
+--------------------------------------------------------------------------------
+  • Consola navegador: ERR_NAME_NOT_RESOLVED / 502 / CORS → Infra / URL / proxy.
+  • Conecta pero no relay → servidor salas / auth token (ver §2–5 especificación).
+  • GraphQL u otros P0 → `scripts/OPERATIVO-CHECKLIST.txt` y canal #api-ia-api2-sync.
+
+================================================================================
+  Fin. Actualizar fechas/URLs cuando Ops cierre DNS y el deploy del front.
+================================================================================

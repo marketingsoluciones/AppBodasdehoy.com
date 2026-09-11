@@ -62,9 +62,16 @@ async function loginToServicios(
 ): Promise<boolean> {
   // Paso 1: navegar a app-test y activar dev_bypass en sessionStorage.
   // dev_bypass funciona en hostname que incluye 'app-test' (AuthContext.tsx:285)
-  const appTestUrl = 'https://app-test.bodasdehoy.com';
-  await page.goto(appTestUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
-  await page.evaluate(() => sessionStorage.setItem('dev_bypass', 'true'));
+  await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+  await page.evaluate(
+    (bypassEmail) => {
+      sessionStorage.setItem('dev_bypass', 'true');
+      sessionStorage.setItem('dev_bypass_email', bypassEmail);
+      sessionStorage.setItem('dev_bypass_uid', 'upSETrmXc7ZnsIhrjDjbHd7u2up1');
+      sessionStorage.setItem('dev_bypass_role', 'creator');
+    },
+    email,
+  );
 
   // Paso 2: recargar para que AuthContext procese el bypass (sessionStorage persiste en reload)
   await page.reload({ waitUntil: 'domcontentloaded', timeout: 30_000 });
@@ -525,10 +532,11 @@ test.describe('BATCH COMENT — Comentarios en Tareas × Roles', () => {
     const checkCtx = await browser.newContext();
     const checkPage = await checkCtx.newPage();
     try {
-      const appTestUrl = 'https://app-test.bodasdehoy.com';
-      await checkPage.goto(appTestUrl, { waitUntil: 'domcontentloaded', timeout: 20_000 });
+      await checkPage.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 20_000 });
       await checkPage.evaluate(() => sessionStorage.setItem('dev_bypass', 'true'));
       await checkPage.reload({ waitUntil: 'domcontentloaded', timeout: 20_000 });
+
+      await waitForAppReady(checkPage, 30_000);
 
       // Esperar sidebar "Mis eventos" (señal de que el app cargó con el bypass)
       await checkPage.waitForFunction(
@@ -542,46 +550,11 @@ test.describe('BATCH COMENT — Comentarios en Tareas × Roles', () => {
         { timeout: 10_000 },
       ).catch(() => {});
 
-      // Clickear tarjeta de Isabel
-      const isabelCard = checkPage.locator('[class*="rounded"], [class*="card"]')
-        .filter({ hasText: /isabel/i }).first();
-      if (await isabelCard.isVisible({ timeout: 3_000 }).catch(() => false)) {
-        await isabelCard.click();
-        await checkPage.waitForFunction(
-          () => !document.querySelector('.backlayout'),
-          { timeout: 10_000 },
-        ).catch(() => {});
-      }
-
-      // Navegar a Servicios
-      const sBtn = checkPage.locator('[title="Servicios"]').first();
-      if (await sBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
-        await sBtn.click({ force: true });
-        await checkPage.waitForURL((url) => url.href.includes('/servicios'), { timeout: 5_000 }).catch(() => {});
-
-        // Manejar redirect /resumen-evento → volver a servicios
-        if (!checkPage.url().includes('/servicios')) {
-          await sBtn.click({ force: true });
-          await checkPage.waitForURL((url) => url.href.includes('/servicios'), { timeout: 5_000 }).catch(() => {});
-        }
-
-        // Esperar a que el módulo servicios cargue (sin "Abriendo evento...")
-        await checkPage.waitForFunction(
-          () => {
-            const t = document.body.innerText ?? '';
-            return !/Abriendo evento/i.test(t) && /Tareas|Nueva tarea|Filtros|Aun No/i.test(t);
-          },
-          { timeout: 20_000 },
-        ).catch(() => {});
-
-        // serviciosOk: URL en /servicios O el módulo de servicios está mostrando contenido
-        const pageText = await checkPage.evaluate(
-          () => document.body.innerText ?? '',
-        ).catch(() => '');
+      const ok = await loginToServicios(checkPage, TEST_USERS.organizador.email, TEST_USERS.organizador.password);
+      if (ok) {
+        const pageText = await checkPage.evaluate(() => document.body.innerText ?? '').catch(() => '');
         const hasServiciosContent = /Tareas|Nueva tarea|Filtros|Aun No Tienes Tasks/i.test(pageText);
         serviciosOk = checkPage.url().includes('/servicios') || hasServiciosContent;
-
-        // Chequear si HAY tareas (0 = "Aun No Tienes Tasks Creados En Este Evento")
         const noTasksText = /Aun No Tienes Tasks|no hay tareas/i.test(pageText);
         hasServicesTasks = serviciosOk && !noTasksText;
       }

@@ -1,0 +1,128 @@
+═══════════════════════════════════════════════════════════════════════════════
+AUDITORÍA model-runtime de chat-ia — alcance real del refactor "api-ia único"
+Fecha: 24-jun-2026
+Branch:  tj/refactor/runtime-only-api-ia
+Autor:   COORD-AppEventos
+═══════════════════════════════════════════════════════════════════════════════
+
+OBJETIVO
+────────
+El user pide eliminar runtimeMap + 66 providers + SDK deps (Ollama, OpenAI direct,
+Anthropic, Google, etc.) porque api-ia centraliza modelos (auto-route + modelo-fijo).
+
+HALLAZGOS — usos REALES de model-runtime
+─────────────────────────────────────────
+
+1) /webapi/chat/[provider]/route.ts  ✅ YA NO USA runtimeMap
+   Es proxy puro a `resolveServerBackendOrigin()` = api-ia.
+   El chat streaming en producción NO toca runtimeMap.
+
+2) /webapi/chat/azureai/route.ts     → revisar (un solo provider hardcoded)
+
+3) tRPC lambda router — aiChat (`lambdaClient.aiChat.*`)
+   • generateObject       — usado por services/aiChat.ts:generateJSON (output estructurado)
+   • sendMessageInServer  — usado por services/aiChat.ts:sendMessageInServer (envío async)
+   Ambos llaman `initModelRuntimeWithUserPayload(provider, payload)` → toca SDKs.
+
+4) tRPC lambda router — image (`lambdaClient.image.*`)
+   ✅ ELIMINADO del cliente. Comentario en services/image.ts:4 lo confirma.
+
+5) tRPC lambda router — file (`lambdaClient.file.*`)
+   Embeddings RAG: pMap → initModelRuntimeWithUserPayload(provider, ctx.jwtPayload)
+                  → agentRuntime.embeddings({dimensions, input, model})
+   Es Postgres embeddings (alternativa Pinecone/Qdrant); ruta caliente con docs subidos.
+
+6) tRPC async router — ragEval (`asyncClient.ragEval.*`)
+   Idem RAG eval — usa runtime.
+
+7) tRPC async router — image
+   Generación imágenes (DALL-E 3, BFL, etc.). Usado por sliderImageBlock y similar.
+
+CONSUMIDORES VIVOS DESDE EL CLIENTE
+────────────────────────────────────
+✅ Vivos:
+  · services/aiChat.ts (generateJSON, sendMessageInServer)  → aiChat router
+  · store/file/slices/fileManager/action.ts                  → file router (embeddings)
+  · ragEval ¿?                                                → ragEval router
+
+✅ Muertos (ya migrados):
+  · /webapi/chat/[provider] proxy puro a api-ia              → 0 referencias a runtime aquí
+
+DEUDA REAL
+──────────
+runtimeMap.ts importa 66 providers Lobe*AI. Cada uno con SDK propio:
+  · ollama, @anthropic-ai/sdk, @google/generative-ai, @aws-sdk/client-bedrock-runtime,
+    cohere-ai, @mistralai/mistralai, @huggingface/inference, openai (uso directo), etc.
+  · ~5-10 MB de deps bundleadas a runtime.
+  · LobeChat upstream las usa; nuestra arquitectura NO.
+
+PLAN REFACTOR — pasos reales y orden seguro
+────────────────────────────────────────────
+EL refactor NO se puede hacer "todo de un golpe" sin romper /chat. Pasos:
+
+Paso 1 — Confirmar con api-ia (PEDIR HOY):
+  · ¿Tienen endpoint /chat/structured equivalente a aiChat.generateObject?
+    (memoria dice SÍ: smoke /chat/structured solo con messages+schema+X-Development)
+  · ¿Tienen endpoint /embeddings para reemplazar aiChat.embeddings?
+  · ¿Tienen endpoint para async background sendMessageInServer?
+  · ¿Manejan generación de imágenes (DALL-E/BFL/Flux) en api-ia?
+
+Paso 2 — Migrar consumidores cliente uno a uno (≥3 PRs separados):
+  a) services/aiChat.ts:generateJSON → llamar a /api/backend/chat/structured (api-ia)
+  b) services/aiChat.ts:sendMessageInServer → /api/backend/chat/async (api-ia)
+  c) store/file embeddings → /api/backend/embeddings (api-ia)
+  d) image (si quedan rastros) → /api/backend/images/generate (api-ia)
+
+Paso 3 — Tras cada migración, validar E2E:
+  · Chat normal (streaming) — ya OK, no toca
+  · Output estructurado (filtros, tareas IA del agente) — afectado por (a)
+  · RAG — afectado por (c)
+  · Imágenes generadas en chat — afectado por (d)
+
+Paso 4 — UNA VEZ migrados los 4 endpoints + 0 consumidores cliente quedan:
+  · Eliminar /src/server/routers/lambda/aiChat.ts
+  · Eliminar /src/server/routers/lambda/file.ts (los métodos embeddings)
+  · Eliminar /src/server/routers/async/{image,ragEval,file}.ts
+  · Eliminar /src/server/modules/ModelRuntime/* (initModelRuntimeWithUserPayload)
+  · Eliminar /packages/model-runtime/src/providers/* (66 carpetas)
+  · Eliminar /packages/model-runtime/src/runtimeMap.ts
+  · Adelgazar /packages/model-runtime/src/index.ts a solo exports usados
+  · Eliminar SDK deps de apps/chat-ia/package.json:
+    ollama, @anthropic-ai/sdk, @google/generative-ai, openai (uso directo),
+    @aws-sdk/client-bedrock-runtime, cohere-ai, @mistralai/mistralai,
+    @huggingface/inference, @vercel/functions ¿?, replicate, fal-ai, etc.
+
+Paso 5 — Smoke E2E completo:
+  · /chat normal + tools (web-browsing, code-interpreter, etc.)
+  · /chat con structured output (filtros agente)
+  · /chat con RAG (subir doc + preguntar)
+  · /chat con imagen (DALL-E)
+  · /messages (CRM)
+
+TIEMPO ESTIMADO REAL
+─────────────────────
+· Paso 1 (coord api-ia):                  0.5 día
+· Paso 2 (migración a /api/backend):      2-3 días (cuidando cada call site)
+· Paso 3 (E2E iterativo):                 1 día (en paralelo)
+· Paso 4 (mass delete):                   0.5 día
+· Paso 5 (E2E completo):                  1 día
+
+TOTAL: ~1 semana de trabajo dedicado.
+
+RIESGO SI SE HACE "DE GOLPE" HOY
+─────────────────────────────────
+Romper /chat structured output (filtros agente, generación tareas).
+Romper RAG (embeddings).
+Romper generación de imágenes (DALL-E/BFL).
+No hay rollback rápido — los providers se eliminan masivamente.
+
+DECISIÓN PENDIENTE — CONFIRMAR CON USER
+────────────────────────────────────────
+[ ] A) Sprint dedicado 1 semana — refactor completo, migración endpoint-por-endpoint,
+       validación E2E en cada paso.
+[ ] B) HOY mismo refactor agresivo — riesgo alto, posible rollback masivo.
+[ ] C) Solo eliminar lo MUERTO confirmado (image router, ragEval si está muerto),
+       mantener aiChat + file por ahora — gana ~15% de cleanup sin riesgo.
+[ ] D) Postponer — dejar deuda documentada en este archivo, no tocar este sprint.
+
+═══════════════════════════════════════════════════════════════════════════════

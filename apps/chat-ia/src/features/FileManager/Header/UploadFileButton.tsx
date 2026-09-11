@@ -24,9 +24,12 @@ const UploadFileButton = ({ knowledgeBaseId }: { knowledgeBaseId?: string }) => 
   const { t } = useTranslation('file');
 
   const pushDockFileList = useFileStore((s) => s.pushDockFileList);
-  const { totalBalance, loading, setShowRechargeModal } = useWallet();
+  const { totalBalance, balanceLoaded, loading, setShowRechargeModal } = useWallet();
 
-  const hasBalance = loading || totalBalance > 0;
+  // €0-falso (QA UX-07): mientras el saldo NO se haya leído con éxito (loading o fallo de
+  // api-mcp → balanceLoaded=false), el saldo es DESCONOCIDO, no cero → NO bloquear la subida
+  // ni mostrar "Recargar para subir" (el usuario puede tener saldo real).
+  const hasBalance = loading || !balanceLoaded || totalBalance > 0;
 
   const handleUpload = useCallback(
     async (files: File[]) => {

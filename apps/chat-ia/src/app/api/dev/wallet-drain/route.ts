@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'ADMIN_API_KEY not configured' }, { status: 500 });
   }
 
-  const backendUrl = process.env.BACKEND_INTERNAL_URL || process.env.PYTHON_BACKEND_URL;
+  const backendUrl = process.env.API_IA_URL || process.env.API_IA_URL;
   if (!backendUrl) {
     return NextResponse.json({ error: 'BACKEND_INTERNAL_URL not configured' }, { status: 500 });
   }

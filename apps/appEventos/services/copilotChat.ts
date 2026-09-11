@@ -18,13 +18,13 @@ const CHAT_API_BASE = '';
 
 /**
  * Obtiene el token JWT del usuario para autenticar requests a api-ia.
- * Prioridad: cookie idTokenV0.1.0 (SSO chat-ia) → cookie api2_jwt → localStorage dev-user-config (AuthBridge)
+ * Prioridad: cookie idTokenV0.1.0 (SSO chat-ia) → cookie mcp_jwt → localStorage dev-user-config (AuthBridge)
  * Necesario porque AuthBridge guarda el Firebase token en localStorage, no en cookies.
  */
 function getAuthToken(): string {
   const ssoToken = Cookies.get('idTokenV0.1.0') || '';
   if (ssoToken.startsWith('eyJ')) return ssoToken;
-  const api2Token = Cookies.get('api2_jwt') || '';
+  const api2Token = Cookies.get('mcp_jwt') || '';
   if (api2Token.startsWith('eyJ')) return api2Token;
   if (typeof window !== 'undefined') {
     try {
@@ -247,7 +247,20 @@ export const sendChatMessage = async (
     // SEGURIDAD: si el usuario es anónimo/visitante, no enviar token de auth.
     // El cookie idTokenV0.1.0 puede pertenecer a otro usuario logueado en chat-ia,
     // lo que causaría fuga de datos privados de ese usuario al visitante.
-    const authToken = isAnonymous ? '' : getAuthToken();
+    let authToken = isAnonymous ? '' : getAuthToken();
+
+    // BUG 2 v2 QA #34 (29-jun): si getAuthToken() devuelve vacío (cookies no
+    // disponibles en algunos contextos, dev-user-config sin token), intentar
+    // Firebase Auth como último recurso garantizado. /api/copilot/chat sin
+    // Authorization → 402 "Saldo insuficiente" independiente del sessionId.
+    if (!authToken && !isAnonymous) {
+      try {
+        const { getAuth } = await import('firebase/auth');
+        const fbToken = await getAuth().currentUser?.getIdToken();
+        if (fbToken) authToken = fbToken;
+      } catch { /* sin firebase auth disponible — sigue sin token */ }
+    }
+
     const response = await fetch(`${CHAT_API_BASE}/api/copilot/chat`, {
       method: 'POST',
       headers: {
@@ -260,11 +273,16 @@ export const sendChatMessage = async (
       signal: controller.signal,
     }).finally(() => clearTimeout(timeoutId));
 
+    // Suffix "ref: trc_xxx" para que el usuario pueda reportar el error (contrato api-ia:
+    // { success:false, error, message, trace_id }). Se muestra pequeñito bajo el mensaje.
+    const withTraceRef = (m: string, traceId?: string): string =>
+      traceId ? `${m}\n\n_ref: ${traceId}_` : m;
+
     // 401: no autorizado — mensaje específico (no confundir con 503)
     if (response.status === 401) {
       let errorData: any = {};
       try { errorData = await response.json(); } catch {}
-      const msg = errorData?.message || 'No autorizado. Inicia sesión de nuevo para usar el asistente.';
+      const msg = withTraceRef(errorData?.message || 'No autorizado. Inicia sesión de nuevo para usar el asistente.', errorData?.trace_id);
       if (onChunk) onChunk(msg);
       return { content: msg, toolCalls: [], navigationUrl: undefined, enrichedEvents: [] };
     }
@@ -275,9 +293,9 @@ export const sendChatMessage = async (
       try { errorData = await response.json(); } catch {}
       const msg = errorData?.message || 'Saldo de IA agotado. Recarga tu cuenta para continuar usando el asistente.';
       const recargaUrl = errorData?.payment_url || errorData?.billing_url;
-      const contentWithLink = recargaUrl
+      const contentWithLink = withTraceRef(recargaUrl
         ? `${msg}\n\n[Recargar saldo](${recargaUrl})`
-        : msg;
+        : msg, errorData?.trace_id);
       if (onChunk) onChunk(contentWithLink);
       return { content: contentWithLink, toolCalls: [], navigationUrl: recargaUrl || undefined, enrichedEvents: [] };
     }
@@ -336,8 +354,9 @@ export const sendChatMessage = async (
         msg += when ? ` Inténtalo de nuevo ${when}.` : ' Inténtalo de nuevo en unos minutos.';
       }
 
-      onChunk?.(msg);
-      return { content: msg, toolCalls: [] };
+      const msgWithRef = withTraceRef(msg, errorData?.trace_id);
+      onChunk?.(msgWithRef);
+      return { content: msgWithRef, toolCalls: [] };
     }
 
     // Streaming mode

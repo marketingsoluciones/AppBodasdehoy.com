@@ -77,8 +77,15 @@ export const GuestTableAll: FC<Props> = ({ multiSeled = false, stateConfi = fals
           newComunicacion.statuses = Array.from(statusMap.values());
         }
         
-        event.invitados_array[f1].comunicaciones_array.push(newComunicacion);
-        setEvent({ ...event });
+        setEvent((prev) => ({
+          ...prev,
+          invitados_array: prev.invitados_array.map((inv, i) =>
+            i !== f1 ? inv : {
+              ...inv,
+              comunicaciones_array: [...(inv.comunicaciones_array ?? []), newComunicacion],
+            }
+          ),
+        }));
       }
 
       toast("success", transport === "email" ? t("Envio por email exitoso") : t("Envio por WhatsApp exitoso"));

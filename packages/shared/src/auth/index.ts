@@ -7,4 +7,16 @@ export {
   getSessionUserIdFromToken,
 } from './AuthBridge';
 export type { SharedAuthState, SharedAuthUser, AuthBridgeConfig } from './AuthBridge';
-export { setCrossAppIdToken, clearCrossAppSession } from './SessionBridge';
+export {
+  setCrossAppIdToken,
+  setCrossAppDevelopment,
+  clearCrossAppSession,
+  clearCrossAppIdToken,
+  CROSS_APP_DEVELOPMENT_COOKIE,
+} from './SessionBridge';
+export {
+  startSessionRefresh,
+  stopSessionRefresh,
+  getFreshToken,
+} from './SessionManager';
+export type { FirebaseAuthLike, FirebaseUserLike } from './SessionManager';

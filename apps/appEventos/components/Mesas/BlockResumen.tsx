@@ -1,68 +1,103 @@
-import { FC, useEffect, useState } from "react"
-import { EventContextProvider } from "../../context"
-import { InvitadosIcon, MesaIcon } from "../icons"
+import { FC } from "react"
+import { AuthContextProvider, EventContextProvider } from "../../context"
 import { guests } from '../../utils/Interfaces';
+import { fetchApiEventos, queries } from '../../utils/Fetching';
 import { useTranslation } from 'react-i18next';
 
+// Rediseño fiel al prototipo (MESAS.dc.html): tarjeta de resumen (% ocupado + 3 stats)
+// + lista "Por espacio" con barra de progreso. Conserva la derivación de datos real
+// (sentados por planSpace a partir de tables[].guests).
 interface propsBlockResumen {
     InvitadoSentados: guests[]
 }
 const BlockResumen: FC<propsBlockResumen> = ({ InvitadoSentados }) => {
     const { t } = useTranslation();
-    const { event } = EventContextProvider()
-    const [totalMesas, setTotalMesas] = useState<number | null>(event?.mesas_array?.length)
+    const { event, planSpaceSelect, setPlanSpaceSelect } = EventContextProvider()
+    const { user } = AuthContextProvider()
 
-    useEffect(() => {
-        setTotalMesas(event?.mesas_array?.length)
-    }, [event?.mesas_array])
+    // Al clicar un espacio en "Por espacio", cambiar el plano activo a ese espacio.
+    // setPlanSpaceSelect dispara el efecto del context que actualiza planSpaceActive
+    // (mismo patrón que BlockPlanos.handleClick). Persiste la selección en backend.
+    const handleSelectSpace = (id?: string) => {
+        if (!id || planSpaceSelect === id) return
+        try {
+            setPlanSpaceSelect(id)
+            fetchApiEventos({
+                query: queries.setPlanSpaceSelect,
+                variables: {
+                    evento_id: event?._id,
+                    planSpaceSelect: id,
+                    isOwner: user?.uid === event?.usuario_id,
+                },
+            })
+        } catch {
+        }
+    }
 
-    const Datos = [
-        { title: totalMesas, subtitle: t("totaltables") },
-        { title: `${InvitadoSentados?.length} de ${event?.invitados_array?.length}`, subtitle: t("seatedguests") },
+    const totalInvitados = event?.invitados_array?.length || 0
+    const perSpace = (event?.planSpace || []).map((ps) => {
+        const sentados = ps?.tables?.length
+            ? ps.tables.map((tb) => tb.guests).flat().filter(Boolean).length
+            : 0
+        return { _id: ps?._id, title: ps?.title, sentados, pct: totalInvitados ? Math.min(100, Math.round((sentados / totalInvitados) * 100)) : 0 }
+    })
+    // Sentados TOTALES = invitados ÚNICOS sentados en cualquier plano (un invitado sentado
+    // en Recepción Y Ceremonia cuenta 1, no 2). Antes se sumaban los per-space → daba >100%.
+    const seatedIds = new Set<string>()
+    ;(event?.planSpace || []).forEach((ps: any) =>
+        (ps?.tables || []).forEach((tb: any) =>
+            (tb?.guests || []).forEach((g: any) => { if (g?._id) seatedIds.add(g._id) })
+        )
+    )
+    const totalSentados = seatedIds.size
+    const totalMesas = event?.mesas_array?.length || 0
+    // Ocupación acotada a 0–100% (no puede haber más sentados únicos que invitados).
+    const overallPct = totalInvitados ? Math.min(100, Math.round((totalSentados / totalInvitados) * 100)) : 0
+
+    const stats = [
+        { n: totalMesas, l: t("tables") || "Mesas" },
+        { n: totalInvitados, l: t("guests") || "Invitados" },
+        { n: totalSentados, l: t("seated") || "Sentados" },
     ]
+
     return (
-        <div className="bg-primary w-[calc(100%-16px)] h-[calc(100%-6px)] m-auto flex flex-col rounded-lg overflow-y-auto pt-2">
-            {
-                event.planSpace.map((item, idx) => {
-                    return (
-                        <div key={idx} className="md:mb-3 px-2">
-                            <h2 className="text-tertiary font-display text-medium md:text-lg capitalize -mb-1">{t(item?.title)}</h2>
-                            <div className="flex flex-wrap items-center">
-                                <div className="flex w-28 items-center ml-2">
-                                    <MesaIcon className="text-white w-6 h-6" />
-                                    <p className="text-white m-1 font-display font-semibold text-lg leading-4 text-[12px]">
-                                        {item?.tables?.length} {/* <span className="text-xs md:text-sm m- font-light text-right"> */} {t("table")}{/* </span> */}
-                                    </p>
-                                </div>
-                                <div className="flex w-max items-center">
-                                    <InvitadosIcon className="text-white w-6 h-6 ml-2 mr-1" />
-                                    {(() => {
-                                        if (item.tables.length != 0) {
-                                            const invi = item.tables.map((item) => {
-                                                return item.guests
-                                            })
-                                            const inviReduce = invi.flat()
-                                            return (
-                                                < p key={idx} className="text-white m-1 leading-4 text-[12px]" >
-                                                    {inviReduce.length} de {event?.invitados_array?.length}
-                                                    {/* <span className="text-xs md:text-sm m- font-light text-right"> */} {t("seatedguests")}{/* </span> */}
-                                                </p>
-                                            )
-                                        } else {
-                                            return (
-                                                <p className="text-white font-display leading-4 text-[12px] ">
-                                                    {t("zeroof")} {event?.invitados_array?.length} {/* <span className=" md:text-[10px] text-right"> */} {t("seatedguests")}{/* </span> */}
-                                                </p>
-                                            )
-                                        }
-                                    })()}
-                                </div>
-                            </div>
+        <div className="w-full h-full overflow-auto flex flex-col gap-[11px] p-1">
+            <div className="rounded-[13px] p-3.5 bg-white border border-[#f0f0f2] shadow-[0_3px_10px_rgba(0,0,0,.04)]">
+                <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-baseline gap-1.5">
+                        <span className="text-2xl font-bold leading-none text-[#EF5B94]">{overallPct}%</span>
+                        <span className="text-[10.5px] font-semibold text-[#8a8a90]">{t("occupied") || "ocupado"}</span>
+                    </div>
+                    <span className="text-[9px] font-bold tracking-wider uppercase text-[#b3b3ba]">{t("eventsummary") || "Resumen del evento"}</span>
+                </div>
+                <div className="flex gap-2">
+                    {stats.map((s, i) => (
+                        <div key={i} className="flex-1 bg-[#faf9fb] border border-[#f0f0f2] rounded-[9px] px-2.5 py-[7px]">
+                            <div className="text-[15px] font-bold text-[#3A3A42]">{s.n}</div>
+                            <div className="text-[9.5px] font-medium text-[#a0a0a8]">{s.l}</div>
                         </div>
-                    )
-                })
-            }
-        </div >
+                    ))}
+                </div>
+            </div>
+            <div className="text-[10px] font-bold tracking-wider uppercase text-[#b3b3ba]">{t("perspace") || "Por espacio"}</div>
+            {perSpace.map((r, idx) => {
+                const active = planSpaceSelect === r._id
+                return (
+                    <div key={idx} onClick={() => handleSelectSpace(r._id)} title={t("showthisplan") || "Mostrar este plano"} className={`cursor-pointer rounded-[11px] px-3 py-[11px] border transition-colors ${active ? "bg-[#FCF2F6] border-[#f7c2da]" : "bg-white border-[#f0f0f2] hover:border-[#f7c2da] hover:bg-[#fdf7fa]"}`}>
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-[#EF5B94]" />
+                                <span className="text-[12.5px] font-semibold text-[#3A3A42] capitalize">{t(r.title)}</span>
+                            </div>
+                            <div className="text-[11px] font-semibold text-[#EF5B94]">{r.sentados} · {r.pct}%</div>
+                        </div>
+                        <div className="h-[7px] rounded-[7px] bg-[#ececed] overflow-hidden">
+                            <div className="h-full rounded-[7px] bg-[#EF5B94] transition-all duration-300" style={{ width: `${r.pct}%` }} />
+                        </div>
+                    </div>
+                )
+            })}
+        </div>
     )
 }
 

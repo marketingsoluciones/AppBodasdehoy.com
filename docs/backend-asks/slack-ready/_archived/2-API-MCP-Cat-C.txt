@@ -1,0 +1,124 @@
+DE: COORD-AppEventos
+PARA: API-MCP
+DRI: api_mcp_oncall
+ASUNTO: Categoría C — 13 ops ALTA + 20 por verificar (apagar apiapp)
+
+
+CONTEXTO
+--------
+
+Sprint 1+2+3 cerrado 2026-05-17: 8/8 dominios del front migrados a api-mcp.
+Queda apagar el droplet apiapp.bodasdehoy.com. Para ello necesitamos que api-mcp implemente ops que apiapp tenía y vosotros aún no.
+
+Front YA tiene adapter MCP_ADAPTERS (Fetching.ts:179) con fallback automático a apiapp, así que mientras no estén, no se rompe — solo no podemos apagar el droplet legacy.
+
+
+PRIORIDAD ALTA — verificadas live (probe → "Cannot query field")
+----------------------------------------------------------------
+
+Pagos boda (4 ops — pagos individuales DENTRO de una boda, NO Stripe SaaS)
+
+  mutation nuevoPago(evento_id: ID!, gasto_id: ID!, pago: PagoInput!)
+    → EventoResponse { success, errors, evento { _id, presupuesto_objeto } }
+
+  mutation editPago(evento_id: ID!, gasto_id: ID!, pago_id: ID!, datos: JSON!)
+    → EventoResponse
+
+  mutation borraPago(evento_id: ID!, gasto_id: ID!, pago_id: ID!)
+    → EventoResponse
+
+  mutation deletepayment(...)
+    Alias legacy. Posiblemente fundible con borraPago.
+
+  Call-sites front: apps/appEventos/components/Presupuesto/BlockPagos/TablaDatosPagos.tsx,
+                    SubComponentePagos.tsx, FormAddPago.tsx, FormEditarPago.tsx
+
+Directorio (2 ops)
+
+  query getAllBusinesses(filter: BusinessFilter, pag: Pagination, dev: String)
+    → { total: Int, results: [Business] }
+
+  query getAllProducts(grupo: String, pag: Pagination, dev: String)
+    → { total: Int, results: [Product], currency: String }
+
+  Nota:
+    - getAllProducts(grupo:"app") en facturacion.tsx es DEAD CODE (PlanesAPI2 ya usa
+      getSubscriptionPlans canonical). Lo eliminamos del front.
+    - getAllProducts sin grupo se usa en VentasEntradas.tsx, EntradasGratis.tsx para
+      tickets de eventos. ESA SÍ se necesita.
+
+PDF / utilidades (2 ops)
+
+  query generatePdf(template: String!, data: JSON!) → { url: String }
+    Exportar invitaciones / itinerario a PDF.
+
+  query getGeoInfo() → { ip: String, ipcountry: String, city: String, region: String }
+    Detectar país visitante (Currencies, idioma default).
+
+Plan space (2 ops)
+
+  query getPlanSpaceSelect() → [PlanSpaceTemplate]
+    Dropdown selección plan space al crear evento.
+
+  query getPsTemplate(id: ID!) → PlanSpaceTemplate
+    Template plan space (estructura mesas predefinida).
+
+Itinerario lectura (2 ops)
+
+  query getItinerario(eventId: ID!) → Itinerario
+    LECTURA. El write (crearItinerario / actualizar / eliminar) SÍ existe ya en api-mcp.
+
+  mutation duplicateItinerario(eventoId: ID!, itinerarioId: ID!, datos: JSON!)
+    → EventoResponse
+
+Tareas (1 op)
+
+  mutation updateTasksOrder(eventId: ID!, itinerarioId: ID!, taskIds: [ID!]!)
+    → ItinerarioResponse
+
+
+POR VERIFICAR 1 A 1 (inferidas por keyword, pueden estar renombradas)
+---------------------------------------------------------------------
+
+Stripe wedding (2)
+  getInvoices()  — ¿el getInvoice(id) actual cubre el listado history?
+  getCustomer()  — ¿getMySubscription cubre campos name/line1/postal/city/country?
+
+Emails templates (4)
+  getEmailTemplate(id), getPreviewsEmailTemplates(), getVariableEmailTemplate(), getGalerySvgs()
+
+WhatsApp (2)
+  whatsappGetAllSessions(), createWhatsappTemplate(...)
+  Nota: /api/whatsapp/messages/template ya usa ?development= query param (no header).
+
+Compartir evento (4)
+  updateCompartition(eventId, userId, permisos)
+  deleteCompartition(eventId, userId)
+  getLinkInvitation(eventId)
+  enviaInvitacion(eventId, emails[])
+  (addCompartition ya existe verificado vía smoke)
+
+Otros (8)
+  getEmailValid(email), getPreregister(uid)
+  editPresupuesto, duplicatePresupuesto, nuevoItemGasto, editItemGasto, borraItemsGastos
+  editEvento(guardarListaRegalos)
+  createUserWithPassword(...)
+
+
+RESPUESTA QUE NECESITAMOS
+-------------------------
+
+1. Plan + fecha para los 13 PRIORIDAD ALTA verificados.
+2. ¿Alguna de "Por verificar" ya existe con otro nombre? Necesitamos saberlo para no duplicar.
+3. Stripe wedding vs Stripe SaaS (ERP/CRM): ¿dominios separados o intercambiables?
+4. ¿Algún Cat C ya está en sprint y no lo sabemos?
+
+DRI: api_mcp → responder en hilo Slack.
+
+
+DEPENDENCIA
+-----------
+
+Esto asume P0 conexión eventos RESUELTO. Las mutations Cat C tocan la colección eventos.
+Si la conexión Mongo sigue flapeando (P0 abierto 2026-05-28), las mutations heredarían el problema.
+Ver el otro mensaje (P0 conexión eventos).

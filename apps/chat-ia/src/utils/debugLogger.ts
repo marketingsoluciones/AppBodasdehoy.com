@@ -52,12 +52,15 @@ export const debugLog = (location: string, message: string, data?: any, hypothes
     localStorage.setItem(DEBUG_LOG_KEY, JSON.stringify(existingLogs));
 
     // ✅ Enviar al backend también (sin bloquear)
-    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+    const BACKEND_URL = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';
     fetch(`${BACKEND_URL}/api/debug-logs/upload`, {
       body: JSON.stringify({ logs: [log] }),
       headers: { 'Content-Type': 'application/json' },
       method: 'POST'
-    }).catch(() => {}); // Ignorar errores de red
+    }).catch(() => {
+      // Silenciar a propósito: si el endpoint de debug-logs falla NO debe
+      // ensuciar la consola — sería logger del logger en bucle infinito.
+    });
   } catch (error) {
     // Si localStorage falla, solo usar console
     console.warn('⚠️ No se pudo guardar log en localStorage:', error);

@@ -17,7 +17,7 @@ import {
   getMySubscription,
   getSubscriptionPlans,
   subscribeToPlan,
-} from '@/services/api2/subscriptions';
+} from '@/services/mcpApi/subscriptions';
 import { humanizeQuota } from '@bodasdehoy/shared/plans';
 
 const PriceComparison = dynamic(() => import('@/components/credits/PriceComparison'), {
@@ -73,7 +73,7 @@ const useStyles = createStyles(({ css, token }) => ({
     font-size: 13px;
   `,
   highlightCard: css`
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #F7628C 0%, #D6497A 100%);
     border: none;
     border-radius: 16px;
     color: white;
@@ -154,7 +154,7 @@ function extractLimits(plan: SubscriptionPlan): LimitRow[] {
     }
   };
 
-  for (const l of plan.product_limits) {
+  for (const l of plan.product_limits ?? []) {
     const s = l.sku.toLowerCase();
     if (
       s.includes('ai') ||
@@ -181,32 +181,32 @@ function extractLimits(plan: SubscriptionPlan): LimitRow[] {
     } else switch (s) {
  case 'memories-albums': {
       add('Álbumes Memories', formatQuota(l.sku, l.free_quota), 'albums');
-    
+
  break;
  }
  case 'memories-photos': {
       add('Fotos Memories', formatQuota(l.sku, l.free_quota), 'photos');
-    
+
  break;
  }
  case 'events-count': {
       add('Eventos', formatQuota(l.sku, l.free_quota), 'events');
-    
+
  break;
  }
  case 'guests-per-event': {
       add('Invitados/evento', formatQuota(l.sku, l.free_quota), 'guests');
-    
+
  break;
  }
  case 'email-campaigns': {
       add('Emails campaña', formatQuota(l.sku, l.free_quota), 'emails');
-    
+
  break;
  }
  case 'sms-invitations': {
       add('SMS', formatQuota(l.sku, l.free_quota), 'sms');
-    
+
  break;
  }
  // No default
@@ -276,7 +276,7 @@ function extractFeatures(plan: SubscriptionPlan): FeatureRow[] {
 const PlanCard = memo<{
   billing: 'monthly' | 'yearly';
   isCurrent?: boolean;
-  onSelect?: (planId: string) => Promise<void>;
+  onSelect?: (_planId: string) => Promise<void>;
   plan: SubscriptionPlan;
   selecting?: boolean;
 }>(({ plan, billing, isCurrent, onSelect, selecting }) => {
@@ -385,6 +385,7 @@ const PlanCard = memo<{
             transition: 'opacity 0.2s',
             width: '100%',
           }}
+          type="button"
         >
           {selecting
             ? '...'
@@ -438,7 +439,7 @@ const PlanCard = memo<{
               {f.included ? (
                 <Check
                   className={styles.featureIcon}
-                  color={isHighlighted ? 'rgba(255,255,255,0.7)' : '#667eea'}
+                  color={isHighlighted ? 'rgba(255,255,255,0.7)' : '#F7628C'}
                   size={14}
                 />
               ) : (
@@ -509,7 +510,7 @@ const PlanesPage = memo(() => {
     if (result.success && result.portal_url) {
       window.location.href = result.portal_url;
     } else {
-      // Portal not available from api2 yet — show cancel modal as fallback
+      // Portal not available from MCP yet — show cancel modal as fallback
       setShowCancelModal(true);
     }
     setOpeningPortal(false);
@@ -541,7 +542,7 @@ const PlanesPage = memo(() => {
   }, 0);
 
   return (
-    <Flexbox gap={32} style={{ maxWidth: 1100, padding: 24, width: '100%' }}>
+    <Flexbox gap={32} style={{ maxWidth: 1100, padding: 24, paddingBottom: 88, width: '100%' }}>
       <Breadcrumb
         items={[
           { title: <Link href="/settings">Ajustes</Link> },
@@ -586,7 +587,7 @@ const PlanesPage = memo(() => {
       {/* Header */}
       <Flexbox align="center" gap={12}>
         <Flexbox align="center" gap={8} horizontal>
-          <Sparkles color="#667eea" size={28} />
+          <Sparkles color="#F7628C" size={28} />
           <h1 style={{ fontSize: 28, fontWeight: 800, margin: 0 }}>Elige tu plan</h1>
         </Flexbox>
         {/* Social proof */}
@@ -626,6 +627,7 @@ const PlanesPage = memo(() => {
                 billing === 'monthly' ? styles.billingToggleActive : styles.billingToggleInactive
               }
               onClick={() => setBilling('monthly')}
+              type="button"
             >
               Mensual
             </button>
@@ -634,6 +636,7 @@ const PlanesPage = memo(() => {
                 billing === 'yearly' ? styles.billingToggleActive : styles.billingToggleInactive
               }
               onClick={() => setBilling('yearly')}
+              type="button"
             >
               Anual
               <Badge
@@ -757,6 +760,7 @@ const PlanesPage = memo(() => {
                           opacity: selectingPlanId === wl.plan_id ? 0.6 : 1,
                           padding: '10px 22px',
                         }}
+                        type="button"
                       >
                         {selectingPlanId === wl.plan_id ? '...' : 'Probar 14 días gratis'}
                       </button>
@@ -807,6 +811,7 @@ const PlanesPage = memo(() => {
               fontSize: 13,
               padding: '8px 20px',
             }}
+            type="button"
           >
             {openingPortal ? 'Abriendo portal...' : '⚙️ Gestionar suscripción / Cancelar'}
           </button>

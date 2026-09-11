@@ -1,18 +1,14 @@
-import { lambdaClient } from '@/libs/trpc/client';
-import { globalHelpers } from '@/store/global/helpers';
 import { PluginQueryParams } from '@/types/discover';
 import { convertOpenAIManifestToLobeManifest, getToolManifest } from '@/utils/toolManifest';
 
-class ToolService {
-  getOldPluginList = async (params: PluginQueryParams): Promise<any> => {
-    const locale = globalHelpers.getCurrentLanguage();
+// CAPA 2 PASO C 2026-06-05 opción (c): marketplace de plugins deprecado.
+// `getOldPluginList` era el listado del marketplace (lambdaClient.market.getPluginList).
+// Con plugins via URL/manifest en runtime ya no hay marketplace centralizado.
+// Stub devuelve lista vacía para no romper la UI antigua del store oldStore.
 
-    return lambdaClient.market.getPluginList.query({
-      ...params,
-      locale,
-      page: params.page ? Number(params.page) : 1,
-      pageSize: params.pageSize ? Number(params.pageSize) : 20,
-    });
+class ToolService {
+  getOldPluginList = async (_params: PluginQueryParams): Promise<any> => {
+    return { items: [], pageCount: 0, totalCount: 0 };
   };
 
   getToolManifest = getToolManifest;

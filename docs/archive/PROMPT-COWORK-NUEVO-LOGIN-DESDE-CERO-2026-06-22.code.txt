@@ -1,0 +1,1015 @@
+# 🧪 QA EXHAUSTIVO COWORK NUEVO — APP-DEV.BODASDEHOY.COM
+# Sesión: 22-jun-2026 | Entorno: app-dev.bodasdehoy.com | BUILD QUucu2_iXJP4clOmTJs9q
+
+═══════════════════════════════════════════════════════════════════════════════
+⚠️ LEE ESTO ANTES DE EMPEZAR — NO ASUMAS NADA
+═══════════════════════════════════════════════════════════════════════════════
+
+Eres un cowork de QA NUEVO. NO tienes contexto previo del proyecto. NO conoces
+bugs anteriores. NO conoces decisiones de diseño. Tu trabajo: actuar como si fuera
+TU PRIMERA VEZ frente al producto, descubrir todos los problemas con OJOS NUEVOS.
+
+⛔ NO uses memoria de informes anteriores ni asumas que algo "ya está arreglado".
+⛔ NO confirmes bugs por suposición — verifica cada uno con pasos reproducibles.
+⛔ NO marques tests como "PASS" si no los ejecutaste literalmente.
+
+✅ Cada hallazgo debe tener: pasos, esperado, obtenido, evidencia técnica.
+✅ Documenta TODO lo raro, aunque no parezca bug claro.
+
+═══════════════════════════════════════════════════════════════════════════════
+🎯 OBJETIVO DE ESTA SESIÓN
+═══════════════════════════════════════════════════════════════════════════════
+
+Empezar desde CERO investigando el flujo de login y recorrer TODOS los módulos
+principales (invitados, mesas, presupuesto, itinerario, momentos, lista de
+regalos, servicios, invitaciones, resumen) en MÚLTIPLES navegadores.
+
+═══════════════════════════════════════════════════════════════════════════════
+📋 ENTORNO Y CREDENCIALES
+═══════════════════════════════════════════════════════════════════════════════
+
+URL principal:        https://app-dev.bodasdehoy.com
+URL chat IA:          https://chat-dev.bodasdehoy.com
+URL álbumes:          https://memories-dev.bodasdehoy.com
+URL editor web boda:  https://creador-dev.bodasdehoy.com
+
+Usuarios de prueba (todos password: lorca2012M*+):
+
+| # | Email | Password | Rol esperado | Uso primario |
+|---|-------|----------|--------------|--------------|
+| 1 | bodasdehoy.com@gmail.com | lorca2012M*+ | ADMIN / Super-admin | Owner de eventos, panel admin, acceso a TODO |
+| 2 | jcc@bodasdehoy.com | lorca2012M*+ | Novio / Organizador | Crear/editar eventos, gestionar invitados |
+| 3 | jcc@marketingsoluciones.com | lorca2012M*+ | Colaborador / Invitado a evento | Recibir invitación de otro evento, permisos limitados |
+
+Casos a cubrir por COMBINACIÓN de usuarios:
+
+A. Mismo usuario, 2 navegadores → realtime socket (FASE 12.1)
+B. 2 usuarios diferentes, mismo evento compartido → permisos + realtime cruzado (FASE 12.2 + FASE 15 abajo)
+C. Usuario sin permisos intentando acceder a evento ajeno → control de acceso
+
+⚠️ ANTES DE EMPEZAR LA FASE 15 (comunicación entre usuarios):
+  Necesitas que el usuario #1 (admin) comparta "Boda Isabel & Raúl" con el #2
+  Y/O que el usuario #2 cree un evento de prueba y comparta con #3.
+  Si no hay eventos compartidos previamente, usa "Test 2.6 — Compartir evento"
+  para preparar el escenario antes de FASE 15.
+
+Evento de prueba SAGRADO — NO TOCAR JAMÁS:
+  · "Boda Isabel & Raúl" (_id: 66a9042dec5c58aa734bca44)
+  · Puedes seleccionarlo, ver sus datos, navegar entre módulos.
+  · ⚠️ NO crear/borrar/editar nada dentro de él.
+  · Si necesitas crear data: usar OTRO evento de prueba o crear uno nuevo + borrarlo al acabar.
+
+═══════════════════════════════════════════════════════════════════════════════
+🌐 NAVEGADORES Y DISPOSITIVOS A USAR
+═══════════════════════════════════════════════════════════════════════════════
+
+Test en TODOS los siguientes (orden recomendado):
+
+1. Chrome desktop (Mac/Win) — flujo principal, devtools abiertas
+2. Safari desktop (Mac) — diferente engine WebKit
+3. Firefox desktop — diferencias de cookies/storage
+4. Safari iOS REAL (iPhone) — CRÍTICO para cookie cross-domain + ITP
+   · Activar: Settings > Safari > Privacy > Prevent Cross-Site Tracking → ON
+5. Chrome Android — touch + viewport mobile
+
+Si no tienes acceso a todos, mínimo: Chrome desktop + Safari iOS real.
+
+═══════════════════════════════════════════════════════════════════════════════
+🔧 HERRAMIENTAS QUE PUEDES USAR
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ DevTools abiertas SIEMPRE durante los tests:
+   · Console → ver errores, warnings, console.log
+   · Network → status HTTP, payloads, headers, timing
+   · Application → cookies, localStorage, sessionStorage, IndexedDB
+   · Performance → si algo va lento
+   · Sources → poner breakpoints si hace falta
+
+✅ Inspeccionar React fiber para ver state real:
+   const el = document.querySelector('SELECTOR')
+   const fiberKey = Object.keys(el).find(k => k.startsWith('__reactFiber'))
+   el[fiberKey].memoizedState  // o .stateNode, .return, etc.
+
+✅ GraphQL queries directas:
+   Network panel → filter por "graphql" → ver req/resp
+   O: copiar query y probar con curl/Postman
+
+✅ Lighthouse para accesibilidad + performance.
+
+═══════════════════════════════════════════════════════════════════════════════
+📑 PLAN DE PRUEBAS — POR FASES
+═══════════════════════════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────────────────────────────
+FASE 1 — LOGIN + AUTH + SSO (empieza aquí, sin prejuicios)
+──────────────────────────────────────────────────────────────────────────────
+
+Test 1.1 — Cold visit (sin sesión previa)
+  · Abrir navegador en MODO INCÓGNITO/PRIVADO.
+  · Ir a https://app-dev.bodasdehoy.com
+  · Observar TODO lo que pasa: redirects, modales, overlays, loaders.
+  · ¿Cuánto tarda en ser interactivo? (TTI)
+  · ¿Qué cookies/localStorage existen ANTES de hacer nada?
+  · ¿Qué se ve en Console al cargar? (errores, warnings)
+  · ¿Qué requests se disparan en Network? (status, timing)
+
+Test 1.2 — Botón "Ir a {brand}" / "✕" en login
+  · Ir a https://app-dev.bodasdehoy.com/login (sin sesión)
+  · Observar la esquina superior derecha.
+  · Si hay botón → ¿qué dice? ¿a dónde apunta el href?
+  · Click: ¿abre nueva pestaña? ¿navega? ¿URL correcta?
+  · Tester anterior reportó OBS-02 (apuntaba a app-dev en lugar de bodasdehoy.com).
+    Confirma o desmiente.
+
+Test 1.3 — Botón "Volver" / flecha izquierda
+  · ¿Hay botón en esquina superior izquierda?
+  · Hover: ¿muestra tooltip "Volver"?
+  · aria-label correcto (inspeccionar HTML)?
+  · Click: ¿qué hace si estás en stage "login" inicial? ¿en register? ¿en reset password?
+
+Test 1.4 — Login con email + password (usuario admin)
+  · Email: bodasdehoy.com@gmail.com
+  · Password: lorca2012M*+
+  · Antes de submit: capturar cookies, localStorage, sessionStorage (todo vacío).
+  · Submit. Capturar:
+    - ¿Cuántos requests dispara? (Network)
+    - ¿Aparece loading/spinner?
+    - ¿Hay errores en consola?
+    - ¿Tiempo total hasta home cargado?
+  · Tras login exitoso, CAPTURAR ESTADO COMPLETO:
+    - Todas las cookies (Application > Cookies > app-dev.bodasdehoy.com)
+    - localStorage (todas las keys)
+    - sessionStorage
+    - URL final donde quedó
+    - React user context: extraer fiber del header avatar y volcar `user`
+
+Test 1.5 — Avatar y nombre en header tras login
+  · ¿Aparece avatar del usuario con foto/iniciales?
+  · ¿Hay nombre/email visible?
+  · Si el avatar está vacío:
+    - Inspeccionar el elemento, capturar HTML completo
+    - ¿Hay <img> con src? ¿O div con background-color?
+    - Extraer React fiber del avatar → volcar state completo
+    - Hacer la query GraphQL me { ... } en Network y comparar con state
+  · Probar con CADA usuario (admin + secundarios 1 y 2). ¿Cambia algo?
+
+Test 1.6 — Login con Google OAuth
+  · Click en "Iniciar con Google"
+  · ¿Abre popup? ¿Redirect? ¿Funciona el ↗ pop-up?
+  · Usar cuenta Google que ya está autorizada (preguntar al admin si dudas).
+  · Tras volver: mismo análisis que Test 1.4 + 1.5.
+  · Comparar: ¿el state user es igual o distinto que email+password?
+
+Test 1.7 — Login con Facebook OAuth
+  · Mismo procedimiento que 1.6.
+  · Si Facebook está deshabilitado o falla, documentar el error exacto.
+
+Test 1.8 — Registro de usuario nuevo
+  · Logout (si estás logueado).
+  · Ir a /login → click en "Regístrate" / "Crear cuenta gratis".
+  · ¿Cuántos pasos tiene el wizard? Documenta cada uno.
+  · Crear con email único: qa-test+22jun-{N}@bodasdehoy.com
+  · Captura cada error de validación que veas (campos requeridos, formato, etc.).
+  · ¿Llega email de bienvenida? ¿Llega a la home tras crear?
+  · ⚠️ AL FINAL: anota el email creado para que limpiemos luego.
+
+Test 1.9 — SSO entre app-dev y chat-dev
+  · Login en app-dev (cualquier método).
+  · En la MISMA pestaña, navegar manualmente a https://chat-dev.bodasdehoy.com
+  · ¿Está autenticado automáticamente?
+  · Si pide login → ¿qué cookies/localStorage se quedaron en app-dev y NO se compartieron?
+  · Si está autenticado → ¿el usuario que ve chat-dev es el mismo que app-dev?
+  · Probar al revés: logout, login en chat-dev primero, después ir a app-dev.
+
+Test 1.10 — Logout (3 sitios distintos)
+  · Login.
+  · Logout desde el menú usuario (header → click avatar → "Cerrar Sesión").
+  · CAPTURAR ANTES Y DESPUÉS:
+    - Todas las cookies
+    - Todas las keys de localStorage (cuáles se eliminan, cuáles persisten)
+    - sessionStorage
+  · Recargar la página tras logout: ¿vuelve a /login o queda en home con "sesión zombie"?
+  · Repetir desde Sidebar (otro punto de logout, si existe).
+  · Repetir desde el menú user en chat-dev (verificar que cierra sesión en app-dev también).
+
+Test 1.11 — Logout en una app cierra sesión en TODAS (norma del producto)
+  · Login en app-dev.
+  · Abrir chat-dev EN OTRA PESTAÑA (debe estar autenticado por SSO).
+  · Logout en app-dev.
+  · Volver a la pestaña de chat-dev → recargar → ¿sigue autenticado o cerró sesión?
+
+Test 1.12 — Cookie SSO en Safari iOS con ITP activo
+  · Safari iOS REAL (no simulador) con ITP ON.
+  · Login en chat-dev.bodasdehoy.com.
+  · Navegar a app-dev.bodasdehoy.com.
+  · ¿Funciona el SSO o falla?
+  · Si falla → capturar:
+    - Versión Safari + iOS
+    - Si hay localStorage 'sessionBodas_fallback' como respaldo
+    - Si hay cookies con SameSite=None
+    - Si hay errores en Web Inspector remoto
+
+Test 1.13 — Sesión persistente
+  · Login.
+  · Cerrar TODAS las pestañas del navegador.
+  · Abrir otra vez https://app-dev.bodasdehoy.com.
+  · ¿Sigue autenticado o pide login otra vez?
+  · Documentar la respuesta esperada según tu criterio de UX y la real.
+
+Test 1.14 — Sesión expirada
+  · Login.
+  · Modificar el TTL del cookie/token manualmente en DevTools → Application
+    (poner fecha del pasado).
+  · Recargar página.
+  · ¿Cómo gestiona la sesión expirada? ¿Redirect a /login? ¿Sin mensaje?
+  · ¿Aparece query param ?session_expired=1?
+
+Test 1.15 — Reset password
+  · /login → "¿Olvidaste tu contraseña?" / "Reset"
+  · Email con cuenta válida → ¿llega email? ¿cuánto tarda?
+  · Email con cuenta inexistente → ¿qué pasa? (no debería revelar si existe)
+
+──────────────────────────────────────────────────────────────────────────────
+FASE 2 — HOME + SELECCIÓN DE EVENTO
+──────────────────────────────────────────────────────────────────────────────
+
+Test 2.1 — Home tras login (cold)
+  · Login.
+  · Documentar TODO lo que se ve: cards de eventos, botones, menús, copilot
+    embebido, header, footer.
+  · ¿Cuántos eventos muestra? ¿Hay paginación, scroll infinito, agrupación
+    (pendiente/archivado)?
+
+Test 2.2 — Crear evento nuevo
+  · Click en "Crear un evento" / "+ Crear" / similar.
+  · Wizard completo:
+    - Cada campo, cada validación, cada error que aparezca
+    - Tipos de evento disponibles (boda, comunión, etc.)
+    - ¿Se puede subir foto del evento?
+    - ¿Acepta fechas pasadas? ¿futuras?
+  · Crear con datos válidos.
+  · Tras crear → ¿llega a home? ¿al evento directamente?
+
+Test 2.3 — Card de evento (interacciones)
+  · Hover sobre una card: ¿cambia algo? ¿efectos?
+  · Click en la card: ¿abre el evento? ¿en misma pestaña?
+  · Iconos de la card (lateral derecho típicamente): editar, archivar, eliminar,
+    compartir → probar CADA UNO:
+    - ¿Cursor cambia al hacer hover?
+    - ¿Hay tooltip?
+    - ¿Pide confirmación al hacer click destructivo?
+    - ¿El diálogo de confirmación bloquea el navegador o es modal React?
+
+Test 2.4 — Archivar evento
+  · Click en icono archivar de un evento PENDIENTE.
+  · ¿Aparece diálogo de confirmación rápidamente (<500ms)?
+  · ¿Es modal nativo (window.confirm) o componente React?
+  · Confirmar: ¿el evento desaparece de pendientes y aparece en archivados?
+  · ¿Hay forma de des-archivar?
+
+Test 2.5 — Eliminar evento (cuidado: NO eliminar "Boda Isabel & Raúl")
+  · Crear evento de prueba "Boda QA TEST 22-jun".
+  · Click en icono eliminar.
+  · Diálogo de confirmación.
+  · Tras confirmar: ¿desaparece de TODAS las vistas (pendientes + archivados)?
+
+Test 2.6 — Compartir evento
+  · Click en icono compartir / "Añadir usuario".
+  · Probar invitar a otro email (puede ser jcc@bodasdehoy.com).
+  · ¿Llega email? ¿Aparece en lista de colaboradores?
+  · Verificar permisos: el invitado solo debería tener vista/edición según rol.
+
+Test 2.7 — Notificaciones (campana)
+  · Click en icono campana del header.
+  · ¿Cuánto tarda el panel en abrirse?
+  · ¿Qué notificaciones muestra?
+  · El título del panel: ¿muestra el evento ACTUALMENTE SELECCIONADO o el último que cargó?
+  · Pestañas / filtros internos: ¿funcionan?
+  · Marcar como leída una notificación → ¿se actualiza el contador?
+
+──────────────────────────────────────────────────────────────────────────────
+FASE 3 — COPILOT IA (panel embebido en app-dev)
+──────────────────────────────────────────────────────────────────────────────
+
+Test 3.1 — Abrir Copilot desde header
+  · Click en icono Copilot (💬).
+  · ¿Cuánto tarda en cargarse el panel?
+  · ¿Aparece el evento ACTUALMENTE SELECCIONADO en el panel?
+  · Si dice "Boda de X" pero el evento activo es "Boda Isabel & Raúl" → BUG.
+
+Test 3.2 — Enviar mensaje al Copilot
+  · Escribir: "¿Cuántos invitados tengo en este evento?"
+  · Observar:
+    - ¿Aparece spinner / streaming?
+    - ¿Cuánto tarda la primera palabra de respuesta?
+    - ¿La respuesta es coherente con los datos del evento?
+
+Test 3.3 — Avatar del usuario en mensajes
+  · ¿Tu mensaje muestra tu nombre/foto en el chat?
+  · Hover: ¿hay tooltip o info?
+
+Test 3.4 — Historial de conversaciones
+  · Click en icono "Historial de conversaciones".
+  · ¿Muestra conversaciones anteriores?
+  · ¿Persiste tras logout/login (mismo usuario)?
+
+Test 3.5 — Nueva conversación
+  · Click en icono "Nueva conversación".
+  · ¿Limpia el chat actual?
+  · ¿Crea una entrada nueva en historial?
+
+Test 3.6 — Abrir Copilot en nueva pestaña ("Abrir completo")
+  · Click en icono external-link (⎋ o similar).
+  · CAPTURAR LA URL EXACTA que se abre.
+  · ¿Apunta a chat-dev.bodasdehoy.com (correcto en dev) o a chat.bodasdehoy.com (producción)?
+  · ¿Lleva el eventId del evento ACTUAL?
+  · ¿Carga sin error?
+
+Test 3.7 — Cerrar Copilot
+  · Botón "Cerrar" del panel.
+  · ¿Se cierra correctamente?
+  · ¿Pierde el contexto al reabrir?
+
+──────────────────────────────────────────────────────────────────────────────
+FASE 4 — INVITADOS
+──────────────────────────────────────────────────────────────────────────────
+
+(Selecciona ahora "Boda Isabel & Raúl". URL esperada: /invitados?event=66a9042dec5c58aa734bca44)
+
+Test 4.1 — Cargar /invitados
+  · ¿Cuántos invitados muestra? Esperado: muchos (Isabel&Raúl está poblado).
+  · Tabs / vistas: Grupo Tablas, Tablero, lista, etc.
+  · ¿Hay loading inicial?
+
+Test 4.2 — Cambiar vista (tabs)
+  · Cambiar entre todas las vistas disponibles.
+  · ¿Cada vista carga rápido?
+  · ¿Filtra correctamente?
+
+Test 4.3 — Buscar invitado
+  · Si hay buscador, escribir nombre parcial.
+  · ¿Filtra en tiempo real?
+  · ¿Hay debounce?
+
+Test 4.4 — Mover invitado entre mesas (Grupo Tablas)
+  · Seleccionar un invitado.
+  · Usar el dropdown de mesa para cambiarlo de mesa A → mesa B.
+  · ¿Cambio inmediato o spinner?
+  · Recargar página → ¿persiste?
+
+Test 4.5 — Quitar invitado de mesa (a "sin asignar")
+  · Mismo test que 4.4 pero seleccionar "Sin mesa".
+  · Verificar conteo de mesa (debe reducirse en 1).
+
+Test 4.6 — Crear invitado nuevo
+  · Botón "Añadir invitado" / similar.
+  · Wizard completo:
+    - Campos requeridos
+    - Tipo de invitado (adulto, niño, etc.)
+    - Acompañantes / hijos
+  · Tras crear, ¿aparece en la lista?
+  · ⚠️ Borra el invitado al acabar el test.
+
+Test 4.7 — Editar invitado
+  · Click en un invitado existente.
+  · Modal/drawer de edición.
+  · Cambiar nombre / email / teléfono / mesa.
+  · Guardar → ¿persiste tras refresh?
+
+Test 4.8 — Eliminar invitado (uno de prueba que hayas creado, NO los originales)
+  · Confirmar diálogo.
+  · ¿Desaparece de la lista?
+
+Test 4.9 — Acompañantes (showChildrenGuest)
+  · Invitado que tiene acompañantes → expandir.
+  · ¿Aparecen los acompañantes debajo?
+  · Estado de expansión persiste tras refresh?
+
+Test 4.10 — Importar invitados (Excel/CSV)
+  · Si existe la opción, probar con un Excel pequeño (3-5 invitados).
+  · ¿Detecta mal formato? ¿Valida campos?
+  · ¿Importa correctamente?
+
+Test 4.11 — Exportar invitados (PDF/Excel)
+  · Si existe, descargar y verificar contenido.
+
+──────────────────────────────────────────────────────────────────────────────
+FASE 5 — MESAS (drag & drop)
+──────────────────────────────────────────────────────────────────────────────
+
+(Ir a /mesas con el evento seleccionado)
+
+Test 5.1 — Cargar /mesas
+  · ¿Aparece el lienzo con las mesas existentes?
+  · Tiempo de carga.
+  · Sin errores en consola.
+
+Test 5.2 — Arrastrar mesa
+  · Arrastrar mesa A de posición X a posición Y.
+  · ¿Se mueve fluidamente o con lag?
+  · Soltar → ¿persiste tras refresh?
+
+Test 5.3 — Redimensionar mesa
+  · Drag de la esquina.
+  · ¿Cambia tamaño? ¿persiste?
+
+Test 5.4 — Rotar mesa
+  · Botones rotate left/right (15° cada vez).
+  · ¿Funciona en todas las direcciones?
+
+Test 5.5 — Crear mesa nueva
+  · Botón "+ mesa" o drag de panel lateral.
+  · Wizard de configuración (forma, tamaño, sillas).
+  · Tras crear: ¿aparece en el lienzo?
+  · ⚠️ CRÍTICO: refresca la página → ¿sigue ahí o desaparece?
+    (bug latente reportado antes — verifica explícitamente)
+
+Test 5.6 — Crear elemento (silla, árbol, mesa regalos, texto)
+  · Arrastrar elemento del panel al lienzo.
+  · ¿Aparece?
+  · Refresh: ¿persiste?
+
+Test 5.7 — Editar título de elemento (texto)
+  · Doble-click en un elemento de texto.
+  · Cambiar texto.
+  · ¿Persiste tras refresh?
+
+Test 5.8 — Sentar invitado en silla específica
+  · Arrastrar invitado del panel lateral a una silla.
+  · ¿Se sienta?
+  · Conteo de la mesa aumenta en 1.
+
+Test 5.9 — Mover invitado YA SENTADO a otra silla
+  · ¿Se mueve correctamente?
+  · Mesa origen pierde 1, destino gana 1.
+
+Test 5.10 — Aplicar plantilla
+  · Si existe panel de plantillas, aplicar una.
+  · ¿Cambian las mesas + elementos?
+  · ¿Persiste tras refresh?
+
+Test 5.11 — Borrar mesa / elemento
+  · Click en mesa → botón delete.
+  · Confirmación.
+  · ¿Desaparece + persiste?
+
+Test 5.12 — Cambiar dimensiones del lienzo
+  · Si hay input de alto/ancho.
+  · ¿Cambia visual + persiste?
+
+Test 5.13 — Imprimir / exportar plano
+  · Si existe.
+
+──────────────────────────────────────────────────────────────────────────────
+FASE 6 — PRESUPUESTO
+──────────────────────────────────────────────────────────────────────────────
+
+(Ir a /presupuesto)
+
+Test 6.1 — Cargar tabla de presupuesto
+  · ¿Aparecen categorías → gastos → items?
+  · ¿Totales calculados correctamente?
+
+Test 6.2 — Cambiar moneda
+  · Selector de moneda (eur, usd, ves, mxn, cop, ars, uyu).
+  · ¿Cambian símbolos y formatos en toda la tabla?
+  · Refresh: ¿persiste?
+
+Test 6.3 — Toggle "ver costes estimados"
+  · ¿Aparecen/desaparecen columnas relacionadas?
+
+Test 6.4 — Crear categoría nueva
+  · Botón "+ categoría".
+  · ¿Aparece + AUTOMÁTICAMENTE crea un gasto inicial dentro?
+
+Test 6.5 — Crear gasto en una categoría
+  · "+ gasto".
+  · ¿Aparece con valores default?
+
+Test 6.6 — Crear item de gasto
+  · "+ item".
+  · ¿Cantidad=1, valor=0, total=0?
+
+Test 6.7 — Editar nombre de item
+  · Inline edit.
+  · ¿Persiste?
+
+Test 6.8 — Editar cantidad de item
+  · 1 → 5.
+  · ¿Total se recalcula automáticamente?
+
+Test 6.9 — Editar valor_unitario
+  · ¿Total se recalcula?
+
+Test 6.10 — Editar unidad → "xUni."
+  · ¿La cantidad se resetea a 0?
+
+Test 6.11 — Toggle estatus de item (ocultar)
+  · ¿Se oculta? ¿Sumas se recalculan SIN ese item?
+
+Test 6.12 — Editar nombre de categoría/gasto
+  · Inline edit.
+  · ¿Persiste?
+
+Test 6.13 — Borrar item / gasto / categoría
+  · ¿Pide confirmación?
+  · ¿Persiste tras refresh?
+
+Test 6.14 — Cambiar adults/children en resumen
+  · Si existe bloque "totalStimatedGuests".
+  · ¿Persiste?
+
+Test 6.15 — Añadir/eliminar link en gasto
+  · Modal "Links" o "Tareas".
+  · Añadir URL → ¿aparece?
+  · Eliminar URL → ¿desaparece?
+
+Test 6.16 — Duplicar presupuesto entre eventos
+  · Si existe función "Duplicar a otro evento".
+  · ⚠️ CUIDADO: NO duplicar a "Boda Isabel & Raúl".
+
+Test 6.17 — Visibilidad de columnas (PresupuestoV2)
+  · Si existe selector de columnas.
+  · Toggle cada una.
+
+Test 6.18 — Scroll horizontal de tabs (10+ categorías)
+  · ¿Las tabs hacen scroll horizontal sin superponerse?
+
+Test 6.19 — Editar pago
+  · Si existe modal "Pagos" en un gasto.
+  · Editar monto / fecha / descripción.
+
+──────────────────────────────────────────────────────────────────────────────
+FASE 7 — ITINERARIO / SERVICIOS (Tareas)
+──────────────────────────────────────────────────────────────────────────────
+
+(Ir a /itinerario o /servicios)
+
+Test 7.1 — Cargar lista de itinerarios
+  · ¿Cuántos itinerarios hay? ¿Cómo se cambia entre ellos?
+
+Test 7.2 — Crear itinerario nuevo
+  · Botón "+ pestaña" / "Crear nuevo".
+  · Wizard.
+  · ⚠️ CRÍTICO: capturar Network — ¿llega 200, 400, 500?
+  · ¿Aparece el itinerario en la lista?
+  · ¿Errores en consola?
+
+Test 7.3 — Duplicar itinerario completo
+  · Si existe.
+  · ¿Duplica con todas sus tareas?
+
+Test 7.4 — Crear tarea en itinerario
+  · "+ añadir tarea".
+  · Aparece con valores default.
+  · Persiste.
+
+Test 7.5 — Editar campo de tarea (descripción, fecha, prioridad, etc.)
+  · Inline edit.
+  · ¿Aparece optimista (cambio inmediato) o espera al API?
+
+Test 7.6 — Cambiar estatus de tarea (completar/descompletar)
+  · Checkbox.
+  · ¿Cambia visual? Persiste.
+
+Test 7.7 — Asignar responsable
+  · Selector de usuarios.
+
+Test 7.8 — Subir attachment a tarea (PDF, foto, doc)
+  · Arrastrar o seleccionar.
+  · ¿Aparece en lista?
+  · Refresh → ¿persiste?
+
+Test 7.9 — Borrar attachment
+  · ¿Desaparece + se borra del storage Firebase?
+
+Test 7.10 — Comentarios en tarea
+  · Añadir comentario.
+  · ¿Aparece en feed?
+  · Editar/borrar tu propio comentario.
+
+Test 7.11 — Borrar tarea
+  · Confirmación.
+  · ¿Persiste?
+
+Test 7.12 — Vista Kanban (TaskDetailModal)
+  · Si existe.
+  · Drag&drop entre columnas (Pendiente → En curso → Hecho).
+  · ¿Funciona?
+
+Test 7.13 — Permisos compartidos en itinerario
+  · "Compartir" o "Permisos".
+  · Añadir usuario.
+  · Cambiar permiso (view/edit/none).
+  · ¿Persiste? ¿Llega notificación al usuario afectado?
+
+──────────────────────────────────────────────────────────────────────────────
+FASE 8 — INVITACIONES
+──────────────────────────────────────────────────────────────────────────────
+
+(Ir a /invitaciones)
+
+Test 8.1 — Lista de invitados con estados de invitación
+  · Estados: pendiente, enviada, leída, confirmada, rechazada.
+
+Test 8.2 — Enviar invitación por email
+  · Click en "Enviar email" a un invitado.
+  · ¿Se actualiza el estado?
+
+Test 8.3 — Enviar invitación por WhatsApp
+  · Click "WhatsApp".
+  · ¿Abre WhatsApp Web/app? ¿Manda el mensaje?
+
+Test 8.4 — Reenviar invitación
+  · Click "Reenviar".
+  · ¿Aparece nueva entrada en comunicaciones_array del invitado?
+
+Test 8.5 — Templates de invitación
+  · Si hay editor de templates.
+  · Probar variables: {nombre_invitado}, {fecha_evento}, etc.
+
+──────────────────────────────────────────────────────────────────────────────
+FASE 9 — MOMENTOS (álbumes de fotos)
+──────────────────────────────────────────────────────────────────────────────
+
+(Ir a /momentos)
+
+Test 9.1 — Cargar álbumes
+  · ¿Aparecen álbumes? ¿Vacío si nuevo evento?
+
+Test 9.2 — Crear álbum
+  · "+ álbum".
+  · Wizard.
+
+Test 9.3 — Subir foto a álbum
+  · Foto pequeña, mediana, grande.
+  · Foto en portrait (móvil) → ¿se auto-rota EXIF correcto?
+  · Foto >5MB → ¿se comprime?
+
+Test 9.4 — Subir vídeo
+  · MP4 pequeño.
+
+Test 9.5 — Subir documento (PDF, docx, xlsx)
+  · ¿Aparece en la cola? ¿Sube sin error?
+
+Test 9.6 — Subir ZIP
+  · ¿Lo descomprime o lo guarda como blob?
+
+Test 9.7 — Subir audio (MP3)
+
+Test 9.8 — Drag&drop carpeta entera (10+ fotos)
+  · ¿Lee recursivamente?
+
+Test 9.9 — Cancelar upload en progreso
+  · Empezar a subir → cancelar → ¿se aborta correctamente?
+
+Test 9.10 — Cola persistente
+  · Empezar upload de 5 archivos → cerrar pestaña.
+  · Reabrir → ¿continúa la cola?
+
+Test 9.11 — Sin red móvil (3G/4G lento)
+  · Throttle a 3G en DevTools Network.
+  · Subir foto.
+  · ¿Hay reintento automático?
+
+──────────────────────────────────────────────────────────────────────────────
+FASE 10 — LISTA DE REGALOS
+──────────────────────────────────────────────────────────────────────────────
+
+(Ir a /lista-regalos)
+
+Test 10.1 — Cargar lista
+Test 10.2 — Añadir regalo (nombre, precio, link, foto)
+Test 10.3 — Marcar como reservado por un invitado
+Test 10.4 — Editar precio
+Test 10.5 — Eliminar regalo
+
+──────────────────────────────────────────────────────────────────────────────
+FASE 11 — RESUMEN DEL EVENTO
+──────────────────────────────────────────────────────────────────────────────
+
+(Ir a /resumen-evento)
+
+Test 11.1 — Datos generales del evento
+Test 11.2 — Cambiar lugar del evento
+  · Si hay buscador, escribir nombre de venue.
+  · Seleccionar → ¿persiste?
+Test 11.3 — Cambiar fecha del evento
+Test 11.4 — Cambiar tipo de evento (boda → comunión → bautizo)
+  · ¿El tipo precarga correctamente al re-editar? (BUG-15 reportado antes)
+Test 11.5 — Subir foto de portada del evento
+
+──────────────────────────────────────────────────────────────────────────────
+FASE 12 — REALTIME MULTI-USUARIO (socket)
+──────────────────────────────────────────────────────────────────────────────
+
+Test 12.1 — Mismo usuario en 2 navegadores
+  · Chrome + Safari del mismo equipo.
+  · Login con bodasdehoy.com@gmail.com en ambos.
+  · Mismo evento abierto en /invitados.
+  · Editar un invitado en Chrome → ¿Safari ve el cambio en <2s?
+
+Test 12.2 — 2 usuarios distintos con permisos
+  · Admin en Chrome, colaborador (jcc@bodasdehoy.com) en Safari.
+  · Mismo evento compartido.
+  · Cambiar gasto en presupuesto en admin → ¿colaborador lo ve?
+
+Test 12.3 — Verificar URL del socket
+  · DevTools → Network → filtrar "ws" o "socket.io".
+  · ¿Apunta a api-ia.bodasdehoy.com (correcto) o a dominio muerto?
+
+──────────────────────────────────────────────────────────────────────────────
+FASE 13 — ACCESIBILIDAD + PERFORMANCE
+──────────────────────────────────────────────────────────────────────────────
+
+Test 13.1 — Lighthouse a11y en /home
+  · Score >85 → OK.
+  · <85 → reportar qué falla (contraste, alt, aria, focus, etc.).
+
+Test 13.2 — Navegación por teclado (Tab + Enter + Esc)
+  · Login solo con teclado.
+  · Recorrer menú principal.
+  · ¿Los focus se ven? ¿Hay focus traps en modales?
+
+Test 13.3 — Cursor en botones (BUG-H-01 reportado)
+  · Hover sobre TODOS los botones del header.
+  · ¿Cambia a pointer? (Inspeccionar getComputedStyle si dudas)
+
+Test 13.4 — Alt en imágenes
+  · DevTools → buscar `<img>` sin alt.
+  · Documentar cuántos hay.
+
+Test 13.5 — Lighthouse performance en /home
+  · LCP, FID, CLS.
+
+Test 13.6 — Lighthouse SEO
+  · Title + meta description únicos por página.
+
+──────────────────────────────────────────────────────────────────────────────
+FASE 14 — SEGURIDAD
+──────────────────────────────────────────────────────────────────────────────
+
+Test 14.1 — XSS en campos de texto
+  · Crear invitado con nombre: <script>alert('xss')</script>
+  · ¿Se ejecuta el script? (NO debería)
+
+Test 14.2 — PII en endpoints públicos
+  · GET /api/public/seating/{eventId}
+  · ¿Devuelve emails, teléfonos de invitados? (NO debería)
+  · GET /api/public/event/{eventId}
+  · ¿Devuelve datos sensibles innecesarios?
+
+Test 14.3 — Console output limpio en producción
+  · DevTools console en modo Network → solo console.warn debería estar.
+  · NO debería haber console.log de debug.
+  · NO debería haber fetches a localhost.
+
+Test 14.4 — CORS headers
+  · DevTools → Network → cualquier request.
+  · Ver Access-Control-Allow-Origin headers.
+
+Test 14.5 — JWT en localStorage vs cookie httpOnly
+  · ¿El JWT está en localStorage (XSS leakable) o en cookie httpOnly?
+
+──────────────────────────────────────────────────────────────────────────────
+FASE 15 — ROLES + PERMISOS + COMUNICACIÓN ENTRE USUARIOS
+──────────────────────────────────────────────────────────────────────────────
+
+⚠️ Esta fase requiere LOS 3 USUARIOS y MÚLTIPLES navegadores en paralelo.
+Recomendado: Chrome (Usuario #1), Safari (Usuario #2), Firefox (Usuario #3)
+para evitar conflictos de sesión.
+
+Test 15.1 — Identificar el rol real de cada usuario
+  · Login con CADA usuario en navegador separado.
+  · Capturar el `user.role` y `user.typeRole` desde React fiber del header.
+  · Documentar qué muestra cada rol como diferente en la UI (botones admin
+    visibles/ocultos, secciones, etc.).
+  · Esperado por memoria del producto:
+    - #1: ADMIN (todo)
+    - #2: novio/novia/organizador (CRUD propio)
+    - #3: colaborador/invitado (vista limitada según permisos compartidos)
+  · Documentar discrepancias con lo esperado.
+
+Test 15.2 — Crear evento y compartirlo entre usuarios
+  · Login como Usuario #2 (jcc@bodasdehoy.com).
+  · Crear evento "QA Permisos Test {timestamp}".
+  · Ir a Resumen / Compartir → invitar a Usuario #3 (jcc@marketingsoluciones.com).
+  · Asignar permisos específicos por módulo:
+    - Invitados: edit
+    - Mesas: view
+    - Presupuesto: none
+    - Itinerario: edit
+    - Servicios: view
+  · CAPTURAR:
+    - ¿Llega notificación in-app a Usuario #3?
+    - ¿Llega email a Usuario #3?
+    - ¿Cuánto tarda?
+
+Test 15.3 — Usuario #3 acepta invitación y ve el evento
+  · Login Usuario #3 en OTRO navegador.
+  · ¿Aparece el evento "QA Permisos Test ..." en su lista?
+  · ¿Aparece notificación de "Te han añadido a un evento"?
+  · Click → entra al evento.
+
+Test 15.4 — Permisos respetados por módulo (Usuario #3 con permisos asignados)
+  Logueado como #3, ir al evento compartido:
+  · /invitados — debe poder EDITAR (añadir/borrar invitados).
+  · /mesas — debe poder VER pero NO editar (botones de edición deshabilitados o ausentes).
+  · /presupuesto — NO debe poder acceder o ver "Sin permisos".
+  · /itinerario — debe poder EDITAR tareas.
+  · /servicios — debe poder VER pero NO editar.
+
+  Para cada módulo:
+  · Intentar la acción permitida → debe funcionar.
+  · Intentar la acción NO permitida → debe estar bloqueada (botón deshabilitado,
+    mensaje "Sin permisos", redirect, modal).
+  · ¿Cómo bloquea? ¿UI gris (deshabilitado) o redirect total?
+  · ¿El intento de POST/PUT directo a la API es rechazado por backend (403)?
+    Probar via DevTools → Console → fetch a la mutation.
+
+Test 15.5 — Modificación de permisos en vivo
+  · Usuario #2 abre Resumen/Compartir.
+  · Cambiar permiso de Usuario #3 en módulo "Mesas": view → edit.
+  · ¿Usuario #3 ve el cambio inmediatamente (socket) o necesita refresh?
+  · ¿Aparece notificación al Usuario #3?
+
+Test 15.6 — Quitar permisos completamente
+  · Usuario #2 → Quitar a Usuario #3 del evento.
+  · Usuario #3:
+    - ¿El evento desaparece de su lista (en sesión activa)?
+    - ¿Si está VIENDO el evento en ese momento, es expulsado o sigue dentro?
+    - ¿Si refresca, deja de tener acceso?
+
+Test 15.7 — Edición concurrente (mismo registro, mismo tiempo)
+  Caso: Usuario #2 y #3 EDITANDO el MISMO invitado simultáneamente.
+  · #2 abre invitado X → modal edición.
+  · #3 abre invitado X → modal edición.
+  · #2 cambia nombre a "Juan Editado por 2" → guarda.
+  · #3 (sin recargar) cambia teléfono a "999" → guarda.
+  · CAPTURAR:
+    - ¿Cuál gana? (last-write-wins, merge, conflict warning, error)
+    - ¿Alguno pierde datos sin saber?
+    - ¿Hay lock optimista / versionado?
+
+Test 15.8 — Drag&drop concurrente de invitados en mesas
+  Caso: #2 y #3 cambiando invitados de mesa al mismo tiempo.
+  · #2 mueve invitado A de mesa 1 → mesa 2.
+  · #3 (mismo evento abierto en otro browser) mueve A de mesa 1 → mesa 3.
+  · ¿El usuario que llega segundo ve el cambio actualizado?
+  · ¿Hay race condition que duplica/pierde invitado?
+
+Test 15.9 — Crear/borrar concurrente
+  · #2 crea tarea "Tarea A" en itinerario.
+  · #3 (mismo evento abierto) ¿ve la tarea aparecer en su pantalla en <3s?
+  · #3 borra la tarea "Tarea A".
+  · #2 ¿ve desaparecer la tarea en su pantalla?
+
+Test 15.10 — Comentarios + notificaciones cross-user
+  · #3 (colaborador) añade comentario en una tarea: "@usuario_2 revisa esto".
+  · #2 ¿recibe notificación in-app? ¿email?
+  · ¿El campanil del header muestra el +1?
+  · ¿La notificación lleva al lugar correcto al hacer click?
+
+Test 15.11 — Reasignar responsable de tarea cross-user
+  · #2 crea tarea con responsable = #3.
+  · #3 recibe notificación.
+  · #3 marca como completada.
+  · #2 recibe notificación de "Tarea completada por X".
+
+Test 15.12 — Chat IA + contexto de evento compartido
+  · #3 (con permisos limitados) abre Copilot en el evento compartido.
+  · Pregunta: "¿Qué tareas tengo asignadas?"
+  · ¿La IA solo lee tareas del evento ACTUAL o filtra solo las de #3 como responsable?
+
+Test 15.13 — Comunicación con invitados (no usuarios del sistema)
+  Distinción importante:
+    - **Usuarios** = #1/#2/#3 (organizadores/colaboradores con login).
+    - **Invitados** = personas en la boda (lista del evento, NO logueables).
+
+  Tests:
+  · Enviar invitación por email a un invitado (no usuario).
+  · ¿Llega el email?
+  · ¿El invitado puede confirmar asistencia sin loguearse? (link público)
+  · Si confirma, ¿el usuario organizador (#2) recibe notificación?
+  · ¿El estado del invitado cambia a "confirmado"?
+
+Test 15.14 — Acceso a evento ajeno (sin permisos)
+  · Login como Usuario #3.
+  · Intentar acceder DIRECTAMENTE por URL a un evento donde NO tiene permisos:
+    https://app-dev.bodasdehoy.com/invitados?event={ID_DE_EVENTO_AJENO}
+  · ¿Bloquea? ¿Redirect a /home? ¿Mensaje "Sin permisos"?
+  · Intentar leer datos via API directa (DevTools fetch a getEvento):
+    ¿el backend devuelve datos o 403/null?
+
+Test 15.15 — Bandeja de mensajes WhatsApp (organizador ↔ invitados)
+  · /messages o /bandeja (verificar ruta).
+  · ¿Aparece historial de mensajes WhatsApp enviados/recibidos?
+  · ¿Se puede responder a un invitado?
+  · ¿Los mensajes son por evento (filtrados) o globales?
+
+Test 15.16 — Permisos en /servicios (proveedores)
+  · ¿Se pueden añadir proveedores (fotógrafo, catering, DJ)?
+  · ¿Los proveedores se compartirían con el invitado #3?
+  · ¿Hay vista "Kanban" / "Tarjeta" / "Tabla" del módulo Servicios?
+
+Test 15.17 — Logout en uno afecta a TODOS los browsers del MISMO usuario
+  · #2 logueado en 2 navegadores (Chrome + Safari).
+  · Logout en Chrome.
+  · ¿Safari sigue logueado o también cerró?
+  · Comportamiento esperado depende del diseño — documentar lo real.
+
+Test 15.18 — Cambio de password fuerza logout en otras sesiones
+  · #2 cambia su password desde Configuración.
+  · Sesión en otro browser de #2 → ¿se invalida?
+  · #2 logueado con password vieja en otro browser → ¿401 al siguiente request?
+
+═══════════════════════════════════════════════════════════════════════════════
+📝 CÓMO REPORTAR CADA BUG
+═══════════════════════════════════════════════════════════════════════════════
+
+Para cada hallazgo, formato OBLIGATORIO:
+
+### BUG-CW-{NN}
+- **Título**: descripción corta (max 80 chars)
+- **Página/URL**: URL completa
+- **Stage**: en qué momento del flujo ocurrió
+- **Usuario**: cuál de los 3 de prueba
+- **Browser + OS + Versión**: ej. Chrome 149 / macOS 26.0
+- **Pasos para reproducir**:
+  1. ...
+  2. ...
+  3. ...
+- **Esperado**: qué debería pasar
+- **Obtenido**: qué pasó realmente
+- **Evidencia técnica**:
+  - Console errors (copy-paste exacto)
+  - Network requests relevantes (URL, status, payload abreviado)
+  - localStorage / cookies relevantes
+  - React fiber state (si aplica): `Object.keys(el).find(k => k.startsWith('__reactFiber'))` y volcar `memoizedState`
+  - Screenshot DOM con devtools abierto
+- **Severidad**:
+  - `blocker`: app inusable
+  - `critical`: feature core roto
+  - `major`: feature roto pero workaround posible
+  - `minor`: cosmético o secundario
+  - `cosmetic`: solo estética
+- **Hipótesis de causa raíz** (si tienes pista técnica)
+
+═══════════════════════════════════════════════════════════════════════════════
+✅ MARCAR TESTS COMO PASS
+═══════════════════════════════════════════════════════════════════════════════
+
+Solo marcar PASS si:
+1. Ejecutaste literalmente el test.
+2. El comportamiento coincide con "Esperado".
+3. NO viste errors/warnings en consola DURANTE el test.
+4. Lo probaste en al menos 2 navegadores.
+
+═══════════════════════════════════════════════════════════════════════════════
+📊 INFORME FINAL
+═══════════════════════════════════════════════════════════════════════════════
+
+Al acabar, entregar un informe con:
+
+1. **Resumen ejecutivo**:
+   | Severidad | Cantidad |
+   | --- | --- |
+   | Blocker | N |
+   | Critical | N |
+   | Major | N |
+   | Minor | N |
+   | Cosmetic | N |
+   | TOTAL | N |
+
+2. **Lista de bugs ordenada por severidad** (formato BUG-CW-NN)
+
+3. **Tests PASS** (qué funcionó bien)
+
+4. **Tests PARTIAL** (qué funcionó a medias)
+
+5. **Tests PENDING** (no se llegaron a probar y por qué)
+
+6. **Observaciones generales sobre UX/UI** (no bugs estrictos pero notables)
+
+7. **Sugerencias de mejora** (cosas que aunque no son bugs, ayudarían)
+
+═══════════════════════════════════════════════════════════════════════════════
+⚠️ RECORDATORIOS FINALES
+═══════════════════════════════════════════════════════════════════════════════
+
+⛔ NO TOCAR "Boda Isabel & Raúl" (sagrada — solo navegar, no editar).
+⛔ NO usar entorno *-test ni producción. SOLO *-dev.bodasdehoy.com.
+⛔ Limpiar TODA la data que crees al acabar (invitados, gastos, mesas, etc.).
+⛔ NO compartir credenciales en logs públicos o screenshots públicos.
+
+✅ DevTools abiertas en TODOS los tests.
+✅ Multi-browser: mínimo Chrome desktop + Safari iOS real.
+✅ Pasos reproducibles + evidencia técnica en cada bug.
+✅ Severidad estricta: no inflar "blocker" para algo que es "minor".
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Empieza por FASE 1. Avanza secuencialmente. Reporta al canal de coordinación
+con prefijo "DE: QA-cowork" y postea en hilo principal.
+
+Buena caza 🐛 — gracias por la dedicación.

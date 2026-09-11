@@ -11,12 +11,12 @@ interface AddColumnModalProps {
 // Colores predefinidos para las columnas
 const COLUMN_COLORS = [
   { bg: 'bg-gray-50', border: 'border-gray-300', name: 'Gris' },
-  { bg: 'bg-pink-50', border: 'border-pink-300', name: 'Azul' },
-  { bg: 'bg-[#eeffee]', border: 'border-[#7bff7b]', name: 'Verde' },
+  { bg: 'bg-blue-50', border: 'border-blue-300', name: 'Azul' },
+  { bg: 'bg-emerald-50', border: 'border-emerald-300', name: 'Verde' },
   { bg: 'bg-yellow-50', border: 'border-yellow-300', name: 'Amarillo' },
-  { bg: 'bg-[#fff0f0]', border: 'border-[#ffa7a7]', name: 'Rojo' },
-  { bg: 'bg-purple-50', border: 'border-purple-300', name: 'Púrpura' },
-  { bg: 'bg-pink-50', border: 'border-pink-300', name: 'Rosa' },
+  { bg: 'bg-red-50', border: 'border-red-300', name: 'Rojo' },
+  { bg: 'bg-secondary/10', border: 'border-secondary', name: 'Púrpura' },
+  { bg: 'bg-base', border: 'border-primary', name: 'Marca' },
   { bg: 'bg-indigo-50', border: 'border-indigo-300', name: 'Índigo' },
 ];
 

@@ -2,6 +2,9 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
+import { MemoryManager } from '@/features/Memory/MemoryManager';
+import { PushSubscribeButton } from '@/features/WebPush/PushSubscribeButton';
+
 interface StorageInfo {
   chatDrafts: number;
   conversationActions: number;
@@ -97,7 +100,7 @@ export default function AdvancedSettingsPage() {
 
   const clearAllLocalData = useCallback(() => {
     try {
-      const preserve = ['dev-user-config', 'jwt_token', 'api2_jwt_token'];
+      const preserve = ['dev-user-config', 'jwt_token', 'mcp_jwt_token'];
       const saved: Record<string, string> = {};
       preserve.forEach((k) => {
         const v = localStorage.getItem(k);
@@ -157,6 +160,22 @@ export default function AdvancedSettingsPage() {
       <p className="text-sm text-gray-500 mb-6">Gestión de datos locales, depuración y herramientas avanzadas.</p>
 
       <div className="space-y-4">
+        {/* Notificaciones Web Push — SPRINT 4 (jul-2026) */}
+        <SettingCard
+          description="Recibe notificaciones del sistema cuando llegue un mensaje nuevo, aunque tengas cerrada la app. Requiere permiso del navegador."
+          title="Notificaciones en este dispositivo"
+        >
+          <PushSubscribeButton />
+        </SettingCard>
+
+        {/* Memoria del usuario — api-ia (jul-2026) */}
+        <SettingCard
+          description="Lo que la IA recuerda de ti entre conversaciones. Puedes buscar, editar o borrar recuerdos, y ver tu consumo."
+          title="Memoria"
+        >
+          <MemoryManager />
+        </SettingCard>
+
         {/* Debug Mode */}
         <SettingCard
           description="Muestra información adicional en consola para diagnóstico de problemas."

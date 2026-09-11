@@ -5,7 +5,8 @@ import { FC, useState } from "react";
 import PagesWithAuth from "../HOC/PagesWithAuth";
 import { AuthContextProvider, LoadingContextProvider } from '../context'
 import { deleteCookie } from "../utils/Cookies";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import ProfileStudio from "../components/perfil/ProfileStudio";
 import { useToast } from '../hooks/useToast';
 import Cookies from "js-cookie";
 import { useAuthentication } from '../utils/Authentication';
@@ -29,6 +30,8 @@ const Configuration = () => {
   const { _signOut } = useAuthentication()
   const router = useRouter()
   const toast = useToast()
+  const searchParams = useSearchParams()
+  const studio = searchParams?.get("studio") !== "legacy"
 
   const components: optionComponent[] = [
     {
@@ -71,6 +74,8 @@ const Configuration = () => {
       setLoading(false);
     }
   }
+
+  if (studio) return <ProfileStudio />;
 
   return (
       <section className="max-w-screen-lg mx-auto grid grid-cols-1 md:pt-5 md:gap-10">

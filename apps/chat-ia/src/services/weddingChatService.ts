@@ -7,7 +7,7 @@
 import type { WeddingWebData, PaletteType, SectionType } from '@bodasdehoy/wedding-creator';
 import { buildAuthHeaders } from '@/utils/authToken';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';
 
 export interface WeddingChatMessage {
   content: string;

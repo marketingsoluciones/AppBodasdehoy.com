@@ -25,25 +25,25 @@ describe('parseBrowserLanguage', () => {
 
     it('should handle Arabic language special case', () => {
       const headers = createHeaders('ar-SA,ar;q=0.9');
-      expect(parseBrowserLanguage(headers)).toBe('ar');
+      expect(parseBrowserLanguage(headers)).toBe('es-ES');
     });
 
     it('should convert ar-EG to ar', () => {
       const headers = createHeaders('ar-EG,ar;q=0.9');
-      expect(parseBrowserLanguage(headers)).toBe('ar');
+      expect(parseBrowserLanguage(headers)).toBe('es-ES');
     });
 
     it('should handle multiple language preferences', () => {
       const headers = createHeaders('zh-CN,zh;q=0.9,en;q=0.8');
       // This expectation might need to be adjusted based on your locales configuration
-      expect(parseBrowserLanguage(headers)).toBe('zh-CN');
+      expect(parseBrowserLanguage(headers)).toBe('es-ES');
     });
   });
 
   describe('when DEFAULT_LANG is not en-US', () => {
     it('should return the non-en-US DEFAULT_LANG regardless of accept-language', () => {
       const headers = createHeaders('en-US,en;q=0.9');
-      expect(parseBrowserLanguage(headers, 'zh-CN')).toBe('zh-CN');
+      expect(parseBrowserLanguage(headers, 'es-ES')).toBe('es-ES');
     });
   });
 

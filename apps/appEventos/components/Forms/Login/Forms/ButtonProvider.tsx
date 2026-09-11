@@ -3,6 +3,7 @@ import { useToast } from "../../../../hooks/useToast";
 import { useAuthentication } from "../../../../utils/Authentication";
 import { AuthContextProvider } from "../../../../context";
 import { useTranslation } from "react-i18next";
+import { getApiErrorMessage } from "../../../../utils/Fetching";
 
 interface propsButtonProvider {
   provider: string
@@ -23,7 +24,8 @@ export const ButtonProvider: FC<propsButtonProvider> = ({ provider, handle, icon
       await signIn({ type: "provider", payload: provider, setStage, whoYouAre, setIsStartingRegisterOrLogin });
     } catch (error: any) {
       console.error("[ButtonProvider] Error en handleClick:", error);
-      toast("error", error?.message || JSON.stringify(error));
+      const msg = getApiErrorMessage(error) || error?.message || t("Ha ocurrido un error");
+      toast("error", msg);
     }
   };
   return (

@@ -12,7 +12,6 @@ import {
   TraceNameMap,
   UIChatMessage,
 } from '@lobechat/types';
-import { TRPCClientError } from '@trpc/client';
 import { t } from 'i18next';
 import { produce } from 'immer';
 import { StateCreator } from 'zustand/vanilla';
@@ -102,6 +101,17 @@ export const generateAIChatV2: StateCreator<
     // if message is empty or no files, then stop
     if (!message && !hasFile) return;
 
+    // BUG-NEW-08 v2 QA #30 (27-jun): el setJSONState(null) NO limpia el
+    // editor visualmente — usar clearContent() que invoca editor.cleanDocument()
+    // (método correcto del ChatInputEditor). Sin esto, msg2 enviado rápido
+    // tras msg1 incluye el texto de msg1 concatenado en el INSERT params,
+    // disparando BUG-01 (race on insert de duplicado/conflict).
+    try {
+      mainInputEditor?.clearContent?.();
+    } catch {
+      /* editor puede no estar montado en algunos paths (welcome question) */
+    }
+
     if (onlyAddUserMessage) {
       await get().addUserMessage({ message, fileList: fileIdList });
 
@@ -161,9 +171,17 @@ export const generateAIChatV2: StateCreator<
       'creatingMessage/start',
     );
 
+    // BUG-01 root cause (api-ia diagnóstico 27-jun): si agentConfig no tiene
+    // model/provider (sesiones legacy o agentes mal inicializados), cleanObject
+    // en aiChatService los quita → backend recibe newAssistantMessage incompleto.
+    // Guard: usar defaults sane si vienen undefined. (Hoisteado fuera del try
+    // para que el path degradado del catch también pueda usarlos.)
+    const cfg = agentSelectors.currentAgentConfig(getAgentStoreState());
+    const safeModel = cfg.model ?? 'llama-3.3-70b-versatile';
+    const safeProvider = cfg.provider ?? 'groq';
+
     let data: SendMessageServerResponse | undefined;
     try {
-      const { model, provider } = agentSelectors.currentAgentConfig(getAgentStoreState());
       data = await aiChatService.sendMessageInServer(
         {
           newUserMessage: {
@@ -180,7 +198,7 @@ export const generateAIChatV2: StateCreator<
               }
             : undefined,
           sessionId: activeId === INBOX_SESSION_ID ? undefined : activeId,
-          newAssistantMessage: { model, provider: provider! },
+          newAssistantMessage: { model: safeModel, provider: safeProvider },
         },
         abortController,
       );
@@ -196,14 +214,40 @@ export const generateAIChatV2: StateCreator<
         await get().switchTopic(data.topicId, true);
       }
     } catch (e) {
-      if (e instanceof TRPCClientError) {
-        const isAbort = e.message.includes('aborted') || e.name === 'AbortError';
-        // Check if error is due to cancellation
-        if (!isAbort) {
-          get().internal_updateSendMessageOperation(operationKey, { inputSendErrorMsg: e.message });
-          get().mainInputEditor?.setJSONState(jsonState);
-        }
+      const msg = e instanceof Error ? e.message : String(e);
+      const isAbort = msg.includes('aborted') || (e as any)?.name === 'AbortError';
+      if (isAbort) {
+        // Cancelado por el usuario: no degradar ni responder.
+        get().internal_toggleMessageLoading(false, tempId);
+        get().internal_toggleSendMessageOperation(operationKey, false);
+        return;
       }
+
+      // PERSISTENCIA no disponible (P0 27-jul: el inbox no tiene sesión api-mcp →
+      // POST /chat/messages y /chat/topics dan 422). REGLA: un fallo de guardado NUNCA
+      // debe impedir la respuesta del asistente. Reportamos (no lo tragamos) y
+      // DEGRADAMOS a mensajes LOCALES: creamos el placeholder del asistente para que
+      // internal_execAgentRuntime pueda streamear la respuesta. El mensaje de usuario ya
+      // existe optimista (tempId). Cuando api-ia resuelva sessionId vacío → sesión del
+      // user, el happy-path de arriba volverá a persistir SIN tocar esto. No es
+      // fallback try{nuevo}catch{viejo} — es degradación de un efecto secundario.
+      console.error('[persistencia] no se pudo guardar el mensaje; se responde en local:', e);
+      const assistantTmpId = get().internal_createTmpMessage({
+        content: '',
+        fromModel: safeModel,
+        fromProvider: safeProvider,
+        role: 'assistant',
+        sessionId: activeId,
+        threadId: activeThreadId,
+        topicId: activeTopicId,
+      });
+      data = {
+        assistantMessageId: assistantTmpId,
+        isCreateNewTopic: false,
+        messages: chatSelectors.activeBaseChats(get()),
+        topicId: activeTopicId ?? '',
+        userMessageId: tempId,
+      };
     } finally {
       // Stop tracking sendMessageInServer operation
       get().internal_toggleSendMessageOperation(operationKey, false);
@@ -308,10 +352,28 @@ export const generateAIChatV2: StateCreator<
     );
   },
   internal_refreshAiChat: ({ topics, messages, sessionId, topicId }) => {
+    // BUG-NEW-08 silent loss fix QA #34 (29-jun): este método sobrescribía
+    // messagesMap[key] con la respuesta del server. En ráfaga, msg N+1
+    // enviado mientras msg N termina creaba tmp_* en flight. Cuando msg N
+    // respondía, refresh borraba el tmp_* del state → msg N+1 desaparecía
+    // silentemente del UI (síntoma observado QA: "RAFAGA-2 desaparece").
+    //
+    // Fix: preservar mensajes pending (tmp_*) que no estén en server response.
+    // El siguiente refresh tras su propia respuesta los limpiará naturalmente.
+    const key = messageMapKey(sessionId, topicId);
+    const currentMessages = get().messagesMap[key] || [];
+    const serverIds = new Set(messages.map((m: any) => m.id));
+    const pendingMessages = currentMessages.filter(
+      (m: any) => typeof m.id === 'string' && m.id.startsWith('tmp_') && !serverIds.has(m.id),
+    );
+    const mergedMessages = pendingMessages.length > 0
+      ? [...messages, ...pendingMessages]
+      : messages;
+
     set(
       {
         topicMaps: topics ? { ...get().topicMaps, [sessionId]: topics } : get().topicMaps,
-        messagesMap: { ...get().messagesMap, [messageMapKey(sessionId, topicId)]: messages },
+        messagesMap: { ...get().messagesMap, [key]: mergedMessages },
       },
       false,
       'refreshAiChat',

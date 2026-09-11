@@ -74,7 +74,10 @@ export const useMenu = () => {
   const { canInstall, install } = usePWAInstall();
   const hasNewVersion = useNewVersion();
   const { t } = useTranslation(['common', 'setting', 'auth']);
-  const { showCloudPromotion, hideDocs } = useServerConfigStore(featureFlagsSelectors);
+  // QA 30-jun: ver Desktop/index.tsx — defensa frente a featureFlags=undefined.
+  const featureFlags = (useServerConfigStore(featureFlagsSelectors) || {}) as any;
+  const showCloudPromotion = featureFlags.showCloudPromotion === true;
+  const hideDocs = featureFlags.hideDocs === true;
   const { openLoginModal } = useLoginModal();
   const [isLogin, isLoginWithAuth] = useUserStore((s) => [
     authSelectors.isLogin(s),
@@ -150,7 +153,16 @@ export const useMenu = () => {
     },
     {
       key: 'advanced',
-      label: <Link href={'/settings/advanced'}>Advanced</Link>,
+      // QA 14-jul: en el build anterior `t('userPanel.advanced', 'Avanzado')` quedó
+      // como etiqueta VACÍA en runtime (el default del 2º arg no se aplicó porque la
+      // key aún no existía en zh-CN → sin key el fallback devolvía ''). Ya está
+      // añadida en locales/default/common.ts; hasta que el CI genere la traducción
+      // ES, mostramos el texto directo para no dejar un item fantasma.
+      label: (
+        <Link href={'/settings/advanced'}>
+          {t('userPanel.advanced', { defaultValue: 'Avanzado' }) || 'Avanzado'}
+        </Link>
+      ),
     },
     {
       type: 'divider',

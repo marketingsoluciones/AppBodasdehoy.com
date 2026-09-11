@@ -1,0 +1,61 @@
+De: Front App Bodasdehoy (repo AppBodasdehoy.com)
+Para: #copilot-api-ia · Infra · api-ia · MCP (GraphQL/R2 → hilo maestro backend)
+
+*Cierre de actividades P0/P1 — una respuesta por stream (plantilla abajo)*
+
+Objetivo: ir cerrando con *LISTO + evidencia* sin rondas. Definición «cerrado»: `scripts/PENDIENTES-NOSOTROS-VS-ELLOS.txt` §DEFINICIÓN. Checklist medible: `scripts/OPERATIVO-CHECKLIST.txt`.
+
+---
+
+*Stream 1 — Socket (Infra + api-ia + Front)*
+
+BASE socket (unificada con IA / cert bodasdehoy): `https://api-ia.bodasdehoy.com` (solo origen; cliente añade `/socket.io/`).
+
+*DRI:* @___
+*Estado:* BLOQUEADO | EN CURSO | LISTO
+*ETA o fecha LISTO:*
+*Evidencia:* (curl/browser a `/socket.io/?EIO=4&transport=polling`; captura sin tokens; build con `NEXT_PUBLIC_SOCKET_URL`; `ALLOWED_ORIGINS` en api-ia)
+
+*Stream 2 — MCP enum `getMySubscription.status` + deploy*
+
+*DRI:* @___
+*Estado:*
+*ETA o fecha LISTO:*
+*Evidencia:* (entorno staging|prod + commit/deploy)
+
+*Front cuando Stream 2 LISTO:* reactivar el campo `status` en `getMySubscription` (cliente) + redeploy appEventos (+ chat-ia si aplica).
+
+---
+
+*Stream 3 — R2 CRM bodasdehoy (`uploadCRMEntityFile`)*
+
+*DRI:* @___
+*Estado:*
+*ETA o fecha LISTO:*
+*Evidencia:* (1 subida OK PROD o ticket con 4 datos)
+
+---
+
+*Stream 4 — api-ia bugs ~24 feb (P1)*
+
+*DRI:* @___
+*Estado:*
+*ETA o fecha LISTO:*
+*Evidencia:* (commit / release)
+
+---
+
+*Stream 5 — Front deploy + smoke Copilot (P1)*
+
+*DRI:* @___
+*Estado:*
+*ETA o fecha LISTO:*
+*Evidencia:* (URL deploy + 1 mensaje chat OK)
+
+---
+
+*Siguiente paso cuando Stream 1 LISTO:* smoke / UAT dos navegadores mismo evento — `scripts/SOCKET-APP-EVENTOS-UAT-CONVOCATORIA.txt` + doc api-ia `SOCKET_APP_EVENTOS_PLAN_UAT_MULTIEQUIPO.md`.
+
+*Anti-bucle:* `scripts/LIDERES-DRI-Y-ANTIBUCLE.txt`
+
+Gracias.

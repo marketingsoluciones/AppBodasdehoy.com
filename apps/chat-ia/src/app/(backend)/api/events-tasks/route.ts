@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { resolveServerMcpGraphqlUrl } from '@/const/mcpEndpoints';
 
-const API2_URL = 'https://api2.eventosorganizador.com/graphql';
+const API_MCP_URL = resolveServerMcpGraphqlUrl();
 
 const SUPPORT_KEYS: Record<string, string> = {
   bodasdehoy: 'SK-bodasdehoy-a71f5b3c',
@@ -69,7 +70,7 @@ export async function GET(req: NextRequest) {
   try {
     const supportKey = SUPPORT_KEYS[development] || SUPPORT_KEYS.bodasdehoy;
 
-    const res = await fetch(API2_URL, {
+    const res = await fetch(API_MCP_URL, {
       body: JSON.stringify({
         query: EVENTS_WITH_TASKS_QUERY,
         variables: { development, email: userId },
@@ -78,14 +79,21 @@ export async function GET(req: NextRequest) {
         'Content-Type': 'application/json',
         'Origin': 'https://bodasdehoy.com',
         'X-Development': development,
-        'X-Support-Key': supportKey,
+        // Unificación secretos api-mcp v2 (29-jun): X-Internal-Secret es el
+        // único secret servicio-servicio. X-Support-Key retirado (api-mcp
+        // /api/internal/* ya devuelve 401 al viejo). supportKey local se
+        // mantiene en el codebase por compatibilidad con otros callers que
+        // van a api-ia (no a api-mcp).
+        ...(process.env.INTERNAL_SECRET
+          ? { 'X-Internal-Secret': process.env.INTERNAL_SECRET }
+          : {}),
       },
       method: 'POST',
       signal: AbortSignal.timeout(15_000),
     });
 
     if (!res.ok) {
-      return NextResponse.json({ error: `api2 error ${res.status}`, events: [] }, { status: 502 });
+      return NextResponse.json({ error: `MCP error ${res.status}`, events: [] }, { status: 502 });
     }
 
     const data = await res.json();

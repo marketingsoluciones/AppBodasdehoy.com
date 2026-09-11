@@ -1,9 +1,10 @@
 import { ActionIcon } from '@lobehub/ui';
 import { Eye } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import HtmlPreviewDrawer from './PreviewDrawer';
+const HtmlPreviewDrawer = dynamic(() => import('./PreviewDrawer'), { ssr: false });
 
 interface HtmlPreviewActionProps {
   content: string;

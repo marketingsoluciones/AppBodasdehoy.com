@@ -12,7 +12,7 @@ import {
 } from 'firebase/auth';
 
 import { auth } from '@/libs/firebase';
-import { setCrossAppIdToken, clearCrossAppSession } from '@bodasdehoy/shared/auth';
+import { setCrossAppIdToken, setCrossAppDevelopment, clearCrossAppSession } from '@bodasdehoy/shared/auth';
 import { registerReferralIfPending, trackRegistrationComplete, getAttributionData, sendAttributionToApi } from '@bodasdehoy/shared';
 import posthog from 'posthog-js';
 
@@ -27,9 +27,7 @@ function getCurrentOrigin(): string {
   }
   
   // En el servidor, usar variables de entorno con dominio real
-  // Prioridad: NEXT_PUBLIC_BASE_URL > APP_URL > fallback a localhost solo en desarrollo
   const baseUrl = 
-    process.env.NEXT_PUBLIC_BASE_URL || 
     process.env.APP_URL || 
     (process.env.NODE_ENV === 'development' ? 'http://localhost:8000' : undefined);
   
@@ -53,7 +51,7 @@ function getCurrentOrigin(): string {
   }
   
   // En producción, lanzar error si no hay URL configurada
-  throw new Error('NEXT_PUBLIC_BASE_URL o APP_URL debe estar configurado para Google OAuth');
+  throw new Error('APP_URL debe estar configurado para Google OAuth');
 }
 
 const DEFAULT_DEVELOPMENT = 'bodasdehoy';
@@ -97,7 +95,7 @@ async function exchangeFirebaseTokenForJWT(
   // En producción, el proxy reenvía a BACKEND_URL server-side.
   const LOGIN_URL = typeof window !== 'undefined'
     ? '/api/auth/firebase-login'
-    : (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030') + '/api/auth/firebase-login';
+    : (process.env.API_IA_URL || process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030') + '/api/auth/firebase-login';
 
   // Guardar info del usuario de Firebase primero (siempre disponible)
   if (user) {
@@ -110,10 +108,12 @@ async function exchangeFirebaseTokenForJWT(
     }
   }
 
-  // SSO cross-domain: setear idTokenV0.1.0 con Domain=.bodasdehoy.com
-  // Permite que appEventos detecte la sesión iniciada desde chat-ia
+  // SSO cross-domain: setear idTokenV0.1.0 + current_development con Domain=.bodasdehoy.com
+  // Permite que appEventos detecte la sesión iniciada desde chat-ia y herede el whitelabel
+  // activo (localStorage es por-origen y no cruza subdominios — informe 13-jun §13.1).
   if (typeof window !== 'undefined') {
     setCrossAppIdToken(firebaseIdToken);
+    setCrossAppDevelopment(development);
   }
 
   try {
@@ -186,21 +186,45 @@ async function exchangeFirebaseTokenForJWT(
     }
 
     // Guardar JWT en localStorage
-    localStorage.setItem('api2_jwt_token', data.token);
+    localStorage.setItem('mcp_jwt_token', data.token);
     if (data.expiresAt) {
       localStorage.setItem('api2_jwt_expires_at', data.expiresAt);
     } else {
       localStorage.removeItem('api2_jwt_expires_at');
     }
-    localStorage.setItem('current_development', data.development || development);
+    const resolvedDev = data.development || development;
+    localStorage.setItem('current_development', resolvedDev);
+    // Propagar el whitelabel activo cross-subdominio (app-dev ↔ chat-dev).
+    if (typeof window !== 'undefined') setCrossAppDevelopment(resolvedDev);
 
     // También guardar jwt_token para compatibilidad con getAuthToken()
     localStorage.setItem('jwt_token', data.token);
 
-    // Cookie dedicada api2_jwt: el chat proxy la lee para Authorization header.
+    // Cookie dedicada mcp_jwt: el chat proxy la lee para Authorization header.
     // A diferencia de dev-user-config, ningún componente React la sobreescribe.
     if (typeof window !== 'undefined') {
-      document.cookie = `api2_jwt=${encodeURIComponent(data.token)}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+      document.cookie = `mcp_jwt=${encodeURIComponent(data.token)}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+    }
+
+    // QA-R6 (2-jul, refactor 4-jul): SSO chat→app requiere sessionBodas
+    // cross-domain via mutation auth(idToken) de api-mcp. Extraído a
+    // services/mcpAuth.ts para evitar drift con sso-auto/route.ts.
+    if (typeof window !== 'undefined') {
+      try {
+        const { callMcpAuthMutation, writeSessionBodasCookie } = await import('@/services/mcpAuth');
+        const result = await callMcpAuthMutation(firebaseIdToken, development);
+        if (result.sessionCookie) {
+          writeSessionBodasCookie(result.sessionCookie);
+        } else {
+          console.warn(
+            '[firebase-auth] mutation auth NO devolvió sessionCookie:',
+            result.errorMessage,
+            result.traceId ? `[${result.traceId}]` : '',
+          );
+        }
+      } catch (e: any) {
+        console.warn('[firebase-auth] Fallo mutation auth (sessionBodas cross-app):', e?.message);
+      }
     }
 
     // Guardar dev-user-config para que EventosAutoAuth reconozca al usuario
@@ -405,9 +429,26 @@ export const loginWithGoogle = async (development: string = DEFAULT_DEVELOPMENT)
     return startRedirect();
   }
 
-  // Chrome/Firefox: popup primero, redirect como fallback
+  // Chrome/Firefox: popup primero, redirect como fallback.
+  // Bug QA 24-jun: en browsers automation / headless, el popup puede ser bloqueado
+  // silenciosamente sin que Firebase dispare 'auth/popup-blocked' — la promesa queda
+  // PENDING infinito y el spinner del UI nunca se resetea. Timeout 60s fuerza
+  // rechazo con código popup-blocked para que el catch de abajo dispare el redirect.
+  const popupWithTimeout = async (): Promise<ReturnType<typeof signInWithPopup>> => {
+    return await Promise.race([
+      signInWithPopup(auth, provider),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => {
+          const err: any = new Error('Popup de Google no respondió (60s) — probablemente bloqueado.');
+          err.code = 'auth/popup-blocked';
+          reject(err);
+        }, 60_000),
+      ),
+    ]);
+  };
+
   try {
-    const result = await signInWithPopup(auth, provider);
+    const result = await popupWithTimeout();
     const firebaseIdToken = await result.user.getIdToken();
     return await exchangeFirebaseTokenForJWT(firebaseIdToken, development, result.user);
   } catch (popupError: any) {
@@ -597,7 +638,7 @@ export function initCrossAppTokenRefresh(): () => void {
 
         // Auto-refresh del JWT de API2: si existe un token previo, renovarlo
         // para que las llamadas a API2 no fallen con 401 tras ~55 min.
-        const existingJwt = localStorage.getItem('api2_jwt_token');
+        const existingJwt = localStorage.getItem('mcp_jwt_token');
         if (existingJwt) {
           const dev = localStorage.getItem('current_development') || 'bodasdehoy';
           exchangeFirebaseTokenForJWT(freshToken, dev, user).catch(() => {
@@ -624,7 +665,7 @@ export const signOut = async () => {
     clearCrossAppSession();
 
     // Limpiar localStorage
-    localStorage.removeItem('api2_jwt_token');
+    localStorage.removeItem('mcp_jwt_token');
     localStorage.removeItem('api2_jwt_expires_at');
     localStorage.removeItem('jwt_token');
     localStorage.removeItem('dev-user-config');
@@ -649,7 +690,7 @@ export const getCurrentUser = (): User | null => {
  * Verificar si hay sesión activa
  */
 export const isAuthenticated = (): boolean => {
-  const token = localStorage.getItem('api2_jwt_token');
+  const token = localStorage.getItem('mcp_jwt_token');
   const expiresAt = localStorage.getItem('api2_jwt_expires_at');
 
   if (!token || !expiresAt) return false;
@@ -666,5 +707,5 @@ export const isAuthenticated = (): boolean => {
  */
 export const getJWT = (): string | null => {
   if (!isAuthenticated()) return null;
-  return localStorage.getItem('api2_jwt_token');
+  return localStorage.getItem('mcp_jwt_token');
 };

@@ -7,7 +7,7 @@ import { Dispatch, FC, SetStateAction } from "react";
 import { useTranslation } from 'react-i18next';
 
 interface propsFormCrearMesa {
-  modelo: string | null,
+  modelo?: string | null,
   set: Dispatch<SetStateAction<boolean>>
   state: boolean
 }

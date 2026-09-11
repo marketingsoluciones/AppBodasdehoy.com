@@ -21,7 +21,7 @@
 
 import { test, expect, Page } from '@playwright/test';
 import { TEST_URLS } from './fixtures';
-import { clearSession } from './helpers';
+import { clearSession, navigateToModule } from './helpers';
 import { ISABEL_RAUL_EVENT } from './fixtures/isabel-raul-event';
 
 // ── Constantes ─────────────────────────────────────────────────────────────────
@@ -218,6 +218,7 @@ test.describe('BATCH SRV — Servicios / Kanban', () => {
     }
 
     await clearSession(context, page);
+    // Test sin sesión: goto directo es legítimo aquí (verifica redirect a /login)
     await page.goto(`${BASE_URL}/servicios`, {
       waitUntil: 'domcontentloaded',
       timeout: 30_000,

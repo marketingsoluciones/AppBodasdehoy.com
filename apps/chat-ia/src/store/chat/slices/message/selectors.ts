@@ -71,7 +71,11 @@ const getChatsWithThread = (s: ChatStoreState, messages: UIChatMessage[]) => {
   // 如果没有 activeThreadId，则返回所有的主消息
   if (!s.activeThreadId) return messages.filter((m) => !m.threadId);
 
-  const thread = s.threadMaps[s.activeTopicId!]?.find((t) => t.id === s.activeThreadId);
+  // BUG-CRASH-01 (25-jun): activeTopicId puede ser undefined transitoriamente
+  // en hidratación pre-init; non-null assertion crasheaba el accesor índice.
+  const thread = s.activeTopicId
+    ? s.threadMaps[s.activeTopicId]?.find((t) => t.id === s.activeThreadId)
+    : undefined;
 
   if (!thread) return messages.filter((m) => !m.threadId);
 

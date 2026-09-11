@@ -5,7 +5,7 @@
 
 import type { AccessCheck, PlanLimit, SubscriptionPlan, SubscriptionTier } from './types';
 import { TIER_ORDER } from './types';
-import { humanizeQuota, humanizeSku } from './humanize';
+import { humanizeQuota, humanizeSku, formatEsDecimal } from './humanize';
 
 /**
  * Verifica si el usuario puede usar un SKU dado su uso actual.
@@ -116,7 +116,7 @@ export function getUpgradeMessage(
   const upgradeText = nextQuota
     ? `Actualiza a ${nextPlanName} para ${nextQuota}`
     : `Actualiza a ${nextPlanName}`;
-  const priceText = nextPrice ? ` por ${nextPrice.toFixed(2)}\u20AC/mes` : '';
+  const priceText = nextPrice ? ` por ${formatEsDecimal(nextPrice, 2)}\u20AC/mes` : '';
 
   return `${usageText}. ${upgradeText}${priceText}.`;
 }
@@ -151,7 +151,7 @@ export function getConversionMessage(
     }
     if (sku === 'events-count') {
       const price = nextPlan?.pricing.monthly_fee;
-      return `Has llegado al límite de eventos. Con ${nextPlan?.name ?? 'Basic'} puedes crear más${price ? ` por ${price.toFixed(2)}\u20AC/mes` : ''}.`;
+      return `Has llegado al límite de eventos. Con ${nextPlan?.name ?? 'Basic'} puedes crear más${price ? ` por ${formatEsDecimal(price, 2)}\u20AC/mes` : ''}.`;
     }
     if (sku === 'guests-per-event') {
       const nextQuota = nextLimit ? humanizeQuota(sku, nextLimit.free_quota) : '';

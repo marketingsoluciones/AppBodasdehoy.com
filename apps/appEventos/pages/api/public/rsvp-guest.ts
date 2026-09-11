@@ -21,23 +21,23 @@ const GET_PGUEST_RSVP_QUERY = `
   query($p: String) {
     getPGuestEvent(p: $p) {
       _id
-      invitados_array {
-        _id
+      invitados {
+        id
         sexo
         nombre
-        estatus
-        correo
+        email
         telefono
         asistencia
         alergenos
-        passesQuantity
-        father
-        nombre_menu
         grupo_edad
+        menu { nombre }
+        acompanantes
       }
-      menus_array {
-        nombre_menu
-        tipo
+      menus {
+        id
+        nombre
+        precio
+        descripcion
       }
     }
   }
@@ -63,7 +63,7 @@ export default async function handler(
     });
 
     const guestEvent = data?.getPGuestEvent;
-    if (!guestEvent?.invitados_array?.length) {
+    if (!guestEvent?.invitados?.length) {
       return res.status(404).json({ error: 'Token no válido o no encontrado' });
     }
 

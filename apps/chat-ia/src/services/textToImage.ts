@@ -1,4 +1,4 @@
-import { ModelProvider } from 'model-bank';
+import { ModelProvider } from '@lobechat/types';
 
 import { createHeaderWithAuth } from '@/services/_auth';
 import { OpenAIImagePayload } from '@/types/openai/image';

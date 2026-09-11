@@ -1,0 +1,84 @@
+═══════════════════════════════════════════════════════════════════
+ PARA: API-MCP (api_mcp_oncall) — 17/06/2026
+ DE: FRONTEND-AppEventos (COORD)
+ DRI: api_mcp_oncall
+ ASUNTO: 🟠 createTable devuelve "result parcial" → causa crash crítico en /mesas (BUG-19)
+═══════════════════════════════════════════════════════════════════
+
+CONTEXTO (bug que estamos blindando ahora en el front pero la causa raíz es del schema):
+
+QA reportó BUG-19 CRÍTICO: "/mesas crashea con TypeError: Cannot read properties of
+undefined (reading 'x')". Trazado al front:
+
+  apps/appEventos/components/Mesas/DragableDefault.tsx:38
+    divElement.setAttribute('style', `left: ${item.position.x}px; top: ${item.position.y}px ...`)
+
+El front recibe una mesa SIN `position` → crash al renderizar el plano.
+
+CAUSA RAÍZ (en el schema de api-mcp, no en el front):
+
+La mutation `createTable` devuelve hoy:
+
+  mutation { createTable(eventID, planSpaceID, sectionID, values) {
+    success
+    errors { field message code }
+    evento { _id }
+  }}
+
+→ NO devuelve la mesa creada. Solo `success/errors/evento{_id}`.
+
+El front (TableConfigurator.tsx) hacía:
+
+  const result = await fetchApiEventos({ query: createTable, ... });
+  setPlanSpaceActive({ ...planSpaceActive, tables: [..., { ...result }] });
+                                                      ^^^^^^^^^^^^^^
+                                  ← spread de { success, errors, evento{_id} }
+                                  ← una "mesa" sin position, sin _id de mesa, sin tipo
+                                  → DragableDefault crashea
+
+FIX FRONT (DESPLEGADO HOY en build app-dev nuevo — defensa en profundidad):
+  1. Guard en DragableDefault.tsx + LienzoDragable.tsx: `item?.position?.x ?? 0`.
+  2. En TableConfigurator: construimos la mesa LOCAL con los datos que el front conoce
+     (position, title, tipo, size, _id temporal con fallback a result.table?._id),
+     en vez de spread del result.
+  → Bug ya no crashea, pero el _id que el front pone es temporal (`tmp_<timestamp>`)
+    porque vuestro createTable no devuelve el _id de la mesa real persistida.
+
+PETICIÓN (para tener código perfecto, cero muletas):
+
+Que `createTable` devuelva la MESA creada completa, no solo `evento{_id}`:
+
+  mutation { createTable(eventID, planSpaceID, sectionID, values) {
+    success
+    errors { field message code }
+    table {
+      _id
+      nombre_mesa     # o title
+      tipo
+      cantidad_sillas # o numberChair
+      posicion { x y } # o position { x y }
+      rotation
+      size { width height }
+      tableConfig     # JSON opcional del configurador visual
+    }
+  }}
+
+Mismo patrón que ya usa `creaMesa` (versión vieja comentada en Fetching.ts:
+"mesas_array { _id nombre_mesa tipo cantidad_sillas posicion { x y } }").
+
+BENEFICIOS:
+  - El front ya no necesita "construir la mesa localmente" ni inventar _id temporales.
+  - El _id real está disponible inmediatamente para `removerMesa`, `updateMesa`, etc.
+  - Coherente con el resto de mutations (createEvento, agregarInvitado, etc.).
+
+IMPACTO PARA VOSOTROS:
+  - Cambio de schema retrocompatible (solo añade un campo nuevo `table`).
+  - El front no rompe si `table` viene null (sigue usando el _id temporal).
+
+PRIORIDAD: 🟠 media. El front ya no crashea, pero el _id temporal es muleta.
+Mientras no lo cerréis, en el front queda el código:
+  `_id: result?.table?._id ?? result?.evento?._id ?? \`tmp_\${Date.now()}\``
+
+→ Cuando devolváis `table { _id }` real, el `tmp_` deja de usarse automáticamente.
+
+DRI: api_mcp_oncall

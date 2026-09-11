@@ -1,8 +1,10 @@
 import { Form, Formik, FormikValues, useField, useFormikContext } from "formik";
+import { formikValidateUx } from "../Forms/formikValidateUx";
 import { FC, useEffect, useState } from 'react';
 import { AuthContextProvider } from '../../context/AuthContext';
 import { EventContextProvider } from '../../context/EventContext';
 import { fetchApiEventos, queries } from '../../utils/Fetching';
+import { resolveApiBodasOrigin } from '../../utils/apiEndpoints';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../hooks/useToast';
 import { WhatsappBusinessPreview } from './WhatsappBusinessPreview';
@@ -339,6 +341,7 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
                 {/* Columna del Editor */}
                 <div className="w-full h-full md:max-h-screen md:w-[55%] px-4 md:px-10 pt-3 pb-8 rounded-xl shadow-lg overflow-y-auto">
                     <Formik
+      {...formikValidateUx}
                         initialValues={initialValues}
                         onSubmit={handleSubmit}
                         validationSchema={validationSchema}
@@ -642,7 +645,7 @@ const HeaderTypeWatcher = () => {
             // Limpiar headerContent cuando cambie el tipo
             setPrevHeaderType(currentHeaderType);
             setTimeout(() => {
-                setFieldValue('headerContent', currentHeaderType === 'image_event' ? event?.imgEvento?.i1024 ? `${process.env.NEXT_PUBLIC_BASE_URL}${event?.imgEvento?.i1024}` : '' : '');
+                setFieldValue('headerContent', currentHeaderType === 'image_event' ? event?.imgEvento?.i1024 ? `${resolveApiBodasOrigin()}${event?.imgEvento?.i1024}` : '' : '');
             }, 10);
         }
     }, [values?.headerType?._id, setFieldValue]);

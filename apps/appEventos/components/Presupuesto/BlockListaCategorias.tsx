@@ -86,15 +86,19 @@ export const ModalOptionsCategoria = ({ showOptionsModal, setShowOptionsModal })
   const handleChangeViewEstimates = async (value: boolean) => {
     if (!event) return
     try {
-      const result = await fetchApiEventos({
+      const result: any = await fetchApiEventos({
         query: queries.editPresupuesto,
         variables: {
           evento_id: event._id,
-          viewEstimates: value
+          datos: { viewEstimates: value }
         }
       })
-      event.presupuesto_objeto = result as estimate
-      setEvent({ ...event })
+      if (result?.evento?.presupuesto_objeto) {
+        setEvent((prev) => ({
+          ...prev,
+          presupuesto_objeto: result.evento.presupuesto_objeto as estimate,
+        }))
+      }
     } catch (error) {
     }
   }

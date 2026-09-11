@@ -358,6 +358,7 @@ export default {
     newVersion: '有新版本可用：{{version}}',
   },
   userPanel: {
+    advanced: '高级',
     anonymousNickName: '匿名用户',
     billing: '账单管理',
     cloud: '体验 {{name}}',

@@ -2,7 +2,8 @@
 
 import { Popover } from 'antd';
 import { createStyles } from 'antd-style';
-import { PropsWithChildren, memo, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { PropsWithChildren, memo, useEffect, useState } from 'react';
 
 import { isDesktop } from '@/const/version';
 
@@ -23,6 +24,13 @@ const UserPanel = memo<PropsWithChildren>(({ children }) => {
   const hasNewVersion = useNewVersion();
   const [open, setOpen] = useState(false);
   const { styles } = useStyles();
+
+  // UX-09 (QA 8-ago): el menú de cuenta quedaba flotando semi-transparente tras navegar
+  // (un item que cambia de ruta no cerraba el Popover). Cerrarlo en cada cambio de ruta.
+  const pathname = usePathname();
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   return (
     <UpgradeBadge showBadge={hasNewVersion}>

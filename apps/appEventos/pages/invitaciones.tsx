@@ -12,9 +12,12 @@ import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
 import { SkeletonPage } from "../components/Utils/SkeletonPage";
 import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import { useMounted } from "../hooks/useMounted"
+import { useEventSyncWithUrl } from "../hooks/useEventSyncWithUrl"
 import { OptionsMenu } from "../components/Invitaciones/OptionsMenu";
 import { EnviadosComponent } from "../components/Invitaciones/EnviadosComponent";
 import { DiseñoComponent } from "../components/Invitaciones/DiseñoComponent";
+import { useRouter } from "next/router";
+import { InvitacionesStudio } from "../components/Invitaciones/InvitacionesStudio";
 import { Test, TitleComponent } from "../components/Invitaciones/Test";
 import { PlantillaTextos } from "../components/Invitaciones/PlantillaTextos";
 import { GoChevronDown } from "react-icons/go";
@@ -36,6 +39,7 @@ const CONFIG_PANEL_STORAGE_KEY = 'app-bodasdehoy-invitaciones-config';
 
 const Invitaciones = () => {
   const { t } = useTranslation();
+  const router = useRouter();
   const { user, verificationDone, forCms } = AuthContextProvider()
   const { event } = EventContextProvider();
   const [hoverRef, isHovered] = useHover();
@@ -93,6 +97,7 @@ const Invitaciones = () => {
   ]
 
   useMounted()
+  useEventSyncWithUrl()  // BUG-12: sincronizar event activo con ?event= de URL
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const storedConfigState = window.localStorage.getItem(CONFIG_PANEL_STORAGE_KEY);
@@ -101,6 +106,11 @@ const Invitaciones = () => {
     }
   }, []);
   useEffect(() => {
+    // BUG-CW-N13: race — el useEffect se disparaba con event?._id=undefined cuando
+    // EventContextProvider aún no había hidratado el evento activo, lanzando 3 queries
+    // GraphQL con evento_id null. Guard explícito antes de cualquier fetch.
+    if (!event?._id) return;
+
     const reduce = event?.invitados_array?.reduce((acc: any, item: any) => {
       if (!item) return acc;
       const asd = {
@@ -125,7 +135,7 @@ const Invitaciones = () => {
     fetchApiEventos({
       query: queries.getVariablesTemplatesInvitaciones,
       variables: {
-        evento_id: event?._id
+        evento_id: event._id
       },
     }).then((res: any) => {
       setVariablesTemplatesInvitaciones(res)
@@ -145,7 +155,7 @@ const Invitaciones = () => {
       fetchApiEventos({
         query: queries.getWhatsappInvitationTemplates,
         variables: {
-          evento_id: event?._id
+          evento_id: event._id
         },
       }).then((res: any) => {
         const template = Array.isArray(res)
@@ -178,9 +188,13 @@ const Invitaciones = () => {
       )
     }
     if (!event) return <EventLoadingOrError skeletonRows={3} />
+    // Rediseño UI (wizard 2 pasos) = vista POR DEFECTO del módulo (aprobado por owner 9-ago).
+    // Salida de emergencia al módulo clásico con ?studio=legacy (rollback sin build; la vista
+    // antigua sigue en el código, no se borra → no se pierde funcionalidad).
+    if (router.query.studio !== "legacy") return <InvitacionesStudio />
     return (
       <DataTableGroupProvider>
-        <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-full top-0 left-4" : "bg-base. w-full pt-2 md:py-0"}>
+        <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-full top-0 left-4" : "bg-base w-full pt-2 md:py-0"}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -247,7 +261,7 @@ const Invitaciones = () => {
                 id="enviados-container"
                 ref={enviadosContainerRef}
                 onClick={handleScrollToEnviados}
-                className={`flex w-full border ${stateConfi ? "h-[calc(100vh-616px)]" : "h-[calc(100vh-260px)]"}`}
+                className={`flex w-full border ${stateConfi ? "h-[calc(100vh-648px)]" : "h-[calc(100vh-292px)]"}`}
               >
                 <EnviadosComponent stateConfi={stateConfi} />
               </div>

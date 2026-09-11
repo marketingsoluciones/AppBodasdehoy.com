@@ -1,0 +1,71 @@
+---
+description: Politica obligatoria de entorno DEV y navegador E2E
+alwaysApply: true
+---
+
+# Entorno DEV oficial (obligatorio)
+
+## Alcance de este equipo: solo DEV
+
+- **Este equipo trabaja y valida por defecto solo en entorno de desarrollo:** `localhost` / `127.0.0.1` y subdominios **`*-dev`** (p. ej. `app-dev`, `chat-dev` vía proxy a la máquina local).
+- **No** proponer como flujo habitual despliegues, smoke en **`app-test`** ni subidas a **producción** salvo que el **usuario lo pida explícitamente**. Si menciona test/prod, tratarlo como coordinación con otro equipo o tarea puntual, no como el camino por defecto del agente aquí.
+
+## Regla 1: Navegador permitido para pruebas automatizadas
+
+- En este equipo, para pruebas automatizadas, **solo se permite Playwright con WebKit (Safari)**.
+- **Queda prohibido Chromium, Chrome, Firefox, Puppeteer o similares** para E2E/validaciones automatizadas.
+- Si existe un script con `chromium` u otro motor, debe migrarse a `webkit`.
+
+## Regla 2: Semántica de subdominios `-dev`
+
+- Todo subdominio terminado en `-dev` (por ejemplo `app-dev`, `chat-dev`) representa el entorno de desarrollo de la **misma máquina local**.
+- Esos dominios entran por reverse proxy/VPN (Cloudflare) y apuntan a localhost.
+- Operativamente, `https://<algo>-dev...` se trata como acceso remoto al entorno local.
+
+## Regla 2.0: Localhost = DEV (misma política)
+
+- **`localhost` / `127.0.0.1` + puerto local** (p. ej. appEventos en **3220**) cuenta como **entorno DEV**, equivalente en intención a `*-dev`: no es producción ni `*-test`.
+- Al configurar `BASE_URL`, APIs o pruebas E2E, el agente debe recordar esta equivalencia para no contradecir la matriz de entornos ni asumir otro tipo de despliegue.
+
+## Regla 2.1: Matriz de entornos (obligatoria)
+
+- `*-dev`: desarrollo local publicado por reverse proxy/VPN; **prioridad absoluta** para este equipo (debug y validación).
+- `*-test`: integración compartida; existe en el monorepo (scripts E2E contra `app-test`) pero **no es el entorno operativo por defecto de este equipo**.
+- producción: tráfico real; **fuera del alcance habitual** de este equipo salvo petición explícita del usuario.
+- No asumir equivalencia entre `-dev`, `-test` y producción; cada uno puede tener backend/esquema/config distinta.
+
+## Regla 3: Forma de trabajo del agente
+
+- Cuando se pidan pruebas funcionales/login:
+  - usar primero dominios `-dev` (no `app-test`/`chat-test` como predeterminado),
+  - usar Playwright WebKit,
+  - evitar recomendaciones con Chromium o navegadores no autorizados.
+- No asumir que `app-test` refleja este repo ni este runtime local.
+
+## Regla 4: Sesiones Playwright (una sola activa)
+
+- No ejecutar dos sesiones Playwright en paralelo en este equipo.
+- Antes de lanzar una nueva prueba E2E, cerrar/terminar la sesión Playwright anterior.
+- Si ya hay una sesión corriendo, reutilizarla o detenerla antes de iniciar otra.
+- Esta regla aplica tanto a pruebas manuales del agente como a scripts automatizados.
+
+## Credenciales E2E y cuenta multi-marca (JCC)
+
+- Variables y plantilla: **`.env.e2e.credentials.example`** → `.env.e2e.*.local` en la raíz; carga con **`scripts/with-root-e2e-env.sh`** y `pnpm test:e2e:*`.
+- El operador **JCC** no es exclusivo de Bodas de Hoy: ver **`.cursor/rules/e2e-user-jcc-multi-brand.mdc`** (emails por marca y qué asumir en API2 / whitelabel).
+
+## Pipeline habitual (este equipo): probar en DEV
+
+1. **Comprobaciones rápidas:** `pnpm release:gate:unit` (catálogo + Jest app eventos).
+2. **E2E contra DEV:** `pnpm test:e2e:app:ver:local` / `test:e2e:mesas:dev` / scripts con `BASE_URL` en `*-dev` o `localhost`; credenciales en **`.env.e2e.dev.local`** vía `with-root-e2e-env.sh dev` cuando el script lo indique.
+
+## Referencia opcional: test / producción (solo si el usuario lo pide)
+
+Flujo para **otra persona, CI o despliegue coordinado** — no es el default del agente para este equipo:
+
+1. Tras validar en DEV: opcionalmente `pnpm release:gate:e2e:smoke:test` o `pnpm verify:e2e` contra **app-test** (requiere `.env.e2e.test.local` y código ya desplegado allí).
+2. Producción: `pnpm vercel:deploy:app` / `vercel:deploy:chat` o promote en Vercel **solo** si el usuario lo solicita y el contexto lo amerita.
+
+## Nota de persistencia
+
+Esta regla debe tratarse como política del equipo. Si hay conflicto con instrucciones previas, esta regla tiene prioridad.

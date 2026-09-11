@@ -1,0 +1,161 @@
+DE: COORD-AppEventos
+PARA: API-MCP
+DRI: api_mcp_oncall
+CANAL: #coordinacion · workspace eventosorganizador.slack.com
+HILO: 1778170638.897419 (hilo único AppBodas)
+ASUNTO: 🐛 Auditoría completa Fetching.ts — 3 bugs más detectados
+
+
+Tras el bug de `borraPago` que ya os pasamos (mensaje 6), hicimos una
+auditoría completa de las 110 queries de `apps/appEventos/utils/Fetching.ts`
+contra api-mcp producción.
+
+Filtrando los falsos positivos (queries cubiertas por MCP_ADAPTERS del front)
+y código muerto (queries sin call-sites en producción), quedan 3 BUGS REALES
+con call-sites activos hoy en producción:
+
+
+═══════════════════════════════════════════════════════════
+🐛 BUG 1 — `getUsers` con shape obsoleto (3 call-sites)
+═══════════════════════════════════════════════════════════
+
+Call-sites:
+  - components/DefaultLayout/SocketControlator.tsx (×3)
+  - components/Utils/Compartir/AddUserToEvent.tsx
+  - pages/public-card/[...slug].tsx
+
+QUERY DEL FRONT (Fetching.ts):
+  query ($uids:[ID]){
+    getUsers(uids:$uids){
+      uid              ← Cannot query field "uid" on type "UsersResponse"
+      email            ← Cannot query field "email" on type "UsersResponse"
+      displayName
+      photoURL
+    }
+  }
+
+api-mcp REAL:
+  query getUsers(pagination: CRM_PaginationInput!): UsersResponse
+  type UsersResponse { total, users: [User] }
+  type User {            ← NO tiene displayName, photoURL, phoneNumber
+    id, email, role, ...
+  }
+
+GAPS:
+  1. `uids` no es un arg válido (api-mcp pide `pagination`)
+  2. Los campos `displayName, photoURL, phoneNumber` no existen en `User`
+     pero el front los necesita para mostrar perfiles de usuario en
+     SocketControlator (status online en tiempo real) y Compartir.
+
+CONSECUENCIA EN PRODUCCIÓN:
+  - SocketControlator no muestra info de usuarios conectados
+  - "Compartir evento" no muestra info del invitado
+  - public-card no muestra info del compartido
+
+¿OPCIONES?
+  (a) Añadir endpoint nuevo `getUsersByIds(uids: [ID!]!): [User]` con shape
+      que sí tenga displayName/photoURL/phoneNumber (vía join interno con
+      Firebase auth profile).
+  (b) Extender el tipo `User` para incluir displayName/photoURL/phoneNumber
+      como nullable (read desde otra tabla).
+  (c) Front llama Firebase auth client-side directamente para enriquecer.
+
+  Recomendación: (a). Necesitamos lookup por uids ESPECÍFICOS (no paginación).
+  El front pasa N uids y espera N users con campos de perfil.
+
+
+═══════════════════════════════════════════════════════════
+🐛 BUG 2 — `getAllBusiness` con tipo input inexistente (1 call-site)
+═══════════════════════════════════════════════════════════
+
+Call-site:
+  - components/Resumen/BlockLugarEvento.tsx
+
+QUERY DEL FRONT (Fetching.ts):
+  query ($criteria: searchCriteriaBusiness, $sort: sortCriteriaBusiness,
+         $skip: Int, $limit: Int, $development: String!) {
+    getAllBusinesses(searchCriteria: $criteria, ...)
+  }
+
+api-mcp REAL:
+  Unknown type "searchCriteriaBusiness"
+  Unknown type "sortCriteriaBusiness"
+
+  La op `getAllBusinesses` SÍ existe (verificado), pero NO acepta esos
+  types (probablemente nunca los modeló api-mcp o se renombraron).
+
+¿OPCIONES?
+  (a) api-mcp expone los types `searchCriteriaBusiness` y `sortCriteriaBusiness`
+      con el shape que ya esperaba el front legacy de apiapp.
+  (b) Front simplifica la query a `getAllBusinesses(development: String!)`
+      sin filtros server-side, filtra client-side.
+
+  Recomendación: (b) si la mayoría de casos son listado completo, (a) si los
+  filtros server-side son críticos para perf.
+
+
+═══════════════════════════════════════════════════════════
+🐛 BUG 3 — `borrarItemsGastos` (1 call-site)
+═══════════════════════════════════════════════════════════
+
+Call-site:
+  - components/Presupuesto/... (1 sitio, no auditado en detalle)
+
+api-mcp REAL:
+  Schema mismatch (detalle pendiente verificación 1 a 1).
+
+ESTADO: misma familia de bugs que `borraPago` — query del front con shape
+legacy apiapp. Probablemente se arregla con el mismo patrón:
+  - Quitar args extras (categoria_id?)
+  - Cambiar types String → ID!
+  - Selection canonical { success, errors, evento }
+
+
+═══════════════════════════════════════════════════════════
+📋 RESTO — código muerto (0 call-sites)
+═══════════════════════════════════════════════════════════
+
+Detectadas 13 queries con schema mismatch pero **sin call-sites en producción**:
+
+  addWeddingPlannerIngreso, deleteWeddingPlannerIngreso
+  deleteTableOld, editNameTable, editTableOld
+  getDevelopment, getListaRegalos, getPGuestEvent
+  whatsappGetAllSessions, whatsappSendMessage
+  ... + otros
+
+Son legacy code que NO se ejecuta. COORD las limpiará en un sprint
+posterior (no urgente). No requiere acción de backend.
+
+
+═══════════════════════════════════════════════════════════
+🛠️ HERRAMIENTA — auditoría reproducible
+═══════════════════════════════════════════════════════════
+
+Toda esta auditoría es reproducible con:
+
+  node scripts/audit-fetching-real.mjs
+
+El script:
+  1. Parsea Fetching.ts y extrae las 110 queries TAL CUAL.
+  2. Las ejecuta contra api-mcp con vars dummy.
+  3. Clasifica errores (Cannot query field, Unknown argument, type
+     mismatch, etc.) vs response válida.
+  4. Reporta los bugs reales filtrando false positives.
+
+
+═══════════════════════════════════════════════════════════
+📅 IMPACTO PARA APAGAR APIAPP
+═══════════════════════════════════════════════════════════
+
+Los 3 bugs anteriores NO bloquean apagar apiapp.bodasdehoy.com porque:
+  - `getUsers` ya rompe HOY contra api-mcp (no contra apiapp).
+  - `getAllBusinesses` apunta a api-mcp ya hoy.
+  - `borrarItemsGastos` ídem.
+
+Es decir, son bugs PRE-EXISTENTES de la migración Sprint 1+2+3. Apagar
+apiapp no los empeora. Pero sí conviene arreglarlos antes que producto
+los detecte como regresiones.
+
+
+DRI: coord_appeventos — propongo coordinar el fix de los 3 bugs en la
+próxima retro o cuando tengáis ancho de banda.

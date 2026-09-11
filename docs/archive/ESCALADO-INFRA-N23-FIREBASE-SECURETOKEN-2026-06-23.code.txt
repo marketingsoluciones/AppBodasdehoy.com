@@ -1,0 +1,118 @@
+═══════════════════════════════════════════════════════════════════════════════
+📨 PROMPT PARA COWORK — Postear escalado N23 a INFRA en Slack
+═══════════════════════════════════════════════════════════════════════════════
+
+DESTINO:
+  Canal:    C0AV8EV5495 (eventosorganizador.slack.com)
+  Hilo:     1778170638.897419
+  Como:     COORD-AppEventos
+
+MENSAJE A POSTEAR:
+───────────────────────────────────────────────────────────────────────────────
+
+DE:     COORD-AppEventos
+PARA:   INFRA (Firebase / Google Cloud Console)
+DRI:    INFRA
+SEVERIDAD: CRITICAL (afecta autenticación de TODOS los usuarios de chat-dev)
+ASUNTO: [BUG-CW-N23] Firebase SecureToken bloqueado en chat-dev
+        — renovación de tokens imposible, sesiones expiran prematuramente
+
+Hola infra. QA detectó en 7ª ronda (chat-dev BUILD `_uW7J7DxEZUdp6D0SzWz5`):
+
+══════════════════════════════════════════════════════════════════════
+ERROR
+══════════════════════════════════════════════════════════════════════
+
+  [ERROR] ❌ Error obteniendo Firebase token: FirebaseError:
+    "auth/requests-to-this-api-securetoken.googleapis.com-method-
+     google.identity.securetoken.v1.securetoken.granttoken-are-blocked."
+
+  Stack: A → v → V → el → eh.refresh → eh.getToken → en → ep.getIdToken
+  Reproducible en cada carga de https://chat-dev.bodasdehoy.com/ con
+  sesión UC activa (ocurrió 2+ veces, no es intermitente).
+
+══════════════════════════════════════════════════════════════════════
+DIAGNÓSTICO
+══════════════════════════════════════════════════════════════════════
+
+El mensaje del error es muy explícito: Google Cloud está BLOQUEANDO los
+requests a `securetoken.googleapis.com.v1.securetoken.granttoken`.
+Causas conocidas posibles:
+
+  1. RESTRICCIÓN DE DOMINIO en la API Key de Firebase del proyecto
+     chat-dev: el referrer `chat-dev.bodasdehoy.com` no está en la lista
+     de dominios autorizados.
+
+  2. RESTRICCIÓN DE APIs en el proyecto Firebase de Google Cloud Console:
+     la API "Identity Toolkit" o "Token Service" puede estar deshabilitada
+     o restringida.
+
+  3. CUOTAS AGOTADAS de la API SecureToken (improbable pero posible).
+
+══════════════════════════════════════════════════════════════════════
+IMPACTO
+══════════════════════════════════════════════════════════════════════
+
+La renovación AUTOMÁTICA de tokens Firebase falla. Esto significa:
+  · Tokens de sesión expiran a la hora (TTL Firebase default).
+  · Usuarios son expulsados sin previo aviso.
+  · No se puede mantener sesión >1h en chat-dev.
+  · En prod podría ocurrir lo mismo si la config se replica desde dev.
+
+══════════════════════════════════════════════════════════════════════
+ACCIÓN REQUERIDA EN GOOGLE CLOUD CONSOLE
+══════════════════════════════════════════════════════════════════════
+
+Proyecto Firebase de chat-ia. Verificar y corregir:
+
+(1) APIs & Services → Credentials → API Keys
+    · Para la key de Firebase (NEXT_PUBLIC_FIREBASE_API_KEY en chat-ia),
+      ver "Application restrictions" → HTTP referrers (websites).
+    · Añadir si falta:
+        https://chat-dev.bodasdehoy.com/*
+        https://chat-test.bodasdehoy.com/*
+        https://chat.bodasdehoy.com/*
+        https://app-dev.bodasdehoy.com/*    ← si comparte API key
+        https://app-test.bodasdehoy.com/*
+        https://app.bodasdehoy.com/*
+    · En "API restrictions" comprobar que "Token Service API" e
+      "Identity Toolkit API" están en la lista permitida.
+
+(2) APIs & Services → Library → buscar y CONFIRMAR habilitadas:
+    · Identity Toolkit API
+    · Token Service API
+    · Firebase Authentication API
+    · Firebase Installations API
+
+(3) APIs & Services → Quotas → buscar `securetoken`:
+    · Confirmar que NO está en cuota agotada.
+
+══════════════════════════════════════════════════════════════════════
+VERIFICACIÓN POST-FIX
+══════════════════════════════════════════════════════════════════════
+
+Tras los cambios:
+  1. Login en chat-dev.bodasdehoy.com.
+  2. DevTools Console → debe NO aparecer el error
+     "auth/requests-to-this-api-... are-blocked"
+  3. Esperar ~50 min (token expira a 1h Firebase default).
+  4. Confirmar que la sesión SE RENUEVA automáticamente sin re-login.
+
+══════════════════════════════════════════════════════════════════════
+LO QUE NO ES VUESTRO
+══════════════════════════════════════════════════════════════════════
+
+El front Firebase SDK hace todo correctamente — el error viene del API
+de Google rechazando el request. Es 100% config de Google Cloud Console
+del proyecto Firebase de chat-ia.
+
+Si confirmáis que la restricción de dominios SÍ incluye chat-dev y el
+problema persiste, hace falta abrir ticket con Firebase support con el
+proyecto-id y el referer header capturado.
+
+Gracias 🙏
+
+DRI: INFRA
+═══════════════════════════════════════════════════════════════════════════════
+FIN
+═══════════════════════════════════════════════════════════════════════════════

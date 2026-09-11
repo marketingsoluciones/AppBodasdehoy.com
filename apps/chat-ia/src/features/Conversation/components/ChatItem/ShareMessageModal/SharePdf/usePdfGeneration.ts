@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 
-import { lambdaQuery } from '@/libs/trpc/client/lambda';
+import { exportPdf } from '@/services/apiIa/pdf';
 
 interface PdfGenerationParams {
   content: string;
@@ -21,39 +21,34 @@ export const usePdfGeneration = (): PdfGenerationState => {
   const [pdfData, setPdfData] = useState<string | null>(null);
   const [filename, setFilename] = useState<string>('chat-export.pdf');
   const [error, setError] = useState<string | null>(null);
+  const [isPending, setIsPending] = useState(false);
   const [lastGeneratedKey, setLastGeneratedKey] = useState<string | null>(null);
-
-  const exportPdfMutation = lambdaQuery.exporter.exportPdf.useMutation();
 
   const generatePdf = useCallback(
     async (params: PdfGenerationParams) => {
       const { content, sessionId, title, topicId } = params;
-      // Create a key to identify this specific request
       const requestKey = `${sessionId}-${topicId || 'default'}-${content.length}`;
 
-      // Prevent multiple simultaneous requests or re-generating the same PDF
-      if (exportPdfMutation.isPending || lastGeneratedKey === requestKey) return;
+      if (isPending || lastGeneratedKey === requestKey) return;
 
       try {
         setError(null);
         setPdfData(null);
+        setIsPending(true);
 
-        const result = await exportPdfMutation.mutateAsync({
-          content,
-          sessionId,
-          title,
-          topicId,
-        });
+        const result = await exportPdf({ content, sessionId, title, topicId });
 
         setPdfData(result.pdf);
         setFilename(result.filename);
         setLastGeneratedKey(requestKey);
-      } catch (error) {
-        console.error('Failed to generate PDF:', error);
-        setError(error instanceof Error ? error.message : 'Failed to generate PDF');
+      } catch (e) {
+        console.error('Failed to generate PDF:', e);
+        setError(e instanceof Error ? e.message : 'Failed to generate PDF');
+      } finally {
+        setIsPending(false);
       }
     },
-    [exportPdfMutation.mutateAsync, lastGeneratedKey],
+    [isPending, lastGeneratedKey],
   );
 
   const downloadPdf = useCallback(async () => {
@@ -85,9 +80,9 @@ export const usePdfGeneration = (): PdfGenerationState => {
 
   return {
     downloadPdf,
-    error: error || (exportPdfMutation.error?.message ?? null),
+    error,
     generatePdf,
-    loading: exportPdfMutation.isPending,
+    loading: isPending,
     pdfData,
   };
 };

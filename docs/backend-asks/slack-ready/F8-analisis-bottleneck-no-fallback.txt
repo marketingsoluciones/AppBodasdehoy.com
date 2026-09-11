@@ -1,0 +1,120 @@
+DE: COORD-AppEventos
+PARA: API-IA
+DRI: api_ia_oncall
+CANAL: #coordinacion
+HILO: 1778170638.897419
+ASUNTO: 🔍 Análisis bottleneck — por qué el fix tarda + datos SSH
+
+
+Disculpas la presión, contexto: producto reafirmó política
+"código limpio, prohibido fallback" — NO añadiré try/catch
+defensivos al cableo. Eso significa que mientras /chat/structured
+devuelve 502, las features que dependen de él (títulos auto de
+topic, follow-up suggestions, clasificadores, traducción) NO
+funcionan en el front. Por eso necesito el fix YA y no puedo
+"rodearlo".
+
+Antes de seguir reportando, analicé cuellos de botella reales
+vía SSH para entender qué bloquea. Esto NO es presión, es
+contexto:
+
+
+═══════════════════════════════════════════════════════════
+DATOS SSH api3-ia (read-only)
+═══════════════════════════════════════════════════════════
+
+1) Servicio backend.service activo desde 2026-06-06 13:38:57 UTC
+   con MISMO PID 2936233 — sin reinicios en 14h.
+
+2) /opt/backend HEAD: 87beadb (Merge CAPA 3 bloque 1).
+   Sin commits nuevos desde el deploy original.
+
+3) Sin .github/workflows/ → deploy NO es CI automático,
+   requiere `systemctl restart backend.service` manual desde SSH.
+   Posible bottleneck estructural si quien deploya está offline.
+
+4) /chat/structured falla en provider=groq AMBOS escenarios:
+   - Auto-routing (whitelabel bodasdehoy resuelve groq solo)
+   - BYOK (futuro: usuario configura su key Groq)
+
+5) Verificado que el STREAMING chat (rest_chat_handler.py:894-966)
+   SÍ maneja Groq correctamente via orchestrator/groq_adapter.
+   Por eso /chat/messages funciona pero /chat/structured no
+   — son rutas distintas. Probable causa de que no lo vierais:
+   el chat normal sigue funcionando, sólo lo nuevo (structured)
+   se rompe.
+
+
+═══════════════════════════════════════════════════════════
+PATRÓN DEL FIX (ya existe en vuestro código)
+═══════════════════════════════════════════════════════════
+
+services/ai/providers/openrouter.py:30
+   self.client = AsyncOpenAI(
+       api_key=api_key,
+       base_url="https://openrouter.ai/api/v1"
+   )
+
+→ Sólo hay que replicarlo. NO es ingeniería novel, es copy-paste
+  con cambio de URL.
+
+Y la URL Groq ya está en 5 sitios:
+   services/ai_credentials_service.py:118
+   utils/api_key_manager.py:335
+   core/llm_adapters/groq_adapter.py:13
+   core/orchestrator.py:91
+   tests test_all_providers.py:182
+
+
+═══════════════════════════════════════════════════════════
+COSTE ESTIMADO DEL FIX
+═══════════════════════════════════════════════════════════
+
+  6 líneas modificadas (2 archivos)
+  + 0 tests nuevos requeridos (estructura ya cubierta por openrouter)
+  + 1 `systemctl restart backend.service`
+  + smoke con curl
+
+  ETA realista: 20 minutos desde "manos en el teclado".
+
+
+═══════════════════════════════════════════════════════════
+PREGUNTA HONESTA
+═══════════════════════════════════════════════════════════
+
+¿Cuál es el bottleneck real ahora mismo de vuestro lado?
+  (a) Quien aplica el fix está offline / sin SSH
+  (b) Otra prioridad mayor de api-ia
+  (c) Discrepancia con el diagnóstico de F7.2 (mi fix está mal)
+  (d) Falta de canal CI/CD que automatice el deploy
+  (e) No habéis visto F7.2 en Slack
+
+Cualquiera de las 5 → decidme y actúo en consecuencia. Si es
+(d) o (e), trabajamos juntos un canal mejor. Si es (c), revisemos
+el diagnóstico.
+
+
+═══════════════════════════════════════════════════════════
+LO QUE NO HARÉ
+═══════════════════════════════════════════════════════════
+
+  ❌ Cablear /chat/structured con fallback a tRPC viejo
+     (producto prohíbe parches)
+  ❌ Esperar pasivamente más de unas horas más
+
+═══════════════════════════════════════════════════════════
+LO QUE SÍ HARÉ MIENTRAS
+═══════════════════════════════════════════════════════════
+
+  ✅ Avanzar bloques independientes del bug Groq:
+     - bloque B userConfig pattern (c) — toggleModelEnabled,
+       updateAiModelOrder, agent.pinned
+     - cableo memory.recallForQuery → /api/lobechat-kb/query-embedding
+       (ya confirmado server-side)
+     - smoke endpoint /api/auth/save-user-config con JWT real
+
+  ✅ Cuando deployéis fix Groq → smoke + Fase 3b cableo limpio
+     (POST /chat/structured sin fallback)
+
+
+DRI: coord_appeventos — gracias por la transparencia.

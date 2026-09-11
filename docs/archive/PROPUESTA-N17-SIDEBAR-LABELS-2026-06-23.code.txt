@@ -1,0 +1,77 @@
+═══════════════════════════════════════════════════════════════════════════════
+PROPUESTA UX — BUG-CW-N17 Sidebar chat-ia sin labels
+PARA: USER (decisión)
+═══════════════════════════════════════════════════════════════════════════════
+
+CONTEXTO
+  QA reportó: "Sidebar chat-ia desktop muestra solo iconos, hace falta texto."
+  Archivos afectados:
+    · apps/chat-ia/src/app/[variants]/(main)/_layout/Desktop/SideBar/TopActions.tsx
+    · apps/chat-ia/src/app/[variants]/(main)/_layout/Desktop/SideBar/BottomActions.tsx
+    · apps/chat-ia/src/app/[variants]/(main)/_layout/Desktop/SideBar/NotificationBell.tsx
+
+ESTADO ACTUAL
+  ✅ Cada ActionIcon tiene `title` (tooltip al hover) → aparece texto.
+  ✅ Cada Link envolvente tiene `aria-label` → accesible para screen readers.
+  ✅ blockSize=44 (tap target Apple HIG, fix BUG-CW-N16).
+  ❌ NO hay label TEXTUAL permanente debajo del icono.
+
+OPCIONES (decisión TUYA)
+
+═══════════════════════════════════════════════════════════════════════════════
+OPCIÓN A — NO HACER NADA (recomendada por mí)
+═══════════════════════════════════════════════════════════════════════════════
+
+  RAZÓN: el patrón de LobeChat (proyecto upstream del que somos fork) usa
+  sidebar COMPACTA. Todas las apps tipo Discord, Slack, VSCode, Linear, etc.
+  hacen lo mismo: icono + tooltip. Es el estándar UX en sidebars laterales
+  de aplicaciones complejas con muchas secciones.
+
+  TRADE-OFF:
+    Pro: no toca diseño, mantiene paridad con LobeChat para futuros merges.
+    Pro: tooltip + aria-label son suficientes para a11y formal.
+    Con: usuarios primerizos pueden tardar en aprender qué hace cada icono.
+
+  ACCIÓN: cerrar N17 como "won't fix — by design".
+
+═══════════════════════════════════════════════════════════════════════════════
+OPCIÓN B — LABELS EN HOVER MÁS PROMINENTES (compromise)
+═══════════════════════════════════════════════════════════════════════════════
+
+  En lugar de tooltip flotante, expandir la sidebar al pasar el ratón
+  (~200px de ancho) mostrando icono + label. Como Discord cuando despliegas
+  servidor info.
+
+  TRADE-OFF:
+    Pro: descubrible sin permanente.
+    Pro: NO afecta layout normal (compacta por defecto).
+    Con: requiere implementación custom + estado hover persistente.
+    Con: en mobile no tiene hover → no aporta nada.
+    Con: ~4-6 horas de trabajo.
+
+═══════════════════════════════════════════════════════════════════════════════
+OPCIÓN C — LABELS PERMANENTES (lo que pidió el QA)
+═══════════════════════════════════════════════════════════════════════════════
+
+  Añadir <span> con texto pequeño debajo de cada icono.
+
+  TRADE-OFF:
+    Pro: max descubribilidad.
+    Con: aumenta altura del sidebar ~40% → menos items visibles sin scroll.
+    Con: ROMPE el patrón LobeChat → divergencia que dificulta futuros merges.
+    Con: el resto de iconos del sidebar (avatar, settings, etc.) también
+         habría que tratar consistentemente.
+    Con: ~2-3 horas de trabajo + ajustes de spacing.
+
+═══════════════════════════════════════════════════════════════════════════════
+MI RECOMENDACIÓN
+═══════════════════════════════════════════════════════════════════════════════
+
+OPCIÓN A — cerrar como "by design". El sistema de tooltip + aria YA cumple
+los estándares UX y a11y; el "fallo" reportado por QA es subjetivo. Si la
+métrica real es "usuarios no encuentran funcionalidades", esto se mide con
+analytics (heatmaps, primera-clic), no con un fix del front.
+
+Si decidís B o C, dime y lo implemento.
+
+═══════════════════════════════════════════════════════════════════════════════

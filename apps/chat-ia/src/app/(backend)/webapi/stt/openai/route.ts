@@ -1,3 +1,4 @@
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
 /**
  * STT proxy → api-ia backend
  * No llama a OpenAI directamente. El audio pasa por api-ia para
@@ -5,12 +6,11 @@
  * Reenvía el formData (multipart) tal cual a api-ia.
  */
 
-export const runtime = 'nodejs';
+// SPRINT-AN 2026-05-20: edge runtime — proxy puro a api-ia, arrayBuffer + fetch (Web APIs).
+export const runtime = 'edge';
 
 const getBackendUrl = () =>
-  process.env.PYTHON_BACKEND_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  'https://api-ia.bodasdehoy.com';
+  resolveServerBackendOrigin();
 
 export const POST = async (req: Request) => {
   const backendUrl = getBackendUrl();

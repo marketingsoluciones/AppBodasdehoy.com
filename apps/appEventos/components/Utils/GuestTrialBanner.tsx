@@ -14,7 +14,7 @@ const GuestTrialBanner: FC = () => {
   const registerHref = pathLogin.includes('?') ? `${pathLogin}&q=register` : `${pathLogin}?q=register`;
 
   return (
-    <div className="w-full bg-gradient-to-r from-pink-50 to-purple-50 border-b border-pink-200 px-4 py-2.5 flex items-center justify-between gap-3 flex-wrap">
+    <div className="w-full bg-base border-b border-primary px-4 py-2.5 flex items-center justify-between gap-3 flex-wrap">
       <p className="text-xs text-gray-700">
         <span className="font-semibold">{t('guest.trial.label', { defaultValue: 'Modo prueba' })}</span>
         {' — '}

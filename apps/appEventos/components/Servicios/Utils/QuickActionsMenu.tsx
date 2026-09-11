@@ -55,23 +55,23 @@ export const QuickActionsMenu: React.FC<QuickActionsMenuProps> = ({
       icon: <Plus className="w-5 h-5" />,
       label: t('Nueva Tarea'),
       color: 'text-primary',
-      bgColor: 'bg-pink-50',
+      bgColor: 'bg-base',
       description: t('Crear una nueva tarea rápidamente')
     },
     {
       id: 'filter',
       icon: <Filter className="w-5 h-5" />,
       label: t('Filtros'),
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
+      color: 'text-secondary',
+      bgColor: 'bg-secondary/10',
       description: t('Filtrar tareas por criterios')
     },
     {
       id: 'calendar-view',
       icon: <Calendar className="w-5 h-5" />,
       label: t('Vista Calendario'),
-      color: 'text-green',
-      bgColor: 'bg-[#eeffee]',
+      color: 'text-emerald-700',
+      bgColor: 'bg-emerald-50',
       description: t('Ver tareas en calendario')
     },
     {
@@ -94,8 +94,8 @@ export const QuickActionsMenu: React.FC<QuickActionsMenuProps> = ({
       id: 'analytics',
       icon: <BarChart className="w-5 h-5" />,
       label: t('Analíticas'),
-      color: 'text-pink-600',
-      bgColor: 'bg-pink-50',
+      color: 'text-primary',
+      bgColor: 'bg-base',
       description: t('Ver estadísticas del tablero')
     },
     {
@@ -151,7 +151,7 @@ export const QuickActionsMenu: React.FC<QuickActionsMenuProps> = ({
       {/* Menú de acciones */}
       {isOpen && (
         <div className={`absolute ${menuPositionClasses[position]} mb-4 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden w-72`}>
-          <div className="p-4 bg-gradient-to-r from-primary to-purple-600 text-white">
+          <div className="p-4 bg-gradient-to-r from-primary to-secondary text-white">
             <h3 className="font-semibold text-lg">{t('Acciones Rápidas')}</h3>
             <p className="text-sm opacity-90 mt-1">{t('Accede rápidamente a las funciones')}</p>
           </div>
@@ -214,7 +214,7 @@ export const QuickActionsMenu: React.FC<QuickActionsMenuProps> = ({
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`
-          group relative w-14 h-14 bg-gradient-to-r from-primary to-purple-600 
+          group relative w-14 h-14 bg-gradient-to-r from-primary to-secondary 
           text-white rounded-full shadow-lg hover:shadow-xl transform transition-all duration-300
           ${isOpen ? 'rotate-45 scale-110' : 'hover:scale-110'}
         `}
@@ -226,7 +226,7 @@ export const QuickActionsMenu: React.FC<QuickActionsMenuProps> = ({
         
         {/* Anillo de animación */}
         {!isOpen && (
-          <span className="absolute inset-0 rounded-full animate-ping bg- opacity-20"></span>
+          <span className="absolute inset-0 rounded-full animate-ping bg-white opacity-20"></span>
         )}
       </button>
 

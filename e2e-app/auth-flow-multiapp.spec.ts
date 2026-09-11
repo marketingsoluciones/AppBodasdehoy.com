@@ -42,12 +42,16 @@
  *     npx playwright test e2e-app/auth-flow-multiapp.spec.ts
  */
 import { test, expect, type Page, type BrowserContext } from '@playwright/test';
-import { TEST_CREDENTIALS } from './fixtures';
+import { TEST_CREDENTIALS, TEST_URLS } from './fixtures';
 
 // ─── URLs fijas dev ────────────────────────────────────────────────────────────
-const CHAT  = 'https://chat-dev.bodasdehoy.com';
-const APP   = 'https://app-dev.bodasdehoy.com';
-const MEM   = 'https://memories-dev.bodasdehoy.com';
+const CHAT = (process.env.CHAT_URL || TEST_URLS.chat).replace(/\/$/, '');
+const APP = (process.env.BASE_URL || TEST_URLS.app).replace(/\/$/, '');
+const MEM = (process.env.MEMORIES_URL || TEST_URLS.memories).replace(/\/$/, '');
+
+const CHAT_HOST = new URL(CHAT).host;
+const APP_HOST = new URL(APP).host;
+const MEM_HOST = new URL(MEM).host;
 
 const TIMEOUT_NAV = 45_000;
 const TIMEOUT_UI  = 15_000;
@@ -316,8 +320,8 @@ test.describe('AE — appEventos auth', () => {
     const body = (await page.locator('body').textContent()) ?? '';
     const esError    = isErrorPage(body, url);
     const enBlanco   = body.trim().length < 50;
-    const enLoginApp = url.includes(`${APP}/login`) || url.includes('app-dev') && url.includes('login');
-    const redirigioAChatIa = url.includes('chat-dev.bodasdehoy.com') && url.includes('/login');
+    const enLoginApp = url.includes(`${APP}/login`) || (url.includes(APP_HOST) && url.includes('login'));
+    const redirigioAChatIa = url.includes(CHAT_HOST) && url.includes('/login');
     const muestraLogin = body.toLowerCase().includes('iniciar sesión') || body.toLowerCase().includes('bienvenido') || body.toLowerCase().includes('email');
 
     console.log(`\nAE01 url=${url}`);
@@ -375,7 +379,7 @@ test.describe('AE — appEventos auth', () => {
     console.log(`\nAE03 tras acceso sin auth: ${urlTrasAcceso}`);
 
     // Si redirigió a chat-ia login, autenticar ahí
-    if (urlTrasAcceso.includes('chat-dev') && urlTrasAcceso.includes('login')) {
+    if (urlTrasAcceso.includes(CHAT_HOST) && urlTrasAcceso.includes('login')) {
       const email = page.locator('input[type="email"]').first();
       if (await email.isVisible({ timeout: TIMEOUT_UI }).catch(() => false)) {
         await email.fill(TEST_CREDENTIALS.email);
@@ -383,7 +387,7 @@ test.describe('AE — appEventos auth', () => {
         await page.locator('button').filter({ hasText: /iniciar sesión/i }).first().click();
         await page.waitForTimeout(10000); // SSO redirect puede tardar
       }
-    } else if (urlTrasAcceso.includes(`${APP}/login`) || urlTrasAcceso.includes('app-dev') && urlTrasAcceso.includes('login')) {
+    } else if (urlTrasAcceso.includes(`${APP}/login`) || (urlTrasAcceso.includes(APP_HOST) && urlTrasAcceso.includes('login'))) {
       // Login propio de appEventos
       const email = page.locator('input[type="email"], input[name="email"]').first();
       if (await email.isVisible({ timeout: TIMEOUT_UI }).catch(() => false)) {
@@ -401,7 +405,7 @@ test.describe('AE — appEventos auth', () => {
     const body     = (await page.locator('body').textContent()) ?? '';
     const esError  = isErrorPage(body, urlFinal);
     const enLogin  = urlFinal.includes('/login');
-    const enApp    = urlFinal.includes('app-dev.bodasdehoy.com') && !urlFinal.includes('/login');
+    const enApp = urlFinal.includes(APP_HOST) && !urlFinal.includes('/login');
 
     console.log(`AE03 url_final=${urlFinal} | en_app=${enApp} | en_login=${enLogin} | error=${esError}`);
 
@@ -471,6 +475,20 @@ test.describe('AE — appEventos auth', () => {
 
 test.describe('MW — memories-web auth', () => {
   test.setTimeout(120_000);
+  let memoriesUp = true;
+
+  test.beforeAll(async ({ request }) => {
+    try {
+      const res = await request.get(`${MEM}/`, { timeout: 8_000 });
+      memoriesUp = res.ok();
+    } catch {
+      memoriesUp = false;
+    }
+  });
+
+  test.beforeEach(() => {
+    if (!memoriesUp) test.skip();
+  });
 
   test('[MW01] /app sin login → LoginForm inline visible (no redirige)', async ({ page, context }) => {
     await context.clearCookies();
@@ -484,7 +502,7 @@ test.describe('MW — memories-web auth', () => {
     const enBlanco = body.trim().length < 50;
     // memories-web muestra LoginForm inline (no redirige a /login)
     const hayFormLogin = body.toLowerCase().includes('email') || body.toLowerCase().includes('iniciar') || body.toLowerCase().includes('entrar') || await page.locator('input[type="email"], input[type="text"]').isVisible({ timeout: 3_000 }).catch(() => false);
-    const redirigioOtro = !url.includes('memories-dev');
+    const redirigioOtro = !url.includes(MEM_HOST);
 
     console.log(`\nMW01 url=${url} | error=${esError} | blank=${enBlanco} | form_login=${hayFormLogin} | redirigió=${redirigioOtro}`);
 
@@ -545,7 +563,7 @@ test.describe('MW — memories-web auth', () => {
     const url  = page.url();
     const body = (await page.locator('body').textContent()) ?? '';
     const esError  = isErrorPage(body, url);
-    const enApp    = url.includes('/app') && url.includes('memories-dev');
+    const enApp = url.includes('/app') && url.includes(MEM_HOST);
     const sinLogin = !body.toLowerCase().includes('iniciar') && !body.toLowerCase().includes('email') || body.length > 500;
 
     console.log(`\nMW03 url=${url} | en_app=${enApp} | content_ok=${sinLogin} | error=${esError}`);

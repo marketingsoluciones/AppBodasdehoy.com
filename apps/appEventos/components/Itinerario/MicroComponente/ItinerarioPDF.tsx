@@ -74,9 +74,10 @@ export const ItinerarioPDF = (props) => {
         </div>
         <div className='flex-1 md:flex-none md:w-[35%] h-[100%] flex flex-row-reverse md:flex-row items-center '>
           <img
-            src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i320}` : defaultImagenes[event?.tipo?.toLowerCase()]}
+            src={event?.imgEvento?.i320 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${event.imgEvento.i320}`)}` : defaultImagenes[event?.tipo?.toLowerCase()]}
             className=" h-[90%] object-cover object-top rounded-md border-1 border-gray-600  hidden md:block"
             alt={event?.nombre}
+            onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[event?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
           />
           <div className='hidden md:flex flex-col font-display font-semibold text-md text-gray-500 px-2 md:pt-2 gap-2'>
             <span className='text-sm translate-y-2 text-primary text-[12px] first-letter:capitalize'>{event?.tipo}</span>
@@ -93,7 +94,9 @@ export const ItinerarioPDF = (props) => {
           <div key={i} className="w-full mt-4">
             <div className={`w-full flex justify-start`}>
               <span className={`border-primary border-dotted mb-1 border-[1px] px-5 py-[1px] rounded-full text-[12px] font-semibold`}>
-                {new Date(el?.fecha).toLocaleString(navigator.language, { year: "numeric", month: "long", day: "2-digit" })}
+                {/* el.fecha es la clave de grupo (Date.UTC del día en el huso del evento):
+                    se pinta en UTC para que la etiqueta no se desplace un día. */}
+                {new Date(el?.fecha).toLocaleString(navigator.language, { year: "numeric", month: "long", day: "2-digit", timeZone: "UTC" })}
               </span>
             </div>
             {el?.tasks?.map((elem, idx) => {

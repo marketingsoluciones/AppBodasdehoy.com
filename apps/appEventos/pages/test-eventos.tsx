@@ -35,7 +35,11 @@ export default function TestEventos() {
     try {
       addLog(`Usuario ID: ${user.uid}`);
       addLog(`Development: ${config?.development}`);
-      addLog('Llamando a fetchApiBodas (API correcta para getEventsByID)...');
+      // NOTA 27-ago: fetchApiBodas NO es la vía correcta para getEventsByID — se salta
+      // MCP_ADAPTERS y manda el campo legacy `queryenEvento`, que api-mcp rechaza. Los
+      // call-sites de producción ya usan fetchApiEventos. Esta página de pruebas se deja
+      // como está a propósito: sirve para reproducir el error si hace falta.
+      addLog('Llamando a fetchApiBodas (OJO: sin adaptador, reproduce el error de queryenEvento)...');
 
       const startTime = performance.now();
       const events = await fetchApiBodas({

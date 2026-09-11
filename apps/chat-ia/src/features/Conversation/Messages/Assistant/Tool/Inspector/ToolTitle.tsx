@@ -11,7 +11,6 @@ import { chatSelectors } from '@/store/chat/selectors';
 import { pluginHelpers, useToolStore } from '@/store/tool';
 import { toolSelectors } from '@/store/tool/selectors';
 import { shinyTextStylish } from '@/styles/loading';
-import { LocalSystemManifest } from '@/tools/local-system';
 import { WebBrowsingManifest } from '@/tools/web-browsing';
 
 import BuiltinPluginTitle from './BuiltinPluginTitle';
@@ -55,12 +54,7 @@ const ToolTitle = memo<ToolTitleProps>(({ identifier, messageId, index, apiName,
         id: WebBrowsingManifest.identifier,
         title: t('search.title'),
       },
-      {
-        apiName: t(`localSystem.apiName.${apiName}`, apiName),
-        // icon: <Icon icon={Laptop} size={13} />,
-        id: LocalSystemManifest.identifier,
-        title: t('localSystem.title'),
-      },
+      // SPRINT-M 2026-05-19: LocalSystemManifest eliminado (tool desktop-only).
     ],
     [],
   );

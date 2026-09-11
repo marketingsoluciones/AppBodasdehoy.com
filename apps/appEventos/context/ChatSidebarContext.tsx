@@ -7,6 +7,13 @@ interface ChatSidebarContextType {
   openSidebar: () => void;
   closeSidebar: () => void;
   setWidth: (width: number) => void;
+  // Prompt pendiente para enviar al copilot al abrirlo (p. ej. "Generar con IA" del
+  // presupuesto). El sidebar (CopilotEmbed) solo se monta cuando isOpen, así que el
+  // prompt se guarda aquí (provider siempre montado), se abre el sidebar y el embed lo
+  // consume al montarse.
+  pendingPrompt: string | null;
+  openWithPrompt: (prompt: string) => void;
+  clearPendingPrompt: () => void;
 }
 
 const ChatSidebarContext = createContext<ChatSidebarContextType | null>(null);
@@ -27,6 +34,25 @@ interface ChatSidebarProviderProps {
 export const ChatSidebarProvider: FC<ChatSidebarProviderProps> = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [width, setWidthState] = useState(DEFAULT_WIDTH);
+  const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
+
+  const openWithPrompt = useCallback((prompt: string) => {
+    if (prompt) setPendingPrompt(prompt);
+    setIsOpen(true);
+  }, []);
+  const clearPendingPrompt = useCallback(() => setPendingPrompt(null), []);
+
+  // Listener SIEMPRE montado: cualquier página puede pedir al copilot que genere algo
+  // (p. ej. PresupuestoInitModal → "Generar con IA") emitiendo 'copilot:send-prompt'.
+  // Abre el sidebar y guarda el prompt; el embed lo envía al montarse.
+  useEffect(() => {
+    const onSendPrompt = (e: any) => {
+      const msg = e?.detail?.message;
+      if (msg) openWithPrompt(String(msg));
+    };
+    window.addEventListener('copilot:send-prompt', onSendPrompt as EventListener);
+    return () => window.removeEventListener('copilot:send-prompt', onSendPrompt as EventListener);
+  }, [openWithPrompt]);
 
   const toggleSidebar = useCallback(() => {
     setIsOpen(prev => !prev);
@@ -70,6 +96,9 @@ export const ChatSidebarProvider: FC<ChatSidebarProviderProps> = ({ children }) 
         openSidebar,
         closeSidebar,
         setWidth,
+        pendingPrompt,
+        openWithPrompt,
+        clearPendingPrompt,
       }}
     >
       {children}

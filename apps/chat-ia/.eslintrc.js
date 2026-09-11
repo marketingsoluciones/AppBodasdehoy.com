@@ -48,4 +48,7 @@ config.overrides = [
   },
 ];
 
+// ✅ AI-Friendly code (warn no-explicit-any para visibilidad sin romper build)
+config.rules['@typescript-eslint/no-explicit-any'] = 1;
+
 module.exports = config;

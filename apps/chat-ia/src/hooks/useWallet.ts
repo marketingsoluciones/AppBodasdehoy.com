@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useChatStore } from '@/store/chat';
+import { safeLocalStorage } from '@/utils/safeLocalStorage';
 import {
   BalanceCheck,
   ConsumeResponse,
@@ -10,7 +11,7 @@ import {
   WalletBalance,
   WalletTransaction,
   walletService,
-} from '@/services/api2/wallet';
+} from '@/services/mcpApi/wallet';
 
 // ========================================
 // TYPES
@@ -18,6 +19,10 @@ import {
 
 export interface UseWalletState {
   balance: number;
+  /** true solo cuando el saldo se leyó con ÉXITO al menos una vez. Mientras sea false
+   *  (carga inicial o fallo de api-mcp), el saldo es DESCONOCIDO → la UI debe mostrar
+   *  "—"/"no disponible", NO "€0.00" (evita el falso €0/"saldo insuficiente"). */
+  balanceLoaded: boolean;
   bonusBalance: number;
   creditLimit: number;
   currency: string;
@@ -63,6 +68,7 @@ export interface UseWalletReturn extends UseWalletState, UseWalletActions {
 export const useWallet = (): UseWalletReturn => {
   const currentUserId = useChatStore((s) => s.currentUserId);
   const isAuthenticated = !!(currentUserId && currentUserId !== 'visitante@guest.local');
+  const bootRetryRef = useRef(false);
 
   // Balance state
   const [balance, setBalance] = useState(0);
@@ -74,6 +80,9 @@ export const useWallet = (): UseWalletReturn => {
   const [lowBalanceThreshold, setLowBalanceThreshold] = useState(5);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // ¿se ha leído el saldo con ÉXITO al menos una vez? Mientras NO, el saldo es DESCONOCIDO,
+  // no agotado → no debemos bloquear al usuario por los ceros iniciales (informe 14-jun).
+  const [balanceLoaded, setBalanceLoaded] = useState(false);
 
   // Modal state
   const [showRechargeModal, setShowRechargeModal] = useState(false);
@@ -87,42 +96,83 @@ export const useWallet = (): UseWalletReturn => {
   // Retry guard: solo un reintento por sesión de error UNAUTHORIZED
   const unauthorizedRetryDoneRef = useRef(false);
 
+  const hasApi2Token = useCallback(() => {
+    if (typeof window === 'undefined') return false;
+
+    const directToken = safeLocalStorage.getItem('jwt_token');
+    if (directToken) return true;
+
+    const firebaseToken = safeLocalStorage.getItem('mcp_jwt_token');
+    if (firebaseToken) return true;
+
+    const cache = safeLocalStorage.getItem('jwt_token_cache');
+    if (!cache) return false;
+
+    try {
+      const parsed = JSON.parse(cache);
+      const token = parsed?.token;
+      const expiresAt = parsed?.expiresAt;
+      if (!token || !expiresAt) return false;
+      return Date.now() < Number(expiresAt);
+    } catch {
+      return false;
+    }
+  }, []);
+
   // Computed
   const isNegativeBalance = balance < 0;
   // Credit is exhausted only when ALL funds (balance + bonus + credit limit) are gone
-  // e.g. balance=-0.90, creditLimit=50 → still has 49.10 available → NOT exhausted
-  const isCreditExhausted = totalBalance + creditLimit <= 0;
-  const isLowBalance = totalBalance <= lowBalanceThreshold && !isCreditExhausted;
+  // e.g. balance=-0.90, creditLimit=50 → still has 49.10 available → NOT exhausted.
+  // SOLO se evalúa si el saldo se leyó con éxito; mientras no, NO está agotado (desconocido ≠ 0)
+  // → evita el falso "sin saldo" con los ceros iniciales o cuando la query falla (UNAUTHORIZED).
+  const isCreditExhausted = balanceLoaded && totalBalance + creditLimit <= 0;
+  const isLowBalance = balanceLoaded && totalBalance <= lowBalanceThreshold && !isCreditExhausted;
 
   // ========================================
   // BALANCE FUNCTIONS
   // ========================================
 
   const refetchBalance = useCallback(async () => {
+    if (!hasApi2Token()) {
+      setError(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
       const data = await walletService.getBalance();
+      // Si la consulta FALLA (success:false, p.ej. UNAUTHORIZED), api-mcp devuelve
+      // balance=0, total_balance=0, credit_limit=null. NO debemos aplicar esos ceros:
+      // harían isCreditExhausted = 0+0 <= 0 = true → "sin saldo" FALSO, bloqueando a un
+      // usuario que SÍ tiene crédito (informe 14-jun: da sin saldo teniendo crédito).
+      // Un fallo de consulta = saldo DESCONOCIDO, no saldo agotado → no sobrescribir.
+      if (!data.success) {
+        const errorMsg = data.error || (data.errors as any[] | undefined)?.[0]?.message ||
+          (data.errors as string[] | undefined)?.[0] || 'No se pudo leer el saldo';
+        setError(typeof errorMsg === 'string' ? errorMsg : 'No se pudo leer el saldo');
+        return; // mantener el último saldo conocido; no bloquear por datos vacíos
+      }
       setBalance(data.balance ?? 0);
       setBonusBalance(data.bonus_balance ?? 0);
       setCreditLimit(data.credit_limit ?? 0);
       setTotalBalance(data.total_balance ?? 0);
       setCurrency(data.currency || 'EUR');
       setStatus(data.status || 'ACTIVE');
-      if (!data.success) {
-        const errorMsg = data.error || (data.errors as string[] | undefined)?.[0] || null;
-        if (errorMsg) setError(errorMsg);
-      }
+      setBalanceLoaded(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [hasApi2Token]);
 
   const canAfford = useCallback(async (amount: number): Promise<BalanceCheck> => {
     const check = await walletService.checkBalance(amount);
-    if (!check.allowed) {
+    // Solo abrir el modal de recarga ante una DENEGACIÓN REAL por saldo. Si la consulta a
+    // MCP falló (error_code API_ERROR → saldo DESCONOCIDO, no insuficiente), NO mostrar
+    // "saldo insuficiente": evita el falso B-12 durante caídas de api-mcp (QA 7-ago).
+    if (!check.allowed && check.error_code !== 'API_ERROR') {
       setLastBalanceCheck(check);
       setShowRechargeModal(true);
     }
@@ -212,7 +262,11 @@ export const useWallet = (): UseWalletReturn => {
         }
         setHasMoreTransactions(data.hasMore || false);
       } else {
-        const errorMsg = data.errors?.[0]?.message || 'Error al obtener transacciones';
+        // Si backend cambia el shape (message pasa a ser objeto), normalizar a string
+        // para no romper el render como React #31.
+        const raw: unknown = data.errors?.[0]?.message;
+        const errorMsg =
+          typeof raw === 'string' ? raw : raw ? JSON.stringify(raw) : 'Error al obtener transacciones';
         setError(errorMsg);
         setTransactions([]);
       }
@@ -229,10 +283,38 @@ export const useWallet = (): UseWalletReturn => {
   // ========================================
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated) {
+      setLoading(false);
+      return;
+    }
     unauthorizedRetryDoneRef.current = false;
-    refetchBalance();
-  }, [currentUserId]); // Re-fetch cada vez que cambia el userId (login event)
+
+    bootRetryRef.current = false;
+
+    const run = () => {
+      if (!hasApi2Token()) {
+        setLoading(false);
+        return;
+      }
+      refetchBalance();
+    };
+
+    run();
+    if (hasApi2Token()) return;
+
+    if (bootRetryRef.current) return;
+    bootRetryRef.current = true;
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      const id = (window as any).requestIdleCallback(run, { timeout: 2000 });
+      return () => {
+        (window as any).cancelIdleCallback?.(id);
+      };
+    }
+
+    const t = setTimeout(run, 1500);
+    return () => clearTimeout(t);
+  }, [currentUserId, isAuthenticated, refetchBalance, hasApi2Token]); // Re-fetch cada vez que cambia el userId (login event)
 
   // Auto-retry si UNAUTHORIZED y hay token disponible (solo UN reintento, evita loops)
   useEffect(() => {
@@ -240,7 +322,7 @@ export const useWallet = (): UseWalletReturn => {
     if (unauthorizedRetryDoneRef.current) return;
     unauthorizedRetryDoneRef.current = true;
     const retryTimer = setTimeout(() => {
-      if (localStorage.getItem('jwt_token')) {
+      if (safeLocalStorage.getItem('jwt_token')) {
         refetchBalance();
       }
     }, 500);
@@ -266,6 +348,7 @@ export const useWallet = (): UseWalletReturn => {
 
   return {
     balance,
+    balanceLoaded,
     bonusBalance,
     canAfford,
     consumeService,

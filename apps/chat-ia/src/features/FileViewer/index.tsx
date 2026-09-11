@@ -8,7 +8,9 @@ import { FileListItem } from '@/types/files';
 
 import NotSupport from './NotSupport';
 import { FileViewRenderers } from './Renderer';
-import PDFRenderer from './Renderer/PDF';
+
+// SPRINT-N 2026-05-19 — migración: Renderer/PDF eliminado (pdfjs-dist dep removida).
+// PDFs delegados a DocViewer pluginRenderers fallback / NotSupport overlay.
 
 const container = css`
   background: transparent !important;
@@ -23,11 +25,7 @@ interface FileViewerProps extends FileListItem {
   style?: CSSProperties;
 }
 
-const FileViewer = memo<FileViewerProps>(({ id, style, fileType, url, name }) => {
-  if (fileType?.toLowerCase() === 'pdf' || name?.toLowerCase().endsWith('.pdf')) {
-    return <PDFRenderer fileId={id} url={url} />;
-  }
-
+const FileViewer = memo<FileViewerProps>(({ style, fileType, url, name }) => {
   return (
     <DocViewer
       className={cx(container)}

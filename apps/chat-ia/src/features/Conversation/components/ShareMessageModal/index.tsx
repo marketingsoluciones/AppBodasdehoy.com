@@ -1,15 +1,18 @@
 import { UIChatMessage } from '@lobechat/types';
 import { Modal, Segmented, Tabs } from '@lobehub/ui';
+import dynamic from 'next/dynamic';
 import { memo, useId, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
 import { isServerMode } from '@/const/version';
-import SharePdf from '@/features/ShareModal/SharePdf';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 import ShareImage from './ShareImage';
 import ShareText from './ShareText';
+
+// SPRINT-Z: SharePdf lazy ssr:false (mismo motivo que ShareModal/index.tsx).
+const SharePdf = dynamic(() => import('@/features/ShareModal/SharePdf'), { ssr: false });
 
 enum Tab {
   PDF = 'pdf',

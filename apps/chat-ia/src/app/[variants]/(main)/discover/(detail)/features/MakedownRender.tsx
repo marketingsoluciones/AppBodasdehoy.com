@@ -28,11 +28,11 @@ const MarkdownRender = memo<{ children?: string }>(({ children }) => {
         h3: H3,
         h4: H4,
         h5: H5,
-        img: ({ src, ...rest }: { src: string }) => {
+        img: ({ src, alt, ...rest }: { src: string; alt?: string }) => {
           if (src.includes('glama.ai')) return;
 
           // eslint-disable-next-line @next/next/no-img-element
-          if (src && src.startsWith('http')) return <img src={src} {...rest} />;
+          if (src && src.startsWith('http')) return <img alt={alt || ''} src={src} {...rest} />;
           return;
         },
       }}

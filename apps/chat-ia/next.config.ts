@@ -2,6 +2,16 @@ import analyzer from '@next/bundle-analyzer';
 import withSerwistInit from '@serwist/next';
 import type { NextConfig } from 'next';
 import ReactComponentName from 'react-scan/react-component-name/webpack';
+import { execSync } from 'node:child_process';
+
+// QA 30-jun: commit SHA para DebugFooter (no depende de env var manual).
+try {
+  if (!process.env.NEXT_PUBLIC_COMMIT_SHA) {
+    process.env.NEXT_PUBLIC_COMMIT_SHA = execSync('git rev-parse --short HEAD', {
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).toString().trim();
+  }
+} catch (_) { /* silent en entornos sin git */ }
 
 const isProd = process.env.NODE_ENV === 'production';
 const buildWithDocker = process.env.DOCKER === 'true';
@@ -28,8 +38,34 @@ const standaloneConfig: NextConfig = {
 const nextConfig: NextConfig = {
   ...(isStandaloneMode ? standaloneConfig : {}),
   assetPrefix: process.env.NEXT_PUBLIC_ASSET_PREFIX,
+  env: {
+    NEXT_PUBLIC_COMMIT_SHA: process.env.NEXT_PUBLIC_COMMIT_SHA || 'unknown',
+  },
+  // ⚡ PERF 2026-06-03: en dev, NO retener páginas compiladas inactivas en memoria.
+  // En esta Mac (16GB, swap saturado) cada página retenida del árbol de 40k módulos
+  // come RAM y empuja a swap → recompilación lenta por I/O. Liberar rápido las inactivas
+  // mantiene a Node dentro de RAM física. Solo afecta a dev (en prod se ignora).
+  ...(isProd
+    ? {}
+    : {
+        onDemandEntries: {
+          // Cuánto tiempo mantener una página en memoria sin visitarla (ms).
+          maxInactiveAge: 25 * 1000,
+          // Cuántas páginas mantener simultáneamente compiladas en memoria.
+          pagesBufferLength: 3,
+        },
+      }),
+  // ⚡ PERF 2026-05-13: silenciar warning "multiple lockfiles" — el root pnpm-lock.yaml
+  // es la fuente de verdad; apps/chat-ia/pnpm-lock.yaml es legacy pre-monorepo.
+  outputFileTracingRoot: require('path').join(__dirname, '../..'),
   compiler: {
     emotion: true,
+    // Antipatrón 6 (auditoría 20-jun aplicada a chat-ia 21-jun): muchos console.log
+    // heredados de debug. SWC los elimina del bundle de producción; mantenemos error
+    // y warn para que sigan llegando a Sentry y a logs operativos.
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
   },
   compress: isProd,
   eslint: {
@@ -37,11 +73,28 @@ const nextConfig: NextConfig = {
     // your project has ESLint errors (middleware lazy-loading pattern)
     ignoreDuringBuilds: true,
   },
+  // ✅ PERF: Ignorar typecheck en build (manejado en CI paralelo)
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  // ✅ PERF: modularizeImports — más agresivo que optimizePackageImports
+  // Convierte `import { X, Y } from 'lucide-react'` → imports individuales
+  // Reduce drásticamente tiempo compile y bundle size
+  modularizeImports: {
+    // lucide-react eliminado 2026-05-18: rompía con sufijo Icon (ArrowBigUpIcon →
+    // arrow-big-up-icon.js inexistente). optimizePackageImports nativo abajo lo
+    // maneja correctamente desde @lobehub/ui (que ahora está en transpilePackages).
+    'lodash-es': {
+      transform: 'lodash-es/{{member}}',
+    },
+    '@ant-design/icons': {
+      transform: '@ant-design/icons/lib/icons/{{member}}',
+      skipDefaultConversion: true,
+    },
+  },
   experimental: {
-    // ✅ Solo limitar CPUs en producción (build), no en desarrollo
-    // 2 CPUs: seguro con 8GB — 1 CPU era demasiado conservador
-    ...(isProd && { cpus: 2 }),
-
+    // ⚡ PERF 2026-05-13: eliminado cpus:2 — Turborepo gestiona paralelismo a nivel monorepo.
+    // Limitar a 2 cores en máquinas con 10+ cores ralentizaba builds hasta 5×.
     optimizePackageImports: [
       'emoji-mart',
       '@emoji-mart/react',
@@ -63,6 +116,63 @@ const nextConfig: NextConfig = {
       'framer-motion',
       '@tanstack/react-query',
       'zustand',
+      // SPRINT-B 2026-05-19: tree-shaking electron-client-ipc en builds web.
+      // 39 imports detrás de guard isDesktop — solo carga lo invocado en runtime.
+      '@lobechat/electron-client-ipc',
+      // SPRINT-C 2026-05-19: tree-shaking model-runtime (14 imports residuales
+      // tras migración chat-ia → api-ia). El package pesa 284 archivos con SDKs
+      // OpenAI/Anthropic/Bedrock/Google/etc — tree-shaking carga solo invokes.
+      '@lobechat/model-runtime',
+      // SPRINT-D 2026-05-19: tree-shaking model-bank (35 imports tras SPRINT-A.1-3).
+      // 75 archivos con catálogo modelos + types — tree-shaking carga solo lo usado.
+      'model-bank',
+      // Packages internos chat-ia con muchos archivos — tree-shaking individual.
+      '@lobechat/types',
+      '@lobechat/const',
+      '@lobechat/utils',
+      '@lobechat/database',
+      '@lobechat/prompts',
+      '@lobechat/context-engine',
+      // External UI helpers — pesados sin tree-shaking nativo.
+      '@lobehub/chat-plugin-sdk',
+      '@lobehub/market-sdk',
+      '@lobehub/editor',
+      // SPRINT-U 2026-05-20: paquetes pesados con barrel exports que aún no estaban.
+      // antd-style: 547 archivos importan from 'antd-style' — barrel masivo.
+      'antd-style',
+      '@lobehub/charts',           // 5 archivos (profile/stats + ConsumptionChart)
+      '@lobehub/analytics',        // 4 archivos analytics
+      '@cyntler/react-doc-viewer', // 5 archivos FileViewer renderers
+      'recharts',                  // 3 archivos billing + artifacts + ConsumptionChart
+      'langfuse',                  // 2 archivos libs/traces server-side
+      'langfuse-core',
+      // SPRINT-AC 2026-05-20: packages workspace @bodasdehoy/* compilados a dist.
+      // Tree-shake exports inferidos del barrel index.js → ahorra bundle inicial cliente.
+      '@bodasdehoy/shared',
+      '@bodasdehoy/memories',
+      '@bodasdehoy/wedding-creator',
+      '@bodasdehoy/auth-ui',
+      '@bodasdehoy/copilot-shared',
+      // SPRINT-AE 2026-05-20: top npm packages con barrel exports descubiertos via grep.
+      'react-layout-kit',   // 728 archivos (Flexbox, Center, etc)
+      'react-router-dom',   // 36 archivos /discover/* (legacy LobeChat — tech debt: migrar a next/navigation)
+      'swr',                // 49 archivos
+      // SPRINT-AO 2026-05-20: más packages npm con barrel + uso significativo.
+      'ahooks',             // 13 archivos (hooks library ~1MB barrel)
+      'use-merge-value',    // 10 archivos
+      'react-hotkeys-hook', // 7 archivos
+      '@formkit/auto-animate', // 3 archivos
+      'react-responsive',   // 2 archivos
+      'modern-screenshot',  // 2 archivos
+      // SPRINT-AP 2026-05-20: top imports library con barrel.
+      'react-i18next',      // 579 archivos — useTranslation principalmente
+      'zod',                // 63 archivos
+      // 2026-06-03: medido en bundle server real de /chat (.next/server/app).
+      // Barrels grandes que NO estaban en la lista. @emotion/react=397 módulos (#2
+      // tras @lobehub/ui=427), dayjs=177. Tree-shaking nativo reduce su fan-out.
+      '@emotion/react',     // 397 módulos en bundle /chat (styled/css/keyframes)
+      'dayjs',              // 177 módulos (locales + plugins barrel)
+      '@next/third-parties', // 36 módulos (Google tag/Analytics — barrel)
     ],
 
     // ✅ Limitar CPUs para reducir memoria paralela
@@ -251,6 +361,7 @@ const nextConfig: NextConfig = {
     'memories-dev.bodasdehoy.com', 'editor-dev.bodasdehoy.com',
     'wedding-creator.bodasdehoy.com',
     '127.0.0.1', 'localhost',
+    '192.168.1.48',
   ],
 
   reactStrictMode: true,
@@ -333,7 +444,7 @@ const nextConfig: NextConfig = {
   // ✅ PROXY para backend Python (evita CORS)
   // Usa BACKEND_INTERNAL_URL para servidor separado o localhost para desarrollo
   async rewrites() {
-    const backendUrl = process.env.BACKEND_INTERNAL_URL || process.env.BACKEND_URL || process.env.PYTHON_BACKEND_URL || 'http://localhost:8030';
+    const backendUrl = process.env.API_IA_URL || process.env.API_IA_URL || process.env.API_IA_URL || 'http://localhost:8030';
 
     console.log('[next.config] Proxying API requests to:', backendUrl);
 
@@ -382,53 +493,57 @@ const nextConfig: NextConfig = {
   // También excluimos sharp para evitar errores de compatibilidad ARM64 en Vercel
   serverExternalPackages: isProd ? ['@electric-sql/pglite', 'sharp'] : undefined,
 
-  transpilePackages: ['pdfjs-dist', 'mermaid', '@bodasdehoy/wedding-creator', '@bodasdehoy/memories', '@bodasdehoy/shared', '@bodasdehoy/auth-ui'],
-
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  // Algunos workspaces internos siguen exportando `src/*.ts` y Next 15 no los resuelve
+  // de forma fiable si no pasan por transpilePackages. Mantener aquí solo los packages
+  // realmente importados desde fuente para no reabrir el sobrecoste de builds viejos.
+  transpilePackages: [
+    '@lobechat/const',
+    '@lobechat/context-engine',
+    '@lobechat/database',
+    '@lobechat/model-runtime',
+    '@lobechat/prompts',
+    '@lobechat/types',
+    '@lobechat/utils',
+    'model-bank',
+  ],
 
   webpack(config) {
     config.experiments = {
       asyncWebAssembly: true,
       layers: true,
+      // ⚡ Skip rebuild de módulos no afectados por cambios (Next 15+ / webpack 5)
+      cacheUnaffected: true,
     };
 
-    // ✅ Optimizaciones de memoria para dev (evitar OOM con webpack ~6GB)
-    if (!isProd) {
-      config.parallelism = 2; // Reducir de 10 (CPU cores) a 2 para ahorrar memoria
+    // ⚡ PERF 2026-05-13: eliminado parallelism:2 — webpack usa todos los cores disponibles.
+    // En máquinas con 10+ cores, limitar a 2 era 5× más lento.
 
-      // ✅ Cache filesystem en dev: evita recompilar 44k módulos en cada restart
-      // Sin esto, cada crash/restart → 400s+ de recompilación completa
+    // ✅ Cache filesystem en dev: evita recompilar 44k módulos en cada restart
+    if (!isProd) {
       config.cache = {
         type: 'filesystem',
         cacheDirectory: require('path').join(__dirname, '.next/cache/webpack'),
-        compression: false, // Sin compresión en dev → más rápido escribir/leer cache
-        maxMemoryGenerations: 1, // Limitar generaciones en memoria
-        maxAge: 2 * 24 * 60 * 60 * 1000, // Expirar entradas >2 días (evita que el caché ocupe todo el disco)
+        compression: false,
+        maxMemoryGenerations: 1,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días — entradas frecuentes se mantienen, antiguas se purgan
       };
     }
 
     // ✅ Optimizaciones de memoria para build
     if (isProd) {
-      // 2 CPUs: equilibrio entre velocidad y memoria (seguro con 8GB)
-      config.parallelism = 2;
-
       // ✅ Deshabilitar source maps para reducir memoria y tamaño
       config.devtool = false;
 
       // ✅ Filesystem cache: builds posteriores 3-5× más rápidos
-      // Solo recompila módulos que cambiaron — sin cache = compilar todo desde 0
       config.cache = {
         type: 'filesystem',
         buildDependencies: {
-          config: [__filename], // Invalida cache si cambia next.config.ts
+          config: [__filename],
         },
-        // Guardar en .next/cache/webpack (ya ignorado por git)
         cacheDirectory: require('path').join(__dirname, '.next/cache/webpack'),
         compression: 'gzip',
-        // Máximo 500MB de cache en disco
         maxMemoryGenerations: 1,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días — TTL explícito (sin esto cache crecía 9GB+)
       };
 
       // ✅ Optimizaciones de output para código más liviano
@@ -501,7 +616,8 @@ const withPWA =
       })
     : noWrapper;
 
-// Sentry — solo activo cuando hay DSN configurado (evita overhead en dev local sin DSN)
+// Sentry — solo en producción Y solo cuando hay DSN configurado.
+// ⚡ PERF 2026-05-13: condicionado a isProd para evitar overhead webpack-plugin en dev.
 import { withSentryConfig } from '@sentry/nextjs';
 const sentryOptions = {
   silent: true,
@@ -509,12 +625,13 @@ const sentryOptions = {
   project: 'chat-ia',
   widenClientFileUpload: true,
   hideSourceMaps: true,
-  disableLogger: true,
-  // Turbopack-compatible: no webpack plugin en dev
+  webpack: { treeshake: { removeDebugLogging: true } },
   disableClientWebpackPlugin: !isProd,
   disableServerWebpackPlugin: !isProd,
 };
 const withSentry = (cfg: NextConfig) =>
-  process.env.NEXT_PUBLIC_SENTRY_DSN ? withSentryConfig(cfg, sentryOptions) : cfg;
+  isProd && process.env.NEXT_PUBLIC_SENTRY_DSN
+    ? withSentryConfig(cfg, sentryOptions)
+    : cfg;
 
 export default withBundleAnalyzer(withPWA(withSentry(nextConfig) as NextConfig));

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
 /**
  * API Route para obtener URL de archivo desde Storage R2
  * 
@@ -20,9 +21,7 @@ export async function GET(
     const development = request.headers.get('X-Development') || 'bodasdehoy';
     const userId = request.headers.get('X-User-ID') || request.headers.get('X-User-Email') || 'anonymous';
 
-    const backendUrl = process.env.BACKEND_URL || 
-                       process.env.NEXT_PUBLIC_BACKEND_URL || 
-                       'https://api-ia.bodasdehoy.com';
+    const backendUrl = resolveServerBackendOrigin();
 
     const url = `${backendUrl}/api/storage/files/${fileId}?version=${version}${eventId ? `&event_id=${eventId}` : ''}`;
 
@@ -68,9 +67,7 @@ export async function DELETE(
     const development = request.headers.get('X-Development') || 'bodasdehoy';
     const userId = request.headers.get('X-User-ID') || request.headers.get('X-User-Email') || 'anonymous';
 
-    const backendUrl = process.env.BACKEND_URL || 
-                       process.env.NEXT_PUBLIC_BACKEND_URL || 
-                       'https://api-ia.bodasdehoy.com';
+    const backendUrl = resolveServerBackendOrigin();
 
     const url = `${backendUrl}/api/storage/files/${fileId}${eventId ? `?event_id=${eventId}` : ''}`;
 

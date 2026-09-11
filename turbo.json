@@ -1,0 +1,77 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "stream",
+  "envMode": "loose",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "inputs": [
+        "src/**",
+        "public/**",
+        "pages/**",
+        "components/**",
+        "context/**",
+        "hooks/**",
+        "lib/**",
+        "utils/**",
+        "styles/**",
+        "locales/**",
+        "package.json",
+        "tsconfig.json",
+        "next.config.*",
+        "tailwind.config.*",
+        "postcss.config.*",
+        "sentry.*.config.ts"
+      ]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "dev:local": {
+      "cache": false,
+      "persistent": true
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"],
+      "inputs": ["src/**", "__tests__/**", "*.test.*"]
+    },
+    "test:unit": {
+      "dependsOn": [],
+      "outputs": []
+    },
+    "lint": {
+      "outputs": [],
+      "inputs": ["src/**", "pages/**", "components/**", "context/**", "hooks/**", "utils/**", ".eslintrc*", "package.json"]
+    },
+    "type-check": {
+      "outputs": [],
+      "inputs": ["src/**", "pages/**", "components/**", "context/**", "hooks/**", "utils/**", "tsconfig.json", "package.json"]
+    },
+    "clean": {
+      "cache": false
+    }
+  },
+  "globalDependencies": [
+    ".env",
+    ".env.production",
+    "tsconfig.json"
+  ],
+  "globalEnv": [
+    "NODE_ENV",
+    "API_MCP_GRAPHQL_URL",
+    "NEXT_PUBLIC_API_MCP_GRAPHQL_URL",
+    "API_IA_URL",
+    "NEXT_PUBLIC_API_IA_URL",
+    "NEXT_PUBLIC_SOCKET_URL",
+    "NEXT_PUBLIC_BASE_URL",
+    "NEXT_PUBLIC_SENTRY_DSN",
+    "NEXT_PUBLIC_IS_DESKTOP_APP",
+    "NEXT_PUBLIC_CLIENT_DB",
+    "MCP_JWT_SECRET",
+    "VERCEL",
+    "CI"
+  ]
+}

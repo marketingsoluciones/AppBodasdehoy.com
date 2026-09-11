@@ -14,6 +14,7 @@ import {
 import { Itinerary } from '../../../utils/Interfaces';
 import { BoardColumn } from '../types';
 import { useTranslation } from 'react-i18next';
+import { isStudioPathname } from '../../../utils/studioPaths';
 
 interface BoardHeaderProps {
   itinerario: Itinerary;
@@ -31,6 +32,11 @@ interface BoardHeaderProps {
   onManualSave: () => void;
   onExport: () => void;
   onShowShortcuts: () => void;
+  /** Toolbar del HTML: crear tarea (en Pendiente) y expandir el tablero a lo ancho. */
+  onAddTask?: () => void;
+  expanded?: boolean;
+  onToggleExpand?: () => void;
+  totalTasks?: number;
 }
 
 export const BoardHeader: React.FC<BoardHeaderProps> = ({
@@ -49,8 +55,51 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
   onManualSave,
   onExport,
   onShowShortcuts,
+  onAddTask,
+  expanded = false,
+  onToggleExpand,
+  totalTasks,
 }) => {
   const { t } = useTranslation();
+
+  const isStudio = typeof window !== "undefined"
+    && isStudioPathname(window.location.pathname)
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
+  const ico: React.CSSProperties = { width: 36, height: 36, borderRadius: 10, border: "1.5px solid #E7E7EA", background: "#fff", color: "#8a8a90", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0, flex: "none" };
+
+  if (isStudio) {
+    const nCols = visibleColumns?.length ?? 4;
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap", padding: "4px 2px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "0 14px", height: 36, minWidth: 200, background: "#fff" }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={2} strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+            <input type="text" value={searchTerm} onChange={(e) => onSearchChange(e.target.value)} placeholder={t("Buscar tareas…", { defaultValue: "Buscar tareas…" })} style={{ border: "none", outline: "none", font: "400 12.5px Poppins", color: "#3A3A42", width: "100%", background: "transparent" }} />
+          </div>
+          <button onClick={onToggleFilters} title={t("Filtros", { defaultValue: "Filtros" })} style={{ ...ico, borderColor: showFilters ? "#EF5B94" : "#E7E7EA", color: showFilters ? "#EF5B94" : "#8a8a90" }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M4 5h16l-6 7v5l-4 2v-7L4 5z" /></svg>
+          </button>
+          <span style={{ font: "400 12px Poppins", color: "#a0a0a8", whiteSpace: "nowrap" }}>{nCols} {t("columnas", { defaultValue: "columnas" })} · {totalTasks ?? 0} {t("tareas")}</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <button onClick={onAddTask} style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 18px", borderRadius: 12, background: "#EF5B94", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 5px 14px rgba(239,91,148,.28)", whiteSpace: "nowrap" }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+            {t("Añadir tarea", { defaultValue: "Añadir tarea" })}
+          </button>
+          <button onClick={onExport} title={t("Exportar", { defaultValue: "Exportar" })} style={ico}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 4v12M7 11l5 5 5-5M4 20h16" /></svg>
+          </button>
+          {onToggleExpand && (
+            <button onClick={onToggleExpand} title={expanded ? t("Contraer", { defaultValue: "Contraer" }) : t("Expandir", { defaultValue: "Expandir" })} style={{ ...ico, borderColor: expanded ? "#EF5B94" : "#E7E7EA", color: expanded ? "#EF5B94" : "#8a8a90" }}>
+              {expanded
+                ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M3 8h5V3M21 8h-5V3M3 16h5v5M21 16h-5v5" /></svg>
+                : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" /></svg>}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white border-b border-gray-200 shadow-sm p-4 flex md:flex-row flex-col items-center justify-between">
@@ -115,7 +164,7 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
           <button
             onClick={onToggleFilters}
             className={`p-2 rounded-md transition-colors ${showFilters || Object.keys(activeFilters).length > 0
-              ? 'bg-pink-100 text-primary'
+              ? 'bg-base text-primary'
               : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
               }`}
             title="Filtros"
@@ -142,7 +191,7 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
               disabled={isSaving}
               className={`p-2 rounded-md transition-colors ${isSaving
                 ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
-                : 'text-primary hover:text-white hover:bg-primary bg-pink-100'
+                : 'text-primary hover:text-white hover:bg-primary bg-base'
                 }`}
               title="Guardar cambios (Ctrl+S)"
             >

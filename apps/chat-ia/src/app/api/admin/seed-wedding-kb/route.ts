@@ -4,7 +4,7 @@
  * Crea automáticamente la Base de Conocimiento "Presupuesto de Boda" para un
  * usuario (wedding planner / developer) cuando se da de alta en la plataforma.
  *
- * Esta ruta es llamada desde api2 durante el onboarding de un nuevo developer
+ * Esta ruta es llamada desde MCP durante el onboarding de un nuevo developer
  * del sector bodas, o puede ejecutarse manualmente con el script de seed.
  *
  * Seguridad: requiere header X-Admin-Key igual a ADMIN_API_KEY del entorno.

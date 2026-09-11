@@ -1,4 +1,5 @@
 import { FC, useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { fetchApiEventos, queries } from '../../../utils/Fetching';
 import { EventContextProvider } from '../../../context/EventContext';
@@ -336,12 +337,12 @@ export const SendButton: FC<SendButtonProps> = ({ isResend = false, optionSelect
               {upgradeMessage('whatsapp-msg') || 'El envío por WhatsApp está disponible desde el plan Basic. Incluye 200 mensajes.'}
             </p>
             <div className="flex flex-col gap-2 w-full mt-2">
-              <a
+              <Link
                 href="/facturacion"
                 className="w-full py-3 rounded-full bg-primary text-white font-medium text-sm hover:opacity-80 transition text-center"
               >
                 {t("Ver planes")}
-              </a>
+              </Link>
               <button
                 onClick={() => {
                   setShowWhatsAppGate(false);

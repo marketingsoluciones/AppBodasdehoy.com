@@ -4,8 +4,9 @@
  * El backend (api-ia / api2) lo usará para enviar push notifications.
  */
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { resolveMcpOrigin } from '../../utils/apiEndpoints';
 
-const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com';
+const API_MCP_URL = resolveMcpOrigin();
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -20,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     // Proxy hacia api2 para registrar el FCM token
-    const r = await fetch(`${API2_URL}/api/push/subscribe`, {
+    const r = await fetch(`${API_MCP_URL}/api/push/subscribe`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -28,6 +29,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Cookie de sesión se pasa automáticamente si hay mismo dominio
         // Para cross-domain, usamos el sessionBodas del cliente
         ...(req.headers.cookie ? { Cookie: req.headers.cookie } : {}),
+        // Unificación secretos api-mcp v2 (29-jun): X-Internal-Secret.
+        ...(process.env.INTERNAL_SECRET
+          ? { 'X-Internal-Secret': process.env.INTERNAL_SECRET }
+          : {}),
       },
       body: JSON.stringify({ token, userId, platform: 'web' }),
     });

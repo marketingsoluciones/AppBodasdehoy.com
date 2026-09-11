@@ -4,6 +4,15 @@ import { getCached, setCache, invalidateCache } from '../cache';
 import { dedup } from '../dedup';
 import { getConfig, getController, resolveWriteId } from './shared';
 
+// UX-05 (QA 8-ago): la API/Mongo expone `media_count`/`member_count` (snake) pero la UI
+// lee `album.mediaCount`/`memberCount` (camel) → contadores en blanco. Normalizar aquí
+// (acepta ambas formas; 0 por defecto) para que "N fotos / N miembros" siempre tenga número.
+const normalizeAlbumCounts = (a: any): Album => ({
+  ...a,
+  mediaCount: a?.mediaCount ?? a?.media_count ?? 0,
+  memberCount: a?.memberCount ?? a?.member_count ?? 0,
+});
+
 export interface AlbumsAction {
   fetchAlbums: () => Promise<void>;
   fetchAlbum: (albumId: string) => Promise<void>;
@@ -36,8 +45,9 @@ export const albumsSlice: StateCreator<MemoriesState, [], [], AlbumsAction> = (s
           .then((res) => res.json())
           .then((data) => {
             if (data?.success && data.albums) {
-              setCache(cacheKey, data.albums);
-              set({ albums: data.albums });
+              const albums = data.albums.map(normalizeAlbumCounts);
+              setCache(cacheKey, albums);
+              set({ albums });
             }
           })
           .catch((e) => {
@@ -55,7 +65,7 @@ export const albumsSlice: StateCreator<MemoriesState, [], [], AlbumsAction> = (s
         );
         const data = await res.json();
         if (data?.success) {
-          const albums = data.albums || [];
+          const albums = (data.albums || []).map(normalizeAlbumCounts);
           setCache(cacheKey, albums);
           set({ albums, albumsLoading: false });
         } else {

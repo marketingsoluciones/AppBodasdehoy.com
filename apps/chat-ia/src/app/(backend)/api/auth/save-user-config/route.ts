@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
 export const runtime = 'nodejs';
 
 const getBackendUrl = (): string =>
-  process.env.PYTHON_BACKEND_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  'https://api-ia.bodasdehoy.com';
+  resolveServerBackendOrigin();
 
 /**
  * Proxy: POST /api/auth/save-user-config → backend api-ia

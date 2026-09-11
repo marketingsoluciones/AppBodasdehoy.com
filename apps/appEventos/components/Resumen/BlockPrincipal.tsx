@@ -50,9 +50,10 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
       <div className="w-full bg-white shadow rounded-xl overflow-hidden relative flex flex-col-reverse md:flex-row md:h-72 gap-12  md:gap-0 pt-10 md:pt-0">
         {event?.tipo && (
           <img
-            src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i640}` : defaultImagenes[event?.tipo?.toLowerCase()]}
+            src={event?.imgEvento?.i640 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${event.imgEvento.i640}`)}` : defaultImagenes[event?.tipo?.toLowerCase()]}
             className="md:w-1/2 md:h-full h-60 object-cover object-top rounded-xl"
             alt={event?.nombre}
+            onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[event?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
           />
         )}
         {children}
@@ -63,7 +64,6 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
             </h1>
             <span className="font-display font-base text-sm flex gap-2 mx-auto w-max inset-x-0">
               <p className="text-gray-500">
-                {/* @ts-ignore */}
                 {utcDateFormated(event?.fecha)}
               </p>
               -<p className="text-primary">{event?.tipo == "otro" ? t("Mi Evento Especial") : event?.tipo && capitalize(t(event?.tipo))}</p>
@@ -137,8 +137,10 @@ const BlockPrincipal: FC = () => {
         </ModalLeft>
       )}
       <BlockVista >
-        <div className="absolute top-3 right-5 flex gap-2 z-30">
-          <div onClick={() => { event?.usuario_id === user?.uid && setOpenModal(!openModal) }} className="w-1 h-1 -translate-y-0.5">
+        <div className="absolute top-3 right-5 flex items-center gap-2 z-30">
+          {/* shrink-0 + ancho natural: antes era w-1 h-1 (4px) y los avatares desbordaban
+              solapándose con los iconos share/lápiz. El overlap queda SOLO entre avatares. */}
+          <div onClick={() => { event?.usuario_id === user?.uid && setOpenModal(!openModal) }} className="shrink-0 flex items-center">
             <UsuariosCompartidos event={event} />
           </div>
           <span

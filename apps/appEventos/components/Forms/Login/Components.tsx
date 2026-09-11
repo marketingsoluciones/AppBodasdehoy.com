@@ -16,16 +16,19 @@ interface propsResetPassword {
 
 export const RegisterQuestion: FC<propsRegisterQuestion> = ({ onClick }) => {
   const { t } = useTranslation();
+  // OBS-5 (informe QA 21-jun): el enlace de "Crear cuenta" era texto pequeño en el pie y el
+  // usuario nuevo no lo encontraba. Convertimos a botón con borde y padding más prominente.
   return (
-    <h2 className={`font-light text-gray-500 flex gap-2 items-center text-sm `}>
-      {t("dontaccount")}
-      <span
-        className="text-primary font-semibold cursor-pointer hover:text-tertiary transition"
+    <div className="flex flex-col items-center gap-1 mt-1">
+      <span className="font-light text-gray-500 text-sm">{t("dontaccount")}</span>
+      <button
+        type="button"
         onClick={onClick}
+        className="px-4 py-2 rounded-lg border border-primary text-primary font-semibold text-sm hover:bg-primary hover:text-white transition"
       >
         {t("register")}
-      </span>
-    </h2>
+      </button>
+    </div>
   );
 };
 

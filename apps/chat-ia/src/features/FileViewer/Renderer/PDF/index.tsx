@@ -7,7 +7,7 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 
-import { lambdaQuery } from '@/libs/trpc/client';
+import { useChunksByFileId } from '@/services/apiIa/chunks';
 
 import HighlightLayer from './HighlightLayer';
 import { useStyles } from './style';
@@ -51,10 +51,7 @@ const PDFViewer = memo<PDFViewerProps>(({ url, fileId }) => {
     setIsLoaded(true);
   };
 
-  const { data } = lambdaQuery.chunk.getChunksByFileId.useInfiniteQuery(
-    { id: fileId },
-    { getNextPageParam: (lastPage) => lastPage.nextCursor },
-  );
+  const { data } = useChunksByFileId(fileId);
 
   const dataSource = data?.pages.flatMap((page) => page.items) || [];
 

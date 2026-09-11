@@ -34,7 +34,7 @@ vi.mock('@/chains/translate', () => ({
 
 // Mock supportLocales
 vi.mock('@/locales/options', () => ({
-  supportLocales: ['en-US', 'zh-CN'],
+  supportLocales: ['en-US', 'es-ES'],
 }));
 
 beforeEach(() => {
@@ -56,7 +56,7 @@ describe('ChatEnhanceAction', () => {
     it('should translate a message to the target language and refresh messages', async () => {
       const { result } = renderHook(() => useChatStore());
       const messageId = 'message-id';
-      const targetLang = 'zh-CN';
+      const targetLang = 'es-ES';
       const messageContent = 'Hello World';
       const detectedLang = 'en-US';
 

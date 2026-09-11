@@ -394,7 +394,7 @@ const SuccessDisplay: FC<SuccessDisplayProps> = memo(
         onClick={onChangeImage}
       >
         {imgError ? (
-          <Center style={{ height: '100%', gap: 8, flexDirection: 'column' }}>
+          <Center style={{ flexDirection: 'column', gap: 8, height: '100%' }}>
             <ImageIcon size={32} style={{ opacity: 0.4 }} />
             <div style={{ fontSize: 12, opacity: 0.6 }}>No se pudo cargar la imagen</div>
           </Center>

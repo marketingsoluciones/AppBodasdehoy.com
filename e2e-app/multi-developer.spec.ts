@@ -24,7 +24,7 @@
  *           TEST_USER_PASSWORD=lorca2012M*.
  */
 import { test, expect, Page } from '@playwright/test';
-import { clearSession, waitForAppReady } from './helpers';
+import { clearSession, waitForAppReady, navigateToModule } from './helpers';
 import { getChatUrl } from './fixtures';
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
@@ -574,7 +574,7 @@ test.describe('Guest vs. autenticado — diferencias UI', () => {
     if (!isAppTest) { test.skip(); return; }
     await clearSession(context, page);
 
-    await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await navigateToModule(page, 'invitados');
     await waitForAppReady(page, 10_000);
 
     const text = (await page.locator('body').textContent()) ?? '';

@@ -1,0 +1,620 @@
+/**
+ * Servicio de Facturas - Cliente para API2 GraphQL
+ * =================================================
+ *
+ * Gestiona operaciones de facturación:
+ * - Listado de facturas
+ * - Detalle de factura
+ * - Descarga de PDF
+ * - Historial de pagos
+ * - Suscripción
+ */
+
+import { mcpClient } from './client';
+
+// ========================================
+// TYPES
+// ========================================
+
+export interface InvoiceLineItem {
+  amount: number;
+  description: string;
+  quantity: number;
+  service_category?: string;
+  service_sku?: string;
+  unit_price: number;
+}
+
+export interface BillingInfo {
+  address?: string;
+  company_name?: string;
+  email?: string;
+  name?: string;
+  tax_id?: string;
+}
+
+export interface Invoice {
+  _id: string;
+  billing_info?: BillingInfo;
+  created_at: string;
+  currency: string;
+  due_date?: string;
+  hosted_invoice_url?: string;
+  invoice_number: string;
+  line_items: InvoiceLineItem[];
+  payment_date?: string;
+  payment_method?: string;
+  pdf_url?: string;
+  period_end: string;
+  period_start: string;
+  status: 'DRAFT' | 'PENDING' | 'PAID' | 'VOID' | 'UNCOLLECTIBLE';
+  stripe_invoice_id?: string;
+  stripe_payment_intent_id?: string;
+  subtotal: number;
+  tax_amount: number;
+  tax_rate: number;
+  total: number;
+}
+
+export interface InvoiceDetail extends Invoice {
+  billing_info?: BillingInfo;
+}
+
+export interface InvoicesResponse {
+  errors?: string[];
+  invoices: Invoice[];
+  pagination: {
+    limit: number;
+    page: number;
+    total: number;
+    totalPages: number;
+  };
+  success: boolean;
+}
+
+export interface InvoiceDetailResponse {
+  errors?: string[];
+  invoice?: InvoiceDetail;
+  success: boolean;
+}
+
+export interface InvoicePDFResponse {
+  error_message?: string;
+  expires_at?: string;
+  pdf_url?: string;
+  success: boolean;
+}
+
+export interface PaymentMethodDetails {
+  card_brand?: string;
+  card_exp_month?: number;
+  card_exp_year?: number;
+  card_last4?: string;
+  type: string;
+}
+
+export interface Payment {
+  _id: string;
+  amount: number;
+  created_at: string;
+  currency: string;
+  description: string;
+  invoice_id?: string;
+  payment_method: string;
+  payment_method_details?: PaymentMethodDetails;
+  receipt_url?: string;
+  status: string;
+  stripe_charge_id?: string;
+  stripe_payment_intent_id?: string;
+  type: 'WALLET_RECHARGE' | 'SUBSCRIPTION_PAYMENT' | 'ONE_TIME_PURCHASE' | 'OVERAGE_CHARGE';
+}
+
+export interface PaymentsResponse {
+  errors?: string[];
+  pagination: {
+    limit: number;
+    page: number;
+    total: number;
+    totalPages: number;
+  };
+  payments: Payment[];
+  success: boolean;
+}
+
+export interface SubscriptionLimits {
+  current_ai_tokens?: number;
+  current_emails?: number;
+  current_images?: number;
+  current_sms?: number;
+  current_storage_gb?: number;
+  current_whatsapp_messages?: number;
+  monthly_ai_tokens?: number;
+  monthly_emails?: number;
+  monthly_images?: number;
+  monthly_sms?: number;
+  monthly_whatsapp_messages?: number;
+  storage_gb?: number;
+}
+
+export interface SubscriptionFeatures {
+  has_advanced_analytics?: boolean;
+  has_api_access?: boolean;
+  has_custom_branding?: boolean;
+  has_priority_support?: boolean;
+  max_events?: number;
+  max_team_members?: number;
+}
+
+export interface Subscription {
+  _id: string;
+  cancelled_at?: string;
+  created_at: string;
+  current_period_end?: string;
+  current_period_start?: string;
+  plan_id: string;
+  plan_name?: string;
+  plan_tier?: 'FREE' | 'BASIC' | 'PRO' | 'MAX' | 'ENTERPRISE';
+  status: 'ACTIVE' | 'PAST_DUE' | 'CANCELED' | 'TRIALING' | 'INCOMPLETE';
+  trial_end?: string;
+  updated_at: string;
+  user_id: string;
+}
+
+export interface SubscriptionResponse {
+  errors?: Array<{ code: string; field: string; message: string }>;
+  subscription?: Subscription;
+  success: boolean;
+}
+
+export interface UsageActionCount {
+  action: string;
+  cost: number;
+  count: number;
+  tokens: number;
+}
+
+export interface DailyUsage {
+  actions: number;
+  cost: number;
+  date: string;
+  tokens: number;
+}
+
+export interface UsageStats {
+  // Campos del schema real (camelCase)
+  actionCounts?: UsageActionCount[];
+  // Campos del schema antiguo (snake_case, opcionales para compatibilidad)
+  ai_tokens?: {
+    by_model?: { cost: number; model: string; tokens: number }[];
+    total?: number;
+  };
+  billing_source_breakdown?: {
+    free_tier?: number;
+    subscription?: number;
+    wallet?: number;
+  };
+  communications?: {
+    emails_sent?: number;
+    sms_sent?: number;
+    total_cost?: number;
+    whatsapp_received?: number;
+    whatsapp_sent?: number;
+  };
+  dailyUsage?: DailyUsage[];
+  images?: {
+    by_provider?: { cost: number; count: number; provider: string }[];
+    total?: number;
+  };
+  period_end?: string;
+  period_start?: string;
+  storage?: {
+    cost?: number;
+    total_gb?: number;
+    transfer_gb?: number;
+  };
+  totalCost?: number;
+  totalTokens?: number;
+  total_cost?: number;
+}
+
+export interface UsageStatsResponse {
+  errors?: string[];
+  stats?: UsageStats;
+  success: boolean;
+}
+
+// ========================================
+// QUERIES
+// ========================================
+
+const GET_INVOICES_QUERY = `
+  query GetInvoices($page: Int, $limit: Int, $status: InvoiceStatus) {
+    getInvoices(page: $page, limit: $limit, status: $status) {
+      success
+      invoices {
+        _id
+        invoice_number
+        period_start
+        period_end
+        subtotal
+        tax_amount
+        tax_rate
+        total
+        currency
+        status
+        line_items {
+          description
+          quantity
+          unit_price
+          amount
+          service_sku
+        }
+        payment_method
+        payment_date
+        created_at
+      }
+      pagination {
+        page
+        limit
+        total
+        totalPages
+      }
+      errors {
+        code
+        field
+        message
+      }
+    }
+  }
+`;
+
+const GET_INVOICE_BY_ID_QUERY = `
+  query GetInvoiceById($invoiceId: ID!) {
+    getInvoiceById(invoiceId: $invoiceId) {
+      success
+      invoice {
+        _id
+        invoice_number
+        period_start
+        period_end
+        subtotal
+        tax_amount
+        tax_rate
+        total
+        currency
+        status
+        line_items {
+          description
+          quantity
+          unit_price
+          amount
+          service_sku
+        }
+        payment_method
+        payment_date
+        created_at
+      }
+      errors {
+        code
+        field
+        message
+      }
+    }
+  }
+`;
+
+const GET_INVOICE_PDF_QUERY = `
+  query GetInvoicePDF($invoiceId: ID!) {
+    getInvoicePDF(invoiceId: $invoiceId) {
+      success
+      pdf_url
+      expires_at
+      error_message
+    }
+  }
+`;
+
+const GET_PAYMENT_HISTORY_QUERY = `
+  query GetPaymentHistory($page: Int, $limit: Int) {
+    getPaymentHistory(page: $page, limit: $limit) {
+      success
+      payments {
+        _id
+        type
+        amount
+        currency
+        status
+        description
+        payment_method
+        stripe_payment_intent_id
+        invoice_id
+        created_at
+        receipt_url
+      }
+      pagination {
+        page
+        limit
+        total
+        totalPages
+      }
+      errors {
+        code
+        field
+        message
+      }
+    }
+  }
+`;
+
+const GET_SUBSCRIPTION_QUERY = `
+  query GetMySubscription {
+    getMySubscription {
+      _id
+      user_id
+      plan_id
+      status
+      trial_end
+      cancelled_at
+    }
+  }
+`;
+
+const GET_USAGE_STATS_QUERY = `
+  query GetUsageStats($filters: UsageFilters) {
+    getUsageStats(filters: $filters) {
+      success
+      errors {
+        code
+        field
+        message
+      }
+      stats {
+        totalTokens
+        totalCost
+        actionCounts {
+          action
+          count
+          tokens
+          cost
+        }
+        dailyUsage {
+          date
+          tokens
+          cost
+          actions
+        }
+      }
+    }
+  }
+`;
+
+// ========================================
+// SERVICE CLASS
+// ========================================
+
+export class InvoicesService {
+  /**
+   * Obtiene el listado de facturas
+   */
+  async getInvoices(
+    page: number = 1,
+    limit: number = 20,
+    status?: Invoice['status']
+  ): Promise<InvoicesResponse> {
+    try {
+      console.log('🔍 [invoicesService] Obteniendo facturas...', { limit, page, status });
+      const data = await mcpClient.query<{ getInvoices: InvoicesResponse }>(GET_INVOICES_QUERY, {
+        limit,
+        page,
+        status,
+      });
+      console.log('📊 [invoicesService] Respuesta de facturas:', {
+        count: data.getInvoices?.invoices?.length || 0,
+        errors: data.getInvoices?.errors,
+        success: data.getInvoices?.success,
+        total: data.getInvoices?.pagination?.total || 0,
+      });
+      return data.getInvoices;
+    } catch (error) {
+      console.error('❌ [invoicesService] Error obteniendo facturas:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
+      // Si el campo no existe aún en MCP, devolver vacío sin mostrar error al usuario
+      if (errorMsg.includes('Cannot query field')) {
+        console.warn('⚠️ [invoicesService] getInvoices no existe en MCP aún, devolviendo vacío');
+        return { invoices: [], pagination: { limit, page, total: 0, totalPages: 0 }, success: true };
+      }
+      return {
+        errors: [`API_ERROR:getInvoices:${errorMsg}`],
+        invoices: [],
+        pagination: { limit, page, total: 0, totalPages: 0 },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Obtiene el detalle completo de una factura
+   */
+  async getInvoiceById(invoiceId: string): Promise<InvoiceDetailResponse> {
+    try {
+      console.log('🔍 [invoicesService] Obteniendo detalle de factura...', { invoiceId });
+      const data = await mcpClient.query<{ getInvoiceById: InvoiceDetailResponse }>(
+        GET_INVOICE_BY_ID_QUERY,
+        { invoiceId }
+      );
+      console.log('📊 [invoicesService] Respuesta de detalle:', {
+        errors: data.getInvoiceById?.errors,
+        hasInvoice: !!data.getInvoiceById?.invoice,
+        success: data.getInvoiceById?.success,
+      });
+      return data.getInvoiceById;
+    } catch (error) {
+      console.error('❌ [invoicesService] Error obteniendo detalle de factura:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
+      return {
+        errors: [`API_ERROR:getInvoiceById:${errorMsg}`],
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Obtiene la URL del PDF de una factura
+   */
+  async getInvoicePDF(invoiceId: string): Promise<InvoicePDFResponse> {
+    try {
+      console.log('🔍 [invoicesService] Obteniendo PDF de factura...', { invoiceId });
+      const data = await mcpClient.query<{ getInvoicePDF: InvoicePDFResponse }>(
+        GET_INVOICE_PDF_QUERY,
+        { invoiceId }
+      );
+      console.log('📊 [invoicesService] Respuesta de PDF:', {
+        error: data.getInvoicePDF?.error_message,
+        expiresAt: data.getInvoicePDF?.expires_at,
+        hasPdfUrl: !!data.getInvoicePDF?.pdf_url,
+        success: data.getInvoicePDF?.success,
+      });
+      return data.getInvoicePDF;
+    } catch (error) {
+      console.error('❌ [invoicesService] Error obteniendo PDF:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      return {
+        error_message: errorMsg,
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Obtiene el historial de pagos
+   */
+  async getPaymentHistory(page: number = 1, limit: number = 20): Promise<PaymentsResponse> {
+    try {
+      console.log('🔍 [invoicesService] Obteniendo historial de pagos...', { limit, page });
+      const data = await mcpClient.query<{ getPaymentHistory: PaymentsResponse }>(
+        GET_PAYMENT_HISTORY_QUERY,
+        { limit, page }
+      );
+      console.log('📊 [invoicesService] Respuesta de pagos:', {
+        count: data.getPaymentHistory?.payments?.length || 0,
+        errors: data.getPaymentHistory?.errors,
+        success: data.getPaymentHistory?.success,
+        total: data.getPaymentHistory?.pagination?.total || 0,
+      });
+      return data.getPaymentHistory;
+    } catch (error) {
+      console.error('❌ [invoicesService] Error obteniendo pagos:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
+      // Si el campo no existe aún en MCP, devolver vacío sin mostrar error al usuario
+      if (errorMsg.includes('Cannot query field')) {
+        console.warn('⚠️ [invoicesService] getPaymentHistory no existe en MCP aún, devolviendo vacío');
+        return { pagination: { limit, page, total: 0, totalPages: 0 }, payments: [], success: true };
+      }
+      return {
+        errors: [`API_ERROR:getPaymentHistory:${errorMsg}`],
+        pagination: { limit, page, total: 0, totalPages: 0 },
+        payments: [],
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Obtiene la suscripción del usuario
+   */
+  async getSubscription(): Promise<SubscriptionResponse> {
+    try {
+      console.log('🔍 [invoicesService] Obteniendo suscripción...');
+      const data = await mcpClient.query<{ getMySubscription: Subscription | null }>(
+        GET_SUBSCRIPTION_QUERY
+      );
+      const sub = data.getMySubscription;
+      console.log('📊 [invoicesService] Respuesta de suscripción:', { hasSubscription: !!sub });
+      return { subscription: sub ?? undefined, success: true };
+    } catch (error) {
+      console.error('❌ [invoicesService] Error obteniendo suscripción:', error);
+      return { success: false };
+    }
+  }
+
+  /**
+   * Obtiene estadísticas de uso
+   */
+  async getUsageStats(
+    period: 'TODAY' | 'THIS_WEEK' | 'THIS_MONTH' | 'LAST_30_DAYS' | 'CUSTOM' = 'THIS_MONTH',
+    startDate?: string,
+    endDate?: string
+  ): Promise<UsageStatsResponse> {
+    try {
+      console.log('🔍 [invoicesService] Obteniendo estadísticas de uso...', { endDate, period, startDate });
+      // Calcular fechas a partir del período
+      const now = new Date();
+      let filterStart: string | undefined = startDate;
+      let filterEnd: string | undefined = endDate;
+      if (!filterStart) {
+        const d = new Date(now);
+        switch (period) {
+        case 'TODAY': { d.setHours(0, 0, 0, 0); 
+        break;
+        }
+        case 'THIS_WEEK': { d.setDate(d.getDate() - d.getDay()); d.setHours(0, 0, 0, 0); 
+        break;
+        }
+        case 'THIS_MONTH': { d.setDate(1); d.setHours(0, 0, 0, 0); 
+        break;
+        }
+        case 'LAST_30_DAYS': { d.setDate(d.getDate() - 30); 
+        break;
+        }
+        // No default
+        }
+        filterStart = d.toISOString();
+      }
+      if (!filterEnd) { filterEnd = now.toISOString(); }
+
+      const data = await mcpClient.query<{ getUsageStats: UsageStatsResponse }>(
+        GET_USAGE_STATS_QUERY,
+        { filters: { endDate: filterEnd, startDate: filterStart } }
+      );
+      console.log('📊 [invoicesService] Respuesta de estadísticas:', {
+        hasStats: !!data.getUsageStats?.stats,
+        success: data.getUsageStats?.success,
+        totalCost: data.getUsageStats?.stats?.totalCost,
+      });
+      return data.getUsageStats;
+    } catch (error) {
+      console.error('❌ [invoicesService] Error obteniendo estadísticas:', error);
+      return { errors: ['Error obteniendo estadísticas'], success: false };
+    }
+  }
+}
+
+// Singleton instance
+export const invoicesService = new InvoicesService();
+
+// ========================================
+// CONSTANTS
+// ========================================
+
+export const INVOICE_STATUS_LABELS: Record<Invoice['status'], string> = {
+  DRAFT: 'Borrador',
+  PAID: 'Pagada',
+  PENDING: 'Pendiente',
+  UNCOLLECTIBLE: 'Incobrable',
+  VOID: 'Anulada',
+};
+
+export const PAYMENT_TYPE_LABELS: Record<Payment['type'], string> = {
+  ONE_TIME_PURCHASE: 'Compra única',
+  OVERAGE_CHARGE: 'Cargo por exceso',
+  SUBSCRIPTION_PAYMENT: 'Pago de suscripción',
+  WALLET_RECHARGE: 'Recarga de saldo',
+};
+
+export const PLAN_TIER_LABELS: Record<'FREE' | 'BASIC' | 'PRO' | 'MAX' | 'ENTERPRISE', string> = {
+  BASIC: 'Básico',
+  ENTERPRISE: 'Empresa',
+  FREE: 'Gratuito',
+  MAX: 'Máximo',
+  PRO: 'Profesional',
+};

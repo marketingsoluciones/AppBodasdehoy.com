@@ -25,8 +25,16 @@ export const ResumenInvitados = ({ }) => {
                     [accessor]: value,
                 }
             }).then(() => {
-                event.presupuesto_objeto.totalStimatedGuests[accessor] = value
-                setEvent({ ...event })
+                setEvent((prev) => ({
+                    ...prev,
+                    presupuesto_objeto: {
+                        ...prev.presupuesto_objeto,
+                        totalStimatedGuests: {
+                            ...prev.presupuesto_objeto.totalStimatedGuests,
+                            [accessor]: value,
+                        },
+                    },
+                }))
                 toast("success", t("suscess"))
             })
         } catch {

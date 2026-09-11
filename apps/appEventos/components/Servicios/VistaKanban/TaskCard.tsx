@@ -7,6 +7,7 @@ import { Task, Itinerary } from '../../../utils/Interfaces';
 import { PriorityBadge, Priority } from '../Utils/PriorityBadge'
 import { BoardColumn } from '../types';
 import { GruposResponsablesArry } from '../Utils/ResponsableSelector';
+import { isStudioPathname } from '../../../utils/studioPaths';
 
 interface TaskCardProps {
   task: Task;
@@ -37,6 +38,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
   // Determinar el estado de completado
   const isCompleted = column?.id === 'completed';
   const isBlocked = column?.id === 'blocked';
+
+  // Rediseño studio (fiel a tareasvistatablero.html): tarjeta blanca compacta con borde
+  // fino y esquinas de 12px. Solo estilo del contenedor — el contenido y el menú de
+  // acciones siguen siendo los mismos, para no perder funcionalidad.
+  const isStudio = typeof window !== "undefined"
+    && isStudioPathname(window.location.pathname)
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
 
 
   // Modificar el handleEdit
@@ -144,8 +152,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
         {...attributes}
         {...listeners}
         className={`
-        relative group bg-white cursor-grab active:cursor-grabbing rounded-lg border transition-all duration-200 
-       border-gray-200 hover:border-gray-300 hover:shadow-sm
+        relative group bg-white cursor-grab active:cursor-grabbing border transition-all duration-200
+        ${isStudio ? 'rounded-xl border-[#ececef]' : 'rounded-lg border-gray-200 hover:border-gray-300 hover:shadow-sm'}
         ${isDragging || isSortableDragging ? 'rotate-2 shadow-lg' : ''}
       `}
         onClick={() => onTaskClick(task._id)}
@@ -158,8 +166,38 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
 
 
 
+        {/* Contenido studio (fiel a tareasvistatablero.html): título + prioridad + fecha.
+            El diseño no lleva menú en la tarjeta; sus acciones siguen disponibles abriendo
+            la tarea (clic), que es donde el HTML las coloca. */}
+        {isStudio && (
+          <div style={{ padding: "13px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ font: "600 13px Poppins", color: "#3A3A42" }}>
+              {task.descripcion || 'Sin título'}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+              {(() => {
+                const pr = getValidPriority(task.prioridad);
+                const PAL: Record<string, [string, string]> = {
+                  alta: ["#D83E7C", "#FBE3ED"], media: ["#8F6E14", "#FDF6DE"], baja: ["#2FB37E", "#E4F5EE"],
+                };
+                const [color, bg] = PAL[pr] ?? PAL.media;
+                const label = pr.charAt(0).toUpperCase() + pr.slice(1);
+                return (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 5, font: "600 10.5px Poppins", color, background: bg, padding: "3px 10px", borderRadius: 11, whiteSpace: "nowrap" }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><path d="M5 21V4M5 4h12l-2.5 4L17 12H5" /></svg>
+                    {label}
+                  </span>
+                );
+              })()}
+              <span style={{ font: "600 10.5px Poppins", color: "#a0a0a8", padding: "3px 8px", borderRadius: 10, whiteSpace: "nowrap" }}>
+                {task.fecha ? new Date(task.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Sin fecha'}
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Contenido principal de la tarjeta */}
-        <div className="p-3">
+        <div className="p-3" style={isStudio ? { display: 'none' } : undefined}>
           {/* Título de la tarea */}
           <div className="flex  justify-between">
             <h4 className={` font-medium text-sm mb-2 pr-8 ${isBlocked ? 'line-through text-gray-500' : 'text-gray-800'}`}>
@@ -198,7 +236,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
                         onTaskDelete(task._id);
                         setShowMoreMenu(false);
                       }}
-                      className="flex items-center w-full px-3 py-2 text-sm text-[#ff2424] hover:bg-[#fff0f0] "
+                      className="flex items-center w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50"
                     >
                       Eliminar
                     </button>
@@ -235,7 +273,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
 
             {/* Indicador de bloqueo */}
             {isCompleted && (
-              <div className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-[#e9fdf1] text-green border border-green">
+              <div className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-emerald-50 text-emerald-700 border border-emerald-200">
                 <div className="">
                   <CheckCircle2 className="w-3 h-3 mr-1" />
                 </div>
@@ -243,7 +281,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
               </div>
             )}
             {isBlocked && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-[#ffdada] text-red border border-red mt-1">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-red-50 text-red-700 border border-red-200 mt-1">
                 <AlertCircle className="w-3 h-3 mr-1" />
                 Bloqueado
               </span>
@@ -261,7 +299,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
               <span className={`
               inline-flex items-center. px-2 py-1 rounded-full text-xs
               ${isOverdue
-                  ? 'bg-[#ffdada] text-red border border-red mt-1'
+                  ? 'bg-red-50 text-red-700 border border-red-200 mt-1'
                   : isDueSoon
                     ? 'bg-yellow-100 text-yellow-800 border border-yellow-800'
                     : 'bg-gray-100 text-gray-600 border border-gray-600'
@@ -323,7 +361,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
                   {task.tags.slice(0, 2).map((tag, index) => (
                     <span
                       key={index}
-                      className="inline-block px-2 py-1 text-xs bg-pink-100 text-primary rounded"
+                      className="inline-block px-2 py-1 text-xs bg-base text-primary border border-primary rounded"
                     >
                       {tag}
                     </span>

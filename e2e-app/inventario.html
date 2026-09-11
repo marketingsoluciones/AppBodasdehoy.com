@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventario Tests E2E — AppBodasdehoy.com</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+
+  /* LAYOUT */
+  .app { display: flex; height: 100vh; overflow: hidden; }
+  .sidebar { width: 280px; min-width: 280px; background: #1a1d27; border-right: 1px solid #2d3148; display: flex; flex-direction: column; overflow: hidden; }
+  .main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+
+  /* SIDEBAR */
+  .sidebar-header { padding: 16px; border-bottom: 1px solid #2d3148; }
+  .sidebar-title { font-size: 13px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+  .progress-bar { background: #2d3148; border-radius: 4px; height: 6px; overflow: hidden; margin-bottom: 6px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #6366f1, #8b5cf6); border-radius: 4px; transition: width 0.3s; }
+  .progress-text { font-size: 11px; color: #64748b; }
+
+  .sidebar-filters { padding: 10px 16px; border-bottom: 1px solid #2d3148; display: flex; gap: 6px; flex-wrap: wrap; }
+  .filter-btn { padding: 3px 8px; border-radius: 4px; border: 1px solid #2d3148; background: transparent; color: #64748b; font-size: 11px; cursor: pointer; transition: all 0.15s; }
+  .filter-btn:hover, .filter-btn.active { background: #2d3148; color: #e2e8f0; border-color: #6366f1; }
+
+  .sidebar-list { flex: 1; overflow-y: auto; }
+  .sidebar-group { }
+  .sidebar-group-title { padding: 10px 16px 4px; font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.1em; position: sticky; top: 0; background: #1a1d27; z-index: 1; }
+  .sidebar-item { padding: 8px 16px 8px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; transition: all 0.1s; font-size: 12px; color: #94a3b8; }
+  .sidebar-item:hover { background: #1e2234; color: #e2e8f0; }
+  .sidebar-item.active { background: #1e2234; border-left-color: #6366f1; color: #e2e8f0; }
+  .sidebar-item .item-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: #2d3148; }
+  .sidebar-item .item-status.decided { background: #22c55e; }
+  .sidebar-item .item-count { margin-left: auto; font-size: 10px; color: #475569; }
+  .sidebar-item .item-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* DECISION COLORS en sidebar */
+  .sidebar-item[data-decision="mantener"] .item-status { background: #22c55e; }
+  .sidebar-item[data-decision="consolidar"] .item-status { background: #f59e0b; }
+  .sidebar-item[data-decision="eliminar"] .item-status { background: #ef4444; }
+  .sidebar-item[data-decision="mover"] .item-status { background: #3b82f6; }
+  .sidebar-item[data-decision="diagnostico"] .item-status { background: #a78bfa; }
+  .sidebar-item[data-decision="revisar"] .item-status { background: #64748b; }
+
+  /* MAIN HEADER */
+  .main-header { padding: 16px 24px; border-bottom: 1px solid #2d3148; background: #1a1d27; display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 10; }
+  .nav-btn { padding: 6px 14px; border-radius: 6px; border: 1px solid #2d3148; background: transparent; color: #94a3b8; cursor: pointer; font-size: 13px; transition: all 0.15s; }
+  .nav-btn:hover { background: #2d3148; color: #e2e8f0; }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .nav-counter { font-size: 13px; color: #64748b; min-width: 80px; text-align: center; }
+  .main-header-title { flex: 1; font-size: 15px; font-weight: 600; color: #e2e8f0; }
+  .export-btn { padding: 6px 14px; border-radius: 6px; border: 1px solid #6366f1; background: #6366f1; color: white; cursor: pointer; font-size: 12px; font-weight: 600; }
+  .export-btn:hover { background: #4f46e5; }
+
+  /* CARD */
+  .card { margin: 24px; background: #1a1d27; border-radius: 12px; border: 1px solid #2d3148; overflow: hidden; }
+  .card-header { padding: 20px 24px; border-bottom: 1px solid #2d3148; display: flex; align-items: flex-start; gap: 16px; }
+  .card-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .badge-app    { background: #1e3a5f; color: #60a5fa; }
+  .badge-sec    { background: #3b1f2b; color: #f87171; }
+  .badge-crud   { background: #1e3a2b; color: #4ade80; }
+  .badge-auth   { background: #2d2b1e; color: #fbbf24; }
+  .badge-ui     { background: #1e2a3b; color: #818cf8; }
+  .badge-billing{ background: #2a1e3b; color: #c084fc; }
+  .badge-infra  { background: #1e2d2d; color: #34d399; }
+  .badge-diag   { background: #2d2428; color: #a78bfa; }
+  .card-title-section { flex: 1; }
+  .card-filename { font-size: 18px; font-weight: 700; color: #e2e8f0; font-family: 'Menlo', 'Monaco', monospace; margin-bottom: 4px; }
+  .card-subtitle { font-size: 13px; color: #64748b; }
+
+  .card-body { padding: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 900px) { .card-body { grid-template-columns: 1fr; } }
+
+  .info-block { }
+  .info-label { font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+  .info-value { font-size: 13px; color: #cbd5e1; line-height: 1.6; }
+  .info-value.mono { font-family: 'Menlo', 'Monaco', monospace; font-size: 12px; }
+
+  .test-list { list-style: none; }
+  .test-list li { padding: 4px 0 4px 12px; border-left: 2px solid #2d3148; font-size: 12px; color: #94a3b8; font-family: 'Menlo', 'Monaco', monospace; margin-bottom: 2px; }
+  .test-list li:hover { color: #e2e8f0; border-left-color: #6366f1; }
+
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin: 2px; }
+  .tag-warn { background: #422006; color: #fb923c; }
+  .tag-ok   { background: #052e16; color: #4ade80; }
+  .tag-err  { background: #2d1515; color: #f87171; }
+  .tag-info { background: #1e3a5f; color: #60a5fa; }
+
+  /* DECISION SECTION */
+  .decision-section { margin: 0 24px 24px; background: #1a1d27; border-radius: 12px; border: 1px solid #2d3148; padding: 20px 24px; }
+  .decision-title { font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; }
+
+  .decision-options { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .decision-option { position: relative; }
+  .decision-option input[type="radio"] { position: absolute; opacity: 0; width: 0; }
+  .decision-option label { padding: 8px 16px; border-radius: 8px; border: 2px solid #2d3148; cursor: pointer; font-size: 13px; font-weight: 500; display: block; transition: all 0.15s; color: #94a3b8; }
+  .decision-option input[type="radio"]:checked + label { border-color: currentColor; }
+
+  .decision-option.mantener   label { color: #22c55e; }
+  .decision-option.consolidar label { color: #f59e0b; }
+  .decision-option.eliminar   label { color: #ef4444; }
+  .decision-option.mover      label { color: #3b82f6; }
+  .decision-option.diagnostico label { color: #a78bfa; }
+  .decision-option.revisar    label { color: #64748b; }
+
+  .decision-option.mantener   input:checked + label { background: rgba(34,197,94,0.1); }
+  .decision-option.consolidar input:checked + label { background: rgba(245,158,11,0.1); }
+  .decision-option.eliminar   input:checked + label { background: rgba(239,68,68,0.1); }
+  .decision-option.mover      input:checked + label { background: rgba(59,130,246,0.1); }
+  .decision-option.diagnostico input:checked + label { background: rgba(167,139,250,0.1); }
+  .decision-option.revisar    input:checked + label { background: rgba(100,116,139,0.1); }
+
+  .comment-label { font-size: 11px; color: #475569; margin-bottom: 6px; }
+  .comment-input { width: 100%; background: #0f1117; border: 1px solid #2d3148; border-radius: 8px; color: #e2e8f0; font-size: 13px; padding: 10px 14px; resize: vertical; min-height: 70px; font-family: inherit; transition: border-color 0.15s; }
+  .comment-input:focus { outline: none; border-color: #6366f1; }
+  .comment-input::placeholder { color: #475569; }
+
+  .save-indicator { margin-top: 8px; font-size: 11px; color: #4ade80; opacity: 0; transition: opacity 0.3s; }
+  .save-indicator.show { opacity: 1; }
+
+  /* EXPORT MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #1a1d27; border: 1px solid #2d3148; border-radius: 12px; padding: 24px; width: 90%; max-width: 700px; max-height: 80vh; overflow: auto; }
+  .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+  .modal-pre { background: #0f1117; border-radius: 8px; padding: 16px; font-size: 12px; font-family: monospace; white-space: pre-wrap; max-height: 400px; overflow: auto; color: #94a3b8; }
+  .modal-actions { margin-top: 16px; display: flex; gap: 8px; }
+  .btn { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; }
+  .btn-primary { background: #6366f1; color: white; }
+  .btn-secondary { background: #2d3148; color: #e2e8f0; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #2d3148; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">Tests E2E · AppBodasdehoy</div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <div class="progress-text" id="progressText">0 de 57 revisados</div>
+    </div>
+    <div class="sidebar-filters">
+      <button class="filter-btn active" onclick="setFilter('all')">Todos</button>
+      <button class="filter-btn" onclick="setFilter('pending')">Pendientes</button>
+      <button class="filter-btn" onclick="setFilter('decided')">Revisados</button>
+    </div>
+    <div class="sidebar-list" id="sidebarList"></div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="main-header">
+      <button class="nav-btn" id="prevBtn" onclick="navigate(-1)">← Anterior</button>
+      <span class="nav-counter" id="navCounter">1 / 57</span>
+      <button class="nav-btn" id="nextBtn" onclick="navigate(1)">Siguiente →</button>
+      <span class="main-header-title" id="mainTitle"></span>
+      <button class="export-btn" onclick="openExport()">Exportar JSON</button>
+    </div>
+
+    <div id="cardContainer"></div>
+
+    <div class="decision-section">
+      <div class="decision-title">Tu decisión</div>
+      <div class="decision-options">
+        <div class="decision-option mantener">
+          <input type="radio" name="decision" id="d-mantener" value="mantener" onchange="saveDecision()">
+          <label for="d-mantener">✅ Mantener</label>
+        </div>
+        <div class="decision-option consolidar">
+          <input type="radio" name="decision" id="d-consolidar" value="consolidar" onchange="saveDecision()">
+          <label for="d-consolidar">⚠️ Consolidar</label>
+        </div>
+        <div class="decision-option eliminar">
+          <input type="radio" name="decision" id="d-eliminar" value="eliminar" onchange="saveDecision()">
+          <label for="d-eliminar">🔴 Eliminar</label>
+        </div>
+        <div class="decision-option mover">
+          <input type="radio" name="decision" id="d-mover" value="mover" onchange="saveDecision()">
+          <label for="d-mover">📦 Mover a scripts</label>
+        </div>
+        <div class="decision-option diagnostico">
+          <input type="radio" name="decision" id="d-diagnostico" value="diagnostico" onchange="saveDecision()">
+          <label for="d-diagnostico">🔬 Solo diagnóstico</label>
+        </div>
+        <div class="decision-option revisar">
+          <input type="radio" name="decision" id="d-revisar" value="revisar" onchange="saveDecision()">
+          <label for="d-revisar">🔁 Revisar / reescribir</label>
+        </div>
+      </div>
+      <div class="comment-label">Notas / comentarios (se guarda automáticamente)</div>
+      <textarea class="comment-input" id="commentInput" placeholder="Escribe aquí tus notas sobre este test..." oninput="saveComment()"></textarea>
+      <div class="save-indicator" id="saveIndicator">✓ Guardado</div>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal">
+    <div class="modal-title">Exportar inventario</div>
+    <pre class="modal-pre" id="exportContent"></pre>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="copyExport()">Copiar al portapapeles</button>
+      <button class="btn btn-secondary" onclick="closeExport()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DATOS ────────────────────────────────────────────────────────────────────
+
+const SPECS = [
+  // AUTH / LOGIN / SSO
+  {
+    file: 'auth-flow.spec.ts',
+    cat: 'auth', catLabel: 'Auth / SSO',
+    app: 'chat-ia (chat-test)',
+    tests: 6,
+    objetivo: 'Flujo completo de autenticación: login, logout, visitante, sesión expirada',
+    describes: ['Auth Flow — chat-ia'],
+    testNames: ['AF01: acceso sin login → redirige', 'AF02: credenciales incorrectas', 'AF03: login correcto', 'AF04: logout limpia sesión', 'AF05: sesión expirada mid-session', 'AF06: modo visitante'],
+    skipLogic: 'Condicional por TEST_CREDENTIALS.email',
+    deps: ['TEST_USER_EMAIL', 'TEST_USER_PASSWORD'],
+    rec: 'mantener',
+    notas: 'El más limpio de auth. AF01–AF06 bien estructurado con smoke gate.',
+  },
+  {
+    file: 'auth.spec.ts',
+    cat: 'auth', catLabel: 'Auth / SSO',
+    app: 'app-test + chat-test',
+    tests: 8,
+    objetivo: 'Login 2 usuarios simultáneos, sesión persiste tras reload, SSO, aislamiento U1/U2',
+    describes: ['Auth — Login en app-test', 'Auth — SSO cross-domain', 'Auth — Sesiones múltiples aisladas'],
+    testNames: ['Login U1 real', 'Sesión persiste reload', 'SSO chat→app', 'Aislamiento U1/U2', 'Logout U1 no afecta U2'],
+    skipLogic: 'test.skip() condicional dentro del test',
+    deps: ['TEST_USER_EMAIL', 'TEST_USER2_EMAIL', 'app-test activo'],
+    rec: '',
+    notas: '',
+  },
+  {
+    file: 'auth-flow-multiapp.spec.ts',
+    cat: 'auth', catLabel: 'Auth / SSO',
+    app: 'chat-ia + appEventos + memories-web',
+    tests: 18,
+    objetivo: 'SSO unificado entre 3 apps con cookie idTokenV0.1.0 (CA01–CA06, AE01–AE04, MW01–MW04, SSO01–SSO04)',
+    describes: ['CA — chat-ia auth', 'AE — appEventos auth', 'MW — memories-web auth', 'SSO — cross-app bidireccional'],
+    testNames: ['CA01–CA06 chat auth', 'AE01–AE04 appEventos', 'MW01–MW04 memories', 'SSO01–SSO04 cross-app'],
+    skipLogic: 'Condicional por TEST_CREDENTIALS.email',
+    deps: ['TEST_USER_EMAIL', 'memories-test activo'],
+    rec: '',
+    notas: '',
+  },
+  {
+    file: 'auth-diagnostic.spec.ts',
+    cat: 'auth', catLabel: 'Auth / SSO',
+    app: 'chat-dev + app-dev',
+    tests: 18,
+    objetivo: 'Diagnóstico SSO: cookies, localStorage, stale state, panel Copilot',
+    describes: ['APP-DEV: Estado sin sesión', 'APP-DEV: Login email/password', 'APP-DEV: SSO cross-domain', 'APP-DEV: Logout', 'CHAT-DEV: Login y logout', 'Persistencia de sesión', 'Diagnóstico de cookies'],
+    testNames: ['Cookies vacías sin sesión', 'Login → cookies esperadas', 'SSO de chat a app', 'Panel Copilot no bloquea'],
+    skipLogic: 'test.skip si no hay TEST_PASSWORD',
+    deps: ['TEST_PASSWORD', 'app-dev + chat-dev activos simultáneamente'],
+    rec: 'diagnostico',
+    notas: 'Diagnóstico, no CI gate. Soft assertions.',
+  },
+  {
+    file: 'login-logout-cycle.spec.ts',
+    cat: 'auth', catLabel: 'Auth / SSO',
+    app: 'chat-test + app-test',
+    tests: 5,
+    objetivo: 'Ciclo login→logout: trackea cookies/localStorage (idTokenV0.1.0, sessionBodas, jwt_token)',
+    describes: ['LLC — Login/Logout Cycle'],
+    testNames: ['LLC01: login establece cookies', 'LLC02: logout limpia todo', 'LLC03: SSO persiste', 'LLC04: re-login funciona', 'LLC05: estado limpio tras logout'],
+    skipLogic: 'Sin skip explícito (usa soft assertions)',
+    deps: ['TEST_USER_EMAIL', 'TEST_USER_PASSWORD'],
+    rec: 'diagnostico',
+    notas: 'Diagnóstico de cookies. No tiene aserciones duras críticas.',
+  },
+  {
+    file: 'sso-double-login.spec.ts',
+    cat: 'auth', catLabel: 'Auth / SSO',
+    app: 'app-test + chat-test',
+    tests: 8,
+    objetivo: 'Bug diagnóstico: "Sesión no autorizada" tras login, doble login, sso_redirect_pending',
+    describes: ['SSO Redirect — comportamiento del flag', 'Login directo app-test', 'Flujo SSO completo', 'Verificación del fix propuesto'],
+    testNames: ['sso_redirect_pending se limpia', 'Login directo sin doble redirect', 'SSO sin sesión doble'],
+    skipLogic: 'test.skip si no hay TEST_PASSWORD',
+    deps: ['TEST_PASSWORD'],
+    rec: 'diagnostico',
+    notas: 'Bug específico de SSO. Ya hay fix en login.js. ¿Sigue siendo necesario?',
+  },
+  {
+    file: 'redirect-login.spec.ts',
+    cat: 'auth', catLabel: 'Auth / SSO',
+    app: 'app-test → chat-test',
+    tests: 2,
+    objetivo: '/login de appEventos redirige a chat-test con parámetro redirect= correcto',
+    describes: ['Redirect login (app-test → chat-test)'],
+    testNames: ['Redirect con parámetro correcto', 'chat-test es alcanzable'],
+    skipLogic: 'test.skip si chat no alcanzable',
+    deps: ['app-test activo', 'chat-test activo'],
+    rec: '',
+    notas: '',
+  },
+  {
+    file: 'login.spec.ts',
+    cat: 'auth', catLabel: 'Auth / SSO',
+    app: 'appEventos (/login)',
+    tests: 2,
+    objetivo: 'Página login carga con formulario visible, sin pantalla blanca',
+    describes: ['Login (/login)'],
+    testNames: ['Contenido login visible', 'Sin pantalla blanca'],
+    skipLogic: 'test.skip si no alcanzable (1033/cookies)',
+    deps: ['app-test alcanzable'],
+    rec: '',
+    notas: '',
+  },
+  {
+    file: 'registro-y-onboarding.spec.ts',
+    cat: 'auth', catLabel: 'Auth / SSO',
+    app: 'chat-test',
+    tests: 11,
+    objetivo: 'Estructura login, login real, persistencia, logout, SSO, visitor ID',
+    describes: ['Login page — estructura', 'Login con credenciales reales', 'SSO cross-domain', 'Modo visitante', 'Logout'],
+    testNames: ['Estructura login page', 'Login real funciona', 'Persistencia sesión', 'Visitor ID estable', 'Logout limpia'],
+    skipLogic: 'test.skip condicional por env',
+    deps: ['TEST_USER_EMAIL'],
+    rec: '',
+    notas: '',
+  },
+
+  // CHAT IA / COPILOT
+  {
+    file: 'chat-ia-flows.spec.ts',
+    cat: 'chat', catLabel: 'Chat IA / Copilot',
+    app: 'chat-test + app-test',
+    tests: 46,
+    objetivo: '10 flujos reales: login, invitados, presupuesto, itinerario, tareas, RAG, Wedding Creator, Memories',
+    describes: ['1. Login', '2. Consultas datos evento', '3. CRUD real', '4. Imagen adjunta', '5. Tareas', '6. Bandeja tareas', '7. Base de conocimiento', '8. RAG', '9. Wedding Creator', '10. Memories álbum'],
+    testNames: ['Login exitoso', 'Pregunta invitados', 'Crear tarea vía IA', 'RAG funciona', 'Wedding Creator web simple', 'Álbum Memories'],
+    skipLogic: 'Smoke gate + condicional credenciales',
+    deps: ['TEST_USER_EMAIL', 'TEST_USER_PASSWORD', 'evento real en DB'],
+    rec: '',
+    notas: '',
+  },
+  {
+    file: 'copilot-chat.spec.ts',
+    cat: 'chat', catLabel: 'Chat IA / Copilot',
+    app: 'appEventos iframe + chat-test',
+    tests: 11,
+    objetivo: 'Copilot iframe en appEventos: presencia, PAGE_CONTEXT postMessage, filter_view, modal 402',
+    describes: ['Copilot iframe — appEventos', 'filter_view — banner en app', 'Chat-ia standalone', 'Balance insuficiente (402)'],
+    testNames: ['Iframe presente sin 500', 'PAGE_CONTEXT se recibe', 'filter_view activa banner rosa', 'Modal 402 aparece'],
+    skipLogic: 'test.skip condicional por isAppTest',
+    deps: ['app-test', 'TEST_USER_EMAIL'],
+    rec: '',
+    notas: '',
+  },
+  {
+    file: 'copilot-invitados-evento.spec.ts',
+    cat: 'chat', catLabel: 'Chat IA / Copilot',
+    app: 'appEventos',
+    tests: 1,
+    objetivo: 'Fix regresión: consulta invitados desde Copilot no devuelve "problema de BD"',
+    describes: ['Copilot — consulta invitados con evento seleccionado'],
+    testNames: ['Pregunta invitados → no error genérico'],
+    skipLogic: 'test.skip si no hay sesión o evento',
+    deps: ['app-test', 'TEST_USER_EMAIL', 'evento con invitados'],
+    rec: '',
+    notas: '1 solo test. ¿Sigue siendo relevante o ya está cubierto en chat-ia-flows?',
+  },
+  {
+    file: 'chat-battery-roles.spec.ts',
+    cat: 'chat', catLabel: 'Chat IA / Copilot',
+    app: 'chat-ia + appEventos copilot',
+    tests: 18,
+    objetivo: 'Batería preguntas por rol: visitante, registrado, colaborador en chat standalone y Copilot embed',
+    describes: ['A1 — chat-ia Visitante', 'A2 — chat-ia Registrado', 'A3 — chat-ia Invitado/colaborador', 'B1 — Copilot Registrado', 'B2 — Copilot Visitante'],
+    testNames: ['Visitante responde sin datos privados', 'Registrado ve sus eventos', 'Colaborador acceso limitado', 'Copilot registrado responde', 'Copilot visitante → modal'],
+    skipLogic: 'test.skip si editor no visible o login falla',
+    deps: ['TEST_USER_EMAIL', 'app-test'],
+    rec: '',
+    notas: '',
+  },
+  {
+    file: 'flujo-copilot-confirmacion-visual.spec.ts',
+    cat: 'chat', catLabel: 'Chat IA / Copilot',
+    app: 'app-test + chat-test',
+    tests: 1,
+    objetivo: 'Flujo Copilot con pausas interactivas para feedback visual manual',
+    describes: ['Copilot — preguntas en app-test, panel derecho para feedback'],
+    testNames: ['Flujo completo con pausa'],
+    skipLogic: 'test.skip si no hay credenciales o app no alcanzable',
+    deps: ['TEST_USER_EMAIL', 'TEST_USER_PASSWORD'],
+    rec: 'diagnostico',
+    notas: 'Semi-manual. Pausas para revisión visual. No es CI.',
+  },
+  {
+    file: 'probe-login.spec.ts',
+    cat: 'chat', catLabel: 'Chat IA / Copilot',
+    app: 'chat-dev (/)',
+    tests: 1,
+    objetivo: 'Probe básico: goto / → loguea URL, botones y textarea visible',
+    describes: ['(sin describe)'],
+    testNames: ['goto / → log básico'],
+    skipLogic: 'Sin skip',
+    deps: ['chat-dev activo'],
+    rec: 'eliminar',
+    notas: 'Solo log sin assertions. Sin valor en CI.',
+  },
+
+  // SEGURIDAD / ROLES
+  {
+    file: 'invited-guest-security.spec.ts',
+    cat: 'sec', catLabel: 'Seguridad / Roles',
+    app: 'chat-test + api-ia',
+    tests: 4,
+    objetivo: 'Plan seguridad INVITED_GUEST: SEC-01–SEC-15 (confidencialidad, integridad, aislamiento cross-event, GAPs confirm/update_guest)',
+    describes: ['BATCH 0 — Smoke Gate', 'BATCH SEC-CONF+INT (SEC-01–07)', 'BATCH SEC-ISOL+ESC (SEC-08–11)', 'BATCH SEC-GAPS (SEC-12–15)'],
+    testNames: ['Smoke servidor', 'SEC-01–07: lista bloqueada, menús, propio, presupuesto, modificar, añadir, eliminar', 'SEC-08–11: cross-user 43, prompt injection, role claim, enumeración eventos', 'SEC-12–15: GAP confirm_guest, GAP update_guest, DATA_FILTER, privacidad membresía'],
+    skipLogic: 'Smoke gate + skipIfBackendError',
+    deps: ['jcc@bodasdehoy.com / lorca2012M*+', 'api-ia disponible'],
+    rec: 'mantener',
+    notas: 'El más crítico. GAP-01 y GAP-02 en api-ia pendientes.',
+  },
+  {
+    file: 'role-access-control.spec.ts',
+    cat: 'sec', catLabel: 'Seguridad / Roles',
+    app: 'chat-test',
+    tests: 8,
+    objetivo: 'Control acceso por rol contra datos reales "Boda Isabel & Raúl": GUEST, OWNER, COLLAB1, COLLAB2, Copilot embed',
+    describes: ['BATCH 0 — Smoke', 'BATCH R1 — GUEST', 'BATCH R2 — OWNER', 'BATCH R3 — COLLAB1 jcc@recargaexpress', 'BATCH R4 — COLLAB2 jcc@bodasdehoy', 'BATCH E — Copilot embed'],
+    testNames: ['GUEST no ve datos', 'OWNER ve 43/39 invitados', 'COLLAB1 solo su boda', 'COLLAB2 como INVITED_GUEST', 'Copilot embed con contexto correcto'],
+    skipLogic: 'Smoke gate + skipIfBackendError',
+    deps: ['jcc@bodasdehoy.com', 'jcc@recargaexpress.com', 'jcc@bodasdehoy.com'],
+    rec: 'mantener',
+    notas: 'Complementario a invited-guest-security. Cubre más roles.',
+  },
+  {
+    file: 'crud-permission.spec.ts',
+    cat: 'sec', catLabel: 'Seguridad / Roles',
+    app: 'chat-test',
+    tests: 5,
+    objetivo: 'CRUD determinístico contra DB real: C01–C05 (43 invitados, 39 confirmados, celíacos, Juancarlos, fecha) + P01–P02 permisos',
+    describes: ['BATCH 0 — Smoke Gate', 'BATCH 1 — CRUD (C01–C05)', 'BATCH 2 — Permisos (P01–P02)'],
+    testNames: ['C01: 43 invitados', 'C02: 39 confirmados', 'C03: celíacos número+texto', 'C04: Juancarlos pendiente', 'C05: fecha 30 dic 2025', 'P01: GUEST no ve 43', 'P02: invitado solo ve su evento'],
+    skipLogic: 'Smoke gate',
+    deps: ['jcc@bodasdehoy.com', 'evento "Boda Isabel & Raúl" real en DB'],
+    rec: 'mantener',
+    notas: 'Determinístico. Los únicos tests con expected values exactos verificados en DB.',
+  },
+  {
+    file: 'role-setup-verification.spec.ts',
+    cat: 'sec', catLabel: 'Seguridad / Roles',
+    app: 'chat-test',
+    tests: 4,
+    objetivo: 'Verifica setup correcto de roles en DB antes de hacer tests de roles',
+    describes: ['BATCH 0 — Smoke', 'BATCH 1 — CREATOR', 'BATCH 2 — INVITED_GUEST', 'BATCH 3 — COLLABORATOR'],
+    testNames: ['Smoke', 'jcc@bodasdehoy.com es CREATOR', 'carlos.carrillo@ms.com es INVITED_GUEST', 'jcc@ms.com es COLLABORATOR'],
+    skipLogic: 'Smoke gate',
+    deps: ['3 usuarios de prueba configurados en DB'],
+    rec: '',
+    notas: 'Setup verification. ¿Se corre como precondición antes de los tests de roles?',
+  },
+
+  // CRUD VIA IA
+  {
+    file: 'acciones-crud.spec.ts',
+    cat: 'crud', catLabel: 'CRUD via IA',
+    app: 'appEventos + chat-test',
+    tests: 32,
+    objetivo: 'CRUD real: itinerario, invitados, presupuesto, servicios, mesas, notificaciones, REFRESH_EVENTS, navegación completa',
+    describes: ['Itinerario — editar tarea', 'Invitados — CRUD', 'Presupuesto — CRUD', 'Servicios — CRUD', 'Mesas — gestión', 'Notificaciones — UI', 'REFRESH_EVENTS postMessage', 'Navegación completa', 'Botones críticos'],
+    testNames: ['Editar tarea itinerario', 'Añadir/editar/borrar invitado', 'Crear categoría presupuesto', 'Crear servicio', 'Crear mesa', 'Notificación aparece', 'REFRESH_EVENTS funciona'],
+    skipLogic: 'test.skip si !isAppTest o !hasCredentials. Primera test siempre skip.',
+    deps: ['app-test', 'TEST_USER_EMAIL', 'evento real'],
+    rec: '',
+    notas: 'El test 1 siempre hace skip (línea 75). 32 tests es el suite más grande de CRUD.',
+  },
+  {
+    file: 'crud-ia-verificado.spec.ts',
+    cat: 'crud', catLabel: 'CRUD via IA',
+    app: 'chat-test + app-test',
+    tests: 5,
+    objetivo: 'IA crea guest → verifica en UI appEventos (N→N+1). Cross-verificación chat↔app',
+    describes: ['CRUD via IA — Verificación cruzada en appEventos'],
+    testNames: ['Crear guest vía IA', 'Verificar count en app (N+1)', 'Editar guest vía IA', 'Verificar cambio en app', 'Cleanup'],
+    skipLogic: 'test.skip si !isAppTest o !hasCredentials',
+    deps: ['app-test + chat-test', 'TEST_USER_EMAIL', 'evento real'],
+    rec: '',
+    notas: 'El más valioso de CRUD: verifica que lo que dice la IA realmente cambió en la UI.',
+  },
+  {
+    file: 'preguntas-filtros-usuario.spec.ts',
+    cat: 'crud', catLabel: 'CRUD via IA',
+    app: 'app-test + chat-test',
+    tests: 8,
+    objetivo: 'Preguntas IA: listar eventos, evento concreto "Raúl Isabel", filtros que activan filter_view en módulos',
+    describes: ['Preguntas y filtros — smoke', 'Preguntas todos eventos', 'Preguntas evento Raúl Isabel', 'Filtros — activan filter_view'],
+    testNames: ['Lista eventos del usuario', 'Pregunta evento específico', 'filter_view mesas', 'filter_view invitados', 'filter_view presupuesto', 'filter_view servicios', 'filter_view itinerario'],
+    skipLogic: 'test.skip si !isAppTest o !hasCredentials',
+    deps: ['app-test', 'TEST_USER_EMAIL', 'evento "Raúl Isabel" en DB'],
+    rec: '',
+    notas: '',
+  },
+
+  // UI / MÓDULOS APPVENTOS
+  {
+    file: 'mesas.spec.ts',
+    cat: 'ui', catLabel: 'UI / Módulos appEventos',
+    app: 'appEventos (/mesas)',
+    tests: 14,
+    objetivo: 'Editor visual mesas: lista, crear mesa, planos múltiples, asignar invitados, exportar plano',
+    describes: ['Mesas — Carga y estructura', 'Mesas — Crear nueva mesa', 'Mesas — Planos múltiples', 'Mesas — Asignar invitados', 'Mesas — Exportar plano'],
+    testNames: ['Carga /mesas', 'Lista mesas', 'Crear mesa redonda/cuadrada', 'Crear plano', 'Drag asignar invitado', 'Exportar PNG'],
+    skipLogic: 'test.skip si !isAppTest o !hasCredentials',
+    deps: ['app-test', 'TEST_USER_EMAIL', 'evento con invitados'],
+    rec: '',
+    notas: '',
+  },
+  {
+    file: 'presupuesto-pagos.spec.ts',
+    cat: 'ui', catLabel: 'UI / Módulos appEventos',
+    app: 'appEventos (/presupuesto, /resumen-evento)',
+    tests: 11,
+    objetivo: 'Presupuesto completo: crear categoría, gasto, registrar pago, totales coherentes, filtrar',
+    describes: ['Presupuesto — /resumen-evento', 'Presupuesto — /presupuesto principal', 'Presupuesto — Crear categoría y gasto', 'Presupuesto — Registrar pago'],
+    testNames: ['Resumen evento carga', 'Presupuesto carga', 'Crear categoría', 'Crear gasto', 'Total actualizado', 'Registrar pago', 'Filtrar por categoría'],
+    skipLogic: 'test.skip si !isAppTest o !hasCredentials',
+    deps: ['app-test', 'TEST_USER_EMAIL', 'evento real'],
+    rec: '',
+    notas: '',
+  },
+  {
+    file: 'invitaciones.spec.ts',
+    cat: 'ui', catLabel: 'UI / Módulos appEventos',
+    app: 'appEventos (/invitaciones)',
+    tests: 16,
+    objetivo: 'Enviar invitaciones: email/WA tabs, plantillas, envío real a carlos.carrillo@recargaexpress.com, portal RSVP',
+    describes: ['Setup — Verificar invitado de prueba', 'Invitaciones — Estructura', 'Invitaciones — Email y envío', 'Invitaciones — WhatsApp', 'Invitaciones — Portal RSVP'],
+    testNames: ['Página carga', 'Tabs email/WA', 'Seleccionar plantilla', 'Envío email real', 'Portal RSVP público accesible'],
+    skipLogic: 'test.skip si !isAppTest o !hasCredentials',
+    deps: ['app-test', 'TEST_USER_EMAIL', 'invitado carlos.carrillo@recargaexpress.com en DB'],
+    rec: '',
+    notas: 'Depende de invitado real en DB (carlos.carrillo@recargaexpress.com).',
+  },
+  {
+    file: 'kanban-tareas.spec.ts',
+    cat: 'ui', catLabel: 'UI / Módulos appEventos',
+    app: 'appEventos (/servicios)',
+    tests: 13,
+    objetivo: 'Kanban tareas: columnas (Pending/In Progress/Completed), crear tarea, drag, asignar, filtrar, completar',
+    describes: ['Estructura /servicios', 'Crear tarea', 'Detalle y edición', 'Drag & Drop', 'Completar tarea', 'Filtros'],
+    testNames: ['Carga kanban', 'Crear itinerario', 'Crear tarea en columna', 'Drag a otra columna', 'Asignar responsable', 'Marcar completada', 'Filtrar por estado'],
+    skipLogic: 'test.skip si !isAppTest o !hasCredentials',
+    deps: ['app-test', 'TEST_USER_EMAIL', 'evento real'],
+    rec: '',
+    notas: '',
+  },
+  {
+    file: 'modulos-organizador.spec.ts',
+    cat: 'ui', catLabel: 'UI / Módulos appEventos',
+    app: 'appEventos',
+    tests: 19,
+    objetivo: 'Módulos básicos: home, resumen, presupuesto, invitados, mesas, itinerario, servicios, crear evento, navegación',
+    describes: ['Home — lista eventos', 'Resumen evento', 'Presupuesto', 'Invitados', 'Mesas', 'Itinerario', 'Servicios', 'Crear evento', 'Navegación entre módulos'],
+    testNames: ['Home carga', 'Resumen carga', 'Módulo X carga sin crash'],
+    skipLogic: 'test.skip condicional por sesión y eventId',
+    deps: ['app-test'],
+    rec: '',
+    notas: 'Cobertura amplia pero muy básica (solo "carga sin crash"). Solapa con specs individuales de cada módulo.',
+  },
+  {
+    file: 'invitado-y-link.spec.ts',
+    cat: 'ui', catLabel: 'UI / Módulos appEventos',
+    app: 'appEventos',
+    tests: 4,
+    objetivo: 'Crear invitado y verificar link de invitación. Mide tiempos de carga (thresholds hardcoded)',
+    describes: ['Rendimiento — tiempos de carga', 'Invitado — crear y verificar link'],
+    testNames: ['Tiempo carga < Xms', 'Crear invitado', 'Link invitación accesible'],
+    skipLogic: 'test.skip si !isAppTest',
+    deps: ['app-test', 'TEST_USER_EMAIL', 'evento "Isabel & Raúl"'],
+    rec: '',
+    notas: 'Thresholds de tiempo hardcoded. Frágil en entornos lentos.',
+  },
+  {
+    file: 'rutas.spec.ts',
+    cat: 'ui', catLabel: 'UI / Módulos appEventos',
+    app: 'appEventos',
+    tests: 1,
+    objetivo: '13 rutas cargan sin ErrorBoundary (1 test describe con loop)',
+    describes: ['Rutas cargan (navegador debe cargar)'],
+    testNames: ['13 rutas sin ErrorBoundary'],
+    skipLogic: 'Sin skip (soft assertions)',
+    deps: ['app-test alcanzable'],
+    rec: '',
+    notas: 'Solo 1 test que recorre 13 rutas. Valor limitado: solo detecta crashes totales.',
+  },
+  {
+    file: 'presupuesto.spec.ts',
+    cat: 'ui', catLabel: 'UI / Módulos appEventos',
+    app: 'appEventos (/presupuesto)',
+    tests: 2,
+    objetivo: 'Carga /presupuesto sin pantalla blanca, muestra "Presupuesto" o "permiso" o "login"',
+    describes: ['Presupuesto (/presupuesto)'],
+    testNames: ['Carga sin crash', 'Muestra contenido esperado'],
+    skipLogic: 'Sin skip',
+    deps: ['app-test'],
+    rec: '',
+    notas: '2 checks básicos. presupuesto-pagos.spec.ts lo cubre con más profundidad.',
+  },
+  {
+    file: 'home.spec.ts',
+    cat: 'ui', catLabel: 'UI / Módulos appEventos',
+    app: 'appEventos (/)',
+    tests: 2,
+    objetivo: 'Home carga sin crash, muestra trigger perfil o contenido, sin ErrorBoundary',
+    describes: ['Home (/)'],
+    testNames: ['Trigger/contenido visible', 'Sin ErrorBoundary'],
+    skipLogic: 'Sin skip (maneja redirect cross-domain)',
+    deps: ['app-test'],
+    rec: '',
+    notas: '',
+  },
+  {
+    file: 'menu-usuario.spec.ts',
+    cat: 'ui', catLabel: 'UI / Módulos appEventos',
+    app: 'appEventos',
+    tests: 3,
+    objetivo: 'Menú de perfil: trigger abre, dropdown visible, nombre correcto (logueado vs guest)',
+    describes: ['Menú de usuario (perfil)'],
+    testNames: ['Menú abre al click', 'Muestra nombre o Iniciar sesión', 'Opciones esperadas'],
+    skipLogic: 'Sin skip (soft fallback Turbopack frío)',
+    deps: ['app-test'],
+    rec: '',
+    notas: '',
+  },
+
+  // VISITANTE / GUEST / ONBOARDING
+  {
+    file: 'visitor-limit.spec.ts',
+    cat: 'guest', catLabel: 'Visitante / Guest',
+    app: 'chat-test + app-test',
+    tests: 14,
+    objetivo: 'Límite 3 mensajes visitante: cookie vis_mc, Visitor ID persistente, modal LoginRequired, server-side check, iframe+standalone',
+    describes: ['Visitor ID — Persistencia', 'Cookie vis_mc — Contador', 'Server-side visitor limit', 'Identidad unificada iframe+standalone', 'Modal LoginRequiredModal (visitante)', 'Modal RechargeModal (FREE sin saldo)'],
+    testNames: ['Cookie vis_mc incrementa', 'Visitor ID persiste reload', 'Modal aparece en msg 4', 'Server-side bloquea en msg 4', 'iframe y standalone comparten ID'],
+    skipLogic: 'test.skip si !isAppTest',
+    deps: ['chat-test + app-test activos'],
+    rec: 'mantener',
+    notas: 'Crítico para visitor flow. 14 tests bien diferenciados.',
+  },
+  {
+    file: 'perfiles-visitante.spec.ts',
+    cat: 'guest', catLabel: 'Visitante / Guest',
+    app: 'app-test + chat-test',
+    tests: 10,
+    objetivo: 'Batería visitante: GuestUpsellPage en appEventos, chat-ia visitante, Copilot embebido visitante',
+    describes: ['Visitante — appEventos', 'Visitante — chat-ia', 'Visitante — copilot embebido'],
+    testNames: ['GuestUpsellPage aparece en rutas protegidas', 'chat-ia visitante responde', 'Copilot visitante → modal'],
+    skipLogic: 'test.skip si servidor 500 (Turbopack)',
+    deps: ['app-test + chat-test'],
+    rec: '',
+    notas: '',
+  },
+  {
+    file: 'guest-y-logueado.spec.ts',
+    cat: 'guest', catLabel: 'Visitante / Guest',
+    app: 'app-test',
+    tests: 7,
+    objetivo: 'Guest vs logueado: home muestra login, menú guest, contenido restringido. Logueado: accede a módulos',
+    describes: ['Usuario guest (sin sesión)', 'Usuario logueado (con sesión)'],
+    testNames: ['Guest: home sin datos personales', 'Guest: menú muestra Iniciar sesión', 'Logueado: acceso a módulos', 'Logueado: datos propios visibles'],
+    skipLogic: 'test.skip condicional',
+    deps: ['app-test', 'TEST_USER_EMAIL opcional'],
+    rec: '',
+    notas: '',
+  },
+  {
+    file: 'portal-invitado.spec.ts',
+    cat: 'guest', catLabel: 'Visitante / Guest',
+    app: 'appEventos (/e/[id], /buscador-mesa/[id])',
+    tests: 8,
+    objetivo: 'Portal público invitado: acceso sin auth, countdown, formulario RSVP, 404 graceful',
+    describes: ['Portal invitado — /e/[eventId]', 'Buscador de mesa', 'Portal — acceso sin autenticación'],
+    testNames: ['eventId inválido → 404 graceful', 'Portal RSVP con evento real', 'Countdown funciona', 'Formulario RSVP visible', 'Buscador mesa accesible'],
+    skipLogic: 'test.skip condicional si eventId no disponible',
+    deps: ['E2E_EVENT_ID env var opcional', 'app-test'],
+    rec: '',
+    notas: '',
+  },
+
+  // BILLING / PAGOS
+  {
+    file: 'billing-saldo.spec.ts',
+    cat: 'billing', catLabel: 'Billing / Pagos',
+    app: 'chat-test + chat.vivetuboda.com',
+    tests: 11,
+    objetivo: 'Balance, plan activo, modal 402 sin saldo, auto-recarga — dos developers: bodasdehoy + vivetuboda',
+    describes: ['Billing bodasdehoy — /settings/billing', 'Billing bodasdehoy — Modal sin saldo', 'Billing vivetuboda — Saldo y modal'],
+    testNames: ['Balance numérico visible', 'Plan marcado como activo', 'Modal 402 aparece', 'Auto-recarga configurable', 'vivetuboda tiene su propio billing'],
+    skipLogic: 'test.skip si !isAppTest o !hasBdhCreds',
+    deps: ['TEST_USER_EMAIL para bodasdehoy', 'TEST_VIVETUBODA_PASSWORD'],
+    rec: '',
+    notas: '',
+  },
+  {
+    file: 'billing.spec.ts',
+    cat: 'billing', catLabel: 'Billing / Pagos',
+    app: 'chat-test',
+    tests: 10,
+    objetivo: '/settings/billing: balance, plan, /transactions, /planes (suscripción)',
+    describes: ['Billing — /settings/billing', 'Billing — /transactions', 'Billing — /planes', 'Facturación — appEventos (/facturacion)'],
+    testNames: ['Balance carga', 'Plan actual marcado', 'Historial transacciones', 'Página planes carga', 'appEventos /facturacion'],
+    skipLogic: 'test.skip si sin sesión',
+    deps: ['TEST_USER_EMAIL'],
+    rec: '',
+    notas: 'Solapa con billing-saldo. ¿Cuál es el principal?',
+  },
+  {
+    file: 'facturacion-billing.spec.ts',
+    cat: 'billing', catLabel: 'Billing / Pagos',
+    app: 'chat-test + app-test + memories-test',
+    tests: 28,
+    objetivo: 'Facturación completa: balance, transacciones API, modal 402, Stripe, admin dashboard, wallet_checkBalance, SKUs, appEventos /facturacion, memories pricing',
+    describes: ['4.1 Balance UI', '4.2 Transacciones API', '4.3 Modal 402', '4.4 Stripe session', '4.5 Admin billing', '4.6 wallet_checkBalance', '4.7 SKUs y precios', '4.8 appEventos /facturacion', '4.9 memories pricing'],
+    testNames: ['Balance en UI', 'Transacciones lista', 'Modal 402 aparece', 'Stripe redirect', 'Admin ve dashboard', 'GraphQL wallet funciona', 'SKU FREE/BASIC/PRO/MAX/ENTERPRISE', 'memories pricing section'],
+    skipLogic: 'test.skip si !isChatTest o !hasCredentials',
+    deps: ['chat-test + app-test + memories-test', 'TEST_USER_EMAIL'],
+    rec: '',
+    notas: 'El más completo de billing (28 tests, 9 describes). Cubre lo que billing.spec y billing-saldo no cubren.',
+  },
+
+  // NOTIFICACIONES / BANDEJA / CANALES
+  {
+    file: 'notificaciones.spec.ts',
+    cat: 'notif', catLabel: 'Notificaciones / Bandeja',
+    app: 'chat-ia (/notifications)',
+    tests: 14,
+    objetivo: 'Página notificaciones: agrupación por fecha, filtros (all/unread), type chips, search, click, snooze, mark all read, paginación, NotificationBell',
+    describes: ['Notificaciones — Carga y estructura', 'Filtros y búsqueda', 'Acciones (leer, snooze, marcar todas)', 'Bell y badge en sidebar'],
+    testNames: ['Carga /notifications', 'Agrupación por fecha', 'Filter all/unread', 'Buscar notificación', 'Click → mark read', 'Snooze', 'Mark all read', 'NotificationBell badge', 'Badge desaparece'],
+    skipLogic: 'test.skip si !isAppTest o !hasCredentials',
+    deps: ['chat-test', 'TEST_USER_EMAIL'],
+    rec: '',
+    notas: '',
+  },
+  {
+    file: 'bandeja-mensajes.spec.ts',
+    cat: 'notif', catLabel: 'Notificaciones / Bandeja',
+    app: 'chat-ia (/messages)',
+    tests: 15,
+    objetivo: 'Bandeja /messages: ChannelSidebar, ConnectChannelDrawer, tasks pendientes, TaskDetailWorkspace, WhatsApp setup, canales evento',
+    describes: ['Bandeja — smoke /messages', 'ChannelSidebar — estructura', 'ChannelSidebar — ConnectChannelDrawer', 'WhatsApp setup', 'Task channel empty state', 'Task detail workspace', 'Navegación rutas messages', 'Task workspace — input asistente'],
+    testNames: ['Carga /messages', 'Secciones sidebar visibles', 'ConnectChannelDrawer abre', 'WhatsApp setup form', 'Task channel vacío muestra estado', 'TaskDetailWorkspace carga', 'Rutas /messages/X navegan'],
+    skipLogic: 'test.skip condicional por isAppTest y hasCredentials',
+    deps: ['chat-test', 'TEST_USER_EMAIL'],
+    rec: '',
+    notas: '',
+  },
+  {
+    file: 'canales-conectividad.spec.ts',
+    cat: 'notif', catLabel: 'Notificaciones / Bandeja',
+    app: 'chat-test (6 canales: WA/IG/FB/TG/Email/WebChat)',
+    tests: 12,
+    objetivo: 'Endpoints proxy (/api/messages/*), OAuth URLs válidas, UIs sin crash, fallback SSE→polling',
+    describes: ['Canales — smoke (sin login)', 'Proxy endpoints (request API)', 'UIs de setup (con login)', 'SSE fallback a polling', 'Indicadores de estado'],
+    testNames: ['Smoke endpoints canales', 'OAuth payloads correctos', 'UI Email setup', 'UI Facebook setup', 'SSE reconnect funciona', 'Estado canal visible'],
+    skipLogic: 'test.skip si !hasCredentials (algunos)',
+    deps: ['chat-test', 'TEST_USER_EMAIL'],
+    rec: '',
+    notas: 'No requiere OAuth real. Verifica URLs y endpoints.',
+  },
+  {
+    file: 'canales-setup.spec.ts',
+    cat: 'notif', catLabel: 'Notificaciones / Bandeja',
+    app: 'chat-ia (/messages)',
+    tests: 16,
+    objetivo: 'Setup completo de canales: Email OAuth, Facebook, Instagram, Telegram token, WebChat embed code',
+    describes: ['Canales — /messages estructura', 'EmailSetup', 'TelegramSetup', 'WebChatSetup', 'MessageInput bandeja', 'Facebook e Instagram Setup'],
+    testNames: ['Email OAuth form visible', 'FB OAuth redirect', 'IG OAuth redirect', 'TG token form', 'WebChat código embed', 'MessageInput bandeja funciona'],
+    skipLogic: 'test.skip si !isAppTest o !hasCredentials',
+    deps: ['chat-test', 'TEST_USER_EMAIL'],
+    rec: '',
+    notas: '',
+  },
+
+  // WIDGET / FILTROS / MULTIAPP
+  {
+    file: 'widget-chat.spec.ts',
+    cat: 'infra', catLabel: 'Widget / Infra',
+    app: 'chat-ia (/widget/[development])',
+    tests: 13,
+    objetivo: 'Widget embebible: carga welcome, enviar mensaje, quick reply, dark/light, markdown, auto-expand, close postMessage, visitor ID, error state',
+    describes: ['Widget — Carga y estructura', 'Widget — Enviar mensaje y respuesta', 'Widget — Modo dark/light', 'Widget — Cerrar y comunicación', 'Widget — Visitor ID y contexto'],
+    testNames: ['Carga welcome', 'Enviar mensaje y recibir respuesta', 'Quick reply funciona', 'Dark/light toggle', 'Markdown renderiza', 'Auto-expand en mensaje', 'postMessage close', 'Visitor ID persiste', 'Error state visible'],
+    skipLogic: 'test.skip si !isAppTest',
+    deps: ['chat-test'],
+    rec: '',
+    notas: '',
+  },
+  {
+    file: 'filter-view.spec.ts',
+    cat: 'infra', catLabel: 'Widget / Infra',
+    app: 'appEventos + chat-test',
+    tests: 8,
+    objetivo: 'lobe-filter-app-view: postMessage FILTER_VIEW → banner rosa en app. Smoke, postMessage simulado, interacción UI, iframe smoke',
+    describes: ['filter_view — smoke', 'filter_view — postMessage simulated', 'filter_view — interacción UI', 'filter_view — iframe smoke'],
+    testNames: ['Smoke sin login', 'postMessage FILTER_VIEW → banner rosa', 'Botón ✕ limpia filtro', 'iframe smoke appEventos'],
+    skipLogic: 'test.skip si !isAppTest o !eventId',
+    deps: ['app-test', 'TEST_USER_EMAIL', 'eventId en DB'],
+    rec: '',
+    notas: '',
+  },
+  {
+    file: 'auth-flow-multiapp.spec.ts',  // duplicado arriba — se renderiza en orden
+    cat: 'infra', catLabel: 'Widget / Infra',
+    app: 'chat + appEventos + memories',
+    tests: 18,
+    objetivo: 'SSO cross-app bidireccional entre 3 apps',
+    describes: ['CA — chat-ia', 'AE — appEventos', 'MW — memories-web', 'SSO — bidireccional'],
+    testNames: ['CA01–CA06', 'AE01–AE04', 'MW01–MW04', 'SSO01–SSO04'],
+    skipLogic: 'Condicional por credenciales',
+    deps: ['TEST_USER_EMAIL', 'memories-test activo'],
+    rec: '',
+    notas: '',
+  },
+  {
+    file: 'multi-developer.spec.ts',
+    cat: 'infra', catLabel: 'Widget / Infra',
+    app: 'app-test (3 whitelabels: bodasdehoy, vivetuboda, eventosorganizador)',
+    tests: 19,
+    objetivo: 'Multiwhitelabel: branding diferente por developer, login, chat responde, filter_view, performance, guest vs autenticado',
+    describes: ['Smoke de cada whitelabel', 'SSO cross-domain bodasdehoy', 'IA reasoning + filter_view', 'Chat-ia rutas y providers', 'Performance tiempos', 'Login flow', 'Guest vs autenticado'],
+    testNames: ['bodasdehoy carga', 'vivetuboda carga', 'eventosorganizador carga', 'Login bodasdehoy', 'filter_view funciona', 'Tiempos aceptables'],
+    skipLogic: 'test.skip si !isAppTest',
+    deps: ['app-test + 3 whitelabels configurados', 'TEST_USER_EMAIL'],
+    rec: '',
+    notas: 'Requiere 3 developers configurados. Frágil si algún whitelabel no está activo.',
+  },
+
+  // MEMORIES / STORAGE / PROVEEDORES IA
+  {
+    file: 'memories-album.spec.ts',
+    cat: 'infra', catLabel: 'Memories / Storage / IA',
+    app: 'chat-test (/memories)',
+    tests: 7,
+    objetivo: 'Crear álbum, subir foto, invitar U2, compartir, QR, link público, eliminar álbum (cleanup)',
+    describes: ['Memories — Album CRUD + Upload + Invite + Share'],
+    testNames: ['Navegar a /memories', 'Crear álbum', 'Subir foto', 'Invitar U2_EMAIL', 'Compartir álbum', 'QR code', 'Eliminar álbum'],
+    skipLogic: 'test.skip si !hasCredentials',
+    deps: ['TEST_USER_EMAIL', 'U2_EMAIL', 'evento real'],
+    rec: '',
+    notas: '',
+  },
+  {
+    file: 'storage-r2.spec.ts',
+    cat: 'infra', catLabel: 'Memories / Storage / IA',
+    app: 'chat-test',
+    tests: 5,
+    objetivo: 'Subida fotos a Cloudflare R2 vía api-ia proxy: API directa y UI',
+    describes: ['Storage R2 — API directa (sin UI)', 'Storage R2 — UI (subida desde chat-ia)'],
+    testNames: ['API R2 directa funciona', 'Subir foto desde UI', 'URL pública accesible', 'Cleanup R2'],
+    skipLogic: 'test.skip si !isRemote',
+    deps: ['NEXT_PUBLIC_USE_STORAGE_R2=true', 'chat-test', 'TEST_USER_EMAIL'],
+    rec: '',
+    notas: 'Requiere R2 activo en entorno de test.',
+  },
+  {
+    file: 'proveedores-ia.spec.ts',
+    cat: 'infra', catLabel: 'Memories / Storage / IA',
+    app: 'chat-test (/settings)',
+    tests: 9,
+    objetivo: 'Configuración proveedores IA: grid proveedores, credenciales tenant, respuesta chat real, almacenamiento tokens',
+    describes: ['Proveedores IA — smoke', 'settings/provider', 'Credenciales tenant (API)', 'Respuesta del chat (integración real)', 'Almacenamiento de claves'],
+    testNames: ['Smoke /settings', 'Grid proveedores', 'Credenciales cargadas', 'Chat responde', 'Token no expuesto en cliente'],
+    skipLogic: 'test.skip si !isChatTest o !hasCredentials',
+    deps: ['chat-test', 'TEST_USER_EMAIL'],
+    rec: '',
+    notas: '',
+  },
+
+  // PORTAL PÚBLICO
+  {
+    file: 'portal-invitado.spec.ts',
+    cat: 'guest', catLabel: 'Visitante / Guest',
+    app: 'appEventos (/e/[id], /buscador-mesa/[id])',
+    tests: 8,
+    objetivo: 'Portal público invitado sin auth: countdown, RSVP, 404 graceful, buscador mesa',
+    describes: ['Portal invitado — /e/[eventId]', 'Buscador de mesa', 'Portal — sin autenticación'],
+    testNames: ['eventId inválido no crashea', 'Countdown visible', 'Formulario RSVP', 'Buscador mesa funciona', '404 graceful'],
+    skipLogic: 'test.skip condicional si eventId no disponible',
+    deps: ['E2E_EVENT_ID env var opcional'],
+    rec: '',
+    notas: '',
+  },
+
+  // ADMIN
+  {
+    file: 'admin-panel.spec.ts',
+    cat: 'chat', catLabel: 'Chat IA / Copilot',
+    app: 'chat-ia (/admin/*)',
+    tests: 23,
+    objetivo: 'Panel admin: dashboard, crear/enviar campañas, training IA, gestión usuarios, billing, sessions, audit',
+    describes: ['Admin — Acceso y layout', 'Admin — Campañas', 'Admin — Entrenamiento IA', 'Admin — Usuarios', 'Admin — Billing'],
+    testNames: ['Dashboard carga', 'Crear campaña', 'Enviar campaña', 'Añadir pregunta IA', 'Gestionar usuarios', 'Billing stats admin'],
+    skipLogic: 'test.skip si !isAppTest o !hasCredentials',
+    deps: ['Rol ADMIN en DB', 'TEST_USER_EMAIL'],
+    rec: '',
+    notas: 'Requiere rol ADMIN. ¿El usuario de prueba tiene admin?',
+  },
+
+  // AUDIT VISUAL
+  {
+    file: 'auditoria-visual-movil.spec.ts',
+    cat: 'diag', catLabel: 'Diagnóstico / Exploración',
+    app: 'chat-ia + appEventos + memories-web',
+    tests: 22,
+    objetivo: 'Screenshots en 4 dispositivos (iPhoneSE, iPhone14Pro, GalaxyS23, iPadMini) — detección overflow visual',
+    describes: ['chat-ia | device', 'appEventos | device', 'memories-web | device'],
+    testNames: ['Screenshot por dispositivo y app'],
+    skipLogic: 'Sin skip (genera test-screenshots/)',
+    deps: ['Múltiples apps activas'],
+    rec: 'mover',
+    notas: 'Sin comparación base → nunca falla automáticamente. Herramienta visual, no CI gate.',
+  },
+
+  // EDGE CASES / ERRORES
+  {
+    file: 'edge-cases.spec.ts',
+    cat: 'diag', catLabel: 'Diagnóstico / Exploración',
+    app: 'appEventos',
+    tests: 7,
+    objetivo: 'Casos límite: 404 graceful, API 403, API 503, navegación rápida, sesión expirada mid-session, health check',
+    describes: ['EC01 — Rutas inexistentes', 'API 403 → banner', 'API caída 503', 'Navegación rápida', 'Sesión expirada mid-session', 'Health check'],
+    testNames: ['404 graceful', 'Banner sesión expirada en 403', '503 muestra error útil', 'Navegación rápida sin acumulación', 'Health check pasa'],
+    skipLogic: 'Sin skip',
+    deps: ['app-test'],
+    rec: '',
+    notas: 'Simula 503 sin mock real → puede ser frágil.',
+  },
+  {
+    file: 'errores-api.spec.ts',
+    cat: 'diag', catLabel: 'Diagnóstico / Exploración',
+    app: 'appEventos',
+    tests: 1,
+    objetivo: 'Manejo error API 403: banner "sesión expirada" visible y redirección a chat SSO',
+    describes: ['Manejo de errores API (403)'],
+    testNames: ['403 → banner sesión expirada → redirect chat SSO'],
+    skipLogic: 'Sin skip',
+    deps: ['app-test'],
+    rec: '',
+    notas: '1 solo test. Depende de poder simular un 403 real. ¿Hay mock?',
+  },
+  {
+    file: 'eventos-auth-bug.spec.ts',
+    cat: 'diag', catLabel: 'Diagnóstico / Exploración',
+    app: 'chat-test',
+    tests: 7,
+    objetivo: 'Bug: api-ia responde "sesión expirada" al preguntar por eventos estando logueado. Diagnostica JWT.',
+    describes: ['1. Guest — eventos sin sesión', '2. Logueado — eventos (bug auth)', '3. Logueado + evento — datos reales', '4. Diagnóstico JWT'],
+    testNames: ['Guest: eventos respuesta comercial', 'Logueado: eventos NO contiene AUTH_BUG', 'Evento real: datos correctos', 'JWT diagnóstico'],
+    skipLogic: 'test.skip si !hasCredentials o login falla',
+    deps: ['chat-test', 'TEST_USER_EMAIL'],
+    rec: '',
+    notas: 'Detecta bug específico. ¿Sigue activo o fue corregido?',
+  },
+  {
+    file: 'batch-comparativa.spec.ts',
+    cat: 'diag', catLabel: 'Diagnóstico / Exploración',
+    app: 'chat-ia (/widget + /chat)',
+    tests: 2,
+    objetivo: 'Lanzar 3x misma pregunta visitante vs registrado, guardar TSV con respuesta/duración/categoría',
+    describes: ['Batch Comparativa — visitante', 'Batch Comparativa — registrado'],
+    testNames: ['Visitante: 3x pregunta → TSV', 'Registrado: 3x pregunta → TSV'],
+    skipLogic: 'test.skip si no hay respuesta o credenciales',
+    deps: ['Genera resultados-batch-YYYY-MM-DD.tsv'],
+    rec: 'mover',
+    notas: 'Herramienta de análisis, no CI gate. Genera TSV para comparar calidad respuestas.',
+  },
+
+  // OTROS
+  {
+    file: 'smoke.spec.ts',
+    cat: 'infra', catLabel: 'Widget / Infra',
+    app: 'appEventos + API health',
+    tests: 2,
+    objetivo: 'Gate: app carga sin errores, API health OK. Bloquea todos los demás si falla.',
+    describes: ['Smoke — la app carga'],
+    testNames: ['SM01: raíz / responde sin error', 'SM02: API health OK'],
+    skipLogic: 'bail:1 si falla',
+    deps: ['app-test'],
+    rec: 'mantener',
+    notas: 'Gate de todos los demás tests. Siempre debe correr primero.',
+  },
+  {
+    file: 'chat-mensajes-2usuarios.spec.ts',
+    cat: 'chat', catLabel: 'Chat IA / Copilot',
+    app: 'chat-test (multiusuario)',
+    tests: 24,
+    objetivo: '10 flujos entre U1 (organizador) y U2 (proveedor): tareas, notificaciones cruzadas, WA, aislamiento datos',
+    describes: ['1. Login simultáneo', '2. U1 asigna tarea a U2', '3. U2 recibe notificación', '4. Canal servicios', '5. Notificaciones cruzadas', '6. Canal WhatsApp', '7. Chat cruzado', '8. Aislamiento datos', '9. Canal servicio ID real', '10. Flujo completo'],
+    testNames: ['Login U1 y U2', 'U1 asigna tarea via IA', 'U2 ve notificación', 'Canal servicio activo', 'Aislamiento U1 no ve datos U2'],
+    skipLogic: 'test.skip si !hasBoth (U1+U2)',
+    deps: ['TEST_USER_EMAIL', 'TEST_USER2_EMAIL', 'evento compartido'],
+    rec: '',
+    notas: 'Requiere 2 usuarios con evento compartido. Más complejo de mantener.',
+  },
+  {
+    file: 'usuario-secundario-vivetuboda.spec.ts',
+    cat: 'infra', catLabel: 'Widget / Infra',
+    app: 'app-test + chat-test (vivetuboda whitelabel)',
+    tests: 12,
+    objetivo: 'Usuario 2 en developer vivetuboda: módulos, branding, aislamiento datos vs usuario 1',
+    describes: ['Usuario 2 — registro y primer login', 'Usuario 2 — módulos bodasdehoy', 'Developer vivetuboda', 'Aislamiento datos', 'Comparación U1 vs U2'],
+    testNames: ['U2 login', 'U2 accede módulos', 'vivetuboda branding diferente', 'U1 no ve datos U2'],
+    skipLogic: 'test.skip si !isAppTest',
+    deps: ['TEST_USER2_EMAIL', 'vivetuboda activo'],
+    rec: '',
+    notas: '',
+  },
+];
+
+// Eliminar duplicado de auth-flow-multiapp en infra (aparece 2 veces)
+const SEEN = new Set();
+const SPECS_UNIQUE = SPECS.filter(s => {
+  const key = s.file;
+  if (SEEN.has(key)) return false;
+  SEEN.add(key);
+  return true;
+});
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+
+const STORAGE_KEY = 'e2e_inventory_v1';
+let currentIndex = 0;
+let currentFilter = 'all';
+
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; }
+}
+function saveState(state) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+
+const BADGE_CLASS = { auth: 'badge-auth', sec: 'badge-sec', crud: 'badge-crud', chat: 'badge-app', ui: 'badge-ui', billing: 'badge-billing', guest: 'badge-infra', notif: 'badge-infra', infra: 'badge-infra', diag: 'badge-diag' };
+
+function filteredSpecs() {
+  const state = loadState();
+  if (currentFilter === 'all') return SPECS_UNIQUE;
+  if (currentFilter === 'pending') return SPECS_UNIQUE.filter(s => !state[s.file]?.decision);
+  if (currentFilter === 'decided') return SPECS_UNIQUE.filter(s => !!state[s.file]?.decision);
+  return SPECS_UNIQUE;
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  currentIndex = 0;
+  renderSidebar();
+  renderCard();
+}
+
+function renderSidebar() {
+  const state = loadState();
+  const specs = filteredSpecs();
+  const list = document.getElementById('sidebarList');
+
+  // Group by category
+  const groups = {};
+  specs.forEach((s, i) => {
+    const g = s.catLabel;
+    if (!groups[g]) groups[g] = [];
+    groups[g].push({ spec: s, idx: i });
+  });
+
+  let html = '';
+  for (const [group, items] of Object.entries(groups)) {
+    html += `<div class="sidebar-group"><div class="sidebar-group-title">${group}</div>`;
+    items.forEach(({ spec, idx }) => {
+      const d = state[spec.file] || {};
+      const decided = !!d.decision;
+      html += `<div class="sidebar-item ${idx === currentIndex ? 'active' : ''}" data-idx="${idx}" data-decision="${d.decision||''}" onclick="goTo(${idx})">
+        <div class="item-status ${decided ? 'decided' : ''}"></div>
+        <span class="item-name">${spec.file.replace('.spec.ts','')}</span>
+        <span class="item-count">${spec.tests}t</span>
+      </div>`;
+    });
+    html += '</div>';
+  }
+  list.innerHTML = html;
+
+  // Progress
+  const total = SPECS_UNIQUE.length;
+  const done = SPECS_UNIQUE.filter(s => !!state[s.file]?.decision).length;
+  document.getElementById('progressFill').style.width = `${(done/total*100).toFixed(0)}%`;
+  document.getElementById('progressText').textContent = `${done} de ${total} revisados`;
+}
+
+function renderCard() {
+  const specs = filteredSpecs();
+  if (specs.length === 0) {
+    document.getElementById('cardContainer').innerHTML = '<div style="padding:40px;text-align:center;color:#475569">No hay specs en este filtro</div>';
+    return;
+  }
+  if (currentIndex >= specs.length) currentIndex = 0;
+  const spec = specs[currentIndex];
+  const state = loadState();
+  const d = state[spec.file] || {};
+
+  document.getElementById('mainTitle').textContent = spec.file;
+  document.getElementById('navCounter').textContent = `${currentIndex + 1} / ${specs.length}`;
+  document.getElementById('prevBtn').disabled = currentIndex === 0;
+  document.getElementById('nextBtn').disabled = currentIndex === specs.length - 1;
+
+  const testListHtml = spec.testNames.map(t => `<li>${t}</li>`).join('');
+  const describesHtml = spec.describes.map(d => `<span class="tag tag-info">${d}</span>`).join(' ');
+  const depsHtml = spec.deps.map(d => `<span class="tag tag-warn">${d}</span>`).join(' ');
+  const skipClass = spec.skipLogic.includes('smoke') ? 'tag-ok' : spec.skipLogic.includes('Sin skip') ? 'tag-err' : 'tag-warn';
+
+  document.getElementById('cardContainer').innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-badge ${BADGE_CLASS[spec.cat]||'badge-app'}">${spec.catLabel}</div>
+        </div>
+        <div class="card-title-section">
+          <div class="card-filename">${spec.file}</div>
+          <div class="card-subtitle">${spec.tests} tests · ${spec.app}</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="info-block" style="grid-column:1/-1">
+          <div class="info-label">Objetivo</div>
+          <div class="info-value">${spec.objetivo}</div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Describes / Batches</div>
+          <div class="info-value">${describesHtml}</div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Tests individuales</div>
+          <ul class="test-list">${testListHtml}</ul>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Dependencias</div>
+          <div class="info-value">${depsHtml}</div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Skip logic</div>
+          <div class="info-value"><span class="tag ${skipClass}">${spec.skipLogic}</span></div>
+        </div>
+        ${spec.notas ? `<div class="info-block" style="grid-column:1/-1">
+          <div class="info-label">Notas previas</div>
+          <div class="info-value">${spec.notas}</div>
+        </div>` : ''}
+      </div>
+    </div>`;
+
+  // Restore decision
+  document.querySelectorAll('input[name="decision"]').forEach(r => r.checked = false);
+  if (d.decision) {
+    const radio = document.getElementById(`d-${d.decision}`);
+    if (radio) radio.checked = true;
+  }
+  document.getElementById('commentInput').value = d.comment || '';
+}
+
+function goTo(idx) {
+  currentIndex = idx;
+  renderSidebar();
+  renderCard();
+  document.querySelector('.main').scrollTo(0, 0);
+}
+
+function navigate(dir) {
+  const specs = filteredSpecs();
+  currentIndex = Math.max(0, Math.min(specs.length - 1, currentIndex + dir));
+  renderSidebar();
+  renderCard();
+  document.querySelector('.main').scrollTo(0, 0);
+}
+
+let saveTimer;
+function saveDecision() {
+  const specs = filteredSpecs();
+  const spec = specs[currentIndex];
+  if (!spec) return;
+  const state = loadState();
+  if (!state[spec.file]) state[spec.file] = {};
+  const checked = document.querySelector('input[name="decision"]:checked');
+  state[spec.file].decision = checked ? checked.value : '';
+  saveState(state);
+  showSaved();
+  renderSidebar();
+}
+
+function saveComment() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    const specs = filteredSpecs();
+    const spec = specs[currentIndex];
+    if (!spec) return;
+    const state = loadState();
+    if (!state[spec.file]) state[spec.file] = {};
+    state[spec.file].comment = document.getElementById('commentInput').value;
+    saveState(state);
+    showSaved();
+  }, 600);
+}
+
+function showSaved() {
+  const el = document.getElementById('saveIndicator');
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1500);
+}
+
+// ─── EXPORT ───────────────────────────────────────────────────────────────────
+
+function openExport() {
+  const state = loadState();
+  const result = SPECS_UNIQUE.map(s => ({
+    file: s.file,
+    cat: s.catLabel,
+    app: s.app,
+    tests: s.tests,
+    objetivo: s.objetivo,
+    decision: state[s.file]?.decision || 'pendiente',
+    comentario: state[s.file]?.comment || '',
+  }));
+  document.getElementById('exportContent').textContent = JSON.stringify(result, null, 2);
+  document.getElementById('exportModal').classList.add('open');
+}
+
+function closeExport() {
+  document.getElementById('exportModal').classList.remove('open');
+}
+
+function copyExport() {
+  const text = document.getElementById('exportContent').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = '✓ Copiado';
+    setTimeout(() => btn.textContent = 'Copiar al portapapeles', 2000);
+  });
+}
+
+// ─── KEYBOARD ─────────────────────────────────────────────────────────────────
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); navigate(1); }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); navigate(-1); }
+  if (e.key === '1') document.getElementById('d-mantener').click();
+  if (e.key === '2') document.getElementById('d-consolidar').click();
+  if (e.key === '3') document.getElementById('d-eliminar').click();
+  if (e.key === '4') document.getElementById('d-mover').click();
+  if (e.key === '5') document.getElementById('d-diagnostico').click();
+  if (e.key === '6') document.getElementById('d-revisar').click();
+});
+
+// Cargar datos pre-cargados (my recs)
+function loadPreRecs() {
+  const state = loadState();
+  SPECS_UNIQUE.forEach(s => {
+    if (s.rec && !state[s.file]) {
+      state[s.file] = { decision: s.rec, comment: s.notas || '' };
+    }
+  });
+  saveState(state);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+
+loadPreRecs();
+renderSidebar();
+renderCard();
+</script>
+</body>
+</html>

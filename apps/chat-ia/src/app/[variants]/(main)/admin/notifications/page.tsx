@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-import { api2Client } from '@/services/api2/client';
+import { mcpClient } from '@/services/mcpApi/client';
 
 const GET_WHITELABEL_NOTIFICATIONS = `
   query GetWhitelabelNotifications {
@@ -69,7 +69,7 @@ export default function NotificationSettingsPage() {
   const [development, setDevelopment] = useState<string>('');
 
   useEffect(() => {
-    api2Client
+    mcpClient
       .query<{ getWhitelabels: any }>(GET_WHITELABEL_NOTIFICATIONS)
       .then((data) => {
         const wl = data.getWhitelabels?.whitelabels?.[0];
@@ -93,7 +93,7 @@ export default function NotificationSettingsPage() {
     setError(null);
     setSaved(false);
     try {
-      const data = await api2Client.query<{ updateWhitelabel: any }>(UPDATE_NOTIFICATION_SCHEDULE, {
+      const data = await mcpClient.query<{ updateWhitelabel: any }>(UPDATE_NOTIFICATION_SCHEDULE, {
         development,
         input: {
           notifications: {

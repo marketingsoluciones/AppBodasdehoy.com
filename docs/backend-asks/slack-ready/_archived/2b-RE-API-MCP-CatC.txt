@@ -1,0 +1,113 @@
+DE: COORD-AppEventos
+PARA: API-MCP
+DRI: api_mcp_oncall
+ASUNTO: RE: Cat C resuelta + 2 ops NO necesarias + P0 confirmado
+
+
+Recibido el resumen. Excelentes noticias:
+
+  P0 MongoDB → 0 errores en 72h. Confirmamos live: /health responde 200 estable
+  (5/5 en 5 calls con pausa 2s). De nuestro lado no vemos más MongoNotConnected.
+
+  Cat C 12/13 ya en prod → confirmamos del lado del front que MCP_ADAPTERS
+  tiene 81 ops totales, incluyendo las 10 que nos pasáis como Cat C verificadas
+  (pagos boda, directorio, plan space, itinerario lectura, duplicateItinerario).
+  Las ejecutamos via fetchApiEventos que ya enruta a api-mcp canonical.
+
+
+══════════════════════════════════════════════
+🟢 2 ops Cat C que NO necesitamos
+══════════════════════════════════════════════
+
+generatePdf y getGeoInfo NO requieren implementación en api-mcp. El front
+las tiene resueltas con endpoints locales Next.js desde antes:
+
+  generatePdf → apps/appEventos/pages/api/services/pdfGenerator.ts
+                (genera PDF server-side con Puppeteer local, no consulta a
+                ningún backend GraphQL)
+
+  getGeoInfo  → apps/appEventos/pages/api/geo.ts
+                Comentario explícito: "Reemplaza la query getGeoInfo del
+                backend legacy (api.bodasdehoy.com, cerrado) que ya no se usa"
+                (lee headers IP + GeoIP local)
+
+→ No invirtáis tiempo en implementar estas dos en api-mcp.
+
+
+══════════════════════════════════════════════
+🟢 updateTasksOrder — bajo riesgo
+══════════════════════════════════════════════
+
+0 call-sites en el front actualmente. Cuando tengáis la ETA mañana, integramos
+contra el endpoint pero no bloquea apagar apiapp. Mientras llega, podemos
+diseñar la UX del drag & drop de tareas que la usará.
+
+
+══════════════════════════════════════════════
+🎯 SMOKE E2E para certificar apagar apiapp
+══════════════════════════════════════════════
+
+Plan COORD para certificar:
+
+  1. Smoke autenticado con JWT real contra las 10 Cat C verificadas:
+
+     for op in nuevoPago editPago borraPago getAllBusinesses getAllProducts \
+               getPlanSpaceSelect getPsTemplate getItinerario \
+               duplicateItinerario deletepayment; do
+       curl -X POST https://api-mcp.eventosorganizador.com/graphql \
+         -H "Authorization: Bearer $JWT" -H "X-Development: bodasdehoy" \
+         -d "{\"query\": \"...\"}"
+     done
+
+     Esperar 10/10 OK sin errores GRAPHQL_VALIDATION o MongoNotConnected.
+
+  2. Playwright E2E batería normal (no toca apiapp en ninguna ruta).
+
+  3. Tras esos 2 pasos verdes y updateTasksOrder en prod → apagar droplet
+     apiapp.bodasdehoy.com.
+
+
+══════════════════════════════════════════════
+📅 CRONOGRAMA
+══════════════════════════════════════════════
+
+  HOY (jueves)   COORD ejecuta smoke autenticado de las 10 Cat C
+                 BACKEND mejora healthcheck con ping real
+  MAÑANA         BACKEND publica updateTasksOrder
+                 COORD verifica E2E + integra updateTasksOrder en front
+  VIERNES        Apagar droplet apiapp.bodasdehoy.com
+
+
+══════════════════════════════════════════════
+📋 OPS "POR VERIFICAR" — call-sites concretos
+══════════════════════════════════════════════
+
+Pasamos los call-sites de las que SÍ usa el front (las no listadas o no
+tienen call-site, o ya se reemplazaron en sprint previos):
+
+  getInvoices            HistorialFacturacion.tsx — solo Stripe boda, no SaaS
+  getCustomer            InformacionFacturacion.tsx — solo Stripe boda
+  updateCustomer         InformacionFacturacion.tsx (mutación billing addr)
+  getEmailTemplate       components/Invitaciones/EmailTemplate*.tsx (~3 sitios)
+  getPreviewsEmailTemplates  components/Invitaciones/PreviewsList.tsx
+  getVariableEmailTemplate   components/Invitaciones/VariableSelect.tsx
+  getGalerySvgs          components/Invitaciones/GallerySvgs.tsx
+  whatsappGetAllSessions  pages/api/whatsapp/sessions.ts (proxy local)
+  createWhatsappTemplate  pages/api/whatsapp/messages/template.ts
+  updateCompartition     components/Utils/Compartir/UpdateCompartition.tsx
+  deleteCompartition     components/Utils/Compartir/RemoveCompartition.tsx
+  getLinkInvitation      components/Utils/Compartir/InviteLink.tsx
+  enviaInvitacion        components/Utils/Compartir/SendInvitation.tsx
+  getEmailValid          components/Forms/Login/Forms/FormRegister.tsx
+                         (este migrado en Sprint cliente → fetchApiEventos)
+  editPresupuesto        components/Presupuesto/EditPresupuestoModal.tsx
+  duplicatePresupuesto   components/Presupuesto/DuplicatePresupuesto.tsx
+  nuevoItemGasto         components/Presupuesto/AddItemGasto.tsx
+  editItemGasto          components/Presupuesto/EditItemGasto.tsx
+  borraItemsGastos       components/Presupuesto/BorrarItems.tsx
+
+Confirmadnos cuáles ya existen con otro nombre canonical para añadir el
+mapping en MCP_ADAPTERS del front.
+
+
+DRI: coord_appeventos — ejecutando smoke E2E hoy.

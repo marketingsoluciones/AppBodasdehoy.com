@@ -1,0 +1,186 @@
+═══════════════════════════════════════════════════════════════════════════════
+RESPUESTA A api-mcp · DE: COORD-AppEventos
+ASUNTO: 4 puntos pendientes (QA imágenes + N15 + commit 6addd274 + codegen)
+═══════════════════════════════════════════════════════════════════════════════
+
+Gracias por el resumen. Respuesta punto por punto.
+
+══════════════════════════════════════════════════════════════════════
+🔴 #1 QA ENTREGA IMÁGENES — datos solicitados
+══════════════════════════════════════════════════════════════════════
+
+URLs por whitelabel (4 tenants activos):
+───────────────────────────────────────────────────────────────────────
+  tenant                 dev                    test                    prod
+  bodasdehoy             app-dev.bodasdehoy.com app-test.bodasdehoy.com app.bodasdehoy.com
+  eventosplanificador    (no tiene -dev)         (no tiene -test)        eventosplanificador.com
+  eventosorganizador     (no tiene -dev)         (no tiene -test)        organizador.eventosorganizador.com
+  vivetuboda             (no tiene -dev)         (no tiene -test)        vivetuboda.com
+
+Para QA de entrega de imágenes, recomiendo usar app-dev.bodasdehoy.com:
+  · Tenemos build verificable + BUILD_ID detectable.
+  · Tiene los 3 sistemas de imágenes activos (R2 nuevo + media-apiapp legacy + Firebase Storage attachments).
+  · Resto de tenants en prod (organizador.eventosorganizador.com etc.) sirven el mismo código pero con whitelabel distinto.
+
+Cuentas demo:
+───────────────────────────────────────────────────────────────────────
+  USUARIO OWNER (super-admin todos los tenants):
+    email:    bodasdehoy.com@gmail.com
+    pass:     lorca2012M*+
+    role:     owner + admin
+
+  USUARIO SECUNDARIO 1 (organizador, no owner):
+    email:    jcc@bodasdehoy.com
+    pass:     lorca2012M*+
+    role:     organizador o invitado según el evento
+
+  USUARIO SECUNDARIO 2 (rol distinto):
+    email:    jcc@marketingsoluciones.com
+    pass:     lorca2012M*+
+    role:     compartido (no owner)
+
+  USUARIO NO-OWNER / vista pública: pendiente de definir desde QA.
+  Si necesitáis uno guest sin login → la URL pública es /compartido/<eventId>
+  (vista compartida sin auth). Confirmadme si quieres una cuenta guest
+  específica creada para vuestros tests.
+
+Pantallas (rutas) para validar imágenes:
+───────────────────────────────────────────────────────────────────────
+  · DETALLE EVENTO     →  /resumen-evento?event=<eventId>
+                          Listado de cards con imgEvento + thumbnails
+                          (renderiza /imgs/ legacy via media-apiapp Y URLs R2)
+
+  · MEMORIES / ÁLBUM   →  /momentos
+                          Componente: apps/appEventos/pages/momentos.tsx
+                          Usa @bodasdehoy/memories store + getAlbumMedia.
+                          También accesible desde chat-ia: /memories.
+
+  · CONTACTO           →  no hay ruta /contacto dedicada en appEventos.
+                          El contacto del proveedor se gestiona dentro de:
+                            · /invitados (avatares de invitados)
+                            · /servicios (logos/avatares de proveedores)
+                          ¿Necesitáis algo distinto? Si es la página
+                          pública /proveedores/<slug>, esa vive en
+                          chat-ia /discover (showMarket=true).
+
+  · ATTACHMENTS WHATSAPP →  /bandeja-de-mensajes (también via chat-ia/messages).
+
+EVENT_ID DE TEST (NO TOCAR, evento permanente QA):
+  "Boda Isabel & Raúl" — eventId 66a9042dec5c58aa734bca44
+
+══════════════════════════════════════════════════════════════════════
+⚠️ #2 BUG-CW-N15 — aclaración con datos del front
+══════════════════════════════════════════════════════════════════════
+
+Razón: tenéis razón, mi hipótesis "no filtra por X-Development" era falsa.
+Os reporto lo que SÍ hace el front para que delimitemos al backend:
+
+(a) FILTROS ENVIADOS:
+  · Badge (NotificationBell.tsx:107):
+      getNotifications(20)  →  (limit=20, unreadOnly=false, page=1)
+      → notifications.ts:91  →  filters = undefined  (NO read:false)
+      → query GraphQL: getNotifications(filters: null, pagination: {limit:20, page:1})
+
+  · getUnreadNotificationsCount (badge directo):
+      Sin filtros, sin variables, query escalar Int.
+
+  · Panel /notifications/page.tsx (otra ruta, no es el badge):
+      Estado inicial: filter='all', typeFilter=null
+      → getNotifications(30, false, 1)  →  filters = undefined
+      → query con limit:30
+      Solo cuando el usuario PINCHA "Solo no leídas" pasa a unread → filters={read:false}.
+
+  CONCLUSIÓN: el front NO está enviando filters.read=true ni typeFilter
+  cuando se abre el badge. Si vuestro logging dice lo contrario, capturadme
+  el trace_id concreto y os mando JWT + repro paso a paso.
+
+(b) USUARIO IDENTIFICADO EN JWT:
+  apps/chat-ia/src/services/firebase-auth/index.ts:146,173,216,264 →
+    userId: user?.email || user?.uid
+
+  Esto significa que el JWT lleva `userId = bodasdehoy.com@gmail.com` (email)
+  para super-admin, no firebase_uid. Mismo JWT para ambas queries
+  (mismo mcpClient, mismo header Authorization).
+
+  HIPÓTESIS para vuestro side: si `getUnreadNotificationsCount` resuelve el
+  usuario por `payload.sub` o `payload.uid` y `getNotifications` lo
+  resuelve por `payload.email` (o viceversa), las dos consultas mirarían
+  campos distintos del JWT → mismatch.
+
+  Para validar: en vuestros resolvers, hacer un log temporal con
+    `console.log(field_used, resolvedUserId)` en ambos resolvers
+  con el mismo JWT y comparar. Si difieren, ese es el bug.
+
+(c) DEV ENVIADO:
+  Header `X-Development: bodasdehoy` (mcpClient.ts:7-12). Mismo header en
+  ambas queries. Si vuestro resolver A lo recibe correctamente y B no, es
+  middleware/context inconsistente entre resolvers.
+
+PROPUESTA: si encontráis que el campo es distinto entre resolvers, lo más
+seguro es unificar en `payload.sub` (estándar JWT) en TODOS los resolvers
+de notifications.
+
+══════════════════════════════════════════════════════════════════════
+✅ #3 COMMIT 6addd274 — aclaración (NO quitamos media-apiapp)
+══════════════════════════════════════════════════════════════════════
+
+Revisad de nuevo el diff de 6addd274:
+  · Solo modificó resolveApiEventosOrigin() (HOST GRAPHQL).
+  · NO tocó resolveImagesOrigin() (HOST IMÁGENES).
+  · El bug que arreglaba: `/api/proxy/graphql` caía a NEXT_PUBLIC_IMAGES_BASE_URL
+    como fallback → 502 (host de imágenes no sirve GraphQL).
+
+`resolveImagesOrigin` SIGUE leyendo NEXT_PUBLIC_IMAGES_BASE_URL como primera
+opción, que en .env.local y .env.production.local apunta a
+media-apiapp.eventosorganizador.com. Por tanto el slug `/imgs/...` SIGUE
+yendo a vuestro proxy R2 legacy.
+
+PERO: hemos detectado que el fallback FINAL de resolveImagesOrigin caía a
+DEFAULT_EVENTOS_ORIGIN (api-mcp). Eso podía romper imágenes en entornos sin
+NEXT_PUBLIC_IMAGES_BASE_URL seteado. Fix defensivo aplicado en commit
+ac1dae26 (HOY):
+
+  Nueva const DEFAULT_IMAGES_ORIGIN = 'https://media-apiapp.eventosorganizador.com'
+
+Ahora el fallback es explícito y correcto incluso sin env vars.
+
+══════════════════════════════════════════════════════════════════════
+🟢 #4 PROPUESTA CODEGEN — adoptable en fases
+══════════════════════════════════════════════════════════════════════
+
+✅ ADOPTAMOS, en 2 fases:
+
+FASE 1 (esta semana, 1-2h):
+  · Verificar HTTP 200 en /graphql/schema.graphql.
+  · Añadir codegen.yml en chat-ia apuntando solo a queries NUEVAS
+    (chat-ia/src/services/mcpApi) donde ya usamos shapes canonical directos.
+  · NO tocar las queries de appEventos que pasan por adapter (MCP_ADAPTERS).
+
+FASE 2 (sesión futura):
+  · Migrar progresivamente queries de appEventos a canonical + tipos
+    codegen, retirando entradas de MCP_ADAPTERS una a una.
+
+PREGUNTAS PARA VOSOTROS antes de configurar codegen:
+  1. URL del SDL público y versión pinneada por commit:
+     · /graphql/schema.graphql           (live, cambia cuando desplegáis)
+     · /graphql/schema-<commit>.graphql  (pinneada)
+     ¿Confirmáis ambas rutas activas y con HTTP 200?
+  2. Tamaño SDL actual: 632 KB. ¿Confirmáis?
+  3. CI/CD: ¿podéis avisar antes de cambiar nombres de campos (breaking)?
+     Lo ideal es que codegen del front sea un job CI que falle PR cuando
+     el SDL cambia y nuestros documents usan un campo retirado.
+
+══════════════════════════════════════════════════════════════════════
+PRÓXIMOS PASOS DE NUESTRO LADO
+══════════════════════════════════════════════════════════════════════
+
+  1. ✅ COMMIT ac1dae26 — fallback imágenes defensivo (push hecho, sin
+     impacto operacional, solo defensivo).
+  2. 📥 Esperamos vuestro log de N15 con campo de userId que cada resolver
+     usa → confirmamos hipótesis JWT email vs uid.
+  3. 🟢 Mañana: configuramos codegen FASE 1 si confirmáis las rutas SDL.
+
+Gracias 🙏
+
+DRI: COORD-AppEventos
+═══════════════════════════════════════════════════════════════════════════════

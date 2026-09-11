@@ -1,0 +1,150 @@
+═══════════════════════════════════════════════════════════════════════════════
+ANÁLISIS HANDOFF DISEÑO — MÓDULO BANDEJA MENSAJES
+ZIP: 55f6daa1-Bodas_de_Hoy_mensajes.zip (3 archivos · 43 KB)
+Fecha: 2026-06-24
+═══════════════════════════════════════════════════════════════════════════════
+
+CONCLUSIÓN PRINCIPAL: NO es un simple "recambio de UI".
+Cubrimos aprox. 25-30% del handoff. Falta el 70-75%, distribuido entre
+gaps de UI, gaps de modelo de datos, y endpoints backend que NO existen
+todavía en api-ia / api-mcp.
+
+═══════════════════════════════════════════════════════════════════════════════
+MAPA COMPLETO — 17 FEATURES + MODELO DE DATOS
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ CUBIERTO (4):
+  · Filtros canal (all/wa/sms/ig/web/tg) — ChannelSidebar.tsx FILTER_TABS
+  · Lista conversaciones + badges canal (avatar bottom-left) — ConversationItem.tsx + ChannelBadge.tsx
+  · Composer tabs Responder/Nota interna (toggle) — MessageInput.tsx ComposerMode
+  · Asignación a USUARIO (a equipo NO) — ConversationMeta.ts + ConversationHeader.tsx
+
+⚠️ PARCIAL (4):
+  · 3 pestañas Conversaciones/Bandeja/Historial → existe layout 2-panel + UnifiedFeedView,
+    NO las 3 tabs horizontales del handoff.
+  · Notas internas (Note[]) → existen en localStorage, sin sync backend, sin mentions[].
+  · Picker asignación → solo USER, falta TEAM.
+  · Móvil → tiene responsive md:hidden pero NO la barra inferior de 3 tabs.
+
+❌ FALTA TOTAL (12 features + modelo + 6 endpoints backend):
+
+  UI:
+  · Scope selector dropdown (Atención al cliente + lista eventos).
+  · Filtros RSVP (Todos / Pendientes ⏳ / Confirmados ✓ / Rechazados).
+  · Badges RSVP en avatar (bottom-right).
+  · Sistema niveles IA (manual/copilot/autopilot) + picker.
+  · Tarjeta borrador IA (Aprobar/Editar/Descartar).
+  · Sidebar derecho 240px contextual con:
+      - RSVP buttons editables (3 botones, optimista).
+      - Picker asignación user/team.
+      - Historial contacto expandible (timeline mensajes pasados).
+  · Composer adaptativo por canal (WA 24h expirada → banner + plantillas HSM).
+  · Hilos tipo Slack en mensajes (team→team interno + toggle "enviar al cliente").
+  · Llamadas (transcripción CallSegment[] + duración + agendar).
+  · Móvil: barra navegación inferior 3 tabs.
+
+  MODELO DE DATOS (Conversation actual NO tiene):
+  · guestStatus (RSVP) — confirmed/pending/declined/null
+  · assignedToType — 'user' | 'team' | null
+  · isArchived — boolean
+  · internalNotes — Note[]
+  · Note interface — id, text, authorId, createdAt, mentions[]
+  · Message extendido — from('team'/'contact'/'ia'/'system'), iaGenerated, iaDraftApproved,
+    callTranscription, callDuration
+  · CallSegment interface — speaker, text, startMs
+
+  BACKEND (api-ia + api-mcp NO tienen):
+  · Scope/evento selector — GET /events del usuario, GET /conversations?eventId=X
+  · RSVP CRUD — PATCH /conversation/{id}/rsvp (confirmar/pendiente/rechazar)
+  · Team assignment — PATCH /conversation/{id}/assignedTo con type=team
+  · Internal notes — POST/GET/DELETE /conversation/{id}/notes
+  · IA drafts — POST /conversation/{id}/ia-draft, PATCH /ia-draft/{id}/approve
+  · Message extended fields persistencia (iaGenerated, callTranscription, etc.)
+
+═══════════════════════════════════════════════════════════════════════════════
+3 GAPS MÁS GRANDES (por impacto)
+═══════════════════════════════════════════════════════════════════════════════
+
+🔴 GAP 1 — Scope selector + filtros RSVP
+   Es el centro del handoff. Toda la navegación pivota sobre seleccionar
+   "Soporte" vs "Evento X" y filtrar por estado RSVP.
+   Requiere:
+     · Refactor data model: vincular conversación → evento.
+     · Endpoint backend GET /events del usuario.
+     · UI dropdown scope (8-12 h).
+     · Campo `guestStatus` en Conversation + RSVP CRUD (4-6 h backend).
+     · Pills filtros + lógica filtrado cliente (3-4 h).
+   Total estimado: 15-22 horas de trabajo (~3 jornadas).
+
+🔴 GAP 2 — Sidebar derecho contextual (RSVP + asign + notas + historial)
+   Requiere:
+     · Extender layout chat-ia a 3 columnas (rail + left panel + main + right sidebar).
+     · 4 sub-componentes: RSVPButtons, AssignPicker (con teams), NotesPanel, ContactTimeline.
+     · 3 endpoints CRUD nuevos (RSVP, notes, teams).
+     · Sync localStorage→backend para notas existentes.
+   Total estimado: 12-18 horas (~2-3 jornadas).
+
+🔴 GAP 3 — Sistema IA copilot/autopilot + draft cards
+   Es funcionalidad nueva, no recambio. Requiere modelo conceptual completo:
+     · Definir cómo IA genera borradores (¿en cliente? ¿api-ia? ¿streaming?).
+     · Definir lógica autopilot (¿envía sin aprobar tras X tiempo?).
+     · Componente DraftCard (Aprobar/Editar/Descartar).
+     · Endpoints backend para draft + approval.
+     · Storage de drafts pendientes.
+   Total estimado: 20-30 horas (~3-4 jornadas).
+
+═══════════════════════════════════════════════════════════════════════════════
+PROPUESTA DE FASEADO
+═══════════════════════════════════════════════════════════════════════════════
+
+ANTES DE NADA: confirmar con el user que entiende el alcance real.
+Si el supuesto era "solo recambio", la realidad es 3-5 SEMANAS de trabajo
+distribuido entre front + backend.
+
+FASE A — Acordar contratos con api-ia (1 día):
+  · Definir y consensuar shape de los 6 endpoints nuevos.
+  · Acordar quién implementa (api-ia probablemente).
+  · Documentar GraphQL/REST exacto.
+
+FASE B — Front sin backend (lo que se puede empezar YA):
+  · 3 tabs horizontales (Conversaciones/Bandeja/Historial) — front puro, 4-6 h.
+  · Pills filtros RSVP visualmente (con mock data) — 3-4 h.
+  · Scope selector UI dropdown (con mock data) — 4-6 h.
+  · Layout 3-columnas — 4-6 h.
+  · Migrar notas internas de localStorage a state global — 3 h.
+  Total: 18-25 horas (~2-3 jornadas) sin tocar backend.
+
+FASE C — Front con backend (cuando api-ia entregue endpoints):
+  · Conectar scope selector a GET /events real.
+  · Conectar filtros RSVP a campo `guestStatus` real.
+  · Conectar sidebar RSVP/assign/notes a endpoints CRUD.
+  · Composer ventana 24h (necesita campo en Conversation con lastInboundAt
+    — eso SÍ existe ya).
+  Total: 12-18 horas.
+
+FASE D — Funcionalidades nuevas (NO recambio):
+  · Sistema IA copilot/autopilot — 20-30 h (alcance grande).
+  · Hilos Slack-style — 15-20 h (necesita modelo thread).
+  · Llamadas + transcripción — 10-15 h (necesita integración Twilio/Vonage).
+  · Móvil bottom tab bar — 4-6 h.
+
+═══════════════════════════════════════════════════════════════════════════════
+DECISIONES PENDIENTES PARA EL USER
+═══════════════════════════════════════════════════════════════════════════════
+
+1. ¿Confirmas que el alcance real es 3-5 semanas y no "recambio"?
+
+2. ¿Priorizamos la FASE B (front-only) AHORA mientras se acuerda
+   contratos con api-ia para FASE C? Esto da progreso visible rápido.
+
+3. ¿FASE D (IA copilot, hilos Slack, llamadas) se hace en este sprint
+   o se aparta para sprints futuros?
+
+4. Si el user esperaba solo "recambio visual", hay que decidir qué SE
+   PUEDE recambiar SIN tocar backend ni añadir features nuevas. Eso
+   reduce alcance a ~5-8 horas de pintado puro de UI sobre lo que ya
+   existe (las 4 features ✅).
+
+═══════════════════════════════════════════════════════════════════════════════
+FIN
+═══════════════════════════════════════════════════════════════════════════════

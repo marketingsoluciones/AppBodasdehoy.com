@@ -1,1 +1,81 @@
 @import "tailwindcss";
+
+/* ════════════════════════════════════════════════════════════════════
+   Design tokens — FASE B v2.0 Bandeja (Diseño 25-jun-2026)
+   Mapea tokens.json del handoff a CSS variables Tailwind v4.
+   Uso: className="bg-brand text-ia-teal border-rsvp-conf rounded-card"
+   ════════════════════════════════════════════════════════════════════ */
+@theme {
+  /* ── Colores brand / evento / IA ────────────────────────────────── */
+  --color-brand: #7C3AED;
+  --color-brand-light: #F4F1FE;
+  --color-brand-border: #C4B5FD;
+  --color-event-rosa: #E11D48;
+  --color-event-light: #FFF6F7;
+  --color-event-border: #FBD0D7;
+  --color-ia-teal: #0D9488;
+  --color-ia-teal-light: #F0FDFA;
+  --color-ia-teal-border: #5EEAD4;
+  --color-ia-teal-soft: #CCFBF1;
+  --color-ia-cyan: #0891B2;
+  --color-ia-cyan-soft: #CFFAFE;
+
+  /* ── RSVP (Diseño P12) ──────────────────────────────────────────── */
+  --color-rsvp-conf: #22C55E;
+  --color-rsvp-conf-bg: #DCFCE7;
+  --color-rsvp-pend: #F59E0B;
+  --color-rsvp-pend-bg: #FEF3C7;
+  --color-rsvp-decl: #F43F5E;
+  --color-rsvp-decl-bg: #FFE4E6;
+
+  /* ── Note pinned ────────────────────────────────────────────────── */
+  --color-note-pin: #F59E0B;
+  --color-note-pin-bg: #FFFBEB;
+  --color-note-pin-border: #FDE68A;
+
+  /* ── Canales ────────────────────────────────────────────────────── */
+  --color-ch-wa: #25D366;
+  --color-ch-sms: #334155;
+  --color-ch-ig: #E1306C;
+  --color-ch-web: #7C3AED;
+  --color-ch-tg: #0088CC;
+  --color-ch-fb: #1877F2;
+
+  /* ── Superficies ────────────────────────────────────────────────── */
+  --color-surface-rail: #F6F4FB;
+  --color-surface-panel: #ffffff;
+  --color-surface-chat: #FAFAFC;
+  --color-border-light: #EFEFF3;
+  --color-border-panel: #EDEBF3;
+
+  /* ── Texto ──────────────────────────────────────────────────────── */
+  --color-text-primary: #2A2536;
+  --color-text-body: #1F2430;
+  --color-text-muted: #8B8698;
+  --color-text-faint: #A8A3B5;
+  --color-badge-urgent: #FF3B5C;
+
+  /* ── Border radius ──────────────────────────────────────────────── */
+  --radius-chat-outer: 4px;
+  --radius-avatar-team: 7px;
+  --radius-btn-secondary: 8px;
+  --radius-pill-filter: 9px;
+  --radius-scope-pill: 10px;
+  --radius-card: 13px;
+
+  /* ── Box shadow ─────────────────────────────────────────────────── */
+  --shadow-panel: 0 12px 50px rgba(30, 25, 60, 0.13);
+  --shadow-dropdown: 0 12px 30px rgba(30, 25, 60, 0.15);
+  --shadow-ia-draft: 0 4px 16px rgba(13, 148, 136, 0.12);
+
+  /* ── Tipografía Hanken Grotesk ──────────────────────────────────── */
+  --font-sans: 'Hanken Grotesk', system-ui, sans-serif;
+
+  /* Tamaños (alias mantienen los default Tailwind además) */
+  --text-badge: 9px;
+  --text-sub: 10px;
+  --text-chip: 11px;
+  --text-btn: 12px;
+  --text-body: 13px;
+  --text-head: 14px;
+}

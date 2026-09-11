@@ -3,12 +3,14 @@
 import { Upload } from 'antd';
 import { createStyles } from 'antd-style';
 import { ImportIcon } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import React, { ReactNode, memo, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Center } from 'react-layout-kit';
 
-import DataStyleModal from '@/components/DataStyleModal';
 import { importService } from '@/services/import';
+
+const DataStyleModal = dynamic(() => import('@/components/DataStyleModal'), { ssr: false });
 import { ImportResult, ImportResults } from '@/services/import/_deprecated';
 import { useChatStore } from '@/store/chat';
 import { useSessionStore } from '@/store/session';

@@ -14,7 +14,7 @@
  *   con BASE_URL=https://app-test.bodasdehoy.com
  */
 import { test, expect } from '@playwright/test';
-import { clearSession, waitForAppReady, loginAndSelectEvent, waitForCopilotReady } from './helpers';
+import { clearSession, waitForAppReady, loginAndSelectEvent, waitForCopilotReady, navigateToModule } from './helpers';
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const isAppTest =
@@ -50,7 +50,7 @@ test.describe('Copilot — consulta invitados con evento seleccionado', () => {
       return;
     }
 
-    await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await navigateToModule(page, 'invitados');
     await waitForAppReady(page, 15_000);
 
     const toggle = page.getByTestId('copilot-toggle');

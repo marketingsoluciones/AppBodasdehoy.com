@@ -1,0 +1,129 @@
+═══════════════════════════════════════════════════════════════════
+ PARA: api-mcp · DE: front appeventos
+ FECHA: 18-jun-2026
+ ASUNTO: Confirmar contrato `imgEvento` — schema actual contradice el doc
+═══════════════════════════════════════════════════════════════════
+
+
+GRACIAS POR EL DOC. Antes de tocar nada del front necesitamos confirmar
+porque hay 1 contradicción crítica y 3 puntos que aclarar.
+
+───────────────────────────────────────────────────────────────────
+ BLOQUEADOR — `imgEvento` ¿String o Objeto?
+───────────────────────────────────────────────────────────────────
+
+El doc dice: "imgEvento se sigue consumiendo como OBJETO {i320,i640,i800,i1024,origin}".
+
+Verificado en vivo HOY contra api-mcp.eventosorganizador.com:
+
+  Query: { getAllUserRelatedEventsByEmail(...){ eventos{ imgEvento{i320 ...} } } }
+  Respuesta: GRAPHQL_VALIDATION_FAILED
+            Field "imgEvento" must not have a selection since type "String" has no subfields.
+
+  Query: { eventos{ imgEvento } }
+  Respuesta: OK con imgEvento:null (es String)
+
+Nuestro adapter actual (commit 8bdf18ab) compensa esto pidiendo
+`imgEventoSizes{i1024 i800 i640 i320}` + `imgEventoUrl` y renombrando
+en mapResponse a un objeto-like { i1024, i800, ... } para compat con
+consumers existentes.
+
+PREGUNTAS:
+1) ¿La nueva resolución a OBJETO está desplegada o en staging?
+2) ¿Cuándo cambiará el schema y debemos cortar el adapter?
+3) Mientras tanto, ¿`imgEventoSizes` + `imgEventoUrl` siguen siendo
+   los campos canónicos para nuestro adapter?
+
+───────────────────────────────────────────────────────────────────
+ ACLARACIÓN 1 — Subdominio sirve imágenes
+───────────────────────────────────────────────────────────────────
+
+Verificado HOY:
+  · https://media.eventosorganizador.com/        → CF UP (404 root, normal)
+  · https://media-apiapp.eventosorganizador.com/ → CF 502 (origin caído)
+
+Nuestro `.env.local` actual:
+  NEXT_PUBLIC_IMAGES_BASE_URL="https://media-apiapp.eventosorganizador.com"
+
+Esto se introdujo el 05-jun (commit 0aa17e97 "retirar apiapp del front")
+basándonos en una memoria que decía que era el proxy estable.
+
+El doc nuevo menciona `media.eventosorganizador.com` (sin -apiapp).
+
+PREGUNTAS:
+1) ¿`media.eventosorganizador.com` es el host oficial AHORA?
+2) ¿`media-apiapp.eventosorganizador.com` está deprecado?
+3) Si vamos a `imgEventoUrl` (URL absoluta del resolver), el `.env`
+   ya no importa porque api-mcp devuelve la URL completa. ¿Confirmáis?
+
+───────────────────────────────────────────────────────────────────
+ ACLARACIÓN 2 — Lectura ya funciona sin tocar nada (claim TL;DR #1)
+───────────────────────────────────────────────────────────────────
+
+Hoy nuestro front tiene 5 patrones distintos para pintar imgEvento:
+
+  PATRÓN A (5 sitios): createURL(slug) → media-apiapp.* + slug
+  PATRÓN B (6 sitios): /api/proxy-image?url=api-mcp.* + slug
+  PATRÓN C (2 sitios): resolveApiBodasOrigin() + slug → api-mcp + slug
+  PATRÓN D (1 sitio):  apiAppImgBase + slug → api-mcp + slug
+  PATRÓN E (5 sitios): imgEventoUrl directo (URL absoluta)
+
+PATRÓN A apunta a host CAÍDO (502).
+PATRONES B/C/D asumen que api-mcp sirve /uploads/<slug> directo.
+
+PREGUNTAS:
+1) ¿api-mcp sirve realmente `/uploads/<slug>` para los slugs de la BD vieja?
+   (probaremos con un slug real en cuanto tengamos uno).
+2) Si el contrato es "imgEventoUrl es la única fuente correcta",
+   ¿debemos refactorizar los 14 sitios a usar SOLO imgEventoUrl?
+
+───────────────────────────────────────────────────────────────────
+ ACLARACIÓN 3 — 106 eventos con imagen rota
+───────────────────────────────────────────────────────────────────
+
+Aceptamos hacer el `onError → defaultImagenes[tipo]`. Trabajo del front,
+~14 sitios donde pintamos imgEvento.
+
+PREGUNTAS:
+1) ¿Tenéis lista de los 106 _id de eventos afectados? Útil para QA
+   (validar que el placeholder cae bien).
+2) ¿Mismo onError sirve para imgInvitacion y attachments Firebase?
+
+───────────────────────────────────────────────────────────────────
+ PLAN DEL FRONT (sujeto a vuestra confirmación)
+───────────────────────────────────────────────────────────────────
+
+FASE 1 — sin riesgo, sin tocar schema:
+  · Añadir onError a los 14 sitios donde pintamos imgEvento → defaultImagenes[tipo]
+  · Unificar los 5 patrones a UNO: PATRÓN E (imgEventoUrl directo).
+    api-mcp ya resuelve el host, el front confía.
+  · Tras esto, el `.env` IMAGES_BASE_URL deja de tener efecto en producción
+    (solo PATRÓN A lo usa hoy, y desaparece).
+
+FASE 2 — cuando confirméis schema OBJETO desplegado:
+  · Quitar el adapter mcp para imgEvento/imgEventoSizes.
+  · Consumir imgEvento{i320 i640 i800 i1024 origin} directo (1 query
+    más limpia, menos bytes en el wire).
+
+FASE 3 — cuando dejemos las apps viejas (D4):
+  · Apuntar singleUpload a api-mcp/graphql (ya cableado en
+    ModuloSubida.tsx hace meses, solo confirmar).
+
+FASE 4 — vídeos / archivos grandes (D5):
+  · Integrar presign + multipart + confirm para subidas >10MB.
+  · Esto no urge, lo hacemos cuando aparezca el caso.
+
+───────────────────────────────────────────────────────────────────
+ LO QUE NECESITAMOS DE VOSOTROS PARA ARRANCAR FASE 1
+───────────────────────────────────────────────────────────────────
+
+(a) Confirmar 1 evento REAL con `imgEvento != null` que podamos consultar
+    para validar imgEventoUrl + caída onError. eventId + email del owner.
+
+(b) Confirmar que `imgEventoUrl` está activo HOY en todos los developments
+    (no solo bodasdehoy).
+
+(c) Confirmar `media.eventosorganizador.com` como host vivo (no -apiapp).
+
+DRI: front appeventos (responde aquí)
+═══════════════════════════════════════════════════════════════════

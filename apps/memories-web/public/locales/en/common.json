@@ -18,7 +18,24 @@
     "badgePhotos": "{{count}} new photos",
     "badgeTime": "2 minutes ago",
     "badgeNoApp": "Nothing to install",
-    "badgeQR": "Just scan the QR"
+    "badgeQR": "Just scan the QR",
+    "album": {
+      "title": "Laura & Marcos's Wedding",
+      "liveLabel": "Live now",
+      "liveCount": "247 photos",
+      "uploadNoticeTitle": "Maria uploaded 4 photos",
+      "uploadNoticeTime": "a few seconds ago",
+      "qrTitle": "Scan the QR",
+      "qrSubtitle": "to upload your photos",
+      "momentCouple": "Ceremony",
+      "momentToast": "Toast",
+      "momentJustMarried": "Just married",
+      "momentCake": "Cake",
+      "momentDetails": "Details",
+      "momentParty": "Party",
+      "fresh": "just uploaded",
+      "progressLabel": "Uploading 4 new photos…"
+    }
   },
   "stats": {
     "events": "5,000+",

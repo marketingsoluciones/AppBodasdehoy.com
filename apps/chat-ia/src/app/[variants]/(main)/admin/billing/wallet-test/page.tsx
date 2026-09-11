@@ -6,8 +6,8 @@ import Link from 'next/link';
 import { useCallback, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
-import { walletService } from '@/services/api2/wallet';
-import { getMySubscription, getSubscriptionPlans } from '@/services/api2/subscriptions';
+import { walletService } from '@/services/mcpApi/wallet';
+import { getMySubscription, getSubscriptionPlans } from '@/services/mcpApi/subscriptions';
 
 const { Title, Text } = Typography;
 

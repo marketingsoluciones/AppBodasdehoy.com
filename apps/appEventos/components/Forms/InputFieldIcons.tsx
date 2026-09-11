@@ -16,7 +16,9 @@ export const InputField: FC<propsField> = ({
   label,
   ...props
 }) => {
-  //@ts-ignore
+  // @ts-expect-error — useField espera `name: string` obligatorio pero
+  // propsField lo tiene como opcional para compatibilidad con consumers
+  // viejos. Si el name viene undefined, useField cae al name="" (no rompe).
   const [field, meta, { setValue }] = useField({ ...props });
   const className: string = `bg-color-base text-sm focus:border focus:border-primary border-transparent focus:ring-transparent pr-3 py-2 rounded-lg w-full focus:outline-none placeholder-gray-400 text-gray-700 transition ${icon ? "pl-12" : "pl-3"
     }`;

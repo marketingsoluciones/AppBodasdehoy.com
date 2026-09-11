@@ -1,4 +1,3 @@
-import { useEditor } from '@lobehub/editor/react';
 import { ReactNode, memo, useRef } from 'react';
 
 import StoreUpdater, { StoreUpdaterProps } from './StoreUpdater';
@@ -21,14 +20,12 @@ export const ChatInputProvider = memo<ChatInputProviderProps>(
     onMarkdownContentChange,
     mentionItems,
   }) => {
-    const editor = useEditor();
     const slashMenuRef = useRef<HTMLDivElement>(null);
 
     return (
       <Provider
         createStore={() =>
           createStore({
-            editor,
             leftActions,
             mentionItems,
             mobile,

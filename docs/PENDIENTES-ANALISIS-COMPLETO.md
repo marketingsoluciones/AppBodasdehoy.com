@@ -67,15 +67,15 @@
 | # | Panel | Depende de |
 |---|--------|------------|
 | 1 | **Catálogo de planes** | API2: getAvailablePlans (o equivalente). |
-| 2 | **Cambiar de plan** (upgrade/downgrade) | API2 + Stripe: flujo y URL/session checkout. |
-| 3 | **Recargar servicio específico** (solo IA, solo SMS) | API2: SKUs por servicio si aplica. |
-| 4 | **Multinivel: saldo niveles inferiores** | API2: jerarquía padre/hijos, saldo subcuentas. |
-| 5 | **Saldo revendedor** | API2: modelo y endpoints. |
-| 6 | **Dar crédito (admin)** | API2: wallet_credit / wallet_adjust. |
-| 7 | **Balance de keys en UI** | api-ia/API2: endpoint tipo /monitor/stats. |
+| 2 | **Cambiar de plan** (upgrade/downgrade) | MCP + Stripe: flujo y URL/session checkout. |
+| 3 | **Recargar servicio específico** (solo IA, solo SMS) | MCP: SKUs por servicio si aplica. |
+| 4 | **Multinivel: saldo niveles inferiores** | MCP: jerarquía padre/hijos, saldo subcuentas. |
+| 5 | **Saldo revendedor** | MCP: modelo y endpoints. |
+| 6 | **Dar crédito (admin)** | MCP: wallet_credit / wallet_adjust. |
+| 7 | **Balance de keys en UI** | IA/MCP: endpoint tipo /monitor/stats. |
 | 8 | **Notificaciones keys deshabilitadas** | Decisión producto + api-ia (Slack/Email/Dashboard). |
 
-Textos listos para pedir a API2/api-ia: **docs/PANELES-PENDIENTES-PETICIONES-API2-API-IA.md** y **docs/SLACK-MENSAJE-PANELES-PENDIENTES.md**.
+Textos listos para pedir a MCP/IA: **docs/PANELES-PENDIENTES-PETICIONES-MCP-IA.md** y **docs/SLACK-MENSAJE-PANELES-PENDIENTES.md**.
 
 ---
 
@@ -92,7 +92,7 @@ Textos listos para pedir a API2/api-ia: **docs/PANELES-PENDIENTES-PETICIONES-API
 ### 3.2 Preguntas concretas enviadas
 
 1. ¿Por qué con stream=true no hay proveedor y con stream=false sí?
-2. ¿api-ia necesita JWT Firebase para inyectar contexto del evento? ¿O API2 envía ese contexto?
+2. ¿IA necesita JWT Firebase para inyectar contexto del evento? ¿O MCP envía ese contexto?
 3. GET /webapi/models/anthropic devuelve []. ¿Es esperado?
 4. POST /api/ai/improve 500. ¿Está desplegado el worker de Celery?
 
@@ -101,7 +101,7 @@ Textos listos para pedir a API2/api-ia: **docs/PANELES-PENDIENTES-PETICIONES-API
 - 58/80 → 503 (AUTH_ERROR o PROVIDER_ERROR).
 - 22/80 → HTTP 200 pero respuestas ilógicas (sin datos usuario).
 - 0/80 → Respuesta correcta con datos reales del usuario.
-- API2 (batería GraphQL): todo OK.
+- MCP (batería GraphQL): todo OK.
 
 ---
 
@@ -112,7 +112,7 @@ Textos listos para pedir a API2/api-ia: **docs/PANELES-PENDIENTES-PETICIONES-API
 | **docs/PENDIENTES-SLACK-RESUMEN-ACTUAL.md** | Resumen corto Slack + estado peticiones api-ia. |
 | **docs/PENDIENTES-Y-SLACK-ESTADO.md** | Estado pruebas, protocolo autónomo, bloqueos. |
 | **docs/NUESTRA-PARTE-PENDIENTE-E-IMPLEMENTADO.md** | Paneles faltantes, implementado, mejoras a pedir. |
-| **docs/PANELES-PENDIENTES-PETICIONES-API2-API-IA.md** | Qué pedir a API2/api-ia por panel; texto para Slack. |
+| **docs/PANELES-PENDIENTES-PETICIONES-MCP-IA.md** | Qué pedir a MCP/IA por panel; texto para Slack. |
 | **docs/LISTADO-PENDIENTES.md** | Listado histórico con tachados de lo hecho. |
 | **TAREAS-PENDIENTES-SLACK.md** | Decisiones Sistema Keys, preguntas api-ia. |
 | **scripts/slack-recordatorio-pendientes-completo.txt** | Mensaje enviado a #copilot-api-ia con recordatorio completo. |
@@ -122,7 +122,7 @@ Textos listos para pedir a API2/api-ia: **docs/PANELES-PENDIENTES-PETICIONES-API
 ## 5. Próximos pasos sugeridos
 
 1. **Cuando api-ia responda** a los 5 bugs y 4 preguntas del 21 Feb → re-probar chat/auto (stream true/false, 20 preguntas) y confirmar en Slack.
-2. **Cuando API2 exponga** payment_url/upgrade_url en 402 → enlazar en UI (ya preparado en proxy).
+2. **Cuando MCP exponga** payment_url/upgrade_url en 402 → enlazar en UI (ya preparado en proxy).
 3. **Cuando api-ia avise** cola de campañas operativa → re-probar flujo campañas.
 4. **Nosotros:** Responder en #copilot-api-ia sobre notificaciones keys (Slack/Email/Dashboard) cuando se decida.
-5. **Paneles:** Priorizar con producto; pedir a API2/api-ia según **PANELES-PENDIENTES-PETICIONES-API2-API-IA.md** cuando toque.
+5. **Paneles:** Priorizar con producto; pedir a MCP/IA según **PANELES-PENDIENTES-PETICIONES-MCP-IA.md** cuando toque.

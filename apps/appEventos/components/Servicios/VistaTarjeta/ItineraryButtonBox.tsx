@@ -35,8 +35,8 @@ export const ItineraryButtonBox: FC<Props> = ({ optionsItineraryButtonBox, task,
             case 'flujo':
               // Lógica personalizada para flujo de trabajo
               isActive = false;
-              activeColorClass = 'text-purple-500 bg-purple-500/10';
-              hoverColorClass = 'hover:text-purple-600 hover:bg-purple-100';
+              activeColorClass = 'text-secondary bg-secondary/10';
+              hoverColorClass = 'hover:text-secondary hover:bg-secondary/10';
               break;
             case 'share':
               // Estado para compartir
@@ -48,7 +48,7 @@ export const ItineraryButtonBox: FC<Props> = ({ optionsItineraryButtonBox, task,
               // Delete con hover rojo destructivo
               isActive = false;
               activeColorClass = '';
-              hoverColorClass = 'hover:text-[#ef4444] hover:bg-[#ef4444]/10';
+              hoverColorClass = 'hover:text-red-500 hover:bg-red-500/10';
               break;
             default:
               hoverColorClass = 'hover:text-gray-600 hover:bg-gray-100';
@@ -76,11 +76,11 @@ export const ItineraryButtonBox: FC<Props> = ({ optionsItineraryButtonBox, task,
                 {isActive &&
                   <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
                     <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${option.value === 'status' ? 'bg-primary' :
-                      option.value === 'flujo' ? 'bg-purple-500' :
+                      option.value === 'flujo' ? 'bg-secondary' :
                         'bg-blue-500'
                       } opacity-75`}></span>
                     <span className={`relative inline-flex rounded-full h-2 w-2 ${option.value === 'status' ? 'bg-primary' :
-                      option.value === 'flujo' ? 'bg-purple-500' :
+                      option.value === 'flujo' ? 'bg-secondary' :
                         'bg-blue-500'
                       }`}></span>
                   </span>

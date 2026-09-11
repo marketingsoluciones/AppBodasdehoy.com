@@ -1,0 +1,124 @@
+DE: COORD-AppEventos
+PARA: API-IA
+DRI: api_ia_oncall
+CANAL: #coordinacion · workspace eventosorganizador.slack.com
+HILO: 1778170638.897419 (hilo único AppBodas)
+ASUNTO: Thread desbloqueado por api-mcp (ETA 1-2h) — preparad proxy REST
+
+
+api-mcp acaba de confirmar los 4 ajustes al contrato Thread
+(Continuation/Standalone, Deprecated, SendMessageInput, enums tipados).
+Push a origin/dev en ~1-2h.
+
+→ Podéis empezar a preparar los 6 endpoints REST proxy YA.
+
+Cuando hagan push, vosotros añadís el proxy fino que ya hacéis
+para session/topic/message y queda Fase 4 cerrada.
+
+
+═══════════════════════════════════════════════════════════
+🔍 IMPORTANTE — convención naming de los enums
+═══════════════════════════════════════════════════════════
+
+El schema GraphQL de api-mcp queda en MAYÚSCULAS (convención GraphQL):
+
+    enum ThreadType   { CONTINUATION, STANDALONE }
+    enum ThreadStatus { ACTIVE, ARCHIVED, DEPRECATED }
+
+El front usa MINÚSCULAS (en cable y en código):
+
+    type 'continuation' | 'standalone'
+    status 'active' | 'archived' | 'deprecated'
+
+Aplicar el MISMO patrón que ya tenéis con `role` de message:
+
+    front ↔ api-ia     → MINÚSCULAS
+    api-ia ↔ api-mcp   → MAYÚSCULAS (api-ia uppercasea/lowercasea)
+
+Está documentado en memory/project_contrato_role_chat_persistencia.md
+y verificado SSH.
+
+→ En vuestro proxy REST de Thread:
+   - Al recibir POST /chat/topics/{topicId}/threads body { type: "continuation" }
+     → traducir a CONTINUATION antes de enviar a api-mcp
+   - Al devolver Thread.type del backend → lowercase antes de enviar al front
+   - Idem status
+   - Cualquier filtro/query por type también
+
+
+═══════════════════════════════════════════════════════════
+📋 ENDPOINTS REST A EXPONER (proxy fino a api-mcp)
+═══════════════════════════════════════════════════════════
+
+Como pedimos en el mensaje original (siguen igual, sin cambios):
+
+  GET    /chat/topics/{topic_id}/threads
+         → 200 [Thread]
+         Lista threads del topic, filtrado por userId del JWT.
+
+  POST   /chat/topics/{topic_id}/threads
+         body: { title?, type, sourceMessageId, parentThreadId? }
+         → 200 Thread
+
+  PATCH  /chat/threads/{thread_id}
+         body partial: { title?, type?, status?, parentThreadId? }
+         → 200 Thread
+
+  DELETE /chat/threads/{thread_id}?removeChildren=true|false
+         → 204
+
+  POST   /chat/topics/{topic_id}/threads/with-message
+         body: { title?, type, sourceMessageId, parentThreadId?,
+                 message: <mismo shape que sendMessage> }
+         → 200 { threadId, messageId }
+
+  DELETE /chat/topics/{topic_id}/threads
+         → 204
+         (cleanup al borrar topic)
+
+
+═══════════════════════════════════════════════════════════
+🚧 RESTO DE COSAS PENDIENTES A VUESTRA RESPUESTA
+═══════════════════════════════════════════════════════════
+
+[Mensaje 4 enviado hoy] 3 servicios CAPA 2 pendientes:
+
+  [A] aiProvider     → ¿opción (c) deprecar a userConfig.aiProviders[]?
+  [B] chatGroup      → ¿(a) deprecar order/role, (b) modelar, (c) userConfig?
+  [C] knowledgeBase  → ¿(a), (b) o (c)?
+
+Sin estas 3 decisiones no cerramos CAPA 2 entera. Si las respondéis
+con "c" en los 3, esta semana queda cerrada.
+
+[Pregunta colateral] getUserRegistrationDuration:
+
+  api-mcp confirmó que User.createdAt YA existe.
+  ¿Vosotros exponéis /api/auth/registration-duration o lo dejamos
+  en stub indefinido en el front?
+
+[SSO providers Firebase]
+
+  Confirmasteis "Firebase SDK en cliente, NO backend". Front ya
+  manejado. Sin acción vuestra.
+
+
+═══════════════════════════════════════════════════════════
+📅 ESTADO PROYECTO
+═══════════════════════════════════════════════════════════
+
+Servicios CAPA 2 PASO C ya CERRADOS del lado front (9 servicios):
+  ✅ image, global, user, file, rag, generation, plugin, tool
+  ✅ ragEval BORRADO
+
+Pendientes del front (4):
+  ⏳ thread          → integrar con vuestro proxy REST cuando esté
+  ⏳ aiProvider      → esperando decisión A/B/C
+  ⏳ chatGroup       → esperando decisión A/B/C
+  ⏳ knowledgeBase   → esperando decisión A/B/C
+
+Tras cerrar los 4 → CAPA 3 (borrar drizzle + pglite + @trpc/* del
+package.json) → estimación -25k módulos, build chat-ia 10min → 3-4min.
+
+
+DRI: coord_appeventos — atentos a vuestra señal cuando api-mcp publique
+Thread y a vuestra decisión A/B/C.

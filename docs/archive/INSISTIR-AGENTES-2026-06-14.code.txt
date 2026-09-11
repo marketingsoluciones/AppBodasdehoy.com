@@ -1,0 +1,91 @@
+═══════════════════════════════════════════════════════════════════
+ INSISTIR A CADA AGENTE — 14/06/2026 18:39 (verificado en vivo curl prod)
+ Front: cerrado y desplegado (build Sy4hUsFPpjHZ1ASc-9t-Q). Los 3 bloqueadores son de BACKEND.
+═══════════════════════════════════════════════════════════════════
+
+
+───────────────────────────────────────────────────────────────────
+🔴 PARA: API-IA (api_ia_oncall)  ·  2 cosas, la #1 es CRÍTICA
+───────────────────────────────────────────────────────────────────
+
+ASUNTO: Copiloto en BUCLE de herramientas + completar development en mensajeria
+
+#1 (CRITICO) COPILOTO NO DEVUELVE DATOS — entra en bucle de tools:
+  Al preguntar al copiloto "que eventos tengo / cuantos invitados tiene la boda X", el agente
+  muestra "Analizando... / Pensando profundamente..." varios pasos y SIEMPRE acaba en:
+  "Lo siento, la consulta requirio demasiados pasos. Por favor reformula tu pregunta."
+  → NO devuelve datos reales del evento. El acceso a datos via tools/MCP entra en bucle y agota
+    el limite de pasos. Es el CASO DE USO PRINCIPAL del copiloto y esta roto.
+  → Ese mensaje NO existe en el codigo del front → lo genera VUESTRO orquestador de agentes.
+  PETICION: revisar por que el tool-calling entra en bucle (no converge) al consultar eventos/
+  invitados. ¿El agente no recibe bien el resultado de la tool y reintenta? ¿limite de pasos muy bajo?
+
+#2 DEVELOPMENT en /api/messages/* (completar lo de get-user-config):
+  Verificado 18:39 con Origin chat-dev SIN ?development=:
+    - POST /api/messages/send  -> 400 development_required
+    - GET  /api/messages/conversations/{id}/messages -> 0 msgs (con ?dev= -> mensajes)
+  get-user-config YA resuelve el dev del Origin (gracias). Falta aplicar el MISMO middleware a
+  /api/messages/*. Mientras no, el front lleva una muleta ?development= que queremos eliminar
+  (objetivo: codigo perfecto, cero muletas).
+  PETICION: extender la resolucion de development (JWT/Origin) a /api/messages/*.
+
+DRI: api_ia_oncall
+
+
+───────────────────────────────────────────────────────────────────
+🔴 PARA: API-MCP (api_mcp_oncall)  ·  wallet rechaza al usuario
+───────────────────────────────────────────────────────────────────
+
+ASUNTO: wallet_getBalance devuelve UNAUTHORIZED — el usuario no ve su saldo/credito
+
+SINTOMA (usuario): la app dice "sin saldo" a un usuario que SI tiene credito (puede consumir en
+negativo). Causa verificada en vivo 18:39:
+  query{ wallet_getBalance{ success credit_limit total_balance errors{message} } }
+  (api-mcp/graphql, Authorization Bearer <jwt usuario>, Origin chat-dev)
+  -> { success:false, credit_limit:null, total_balance:0, errors:[{message:"UNAUTHORIZED"}] }
+
+api-mcp NO reconoce el JWT del usuario para el wallet -> devuelve todo 0/null. (El front ya esta
+blindado para no bloquear con saldo desconocido, pero el SALDO REAL no se ve hasta que vuestro
+wallet acepte el token.)
+
+PETICION: wallet_getBalance debe resolver la auth del usuario logueado (MISMO JWT que
+get-user-config, que SI funciona) y devolver balance + credit_limit + total_balance reales.
+¿Por que wallet_getBalance da UNAUTHORIZED si get-user-config con el mismo token resuelve?
+
+(Menor, sin prisa) conversationId fragmentado: +34622440213 aparece en 3 conversaciones con IDs
+distintos -> duplicado. Y dhikg: auditar quien lo usa ANTES de apagar (no es neutro).
+
+DRI: api_mcp_oncall
+
+
+───────────────────────────────────────────────────────────────────
+🟢 PARA: QA / AUDITOR  ·  re-probar el build nuevo
+───────────────────────────────────────────────────────────────────
+
+ASUNTO: Re-probar build Sy4hUsFPpjHZ1ASc-9t-Q (hard-refresh)
+
+Cerrados en este build (re-verificar con Cmd+Shift+R):
+  - Bandeja de mensajeria: ya NO crashea (era conv.name undefined en +34622440213, confirmado por ti)
+  - Lista lateral de conversaciones/temas: ya NO se queda en esqueleto infinito
+  - "Saldo insuficiente" falso teniendo credito: ya no bloquea
+  - Eventos: firma getEventosByUsuario corregida
+
+Siguen ABIERTOS (BACKEND, no front):
+  - Copiloto "demasiados pasos" (bucle de tools) -> api-ia
+  - Saldo/credito real (wallet UNAUTHORIZED) -> api-mcp
+
+DRI: QA
+
+
+═══════════════════════════════════════════════════════════════════
+ RESUMEN — quien bloquea que (verificado 18:39)
+═══════════════════════════════════════════════════════════════════
+  Copiloto en bucle de tools (no da datos)   -> API-IA   -> CRITICO (caso de uso principal)
+  development en /api/messages/*             -> API-IA   -> bloquea retirar muletas del front
+  wallet UNAUTHORIZED (no ve saldo)          -> API-MCP  -> usuario no ve credito
+  conversationId fragmentado / dhikg         -> API-MCP  -> menores
+  re-probar build nuevo                      -> QA       -> validacion
+  habilitar app-dev en extension             -> OWNER    -> auditar SSO/realtime 2 usuarios
+
+  FRONT: cerrado y desplegado. CERO pendientes criticos. Los 3 bloqueadores son de backend.
+═══════════════════════════════════════════════════════════════════

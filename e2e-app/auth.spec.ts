@@ -1,34 +1,29 @@
 /**
  * auth.spec.ts
  *
- * Pruebas de autenticación y sesión para app-test y chat-test:
+ * Pruebas de autenticación y sesión para app-dev y chat-dev:
  *   - Login real → cookie sessionBodas existe
  *   - Sesión persiste tras reload
- *   - SSO: chat-test login → app-test reconoce sesión automáticamente
+ *   - SSO: chat-dev login → app-dev reconoce sesión automáticamente
  *   - U1 y U2 tienen sesiones aisladas (distintos valores de cookie)
  *   - Logout → cookie eliminada → redirige a /login
- *
- * Solo aplica cuando BASE_URL es app-test.bodasdehoy.com.
  */
 import { test, expect, Browser, BrowserContext } from '@playwright/test';
-import { clearSession, waitForAppReady } from './helpers';
-import { getChatUrl } from './fixtures';
+import { clearSession, waitForAppReady, navigateToModule } from './helpers';
+import { TEST_URLS } from './fixtures';
 
-const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
+const BASE_URL = process.env.BASE_URL || TEST_URLS.app;
 const isLocal = BASE_URL.includes('127.0.0.1') || BASE_URL.includes('localhost');
-const isAppTest =
+const isDev =
   isLocal ||
-  BASE_URL.includes('app-dev.bodasdehoy.com') ||
-  BASE_URL.includes('app-test.bodasdehoy.com') ||
-  BASE_URL.includes('app-dev.bodasdehoy.com') ||
-  BASE_URL.includes('app.bodasdehoy.com');
+  BASE_URL.includes('app-dev.bodasdehoy.com');
 
-const CHAT_URL = getChatUrl(BASE_URL);
+const CHAT_URL = process.env.CHAT_URL || TEST_URLS.chat;
 
 const U1_EMAIL = process.env.TEST_USER_EMAIL || 'bodasdehoy.com@gmail.com';
-const U1_PASSWORD = process.env.TEST_USER_PASSWORD || '';
-const U2_EMAIL = process.env.TEST_USER2_EMAIL || 'test-usuario2@bodasdehoy.com';
-const U2_PASSWORD = process.env.TEST_USER2_PASSWORD || 'TestBodas2024!';
+const U1_PASSWORD = process.env.TEST_USER_PASSWORD || 'lorca2012M*+';
+const U2_EMAIL = process.env.TEST_USER2_EMAIL || 'jcc@marketingsoluciones.com';
+const U2_PASSWORD = process.env.TEST_USER2_PASSWORD || 'lorca2012M*+';
 
 const hasU1Creds = Boolean(U1_EMAIL && U1_PASSWORD);
 const hasU2Creds = Boolean(U2_EMAIL && U2_PASSWORD);
@@ -45,8 +40,8 @@ async function loginInChat(page: any, email: string, password: string): Promise<
     await page.locator('input[type="password"]').first().fill(password);
     await page.locator('button[type="submit"]').first().click();
 
-    await page.waitForURL((url: URL) => url.pathname === '/chat', { timeout: 30_000 }).catch(() => {});
-    return page.url().includes('/chat');
+    await page.waitForURL((url: URL) => /\/chat(?:[/?#]|$)/.test(url.pathname), { timeout: 45_000 }).catch(() => {});
+    return /\/chat(?:[/?#]|$)/.test(new URL(page.url()).pathname);
   } catch {
     return false;
   }
@@ -118,6 +113,8 @@ async function loginInApp(page: any, email: string, password: string): Promise<b
     await page.goto(`${BASE_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 45_000 });
     await page.waitForTimeout(2000);
 
+    await waitForAppReady(page, 20_000);
+
     const ok = await fillLoginForm(page, email, password);
     if (!ok) return false;
 
@@ -136,12 +133,12 @@ test.describe('Auth — Login en app-test', () => {
   test.setTimeout(120_000);
 
   test.beforeEach(async ({ context, page }) => {
-    if (!isAppTest) return;
+    if (!isDev) return;
     await clearSession(context, page);
   });
 
   test('login U1 → cookie sessionBodas existe con valor', async ({ context, page }) => {
-    if (!isAppTest || !hasU1Creds) {
+    if (!isDev || !hasU1Creds) {
       test.skip();
       return;
     }
@@ -155,22 +152,21 @@ test.describe('Auth — Login en app-test', () => {
 
     const cookies = await context.cookies();
     const sessionCookie = cookies.find(
-      c => c.name === 'sessionBodas' || c.name === 'idTokenV0.1.0' || c.name.includes('session'),
+      c => c.name === 'sessionBodas' || c.name === 'idTokenV0.1.0',
     );
-    if (sessionCookie) {
-      expect(sessionCookie.value.length).toBeGreaterThan(10);
-      console.log(`✅ Cookie de sesión: ${sessionCookie.name}=${sessionCookie.value.slice(0, 20)}...`);
-    } else {
+    if (!sessionCookie) {
       console.log('Cookies encontradas:', cookies.map(c => c.name).join(', '));
-      // Verificar al menos que la app cargó sin error (SSO puede estar pendiente en dev)
-      const text = (await page.locator('body').textContent()) ?? '';
-      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
-      expect(text.length).toBeGreaterThan(50);
     }
+    expect(
+      sessionCookie,
+      'BUG_AUTH: cookie sessionBodas/idTokenV0.1.0 ausente tras login — sesión es guest, NO autenticada',
+    ).toBeTruthy();
+    expect(sessionCookie!.value.length).toBeGreaterThan(10);
+    console.log(`✅ Cookie de sesión: ${sessionCookie!.name}=${sessionCookie!.value.slice(0, 20)}...`);
   });
 
   test('sesión persiste tras reload de página', async ({ context, page }) => {
-    if (!isAppTest || !hasU1Creds) {
+    if (!isDev || !hasU1Creds) {
       test.skip();
       return;
     }
@@ -191,7 +187,7 @@ test.describe('Auth — Login en app-test', () => {
   });
 
   test('sin sesión → /login muestra formulario o botón iniciar sesión', async ({ page }) => {
-    if (!isAppTest) {
+    if (!isDev) {
       test.skip();
       return;
     }
@@ -216,7 +212,7 @@ test.describe('Auth — Login en app-test', () => {
   });
 
   test('logout → cookie eliminada y redirige a /login', async ({ context, page }) => {
-    if (!isAppTest || !hasU1Creds) {
+    if (!isDev || !hasU1Creds) {
       test.skip();
       return;
     }
@@ -232,7 +228,7 @@ test.describe('Auth — Login en app-test', () => {
     } else {
       // Logout manual: limpiar sesión
       await clearSession(context, page);
-      await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+      await navigateToModule(page, 'invitados');
       await page.waitForTimeout(3000);
     }
 
@@ -259,7 +255,7 @@ test.describe('Auth — SSO cross-domain', () => {
   test.setTimeout(150_000);
 
   test.beforeEach(async ({ context, page }) => {
-    if (!isAppTest) return;
+    if (!isDev) return;
     await clearSession(context, page);
   });
 
@@ -267,7 +263,7 @@ test.describe('Auth — SSO cross-domain', () => {
     context,
     page,
   }) => {
-    if (!isAppTest || !hasU1Creds) {
+    if (!isDev || !hasU1Creds) {
       test.skip();
       return;
     }
@@ -306,7 +302,7 @@ test.describe('Auth — SSO cross-domain', () => {
     context,
     page,
   }) => {
-    if (!isAppTest || !hasU1Creds) {
+    if (!isDev || !hasU1Creds) {
       test.skip();
       return;
     }
@@ -345,7 +341,7 @@ test.describe('Auth — Sesiones múltiples aisladas', () => {
   test.setTimeout(150_000);
 
   test('U1 y U2 tienen cookies de sesión con valores distintos', async ({ browser }) => {
-    if (!isAppTest || !hasU1Creds || !hasU2Creds) {
+    if (!isDev || !hasU1Creds || !hasU2Creds) {
       test.skip();
       return;
     }
@@ -376,7 +372,7 @@ test.describe('Auth — Sesiones múltiples aisladas', () => {
   });
 
   test('U1 logueado no ve datos de U2 al navegar a home', async ({ browser }) => {
-    if (!isAppTest || !hasU1Creds || !hasU2Creds) {
+    if (!isDev || !hasU1Creds || !hasU2Creds) {
       test.skip();
       return;
     }

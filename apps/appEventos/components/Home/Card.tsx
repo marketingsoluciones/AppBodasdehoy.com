@@ -1,0 +1,559 @@
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context/";
+import useHover from "../../hooks/useHover";
+import { useRouter, useSearchParams } from "next/navigation";
+import ClickAwayListener from "react-click-away-listener";
+import { fetchApiBodas, fetchApiEventos, queries, getApiErrorMessage } from "../../utils/Fetching";
+import { useToast } from '../../hooks/useToast'
+import { IoShareSocial } from "react-icons/io5";
+import { ModalAddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir"
+import { ModalConfirmEvento, ModalCompartirEvento } from "./EventCardModalsStudio"
+import { useTranslation } from "react-i18next";
+import { FaRegFolderOpen } from "react-icons/fa6";
+import { MdDelete } from "react-icons/md";
+import { BiSolidPencil } from "react-icons/bi";
+import ModalLeft from "../Utils/ModalLeft";
+import FormCrearEvento from "../Forms/FormCrearEvento";
+import { useAllowed } from "../../hooks/useAllowed"
+import { useDelayUnmount } from "../../utils/Funciones";
+import { useDateTime } from "../../hooks/useDateTime";
+
+export const defaultImagenes = {
+  boda: "/cards/boda.webp",
+  comunión: "/cards/comunion.webp",
+  cumpleaños: "/cards/cumpleanos.webp",
+  bautizo: "/cards/bautizo.webp",
+  babyshower: "/cards/baby.webp",
+  "despedida de soltero": "/cards/despedida.webp",
+  graduación: "/cards/graduacion.webp",
+  otro: "/cards/pexels-pixabay-50675.jpg"
+};
+
+// Color estable por usuario para los avatares pequeños de la tarjeta studio
+const avatarColorFor = (s: string) => {
+  const colors = ["#EF5B94", "#8e7cc3", "#c9a24b", "#5aa9e6", "#2FB37E", "#e07a5f", "#7b8794"];
+  let h = 0;
+  for (const c of String(s || "?")) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return colors[h % colors.length];
+};
+const isOnline = (u: any) => { const o = u?.onLine; return typeof o === "boolean" ? o : (o?.status !== false); };
+
+export const handleClickCard = async ({ t, final = true, data, user, setUser, config, setEvent, router }: any) => {
+  try {
+    // Establecer timeZone si no está definido
+    if (!data?.timeZone) {
+      data.timeZone = config?.timeZone
+    }
+    
+    // Actualizar evento seleccionado solo si tenemos user.uid
+    if (user?.uid && data?._id) {
+      try {
+        await fetchApiBodas({
+          query: queries.updateUser,
+          variables: {
+            uid: user.uid,
+            variable: "eventSelected",
+            valor: data._id
+          },
+          development: config?.development
+        })
+        
+        // Actualizar estado local del usuario
+        if (user) {
+          user.eventSelected = data._id
+          setUser(user)
+        }
+      } catch (updateError) {
+        console.error("[handleClickCard] ⚠️ Error actualizando evento seleccionado (continuando de todas formas):", updateError)
+        // Continuar aunque falle la actualización en BD
+        if (user) {
+          user.eventSelected = data._id
+          setUser(user)
+        }
+      }
+    } else {
+      console.warn("[handleClickCard] ⚠️ No se puede actualizar evento seleccionado:", {
+        hasUserId: !!user?.uid,
+        hasEventId: !!data?._id
+      })
+    }
+  } catch (error) {
+    console.error("[handleClickCard] ❌ Error general:", error);
+    if (final) {
+      // No retornar error aquí, mejor continuar e intentar abrir el evento
+    }
+  }
+
+  // Abrir el evento si final es true
+  if (final) {
+    try {
+      
+      // Establecer el evento en el contexto primero
+      setEvent(data);
+      
+      // Dar tiempo para que el contexto se actualice antes de navegar
+      // Esto es importante para que resumen-evento.tsx pueda verificar el evento
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      // Verificar permisos si existen
+      if (data?.permissions && Array.isArray(data.permissions)) {
+        const permissions = data.permissions.filter(elem => ["view", "edit"].includes(elem.value))
+        
+        if (permissions.length > 0) {
+          const f1 = permissions.findIndex(elem => elem.value === "resumen")
+          if (f1 > -1) {
+              router.push("/resumen-evento");
+            return
+          } else {
+            let p = permissions[0].title
+            if (p === "regalos") p = "lista-regalos"
+            if (p === "resumen") p = "resumen-evento"
+            router.push("/" + p);
+            return
+          }
+        } else {
+          console.warn("[handleClickCard] ⚠️ No tienes permisos válidos para este evento")
+          return t("No tienes permiso, contactar al organizador del evento")
+        }
+      } else {
+        // Sin permisos definidos, ir directo a resumen
+        router.push("/resumen-evento");
+      }
+    } catch (navigationError) {
+      console.error("[handleClickCard] ❌ Error navegando:", navigationError)
+      return t("Ha ocurrido un error al abrir el evento")
+    }
+  }
+};
+
+const Card = ({ data, grupoStatus, idx, onSelect, mobile }: any) => {
+  const { t } = useTranslation()
+  const [hoverRef, isHovered] = useHover();
+  const { user, setUser, config, actionModals, setActionModals } = AuthContextProvider()
+  const { eventsGroup, setEventsGroup } = EventsGroupContextProvider();
+  const { event, setEvent, idxGroupEvent, setIdxGroupEvent } = EventContextProvider();
+  const router = useRouter();
+  const [openModal, setOpenModal] = useState(false)
+  const [isAllowed, ht] = useAllowed()
+  const [isMounted, setIsMounted] = useState(false);
+  const shouldRenderChild = useDelayUnmount(isMounted, 500);
+  const { utcDateFormated } = useDateTime();
+  const [isNavigating, setIsNavigating] = useState(false); // Previene múltiples clics
+  const searchParams = useSearchParams();
+  const studio = searchParams?.get("studio") !== "legacy";
+  const [openMenu, setOpenMenu] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [mountedPortal, setMountedPortal] = useState(false);
+  useEffect(() => setMountedPortal(true), []);
+
+  const toast = useToast()
+
+  // Abrir el resumen del evento (misma lógica que la tarjeta clásica)
+  const abrirEvento = () => {
+    if (isNavigating) return;
+    const eventData = data[idx];
+    if (!eventData || !eventData._id) { toast("error", t("Error: Evento no válido")); return; }
+    setIsNavigating(true);
+    toast("success", t("Abriendo evento..."));
+    handleClickCard({ t, final: true, config, data: eventData, setEvent, user, setUser, router })
+      .then((resp) => { if (resp) { toast("warning", resp); setIsNavigating(false); } })
+      .catch((error) => {
+        toast("error", getApiErrorMessage(error) || t("Ha ocurrido un error"));
+        setIsNavigating(false);
+        try { setIsNavigating(true); setEvent(eventData); setTimeout(() => { router.push("/resumen-evento"); }, 100); } catch { setIsNavigating(false); }
+      });
+  };
+
+  // Compartir: abre el modal studio de compartir (solo dueño).
+  const compartirEvento = () => {
+    if (user?.displayName === "guest") return;
+    setOpenModal(true);
+  };
+
+  // Ejecuta el toggle archivar/desarchivar en backend (sin confirmación).
+  const doArchiveToggle = () => {
+    try {
+      const value = String(grupoStatus ?? "").toLowerCase() === "archivado" ? "pendiente" : "archivado"
+      // estatus es enum EventoStatus (PENDIENTE/ARCHIVADO uppercase) en api-mcp; el front usa
+      // lowercase ("archivado"/"pendiente"). Migrar rompería el enum + consistencia con apiapp.
+      const result = fetchApiEventos({
+        query: queries.eventUpdate,
+        variables: { idEvento: data[idx]?._id, input: { estatus: value } },
+        token: null
+      })
+      if (!result || (result as any).errors) {
+        throw new Error("Ha ocurrido un error")
+      }
+      setEventsGroup({ type: "EDIT_EVENT", payload: { _id: data[idx]?._id, estatus: value } })
+      if (idxGroupEvent?.idx == idx && value === "archivado") {
+        const valir = (data?.length - idx) > 1
+        setTimeout(() => {
+          setEvent(data[valir ? idx + 1 : idx - 1]);
+          setIdxGroupEvent({ ...idxGroupEvent, idx: valir ? idx : idx - 1, event_id: data[idx]?._id })
+        }, 50);
+      }
+      toast("success", `${value == "archivado" ? `El evento ${data[idx].tipo} de "${data[idx].nombre.toUpperCase()}" se ha archivado` : `El evento ${data[idx].tipo} de "${data[idx].nombre.toUpperCase()}" se ha desarchivado`}`)
+    } catch (error) {
+      toast("error", "Ha ocurrido un error al archivar el evento")
+    }
+  }
+
+  // Menú "Archivar/Desarchivar": al ARCHIVAR se confirma con el modal studio; desarchivar es directo (reversible).
+  const handleArchivarEvent = () => {
+    const willArchivar = String(grupoStatus ?? "").toLowerCase() !== "archivado"
+    if (willArchivar) { setArchiveOpen(true); return }
+    doArchiveToggle()
+  }
+
+  const handleRemoveEvent = (grupoStatus) => {
+    try {
+      const result = fetchApiBodas({
+        query: queries.eventDelete,
+        variables: { eventoID: data[idx]?._id }
+      })
+      if (!result || (result as any).errors) {
+        throw new Error("Ha ocurrido un error")
+      }
+      setEventsGroup({ type: "DELETE_EVENT", payload: data[idx]?._id })
+
+      const valir = (data?.length - idx) > 1
+      setTimeout(() => {
+        setEvent(data[valir ? idx + 1 : idx - 1]);
+        setIdxGroupEvent({ ...idxGroupEvent, idx: valir ? idx : idx - 1, event_id: data[idx]?._id })
+      }, 50);
+      toast("success", "Evento eliminado ")
+    } catch (error) {
+      toast("error", "Ha ocurrido un error al eliminar el evento")
+    }
+  }
+
+  useEffect(() => {
+    if (eventsGroup?.length === 1) {
+      handleClickCard({ t, final: false, config, data: data[idx], setEvent, user, setUser, router })
+        .then((resp) => {
+          if (resp) toast("warning", resp)
+        })
+        .catch((error) => {
+          console.error("Error en handleClickCard:", error)
+        })
+    }
+  }, [])
+
+  const handleEdit = () => {
+    setIsMounted(!isMounted);
+  };
+
+  if (studio) {
+    const ev = data[idx] || {};
+    const isOwner = ev?.usuario_id === user?.uid;
+    const compartido = ev?.usuario_id !== user?.uid;
+    const imgUrl = ev?.imgEvento?.i320
+      ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${ev.imgEvento.i320}`)}`
+      : (defaultImagenes[ev?.tipo?.toLowerCase()] || defaultImagenes['otro']);
+    // Estado real: Archivado (manual) → Realizado (fecha pasada) → Activo (fecha futura/actual)
+    const archivado = String(ev?.estatus ?? grupoStatus ?? '').toLowerCase().includes('archiv');
+    const _fs = String(ev?.fecha ?? '');
+    const _fms = (_fs && !_fs.includes('T') && !_fs.includes('-')) ? new Date(parseInt(_fs)).getTime() : new Date(_fs).getTime();
+    const pasado = !archivado && !Number.isNaN(_fms) && _fms < new Date().setHours(0, 0, 0, 0);
+    const estadoKey = archivado ? 'archivado' : pasado ? 'realizado' : 'activo';
+    const estadoLabel = archivado ? t('Archivado') : pasado ? t('Realizado') : t('Activo');
+    const seleccionado = ev?._id === user?.eventSelected;
+    const sharedArr = [...(ev?.detalles_compartidos_array ?? [])];
+    const avLabel = sharedArr.length > 0 ? `+${sharedArr.length}` : String(ev?.detalles_usuario_id?.displayName || ev?.usuario_nombre || ev?.nombre || "?").charAt(0).toUpperCase();
+
+    // Modales studio de la tarjeta (Borrar / Archivar) — reemplazan los confirm() nativos.
+    const confirmModal = confirmDelete ? (
+      <ModalConfirmEvento variant="borrar" nombre={ev?.nombre} onCancel={() => setConfirmDelete(false)} onConfirm={() => { setConfirmDelete(false); handleRemoveEvent(grupoStatus); }} />
+    ) : null;
+    const archiveModal = archiveOpen ? (
+      <ModalConfirmEvento variant="archivar" nombre={ev?.nombre} onCancel={() => setArchiveOpen(false)} onConfirm={() => { setArchiveOpen(false); doArchiveToggle(); }} />
+    ) : null;
+
+    if (mobile) {
+      return (
+        <>
+          <div className={`${!shouldRenderChild ? "hidden" : "fixed z-30"}`}>
+            {shouldRenderChild && <ModalLeft set={setIsMounted} state={isMounted} clickAwayListened={false} studio={studio}>
+              <FormCrearEvento set={setIsMounted} state={isMounted} EditEvent={true} eventData={ev} />
+            </ModalLeft>}
+          </div>
+          {confirmModal}
+          {archiveModal}
+          {openModal && <ModalCompartirEvento event={ev} onClose={() => setOpenModal(false)} />}
+          <div onClick={abrirEvento} style={{ position: "relative", borderRadius: 16, background: "#fff", border: seleccionado ? "1.5px solid #EF5B94" : "1px solid #f0f0f2", boxShadow: "0 4px 14px rgba(0,0,0,.05)", cursor: "pointer", fontFamily: "'Poppins',sans-serif" }}>
+            <div style={{ position: "relative", height: 120, borderRadius: "15px 15px 0 0", overflow: "hidden", background: "#f2f2f4" }}>
+              <img src={imgUrl} alt={ev?.nombre || "Evento"} onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[ev?.tipo?.toLowerCase()] || defaultImagenes["otro"]; }} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+              <span style={{ position: "absolute", top: 10, left: 10, background: "rgba(255,255,255,.92)", color: "#3A3A42", font: "700 9px Poppins", letterSpacing: ".8px", padding: "4px 10px", borderRadius: 12, textTransform: "uppercase" }}>{ev?.tipo === "otro" ? t("otro") : t(ev?.tipo)}</span>
+              <span style={{ position: "absolute", top: 8, right: 8, width: 26, height: 26, borderRadius: "50%", background: "rgba(255,255,255,.94)", color: "#EF5B94", display: "flex", alignItems: "center", justifyContent: "center", font: "700 10.5px Poppins" }}>{avLabel}</span>
+            </div>
+            {/* Etiqueta SELECCIONADO: fuera del contenedor de imagen (overflow:hidden la recortaba);
+                anclada a la tarjeta (position:relative) para que se vea completa, solapando el borde. */}
+            {seleccionado && <span style={{ position: "absolute", top: 107, left: 12, display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap", background: "#EF5B94", color: "#fff", font: "600 9.5px Poppins", letterSpacing: ".4px", padding: "4px 11px", borderRadius: 12, boxShadow: "0 4px 12px rgba(239,91,148,.4)", zIndex: 4 }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>{t("SELECCIONADO")}</span>}
+            <div style={{ padding: "11px 13px 12px" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ font: "600 13px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{ev?.nombre}</div>
+                  <div style={{ font: "500 10.5px Poppins", color: "#8a8a90", marginTop: 2 }}>{utcDateFormated(ev?.fecha)}</div>
+                </div>
+                {isOwner && <button onClick={(e) => { e.stopPropagation(); setOpenMenu(true); }} style={{ width: 30, height: 30, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#8a8a90", flex: "none", background: "none", border: "none", cursor: "pointer" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg></button>}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, font: "600 9.5px Poppins", padding: "4px 10px", borderRadius: 12, marginTop: 8, background: estadoKey === "realizado" ? "#E4F5EE" : estadoKey === "archivado" ? "#f2f2f4" : "#FBF0DA", color: estadoKey === "realizado" ? "#2FB37E" : estadoKey === "archivado" ? "#8a8a90" : "#E0A32B" }}><i style={{ width: 5, height: 5, borderRadius: "50%", background: "currentColor" }} />{estadoLabel}</span>
+                {compartido && <span style={{ font: "500 10px Poppins", color: "#8a8a90", marginTop: 8 }}>{t("compartido contigo")}</span>}
+              </div>
+            </div>
+          </div>
+          {isOwner && openMenu && (
+            <>
+              <div onClick={() => setOpenMenu(false)} style={{ position: "fixed", inset: 0, zIndex: 70, background: "rgba(43,43,48,.4)" }} />
+              <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 71, background: "#fff", borderRadius: "18px 18px 0 0", boxShadow: "0 -10px 30px rgba(0,0,0,.16)", padding: "16px 16px 34px", fontFamily: "'Poppins',sans-serif", maxWidth: 430, margin: "0 auto" }}>
+                <div style={{ width: 38, height: 4, borderRadius: 3, background: "#e5e5e9", margin: "0 auto 12px" }} />
+                <div style={{ font: "600 13px Poppins", color: "#3A3A42", textAlign: "center", marginBottom: 12 }}>{ev?.nombre}</div>
+                <div onClick={() => { setOpenMenu(false); handleArchivarEvent(); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 14px", borderRadius: 12, font: "500 13px Poppins", color: "#3A3A42", cursor: "pointer" }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="5" rx="1.5" /><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4" /></svg>{archivado ? t("Desarchivar") : t("Archivar")}</div>
+                <div onClick={() => { setOpenMenu(false); compartirEvento(); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 14px", borderRadius: 12, font: "500 13px Poppins", color: "#3A3A42", cursor: "pointer" }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4" /></svg>{t("Compartir")}</div>
+                <div onClick={() => { setOpenMenu(false); isAllowed() ? handleEdit() : ht(); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 14px", borderRadius: 12, font: "500 13px Poppins", color: "#3A3A42", cursor: "pointer" }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h10M18 8h2M4 16h2M10 16h10" /><circle cx="16" cy="8" r="2.2" /><circle cx="8" cy="16" r="2.2" /></svg>{t("Editar")}</div>
+                <div style={{ height: 1, background: "#f0f0f2", margin: "6px 10px" }} />
+                <div onClick={() => { setOpenMenu(false); setConfirmDelete(true); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 14px", borderRadius: 12, font: "500 13px Poppins", color: "#D83E7C", cursor: "pointer" }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><path d="M4 7h16M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7m3 0v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7" /></svg>{t("Borrar")}</div>
+              </div>
+            </>
+          )}
+        </>
+      );
+    }
+
+    return (
+      <>
+        <div className={`${!shouldRenderChild ? "hidden" : "fixed z-30"}`}>
+          {shouldRenderChild && <ModalLeft set={setIsMounted} state={isMounted} clickAwayListened={false} studio={studio}>
+            <FormCrearEvento set={setIsMounted} state={isMounted} EditEvent={true} eventData={ev} />
+          </ModalLeft>}
+        </div>
+        {confirmModal}
+        {archiveModal}
+        {openModal && <ModalCompartirEvento event={ev} onClose={() => setOpenModal(false)} />}
+        <div className={`evc-card${seleccionado ? ' seleccionada' : ''}`} onClick={abrirEvento} title={t("Abrir resumen del evento")}
+          style={{ zIndex: openMenu ? 30 : undefined }}>
+          <div className="evc-foto">
+            <img src={imgUrl} alt={ev?.nombre || ev?.tipo || 'Evento'}
+              onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[ev?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '15px 15px 0 0', display: 'block' }} />
+            <span className="evc-tipo">{ev?.tipo === 'otro' ? t('otro') : t(ev?.tipo)}</span>
+            {seleccionado && (
+              <span className="evc-badge-sel">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>
+                {t('SELECCIONADO')}
+              </span>
+            )}
+            <div className="evc-avatar-wrap" onClick={(e) => e.stopPropagation()}>
+              {(() => {
+                const shared = [...(ev?.detalles_compartidos_array ?? [])];
+                if (ev?.detalles_usuario_id) shared.push(ev.detalles_usuario_id);
+                if (shared.length === 0) return null;
+                const maxShown = 3;
+                const overflow = shared.length > maxShown ? shared.length - maxShown : 0;
+                const visible = shared.slice(-Math.min(shared.length, maxShown));
+                return (
+                  <div className="evc-avatars">
+                    {overflow > 0 && <span className="evc-av evc-av-more">+{overflow}</span>}
+                    {visible.map((u: any, i: number) => (
+                      <span key={i} className="evc-av" title={u?.email || u?.displayName || ''} style={{ background: avatarColorFor(u?.email || u?.displayName) }}>
+                        {String(u?.displayName || u?.email || '?').charAt(0).toUpperCase()}
+                        {isOnline(u) && <i className="evc-av-dot" />}
+                      </span>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+          <div className="evc-body">
+            <div className="evc-fila">
+              <div style={{ minWidth: 0 }}>
+                <div className="evc-nombre">{ev?.nombre}</div>
+                <div className="evc-fecha">{utcDateFormated(ev?.fecha)}</div>
+              </div>
+              {isOwner && (
+                <button className="evc-dots" onClick={(e) => { e.stopPropagation(); setOpenMenu(!openMenu); }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg>
+                </button>
+              )}
+              {isOwner && openMenu && (
+                <ClickAwayListener onClickAway={() => setOpenMenu(false)}>
+                  <div className="evc-menu" onClick={(e) => e.stopPropagation()}>
+                    <div className="evc-menu-item" onClick={() => { setOpenMenu(false); handleArchivarEvent(); }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="5" rx="1.5" /><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4" /></svg>{archivado ? t('Desarchivar') : t('Archivar')}</div>
+                    <div className="evc-menu-item" onClick={() => { setOpenMenu(false); compartirEvento(); }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4" /></svg>{t('Compartir')}</div>
+                    <div className="evc-menu-item" onClick={() => { setOpenMenu(false); isAllowed() ? handleEdit() : ht(); }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h10M18 8h2M4 16h2M10 16h10" /><circle cx="16" cy="8" r="2.2" /><circle cx="8" cy="16" r="2.2" /></svg>{t('Editar')}</div>
+                    <div className="evc-menu-sep" />
+                    <div className="evc-menu-item peligro" onClick={() => { setOpenMenu(false); setConfirmDelete(true); }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><path d="M4 7h16M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7m3 0v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7" /></svg>{t('Borrar')}</div>
+                  </div>
+                </ClickAwayListener>
+              )}
+            </div>
+            <div className="evc-pie">
+              <span className={`evc-pill evc-pill--${estadoKey}`}><i />{estadoLabel}</span>
+              {compartido && <span className="evc-compartido">{t('compartido contigo')}</span>}
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <div className={`${!shouldRenderChild ? "hidden" : "fixed z-30"}`}>
+        {shouldRenderChild && <ModalLeft set={setIsMounted} state={isMounted} clickAwayListened={false} studio={studio}>
+          <FormCrearEvento set={setIsMounted} state={isMounted} EditEvent={true} eventData={data[idx]} />
+        </ModalLeft>}
+      </div>
+      <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={data[idx]} />
+      <div ref={hoverRef} className={`w-max h-full relative grid place-items-center bg-white transition ${isHovered ? "transform scale-105 duration-700" : ""}`}>
+        <div className={` h-32 w-28 absolute z-[10] right-0 flex flex-col items-end justify-between px-2 `}>
+          <div onClick={() => { data[idx]?.usuario_id === user?.uid && setOpenModal(!openModal) }} className="w-max h-max relative">
+            <UsuariosCompartidos event={data[idx]} />
+          </div>
+          {data[idx]?.usuario_id === user?.uid && <div className="space-y-1 flex flex-col items-center">
+            <div onClick={() => {
+              if (user?.displayName !== "guest") {
+                setTimeout(() => {
+                  handleClickCard({ t, final: false, config, data: data[idx], setEvent, user, setUser, router, toast })
+                    .then((resp) => {
+                      if (resp) toast("warning", resp)
+                    })
+                    .catch((error) => {
+                      console.error("Error en handleClickCard:", error)
+                    })
+                }, 100);
+                setOpenModal(!openModal)
+              }
+            }} className="w-5 h-5 flex items-center justify-center" >
+              <IoShareSocial className={`w-full h-full cursor-pointer text-white ${user?.displayName !== "guest" && "hover:text-gray-300"}`} />
+            </div>
+            <div onClick={handleArchivarEvent} className="w-5 h-5 flex items-center justify-center" >
+              <FaRegFolderOpen className="w-4.5 h-4.5 cursor-pointer text-white hover:text-gray-300" />
+            </div>
+            <div onClick={() => isAllowed() && handleEdit()} className="w-5 h-5 flex items-center justify-center"   >
+              <BiSolidPencil className="w-5 h-5 cursor-pointer text-white hover:text-gray-300" />
+            </div>
+            <div onClick={handleRemoveEvent} className="w-5 h-5 flex items-center justify-center"   >
+              <MdDelete className="w-full h-full cursor-pointer text-white hover:text-gray-300" />
+            </div>
+          </div>}
+        </div>
+
+        {data[idx]?._id == user?.eventSelected ? <div className="flex w-[304px] max-w-full h-40 border-dashed border-2 border-yellow-300 absolute z-0 rounded-xl" /> : <></>}
+        <div onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+
+          // Prevenir múltiples clics rápidos
+          if (isNavigating) {
+            return
+          }
+
+          const eventData = data[idx]
+
+          if (!eventData || !eventData._id) {
+            console.error("[Card] ❌ Evento no válido:", { idx, hasData: !!data, hasDataIdx: !!data[idx] })
+            toast("error", t("Error: Evento no válido"))
+            return
+          }
+
+          setIsNavigating(true) // Bloquear más clics
+          toast("success", t("Abriendo evento..."))
+
+          handleClickCard({
+            t,
+            final: true,
+            config,
+            data: eventData,
+            setEvent,
+            user,
+            setUser,
+            router
+          })
+            .then((resp) => {
+              if (resp) {
+                console.warn("[Card] ⚠️ Respuesta de handleClickCard:", resp)
+                toast("warning", resp)
+                setIsNavigating(false)
+              } else {
+                // No resetear isNavigating aquí porque estamos navegando
+              }
+            })
+            .catch((error) => {
+              console.error("[Card] ❌ Error en handleClickCard:", error)
+              toast("error", getApiErrorMessage(error) || t("Ha ocurrido un error"))
+              setIsNavigating(false)
+
+              // Fallback: intentar abrir el evento de todas formas
+              try {
+                setIsNavigating(true)
+                setEvent(eventData)
+                setTimeout(() => {
+                  router.push("/resumen-evento")
+                }, 100)
+              } catch (fallbackError) {
+                console.error("[Card] ❌ Error en fallback:", fallbackError)
+                setIsNavigating(false)
+              }
+            })
+        }} className={`w-72 max-w-full h-36 rounded-xl cardEvento z-[8] cursor-pointer shadow-lg relative overflow-hidden ${isNavigating ? 'opacity-70' : ''}`}>
+          <img
+            src={data[idx]?.imgEvento?.i320 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${data[idx].imgEvento.i320}`)}` : defaultImagenes[data[idx]?.tipo?.toLowerCase()]}
+            alt={data[idx]?.nombre || data[idx]?.tipo || 'Evento'}
+            className="object-cover w-full h-full absolute top-0 left-0 object-top"
+            onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[data[idx]?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
+          />
+          <div className="relative w-full h-full z-10 p-4 pb-2 flex flex-col justify-between">
+            <div className="flex flex-col">
+
+              <span className="text-sm font-display text-white capitalize">
+                {data[idx]?.tipo == "otro" ? "mi evento especial" : t(data[idx]?.tipo)}
+              </span>
+              {
+                data[idx]?.usuario_id != user?.uid && <span className="text-xs font-display text-white capitalize">
+                  {t("compartido contigo")}
+                </span>
+              }
+            </div>
+            <div className="flex flex-col ">
+              <span className="mt-[-4px] uppercase text-xs font-display text-white truncate">
+                {data[idx]?.nombre?.length > 20 ? `${data[idx]?.nombre.substring(0, 20)}...` : data[idx]?.nombre}
+              </span>
+              <span className="mt-[-4px] uppercase text-xs font-display text-white">
+                {`${utcDateFormated(data[idx]?.fecha)}`}
+              </span>
+              <span className="mt-[-4px] uppercase text-xs font-display text-white">
+                {t(data[idx]?.estatus)}
+              </span>
+            </div>
+          </div>
+        </div>
+        <style jsx>
+          {`
+          .cardEvento::before {
+            content: "";
+            width: 100%;
+            height: 100%;
+            background: rgb(255, 255, 255);
+            background: radial-gradient(
+              circle,
+              rgba(41, 41, 41, 0.3) 0%,
+              rgba(41, 41, 41, 0.8) 100%
+            );
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+          }
+        `}
+        </style>
+      </div>
+    </>
+  );
+};
+
+export default Card;

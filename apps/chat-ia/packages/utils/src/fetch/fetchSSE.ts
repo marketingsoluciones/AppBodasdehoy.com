@@ -1,17 +1,36 @@
 import { LOBE_CHAT_OBSERVATION_ID, LOBE_CHAT_TRACE_ID, MESSAGE_CANCEL_FLAT } from '@lobechat/const';
-import { parseToolCalls } from '@lobechat/model-runtime';
+import { produce } from 'immer';
 import {
   ChatErrorType,
   ChatImageChunk,
   ChatMessageError,
   GroundingSearch,
   MessageToolCall,
+  MessageToolCallChunk,
+  MessageToolCallSchema,
   ModelPerformance,
   ModelReasoning,
   ModelUsage,
   ResponseAnimation,
   ResponseAnimationStyle,
 } from '@lobechat/types';
+
+// Inline parseToolCalls (antes en @lobechat/model-runtime — package eliminado en
+// refactor runtime-only-api-ia 24-jun-2026, api-ia centraliza modelos).
+const parseToolCalls = (origin: MessageToolCall[], value: MessageToolCallChunk[]) =>
+  produce(origin, (draft) => {
+    if (draft.length === 0) {
+      draft.push(...value.map((item) => MessageToolCallSchema.parse(item)));
+      return;
+    }
+    value.forEach(({ index, ...item }) => {
+      if (!draft?.[index]) {
+        draft?.splice(index, 0, MessageToolCallSchema.parse(item));
+      } else if (item.function?.arguments) {
+        draft[index].function.arguments += item.function.arguments;
+      }
+    });
+  });
 
 import { fetchEventSource } from '../client/fetchEventSource';
 import { nanoid } from '../uuid';

@@ -1,0 +1,212 @@
+DE: COORD-AppEventos
+PARA: API-IA
+DRI: api_ia_oncall
+CANAL: #coordinacion · workspace eventosorganizador.slack.com
+HILO: 1778170638.897419
+ASUNTO: 🔄 CORRECCIÓN — NO borramos features, las MIGRAMOS todas a REST
+
+
+Repaso completo y corrección importante. Producto recordó la regla 0
+del proyecto: NO PERDER NINGUNA FUNCIONALIDAD del usuario.
+
+Al verificar nuestro veredicto previo contra el sector (ChatGPT, Claude,
+Trae), descubrimos que las features que íbamos a borrar SON estándar
+del sector y se gestionan SERVER-SIDE, no en BD local del navegador.
+Lo correcto no es "borrar lo que no aplica" sino "migrar todo a REST".
+
+Hoy he revertido los borrados de la sesión: profile/apikey/, services/
+export+import+config, DataImporter, lambda/exporter+importer+apiKey,
+Migration/ExportConfigButton. Todo restaurado. TS verde.
+
+
+═══════════════════════════════════════════════════════════
+COMPARATIVA SECTOR (las features SON estándar)
+═══════════════════════════════════════════════════════════
+
+  Feature                ChatGPT    Claude    Trae      Sector
+  ────────────────────── ────────   ───────   ───────   ──────
+  API Keys UI            ✅ server  ✅ server ✅ config Estándar
+  Galería imágenes       ✅ server   —         —        Estándar
+  Marketplace            ✅ grande  🟡 emerge  —        Estándar
+  Modelos custom user    ✅ GPT-c   ✅ Proj.  ✅        Estándar
+  Memory persistente     ✅ nuevo   ✅ nuevo  ❌        Tendencia 2026
+  Export/Import datos    ✅ ZIP     ✅ ZIP    ✅        OBLIGATORIO GDPR
+  Optimistic UI          ✅         ✅        ✅        Estándar absoluto
+
+  Ninguno usa BD local en navegador para chat con LLM. Pero TODOS
+  exponen estas features vía endpoints REST server-side.
+
+
+═══════════════════════════════════════════════════════════
+LO QUE PEDIMOS — endpoints REST para CADA feature
+═══════════════════════════════════════════════════════════
+
+NO BORRAMOS ninguna feature del front. Migramos todas a REST.
+
+
+🔴 PRIORIDAD ALTA (críticas para chat funcional)
+
+[1] aiChat orquestación  (ya en marcha, gracias)
+    POST /chat/structured        → outputJSON ✅ implementado
+                                    (commit + push + deploy pendiente)
+    POST /chat/messages/turn     → crear topic+thread+message atómico
+
+
+[2] apiKey — gestión keys del usuario (NO borrar, hay UI activa)
+    GET    /api/apikeys                → lista keys del user
+    POST   /api/apikeys                → crear key (devuelve UNA vez)
+    PATCH  /api/apikeys/{id}           → editar label/scope
+    DELETE /api/apikeys/{id}           → revocar
+
+    Las keys reales bajo userConfig.api_keys[id] CIFRADO (como ya hacéis
+    con aiProvider). La UI /profile/apikey/ se mantiene; solo cambia
+    el backend de tRPC a REST.
+
+
+[3] aiModel — modelos custom del usuario (NO borrar)
+    Cableo lo YA RESUELTO:
+      getAiProviderModelList → GET /webapi/models/{provider} ✅
+
+    NUEVO necesario para custom por-USUARIO:
+      POST   /api/aimodels             → añadir modelo custom user
+      PATCH  /api/aimodels/{id}        → editar
+      DELETE /api/aimodels/{id}        → quitar
+      POST   /api/aimodels/order       → reordenar
+      POST   /api/aimodels/{id}/toggle → on/off
+
+    O alternativa: userConfig.aiModels[] si la decisión es por-usuario
+    sin tabla. Lo que prefiráis técnicamente — pero la feature SE QUEDA.
+
+
+🟡 PRIORIDAD MEDIA (features en uso real)
+
+[4] Galería generación imágenes (G3 SÍ confirmado)
+    POST   /image/topics                       → crear topic
+    GET    /image/topics                       → list
+    PATCH  /image/topics/{id}                  → rename/cover
+    DELETE /image/topics/{id}                  → borrar topic
+    GET    /image/topics/{id}/generations      → galería del topic
+    DELETE /image/generations/{id}             → borra metadata + R2
+
+
+[5] agent — files + KBs por agente (NO borrar)
+    GET    /api/agents/{id}/files              → lista
+    POST   /api/agents/{id}/files              → vincular file
+    DELETE /api/agents/{id}/files/{file_id}    → desvincular
+    GET    /api/agents/{id}/knowledge-bases    → idem KBs
+    POST   /api/agents/{id}/knowledge-bases    → vincular
+    DELETE /api/agents/{id}/knowledge-bases/{kb_id}
+    PATCH  /api/agents/{id}/files/{file_id}    → toggle enabled
+    PATCH  /api/agents/{id}/knowledge-bases/{kb_id}
+
+
+[6] memory — memoria conversacional (tendencia 2026)
+    POST   /api/lobechat-kb/query-embedding    → recall (YA RESUELTO ✅)
+    POST   /api/memory/extract                 → extraer de summary
+    GET    /api/memory                         → lista memorias user
+    DELETE /api/memory/{id}                    → borrar memoria
+    PATCH  /api/memory/{id}                    → editar
+
+    Aunque la UI no esté activa hoy, ChatGPT y Claude la lanzaron en
+    últimos meses. AppBodas/CRM/dev se beneficiarán.
+
+
+[7] export/import — datos del usuario (OBLIGATORIO GDPR)
+    POST   /chat/export                        → genera ZIP, devuelve URL
+                                                  o stream
+    POST   /chat/import                        → recibe ZIP, integra en
+                                                  sessions/topics/messages
+                                                  del user
+
+    En España + UE es derecho legal del usuario poder exportar sus
+    datos. No es opcional. Y "importar" permite migrar entre cuentas
+    o restaurar backup.
+
+
+[8] PDF compartir conversación (G6 SÍ confirmado)
+    POST   /chat/export/pdf                    → markdown + título → PDF
+                                                  body: { content, title, sessionId }
+                                                  return: { pdfUrl }
+
+
+[9] chunks — vista RAG (G5 SÍ)
+    GET    /api/lobechat-kb/files/{file_id}/chunks
+                                               → [{id, content, page,
+                                                   similarity?}]
+
+
+🟢 PRIORIDAD BAJA (mantener pero menos urgente)
+
+[10] market/discover — marketplace plugins/MCPs/models (NO borrar)
+     Reconsideramos: ChatGPT tiene "Explore GPTs" gigantesco, es UX
+     core de su producto. Para chat-ia (multi-tenant: bodas, CRM, dev,
+     otras) descubrir plugins/MCPs SÍ aporta valor a medio plazo.
+
+     ¿Endpoint proxy a vuestro registro o federación?
+       GET /api/marketplace/assistants         → list
+       GET /api/marketplace/assistants/{id}    → detail
+       GET /api/marketplace/mcps               → list
+       GET /api/marketplace/mcps/{id}/manifest
+       GET /api/marketplace/plugins            → list
+       GET /api/marketplace/models             → list
+       GET /api/marketplace/providers          → list
+
+     Si tenéis algún registro propio o federáis con LobeHub, exponedlo
+     vía REST. Si NO existe registro y queréis crearlo después → ticket
+     separado, pero MANTENEMOS la UI por ahora con el endpoint que
+     devuelva [] vacío (graceful empty state).
+
+
+═══════════════════════════════════════════════════════════
+LO QUE SÍ MIGRO YO HOY (sin esperaros)
+═══════════════════════════════════════════════════════════
+
+A) Cableo de lo ya resuelto:
+   - aiModel.getAiProviderModelList → /webapi/models/{provider}
+   - memory.recallForQuery          → /api/lobechat-kb/query-embedding
+   - agent.* base                    → /sessions + PATCH genérico
+
+B) userConfig (patrón c) donde tiene sentido:
+   - toggleModelEnabled    → userConfig.aiModels.disabled[]
+   - updateAiModelOrder    → userConfig.aiModels.order{}
+   - agent.pinned          → metadata sesión
+
+C) Stubs CON LOG CLARO (no NO-OP silencioso) para los servicios
+   que esperan endpoint REST nuevo. Cuando deploieis, cambio una
+   línea por servicio.
+
+D) NO borro NINGUNA UI ni feature. Todo se mantiene visible al
+   usuario. Si una llamada falla (porque el endpoint REST aún no
+   está) → log + retry + degrada graceful, NO se rompe la UI.
+
+
+═══════════════════════════════════════════════════════════
+LA REGLA QUE SE NOS HABÍA OLVIDADO
+═══════════════════════════════════════════════════════════
+
+Regla 0 del proyecto:
+  "Eliminar drizzle/pglite/tRPC del bundle PRESERVANDO 100% de las
+   funcionalidades."
+
+NO DEPRECAR features.
+
+El objetivo de CAPA 3 sigue siendo apagar pglite del navegador
+(porque eso reduce 25k módulos y build de 10min→3-4min, mejora real).
+Pero migrar pglite a REST ≠ borrar la funcionalidad asociada.
+
+
+═══════════════════════════════════════════════════════════
+PREGUNTAS CONCRETAS
+═══════════════════════════════════════════════════════════
+
+A) ¿Confirmáis ETA para los 9 bloques de endpoints REST listados
+   (priorizado por nuestro impacto)?
+
+B) ¿Hay algún bloque donde técnicamente NO es viable y proponéis
+   alternativa específica (no solo "deprecar")?
+
+C) ¿Marketplace [10] tenéis registro propio o federáis con LobeHub?
+
+
+DRI: coord_appeventos — gracias por la flexibilidad. Mientras tanto
+migro A+B+C+D del lado front sin tocar ninguna UI.

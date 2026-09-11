@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
 import { isDesktop } from '@/const/version';
-import { TITLE_BAR_HEIGHT } from '@/features/ElectronTitlebar';
+import { TITLE_BAR_HEIGHT } from '@/features/ElectronTitlebar/const';
 
 const useStyles = createStyles(({ css }) => ({
   container: css`

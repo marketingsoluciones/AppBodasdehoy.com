@@ -1,4 +1,4 @@
-import { DEFAULT_COPILOT_SYSTEM_ROLE, getSystemRoleForDevelopment } from '@/const/agents/defaultCopilotSystemRole';
+import { getSystemRoleForDevelopment } from '@/const/agents/defaultCopilotSystemRole';
 import { enableNextAuth } from '@/const/auth';
 import { isDesktop } from '@/const/version';
 import { appEnv, getAppConfig } from '@/envs/app';

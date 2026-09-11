@@ -39,7 +39,10 @@ export const GET_USER_CHATS = gql`
         limit
         totalPages
       }
-      errors
+      errors {
+        message
+        code
+      }
     }
   }
 `;
@@ -66,7 +69,10 @@ export const GET_CHAT_MESSAGES = gql`
         limit
         totalPages
       }
-      errors
+      errors {
+        message
+        code
+      }
     }
   }
 `;
@@ -178,7 +184,10 @@ export const GET_USER_API_CONFIGS = gql`
         model
         enabled
       }
-      errors
+      errors {
+        message
+        code
+      }
     }
   }
 `;
@@ -271,7 +280,10 @@ export const GET_USER_PROFILE = gql`
           domain
         }
       }
-      errors
+      errors {
+        message
+        code
+      }
     }
   }
 `;

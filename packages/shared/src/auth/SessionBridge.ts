@@ -52,7 +52,7 @@ export function setCrossAppIdToken(idToken: string): void {
   if (typeof document === 'undefined' || !idToken) return;
 
   const domain = getCrossAppDomain();
-  const maxAge = 7 * 24 * 3600; // 7 días — el contenido se renueva via onIdTokenChanged
+  const maxAge = 30 * 24 * 3600; // 30 días — best practice 2026 sliding renewal vía onIdTokenChanged
 
   const cookieParts = [
     `idTokenV0.1.0=${idToken}`,
@@ -79,23 +79,73 @@ export function setCrossAppIdToken(idToken: string): void {
 }
 
 /**
- * Limpia las cookies cross-app en logout.
+ * Nombre de la cookie cross-app que transporta el whitelabel/development activo.
+ * Permite que app-dev herede el development elegido en chat-dev (y viceversa) sin
+ * depender de localStorage, que es por-origen y NO cruza subdominios (informe 13-jun §13.1).
  */
-export function clearCrossAppSession(): void {
-  if (typeof document === 'undefined') return;
+export const CROSS_APP_DEVELOPMENT_COOKIE = 'current_development';
+
+/**
+ * Setea la cookie current_development con dominio cross-app (.bodasdehoy.com) para
+ * que app-dev ↔ chat-dev compartan el whitelabel activo. localStorage no cruza
+ * subdominios; esta cookie sí. Llamar siempre que se persista current_development.
+ */
+export function setCrossAppDevelopment(development: string): void {
+  if (typeof document === 'undefined' || !development) return;
 
   const domain = getCrossAppDomain();
-  const expiredParts = [
-    'idTokenV0.1.0=',
+  const maxAge = 30 * 24 * 3600; // 30 días — coherente con setCrossAppIdToken
+
+  const cookieParts = [
+    `${CROSS_APP_DEVELOPMENT_COOKIE}=${encodeURIComponent(development)}`,
     'path=/',
-    'max-age=0',
+    `max-age=${maxAge}`,
     'SameSite=Lax',
   ];
 
   if (domain) {
-    expiredParts.push(`Domain=${domain}`);
+    cookieParts.push(`Domain=${domain}`);
+  }
+
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+    cookieParts.push('Secure');
   }
 
   // eslint-disable-next-line unicorn/no-document-cookie
-  document.cookie = expiredParts.join('; ');
+  document.cookie = cookieParts.join('; ');
+}
+
+/**
+ * Expira SOLO la cookie `idTokenV0.1.0`, en AMBAS variantes: con Domain (cross-app) y
+ * host-only (sin Domain). Por LO-3 de la auditoría, la cookie pudo escribirse con atributos
+ * distintos según el path (unos con Domain, otros host-only), y borrar solo una deja la otra
+ * viva. Se usa para auto-sanar una cookie envenenada (token muerto) sin tocar el resto de la
+ * sesión (no borra current_development).
+ */
+export function clearCrossAppIdToken(): void {
+  if (typeof document === 'undefined') return;
+  const domain = getCrossAppDomain();
+  const base = 'idTokenV0.1.0=; path=/; max-age=0; SameSite=Lax';
+  const variants = [base];
+  if (domain) variants.push(`${base}; Domain=${domain}`);
+  for (const c of variants) {
+    // eslint-disable-next-line unicorn/no-document-cookie
+    document.cookie = c;
+  }
+}
+
+/**
+ * Limpia las cookies cross-app en logout (idTokenV0.1.0 en todas sus variantes +
+ * current_development).
+ */
+export function clearCrossAppSession(): void {
+  if (typeof document === 'undefined') return;
+
+  clearCrossAppIdToken();
+
+  const domain = getCrossAppDomain();
+  const parts = [`${CROSS_APP_DEVELOPMENT_COOKIE}=`, 'path=/', 'max-age=0', 'SameSite=Lax'];
+  if (domain) parts.push(`Domain=${domain}`);
+  // eslint-disable-next-line unicorn/no-document-cookie
+  document.cookie = parts.join('; ');
 }

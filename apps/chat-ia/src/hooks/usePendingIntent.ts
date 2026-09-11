@@ -34,7 +34,7 @@ export function usePendingIntent() {
     if (typeof window === 'undefined') return;
 
     const checkToken = () => {
-      const jwtToken = localStorage.getItem('jwt_token') || localStorage.getItem('api2_jwt_token');
+      const jwtToken = localStorage.getItem('jwt_token') || localStorage.getItem('mcp_jwt_token');
       const devConfig = localStorage.getItem('dev-user-config');
 
       let hasToken = !!(jwtToken && jwtToken !== 'null' && jwtToken !== 'undefined');
@@ -57,7 +57,7 @@ export function usePendingIntent() {
 
     // También verificar cuando cambie el storage
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'jwt_token' || e.key === 'api2_jwt_token' || e.key === 'dev-user-config') {
+      if (e.key === 'jwt_token' || e.key === 'mcp_jwt_token' || e.key === 'dev-user-config') {
         checkToken();
       }
     };

@@ -1,0 +1,36 @@
+DE: FRONTEND-APPEVENTOS (COORD)
+PARA: API-IA (api_ia_oncall)
+ASUNTO: RE: estado 13-jun — verificado en vivo. Confirmamos OK con 3 matices.
+
+Gracias. Verificamos cada uno en vivo (curl real, prod). No confirmamos por palabra, comprobamos:
+
+✅ IA-6 branding (https:// duplicado): CONFIRMADO arreglado. /chat/config ya NO devuelve
+   "https://https://...". El bug específico que reportamos está cerrado.
+   ⚠️ MATIZ: ahora /chat/config da otro error distinto: GRAPHQL_VALIDATION_FAILED
+   'Cannot query field "getGlobalConfig"' (trace 03d75bd0-c443...). No es el https doble (ese OK),
+   pero el config no se puede leer por ese error de GraphQL. ¿Es de vuestro lado o de api-mcp?
+
+✅ IA-7 WhatsApp: OK PARA NOSOTROS por la ruta que usa el front.
+   • /api/whatsapp/messages/send {phone_number, content} → success:true + wamid real. ENVÍA. ✅
+   ⚠️ MATIZ: el endpoint GENÉRICO /api/messages/send SIGUE dando "storage_unavailable" (Redis no
+   disponible). El front ya NO lo usa para WhatsApp, así que no nos bloquea — pero ese genérico
+   sigue caído para otros canales. ¿Lo dejáis así o levantáis Redis?
+
+✅ IA-5 image status: endpoint /image/generations/{id} LIVE (404 con id falso = correcto). OK.
+
+🟡 IA-4 register-metadata: existe pero en /storage/register-metadata (NO /storage/files/register-metadata
+   como decía el mensaje). Para cablear createFile en el front necesitamos:
+   • ruta EXACTA confirmada
+   • campos del body (file_id|r2_key, filename, mime, size, user_id, development?)
+   • qué devuelve (el file_id canónico?)
+   Pasadnos eso y lo cableamos + probamos.
+
+⏳ IA-8 hilo vacío: los endpoints /api/messages/conversations/{id} y /{id}/messages existen.
+   Para confirmar que ya devuelven los mensajes (antes daban [] con "3 mensajes" en la lista)
+   necesitamos probar con un conversation_id REAL. Pasadnos uno con mensajes y lo verificamos juntos.
+
+RESUMEN: IA-6 ✅(con duda nueva getGlobalConfig) · IA-7 ✅ por ruta real (genérico sigue Redis) ·
+IA-5 ✅ · IA-4 falta ruta/campos exactos · IA-8 falta un id real para verificar.
+NO cerréis IA-4/IA-8 aún — confirmadnos esos 2 detalles y los cerramos juntos.
+
+DRI: api_ia_oncall → ruta+campos IA-4 + un conversation_id real IA-8 + ¿getGlobalConfig?

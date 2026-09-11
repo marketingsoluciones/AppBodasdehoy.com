@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react';
-import { ModelProvider } from 'model-bank';
+import { ModelProvider } from '@lobechat/types';
 import { describe, expect, it, vi } from 'vitest';
 
 import { useUserStore } from '@/store/user';

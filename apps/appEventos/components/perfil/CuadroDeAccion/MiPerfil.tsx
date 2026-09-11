@@ -1,5 +1,6 @@
 import { updateProfile, getAuth, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import { Form, Formik } from "formik";
+import { formikValidateUx } from "../../Forms/formikValidateUx";
 import { useState } from "react";
 import { AuthContextProvider } from "../../../context";
 import { BlockConfiguration } from "../../../pages/configuracion";
@@ -8,7 +9,7 @@ import InputField from "../../Forms/InputField";
 import { Eye, EyeSlash } from "../../icons";
 import * as yup from "yup";
 import { parseJwt } from "../../../utils/Authentication";
-import Cookies from "js-cookie";
+import { setCrossAppIdToken } from '@bodasdehoy/shared/auth';
 import { useTranslation } from 'react-i18next';
 
 export const MiPerfil = () => {
@@ -22,13 +23,13 @@ export const MiPerfil = () => {
 
   const initialValues = {
     email: user?.email,
-    displayName: user?.displayName,
+    displayName: user?.displayName ?? "",
     currentPassword: "",
     password: ""
   }
 
   const validationSchema = yup.object().shape({
-    displayName: yup.string().required("El nombre no puede estar en blanco"),
+    displayName: yup.string().nullable().required("El nombre no puede estar en blanco"),
     password: yup.string().test("Unico", `Debe contener mas de 5 caractéres`, (value: any) => {
       const name = document.activeElement?.getAttribute("name")
       if (canChangePassword) {
@@ -74,8 +75,9 @@ export const MiPerfil = () => {
         )
         await updatePassword(auth.currentUser, values.password);
         const idToken = await getAuth().currentUser?.getIdToken(true)
-        const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-        Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
+        // BUG-1 (informe QA 21-jun): safeJwtExpiry undefined → session cookie.
+        // Escritor único de la cookie compartida (SessionBridge), atributos consistentes.
+        if (idToken) setCrossAppIdToken(idToken)
         setCanChangePassword(false)
         setPasswordView(false)
         setValues({ ...values, currentPassword: "", password: "" })
@@ -95,7 +97,8 @@ export const MiPerfil = () => {
 
   return (
     <div className="flex flex-col w-full gap-6 container ">
-      <Formik initialValues={initialValues} onSubmit={() => { }} validationSchema={validationSchema ?? {}}>
+      <Formik
+      {...formikValidateUx} initialValues={initialValues} onSubmit={() => { }} validationSchema={validationSchema ?? {}}>
         {({ values, errors, setValues, setErrors }) => {
           return (
             <BlockConfiguration title={t("accessdata")}>
@@ -143,10 +146,10 @@ export const MiPerfil = () => {
                         disabled={!canChangePassword}
                         label={t("currentpassword")}
                         name={"currentPassword"}
-                        type={passwordView ? "password" : "text"}
+                        type={passwordView ? "text" : "password"}
                       />
                       <div onClick={() => { setPasswordView(!passwordView) }} className="absolute cursor-pointer inset-y-0 right-4 m-auto w-4 h-4 text-gray-500 translate-y-2.5" >
-                        {!passwordView ? <EyeSlash /> : <Eye />}
+                        {passwordView ? <EyeSlash /> : <Eye />}
                       </div>
                     </div>
                     <div className="flex-1 md:flex-none md:w-[300px] relative w-full">
@@ -155,10 +158,10 @@ export const MiPerfil = () => {
                         disabled={!canChangePassword}
                         label={t("newpassword")}
                         name={"password"}
-                        type={passwordView ? "password" : "text"}
+                        type={passwordView ? "text" : "password"}
                       />
                       <div onClick={() => { setPasswordView(!passwordView) }} className="absolute cursor-pointer inset-y-0 right-4 m-auto w-4 h-4 text-gray-500 translate-y-2.5" >
-                        {!passwordView ? <EyeSlash /> : <Eye />}
+                        {passwordView ? <EyeSlash /> : <Eye />}
                       </div>
                     </div>
                    {/*  <div className="h-4 hidden sm:flex flex-1" /> */}

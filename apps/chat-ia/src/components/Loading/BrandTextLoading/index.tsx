@@ -1,4 +1,6 @@
-import { BrandLoading, LobeHubText } from '@lobehub/ui/brand';
+// SPRINT-AS: sub-paths directos — evitan arrastrar LogoSpline (3.7MB) via barrel.
+import BrandLoading from '@lobehub/ui/es/brand/BrandLoading';
+import LobeHubText from '@lobehub/ui/es/brand/LobeHubText';
 import { Center } from 'react-layout-kit';
 
 import { isCustomBranding } from '@/const/version';

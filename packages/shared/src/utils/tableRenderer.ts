@@ -65,7 +65,7 @@ const MIN_CM_PER_SEAT = 42;
 
 const CHAIR_STYLES: Record<string, { fill: string; stroke: string; strokeWidth: number; rx: number } | null> = {
   chiavari: { fill: '#E8D5B7', stroke: '#8B6914', strokeWidth: 1.8, rx: 3 },
-  modern:   { fill: '#D0D0D0', stroke: '#555555', strokeWidth: 1.5, rx: 2 },
+  modern:   { fill: '#ffffff', stroke: '#B4B4BC', strokeWidth: 1.5, rx: 2 },
   ghost:    { fill: 'rgba(220,220,220,0.25)', stroke: '#AAAAAA', strokeWidth: 2, rx: 4 },
   bench:    { fill: '#C4A882', stroke: '#6B4226', strokeWidth: 2, rx: 2 },
   none:     null,
@@ -81,7 +81,7 @@ export const TABLE_DEFAULTS: Record<string, TableConfig> = {
     realDiameterCm: 150,
     seats: 8,
     minSeats: 4, maxSeats: 14,
-    tableColor: '#F5F0E8', chairColor: '#E8D5B7', chairStyle: 'chiavari',
+    tableColor: '#F0F0F2', chairColor: '#ffffff', chairStyle: 'modern',
     showChairs: true, showNumber: true, showName: false,
     isHeadTable: false, isKidsTable: false,
   },
@@ -90,7 +90,7 @@ export const TABLE_DEFAULTS: Record<string, TableConfig> = {
     realDiameterCm: 180,
     seats: 10,
     minSeats: 6, maxSeats: 16,
-    tableColor: '#F5F0E8', chairColor: '#E8D5B7', chairStyle: 'chiavari',
+    tableColor: '#F0F0F2', chairColor: '#ffffff', chairStyle: 'modern',
     showChairs: true, showNumber: true, showName: false,
     isHeadTable: false, isKidsTable: false,
   },
@@ -100,7 +100,7 @@ export const TABLE_DEFAULTS: Record<string, TableConfig> = {
     seatsTop: 3, seatsBottom: 3, seatsLeft: 1, seatsRight: 1,
     seats: 8,
     minSeats: 2, maxSeats: 30,
-    tableColor: '#F5F0E8', chairColor: '#E8D5B7', chairStyle: 'chiavari',
+    tableColor: '#F0F0F2', chairColor: '#ffffff', chairStyle: 'modern',
     showChairs: true, showNumber: true, showName: false,
     isHeadTable: false, isKidsTable: false,
   },
@@ -109,7 +109,7 @@ export const TABLE_DEFAULTS: Record<string, TableConfig> = {
     realWidthCm: 220, realHeightCm: 110,
     seats: 10,
     minSeats: 6, maxSeats: 18,
-    tableColor: '#F5F0E8', chairColor: '#E8D5B7', chairStyle: 'chiavari',
+    tableColor: '#F0F0F2', chairColor: '#ffffff', chairStyle: 'modern',
     showChairs: true, showNumber: true, showName: false,
     isHeadTable: false, isKidsTable: false,
   },
@@ -119,7 +119,7 @@ export const TABLE_DEFAULTS: Record<string, TableConfig> = {
     seatsTop: 1, seatsBottom: 1, seatsLeft: 1, seatsRight: 1,
     seats: 4,
     minSeats: 2, maxSeats: 8,
-    tableColor: '#F5F0E8', chairColor: '#E8D5B7', chairStyle: 'chiavari',
+    tableColor: '#F0F0F2', chairColor: '#ffffff', chairStyle: 'modern',
     showChairs: true, showNumber: true, showName: false,
     isHeadTable: false, isKidsTable: false,
   },
@@ -139,7 +139,7 @@ export const TABLE_DEFAULTS: Record<string, TableConfig> = {
     seatsTop: 7, seatsBottom: 7, seatsLeft: 1, seatsRight: 1,
     seats: 16,
     minSeats: 6, maxSeats: 40,
-    tableColor: '#F5F0E8', chairColor: '#E8D5B7', chairStyle: 'chiavari',
+    tableColor: '#F0F0F2', chairColor: '#ffffff', chairStyle: 'modern',
     showChairs: true, showNumber: true, showName: false,
     isHeadTable: false, isKidsTable: false,
   },
@@ -175,13 +175,13 @@ function chairSVG(x: number, y: number, angleDeg: number, style: ChairStyle, col
   const s = CHAIR_STYLES[style];
   if (!s) return '';
   const fill = color ?? s.fill;
+  // Sillas como el prototipo: círculo con contorno (no rect). angleDeg no aplica a un círculo.
+  void angleDeg;
+  const rChair = Math.min(CHAIR_W, CHAIR_H) / 2;
   return `
-    <rect
-      x="${-CHAIR_W / 2}" y="${-CHAIR_H / 2}"
-      width="${CHAIR_W}" height="${CHAIR_H}"
-      rx="${s.rx}"
+    <circle
+      cx="${x}" cy="${y}" r="${rChair}"
       fill="${fill}" stroke="${s.stroke}" stroke-width="${s.strokeWidth}"
-      transform="translate(${x},${y}) rotate(${angleDeg})"
     />`;
 }
 
@@ -191,8 +191,8 @@ function chairSVG(x: number, y: number, angleDeg: number, style: ChairStyle, col
 
 function generateRoundTableSVG(config: TableConfig): string {
   const {
-    realDiameterCm = 150, seats, tableColor = '#F5F0E8', chairColor,
-    chairStyle = 'chiavari', showNumber, showName, tableName, tableNumber,
+    realDiameterCm = 150, seats, tableColor = '#F0F0F2', chairColor,
+    chairStyle = 'modern', showNumber, showName, tableName, tableNumber,
     isHeadTable, isKidsTable,
   } = config;
 
@@ -212,7 +212,7 @@ function generateRoundTableSVG(config: TableConfig): string {
     chairsSVG += chairSVG(sx, sy, angleDeg, chairStyle, chairColor);
   }
 
-  const strokeColor = isHeadTable ? '#8B4513' : isKidsTable ? '#FFD700' : '#2C2C2C';
+  const strokeColor = isHeadTable ? '#8B4513' : isKidsTable ? '#FFD700' : '#4a4a52';
   const strokeWidth = isHeadTable ? 3 : 2;
 
   let centerText = '';
@@ -247,7 +247,7 @@ function generateRectangularTableSVG(config: TableConfig): string {
   const {
     realWidthCm = 240, realHeightCm = 90,
     seatsTop = 0, seatsBottom = 0, seatsLeft = 0, seatsRight = 0,
-    tableColor = '#F5F0E8', chairColor, chairStyle = 'chiavari',
+    tableColor = '#F0F0F2', chairColor, chairStyle = 'modern',
     showNumber, showName, tableName, tableNumber,
     isHeadTable, isKidsTable,
   } = config;
@@ -287,7 +287,7 @@ function generateRectangularTableSVG(config: TableConfig): string {
     }
   }
 
-  const strokeColor = isHeadTable ? '#8B4513' : isKidsTable ? '#FFD700' : '#2C2C2C';
+  const strokeColor = isHeadTable ? '#8B4513' : isKidsTable ? '#FFD700' : '#4a4a52';
   const strokeWidth = isHeadTable ? 3 : 2;
   const textCx = mx + W / 2;
   const textCy = my + H / 2;
@@ -321,7 +321,7 @@ function generateRectangularTableSVG(config: TableConfig): string {
 function generateOvalTableSVG(config: TableConfig): string {
   const {
     realWidthCm = 220, realHeightCm = 110, seats,
-    tableColor = '#F5F0E8', chairColor, chairStyle = 'chiavari',
+    tableColor = '#F0F0F2', chairColor, chairStyle = 'modern',
     showNumber, showName, tableName, tableNumber,
     isHeadTable, isKidsTable,
   } = config;
@@ -346,7 +346,7 @@ function generateOvalTableSVG(config: TableConfig): string {
     chairsSVG += chairSVG(cx + nx * dist, cy + ny * dist, (angle * 180) / Math.PI + 90, chairStyle, chairColor);
   }
 
-  const strokeColor = isHeadTable ? '#8B4513' : isKidsTable ? '#FFD700' : '#2C2C2C';
+  const strokeColor = isHeadTable ? '#8B4513' : isKidsTable ? '#FFD700' : '#4a4a52';
   let centerText = '';
   if (showNumber && tableNumber) {
     centerText = `<text x="${cx}" y="${cy + 6}" font-family="Georgia,serif"
@@ -371,7 +371,7 @@ function generateOvalTableSVG(config: TableConfig): string {
 function generateHeadTableSVG(config: TableConfig): string {
   const {
     realWidthCm = 400, realHeightCm = 220, seats,
-    tableColor = '#FDF5EC', chairColor, chairStyle = 'chiavari',
+    tableColor = '#FDF5EC', chairColor, chairStyle = 'modern',
     showName, tableName,
   } = config;
 

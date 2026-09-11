@@ -200,6 +200,7 @@ const FileList = memo<FileListProps>(({ knowledgeBaseId, category, onOpenFile })
               index={index}
               key={item.id}
               knowledgeBaseId={knowledgeBaseId}
+              onOpenFile={onOpenFile}
               onSelectedChange={(id, checked, shiftKey, clickedIndex) => {
                 if (shiftKey && lastSelectedIndex !== null && selectFileIds.length > 0 && data) {
                   // Range selection with shift key

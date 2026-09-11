@@ -457,7 +457,7 @@ export class MessageModel {
     {
       fromModel,
       fromProvider,
-      files,
+      files: fileIds,
       plugin,
       pluginState,
       fileChunks,
@@ -472,19 +472,40 @@ export class MessageModel {
       // Ensure group message does not populate sessionId
       const normalizedMessage = message.groupId ? { ...message, sessionId: null } : message;
 
-      const [item] = (await trx
-        .insert(messages)
-        .values({
-          ...normalizedMessage,
-          // TODO: remove this when the client is updated
-          createdAt: createdAt ? new Date(createdAt) : undefined,
-          id,
-          model: fromModel,
-          provider: fromProvider,
-          updatedAt: updatedAt ? new Date(updatedAt) : undefined,
-          userId: this.userId,
-        })
-        .returning()) as DBMessageItem[];
+      const insertData = {
+        ...normalizedMessage,
+        // TODO: remove this when the client is updated
+        createdAt: createdAt ? new Date(createdAt) : undefined,
+        id,
+        model: fromModel,
+        provider: fromProvider,
+        updatedAt: updatedAt ? new Date(updatedAt) : undefined,
+        userId: this.userId,
+      };
+
+      // BUG-NEW-BUILD32-01 QA #32 (28-jun): el INSERT puede fallar (causa raíz
+      // backend: user_id pasado como email en lugar de UUID Firebase). Antes
+      // (v4) un try/catch retornaba mensaje sintético → BUG-NEW-09 (BD vacía
+      // al recargar). Tras revertir v5 → el error SQL crudo se exponía al
+      // user con schema completo + content + user_id (Y12 information leakage).
+      //
+      // v6 balance: capturar SOLO para mapear a Error genérico (sin SQL).
+      // El throw sí se propaga (no sintético) — la causa raíz hay que
+      // arreglarla en backend (api-mcp debe pasar UUID, no email). Mientras,
+      // el user ve toast genérico y Sentry recibe el error real con stack.
+      let item: DBMessageItem;
+      try {
+        const result = (await trx
+          .insert(messages)
+          .values(insertData)
+          .returning()) as DBMessageItem[];
+        item = result[0];
+      } catch (rawError) {
+        // Log completo a console (Sentry lo captura con tag http.kind=db.insert).
+        console.error('[MessageModel.create] INSERT messages failed:', rawError);
+        // Mensaje al user sin SQL crudo ni contenido del mensaje.
+        throw new Error('No se pudo guardar el mensaje. Inténtalo de nuevo.');
+      }
 
       // Insert the plugin data if the message is a tool
       if (message.role === 'tool') {
@@ -500,11 +521,19 @@ export class MessageModel {
         });
       }
 
-      if (files && files.length > 0) {
-        await trx
-          .insert(messagesFiles)
-          .values(files.map((file) => ({ fileId: file, messageId: id, userId: this.userId })));
-      }
+      // Bloque INSERT messages_files ELIMINADO 25-jun-2026.
+      //
+      // Auditoría Neon Postgres reveló: la tabla `messages_files` está VACÍA
+      // (0 filas) y `files` solo tiene 1 PNG legacy de marzo. Los uploads
+      // reales pasan 100% por api-ia + R2 (commit CAPA 2 PASO C 2026-06-05).
+      // El bug RAG QA 25-jun se reproducía contra una tabla que NUNCA se usa.
+      //
+      // Mantener este INSERT solo añade complejidad + riesgo de FK fail.
+      // RAG funciona enteramente vía api-ia (embeddings + chunks remotos).
+      //
+      // Próximo paso (sprint): drop tabla messages_files de Neon + eliminar
+      // schemas/imports drizzle + simplificar el resto del modelo.
+      void fileIds; // declarada en destructuring para compat de tipo
 
       if (fileChunks && fileChunks.length > 0 && ragQueryId) {
         await trx.insert(messageQueryChunks).values(

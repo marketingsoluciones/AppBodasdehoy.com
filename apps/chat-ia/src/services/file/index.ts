@@ -1,13 +1,8 @@
-import { isDesktop } from '@/const/version';
+import { ApiIaFileService } from './apiIa';
 
-import { ClientService as DeprecatedService } from './_deprecated';
-import { ClientService } from './client';
-import { ServerService } from './server';
+// CAPA 2 PASO C 2026-06-05: file 100% vía api-ia REST.
+// Eliminado ternary tRPC/drizzle/pglite — server.ts, client.ts, _deprecated.ts borrados.
+// 3 métodos sin endpoint api-ia (checkFileHash, removeAllFiles, removeFileAsyncTask)
+// son stubs (ver apiIa.ts). Preguntas abiertas a backend si son necesarios.
 
-const clientService =
-  process.env.NEXT_PUBLIC_CLIENT_DB === 'pglite' ? new ClientService() : new DeprecatedService();
-
-export const fileService =
-  process.env.NEXT_PUBLIC_SERVICE_MODE === 'server' || isDesktop
-    ? new ServerService()
-    : clientService;
+export const fileService = new ApiIaFileService();

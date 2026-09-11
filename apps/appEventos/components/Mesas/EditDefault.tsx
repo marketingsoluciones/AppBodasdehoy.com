@@ -1,6 +1,6 @@
 import { FC } from "react"
 import { EventContextProvider } from "../../context"
-import { fetchApiEventos, queries } from "../../utils/Fetching"
+import { fetchApiEventos, fetchApiBodas, queries } from "../../utils/Fetching"
 import { EditDefaultState } from "../../utils/Interfaces"
 import { BorrarIcon, EditarIcon } from "../icons"
 
@@ -15,28 +15,39 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
   const handleDeleteItem = async () => {
     try {
       setEditDefault({})
-      const f1 = planSpaceActive[`${itemTipo}s`].findIndex(elem => elem._id === item._id)
-      planSpaceActive[`${itemTipo}s`].splice(f1, 1)
-      setPlanSpaceActive({ ...planSpaceActive })
-      event.galerySvgs = event?.galerySvgs?.filter(elem => elem._id !== item._id) ?? []
-      setEvent({ ...event })
+      const arrayKey = `${itemTipo}s`
+      // Update inmutable: filtrar el item borrado del planSpaceActive.
+      const newPlanSpaceActive = {
+        ...planSpaceActive,
+        [arrayKey]: planSpaceActive[arrayKey].filter(elem => elem._id !== item._id),
+      }
+      setPlanSpaceActive(newPlanSpaceActive)
+      setEvent((prev) => ({
+        ...prev,
+        galerySvgs: (prev?.galerySvgs ?? []).filter(elem => elem._id !== item._id),
+        planSpace: prev.planSpace.map(ps =>
+          ps._id !== planSpaceActive._id ? ps : newPlanSpaceActive
+        ),
+      }))
       if (itemTipo == "table") {
+        // Persistir vía updateEvento({planSpace}) — deleteTable escribe en el legacy
+        // evento.mesas_array (desconectado de esta UI de planos).
+        const nextPlanSpaces = (event.planSpace ?? []).map(ps =>
+          ps._id !== planSpaceActive._id ? ps : newPlanSpaceActive
+        )
         await fetchApiEventos({
-          query: queries.deleteTable,
-          variables: {
-            eventID: event._id,
-            planSpaceID: planSpaceActive._id,
-            tableID: item._id
-          }
+          query: queries.eventUpdate,
+          variables: { idEvento: event._id, input: { planSpace: nextPlanSpaces } }
         })
+        // Toast con «Deshacer» (MesasUndoToast escucha este evento).
+        window.dispatchEvent(new CustomEvent('mesas-toast', { detail: { action: 'delete', table: item } }))
       }
       if (itemTipo == "element") {
-        await fetchApiEventos({
+        await fetchApiBodas({
           query: queries.deleteElement,
           variables: {
-            eventID: event._id,
-            planSpaceID: planSpaceActive._id,
-            elementID: item._id
+            evento_id: event._id,
+            element_id: item._id
           }
         })
       }
@@ -44,45 +55,77 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
     }
   }
   const handleRotate = async (direcction) => {
-    if (item?.rotation == 0 && direcction === "left") {
-      item.rotation = 360 - 15
+    // Calcular nueva rotación sin mutar el item.
+    let newRotation: number
+    const currentRotation = typeof item?.rotation === 'number' ? item.rotation : 0
+    if (currentRotation === 0 && direcction === "left") {
+      newRotation = 360 - 15
     } else {
-      item.rotation = item.rotation + (direcction === "left" ? -15 : 15)
-      if (item?.rotation === 360) {
-        item.rotation = 0
-      }
+      newRotation = currentRotation + (direcction === "left" ? -15 : 15)
+      if (newRotation === 360) newRotation = 0
+      if (newRotation < 0) newRotation = 360 + newRotation
     }
-    const f1 = planSpaceActive[`${itemTipo}s`].findIndex(elem => elem._id === item._id)
-    planSpaceActive[`${itemTipo}s`][f1].rotation = item?.rotation
-    setPlanSpaceActive({ ...planSpaceActive })
-    const f1e = event.planSpace.findIndex(elem => elem._id === planSpaceActive._id)
-    const f2e = event.planSpace[f1e][itemTipo === "table" ? "tables" : "elements"].findIndex(elem => elem._id === item._id)
-    event.planSpace[f1e][itemTipo === "table" ? "tables" : "elements"][f2e].rotation = item?.rotation
-    setEvent({ ...event })
+    const arrayKey = itemTipo === "table" ? "tables" : "elements"
+    // Update inmutable: rotación del item dentro de planSpaceActive y event.
+    const newPlanSpaceActive = {
+      ...planSpaceActive,
+      [arrayKey]: planSpaceActive[arrayKey].map(elem =>
+        elem._id !== item._id ? elem : { ...elem, rotation: newRotation }
+      ),
+    }
+    setPlanSpaceActive(newPlanSpaceActive)
+    setEvent((prev) => ({
+      ...prev,
+      planSpace: prev.planSpace.map(ps =>
+        ps._id !== planSpaceActive._id ? ps : newPlanSpaceActive
+      ),
+    }))
     if (itemTipo === "table") {
+      // Persistir la rotación vía updateEvento({planSpace}) — editTable escribe en el
+      // legacy evento.mesas_array (desconectado de esta UI de planos).
+      const nextPlanSpaces = (event.planSpace ?? []).map(ps =>
+        ps._id !== planSpaceActive._id ? ps : newPlanSpaceActive
+      )
       await fetchApiEventos({
-        query: queries.editTable,
-        variables: {
-          eventID: event._id,
-          planSpaceID: planSpaceActive?._id,
-          tableID: item._id,
-          variable: "rotation",
-          valor: JSON.stringify(item?.rotation)
-        }
+        query: queries.eventUpdate,
+        variables: { idEvento: event._id, input: { planSpace: nextPlanSpaces } }
       })
     }
     if (itemTipo === "element") {
-      await fetchApiEventos({
+      await fetchApiBodas({
         query: queries.editElement,
         variables: {
-          eventID: event._id,
-          planSpaceID: planSpaceActive?._id,
-          elementID: item._id,
-          variable: "rotation",
-          valor: JSON.stringify(item?.rotation)
+          evento_id: event._id,
+          element_id: item._id,
+          datos: { rotation: newRotation }
         }
       })
     }
+  }
+
+  // Agrandar/achicar el elemento (fiel al HTML: scaleFurn ±). Escala el size de forma
+  // inmutable y lo persiste con editElement (mismo patrón que la rotación). Solo elementos.
+  const handleScale = async (factor: number) => {
+    const current = item?.size && typeof item.size.width === 'number' ? item.size : { width: 80, height: 80 }
+    const clamp = (v: number) => Math.max(24, Math.min(600, Math.round(v)))
+    const newSize = { width: clamp(current.width * factor), height: clamp(current.height * factor) }
+    const newPlanSpaceActive = {
+      ...planSpaceActive,
+      elements: planSpaceActive.elements.map(elem =>
+        elem._id !== item._id ? elem : { ...elem, size: newSize }
+      ),
+    }
+    setPlanSpaceActive(newPlanSpaceActive)
+    setEvent((prev) => ({
+      ...prev,
+      planSpace: prev.planSpace.map(ps =>
+        ps._id !== planSpaceActive._id ? ps : newPlanSpaceActive
+      ),
+    }))
+    await fetchApiBodas({
+      query: queries.editElement,
+      variables: { evento_id: event._id, element_id: item._id, datos: { size: newSize } }
+    })
   }
 
   return (
@@ -98,6 +141,12 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
         disabled={!isAllowed() || itemTipo === "element"}>
         <EditarIcon className={`${itemTipo === "table" ? "text-gray-600" : "text-gray-300"} w-5 h-5`} />
       </button>
+      {itemTipo === "element" &&
+        <>
+          <button disabled={!isAllowed()} onClick={() => handleScale(1.2)} title="Agrandar" className="bg-white border border-primary rounded-md w-7 h-7 flex items-center justify-center text-gray-600 text-lg leading-none">＋</button>
+          <button disabled={!isAllowed()} onClick={() => handleScale(1 / 1.2)} title="Achicar" className="bg-white border border-primary rounded-md w-7 h-7 flex items-center justify-center text-gray-600 text-lg leading-none">−</button>
+        </>
+      }
       <button disabled={!isAllowed()} onClick={() => { handleRotate("right") }} className="bg-white border border-primary rounded-md w-7 h-7 flex items-center justify-center">
         <MdRotateRight className="text-gray-600 w-5 h-5" />
       </button>

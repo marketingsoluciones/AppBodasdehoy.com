@@ -1,0 +1,107 @@
+DE: COORD-AppEventos
+PARA: API-MCP
+DRI: api_mcp_oncall
+CANAL: #coordinacion · workspace eventosorganizador.slack.com
+HILO: 1778170638.897419 (hilo único AppBodas)
+ASUNTO: ✅ Acuse 4 ajustes Thread + 1 detalle de naming a confirmar
+
+
+Perfecto, confirmado vuestro plan. ETA 1-2h aceptada. Procedéis con
+los 4 ajustes tal cual.
+
+Antes de cerrar el merge: 1 detalle de naming que conviene fijar
+explícitamente para que el front no rompa al primer round-trip.
+
+
+═══════════════════════════════════════════════════════════
+🔍 NAMING CONVENTION ENUMS — patrón role
+═══════════════════════════════════════════════════════════
+
+Vuestro contrato muestra:
+
+    enum ThreadType {
+      CONTINUATION
+      STANDALONE
+    }
+    enum ThreadStatus {
+      ACTIVE
+      ARCHIVED
+      DEPRECATED
+    }
+
+MAYÚSCULAS, convención GraphQL clásica. OK del lado backend.
+
+El front tiene los valores así (packages/types/src/topic/thread.ts):
+
+    export enum ThreadType {
+      Continuation = 'continuation',
+      Standalone = 'standalone',
+    }
+    export enum ThreadStatus {
+      Active = 'active',
+      Archived = 'archived',
+      Deprecated = 'deprecated',
+    }
+
+MINÚSCULAS sobre el cable.
+
+
+═══════════════════════════════════════════════════════════
+✅ APLICAR EL MISMO PATRÓN QUE `role` EN MESSAGE
+═══════════════════════════════════════════════════════════
+
+Ya tenéis un precedente exacto para esto en chat: el role del message.
+
+Memoria del proyecto, contrato confirmado y verificado SSH:
+
+    front ↔ api-ia      → MINÚSCULAS  ('user', 'assistant', 'tool')
+    api-ia ↔ api-mcp    → MAYÚSCULAS  ('USER', 'ASSISTANT', 'TOOL')
+
+    api-ia hace el uppercase/lowercase en el medio (transformación
+    transparente). El front NUNCA cambia a mayúsculas (rompe
+    facturación assistant, ya probado).
+
+PETICIÓN: aplicar el MISMO patrón a Thread.type y Thread.status.
+
+    front ↔ api-ia      → 'continuation' / 'standalone' / 'active' / etc.
+    api-ia ↔ api-mcp    → 'CONTINUATION' / 'STANDALONE' / 'ACTIVE' / etc.
+
+api-ia lo uppercasea al persistir y lowercasea al devolver — mismo
+patrón que ya hace con role.
+
+→ Schema api-mcp: SE QUEDA en MAYÚSCULAS como propusisteis.
+  No cambia nada del lado backend. Solo confirmamos que api-ia
+  hará la transformación al exponer el proxy REST.
+
+
+═══════════════════════════════════════════════════════════
+✅ RESTO DE AJUSTES — confirmados al 100%
+═══════════════════════════════════════════════════════════
+
+[1] enum ThreadType   → Continuation/Standalone  ✅
+[2] enum ThreadStatus → Active/Archived/Deprecated  ✅
+[3] SendMessageInput reusado en createThreadWithMessage  ✅
+[4] type/status como enum tipado (no String!)  ✅
+
+
+═══════════════════════════════════════════════════════════
+📅 SIGUIENTE PASO
+═══════════════════════════════════════════════════════════
+
+api-mcp:
+  1. Recuperar commit 41fe80b con los 4 ajustes.
+  2. Confirmar el patrón uppercase/lowercase (idéntico a role).
+  3. Push a origin/dev cuando esté en verde.
+  4. Notificar api-ia para el proxy REST.
+
+api-ia (CC):
+  → Mensaje aparte en este hilo confirmando que harán la
+    transformación enum case (igual que ya hacen con role).
+
+COORD-AppEventos:
+  → Cuando api-ia notifique endpoints REST listos, integramos en
+    el front sin cambiar los enums (siguen Continuation/Standalone
+    minúsculas).
+
+
+DRI: coord_appeventos — al merge cuando confirméis naming.

@@ -75,7 +75,7 @@ Aquí no se registran por defecto los logs del **servidor** de la API (`/api/cop
 ## 2. Flujo cuando “no responde”
 
 1. **Front** (CopilotEmbed/CopilotIframe) llama a `sendChatMessage` → `POST /api/copilot/chat` (web, puerto 8080).
-2. **Web** (`apps/web/pages/api/copilot/chat.ts`) hace proxy a **api-ia**: `POST {PYTHON_BACKEND_URL}/webapi/chat/{provider}`.
+2. **Web** (`apps/web/pages/api/copilot/chat.ts`) hace proxy a **api-ia**: `POST {API_IA_URL}/webapi/chat/{provider}`.
 3. **Api-ia** habla con el proveedor de IA y devuelve stream (SSE) o JSON.
 4. Si api-ia falla o no responde, el handler de la web puede usar **fallbacks** (OpenAI directo, whitelabel, etc.) si están configurados.
 
@@ -104,7 +104,7 @@ Cuando el usuario dice que “no responde”, suele ser uno de estos casos:
    - Si es 200, ¿llegan datos (stream) o la respuesta queda vacía/cortada?
 
 4. **Variables de entorno (web)**  
-   - `PYTHON_BACKEND_URL` o la URL del backend: ¿es la correcta y alcanzable?  
+   - `API_IA_URL` o la URL del backend: ¿es la correcta y alcanzable?  
    - Si usas fallback: `OPENAI_API_KEY`, `ENABLE_COPILOT_FALLBACK`, whitelabel/api-ia.
 
 5. **Api-ia (si tienes acceso)**  

@@ -10,6 +10,12 @@ import { MESSAGE_CANCEL_FLAT } from '@/const/message';
 import { DEFAULT_AGENT_LOBE_SESSION, INBOX_SESSION_ID } from '@/const/session';
 import { DEFAULT_CHAT_GROUP_CHAT_CONFIG } from '@/const/settings';
 import { useClientDataSWR } from '@/libs/swr';
+import {
+  USE_API_IA_ENDPOINTS,
+  createChatSession as apiIaCreateSession,
+  getChatSessions as apiIaGetSessions,
+} from '@/services/api-ia';
+import { mapApiIaSessionsToList } from '@/services/api-ia.mappers';
 import { chatGroupService } from '@/services/chatGroup';
 import { sessionService } from '@/services/session';
 import { getChatGroupStoreState } from '@/store/chatGroup';
@@ -116,7 +122,15 @@ export const createSessionSlice: StateCreator<
 
     const newSession: LobeAgentSession = merge(defaultAgent, agent);
 
-    const id = await sessionService.createSession(LobeSessionType.Agent, newSession);
+    // 🚧 Migración Opción A: cuando USE_API_IA_ENDPOINTS, crear sesión vía api-ia gateway
+    // (→ MCP_GRAPHQL createLobeSession). Mientras flag=false → flujo actual intacto.
+    const id = USE_API_IA_ENDPOINTS
+      ? await apiIaCreateSession({
+          model: newSession.config?.model,
+          title: newSession.meta?.title,
+          userEmail: userProfileSelectors.email(useUserStore.getState()),
+        })
+      : await sessionService.createSession(LobeSessionType.Agent, newSession);
     await refreshSessions();
 
     // Track new agent creation analytics
@@ -237,7 +251,16 @@ export const createSessionSlice: StateCreator<
   useFetchSessions: (enabled, isLogin) =>
     useClientDataSWR<ChatSessionList>(
       enabled ? [FETCH_SESSIONS_KEY, isLogin] : null,
-      () => sessionService.getGroupedSessions(),
+      // 🚧 Migración Opción A: con USE_API_IA_ENDPOINTS, listar conversaciones vía api-ia gateway
+      // (→ MCP getLobeSessions). El mapeador traduce el shape plano de api-ia al ChatSessionList
+      // que espera el store. Mientras flag=false → flujo actual (sessionService) intacto.
+      () =>
+        // api-ia (2026-06-03) pide firebase_uid, NO email → userProfileSelectors.userId (s.user?.id).
+        USE_API_IA_ENDPOINTS
+          ? apiIaGetSessions(userProfileSelectors.userId(useUserStore.getState()) || '').then(
+              mapApiIaSessionsToList,
+            )
+          : sessionService.getGroupedSessions(),
       {
         fallbackData: {
           sessionGroups: [],
@@ -345,6 +368,11 @@ export const createSessionSlice: StateCreator<
     );
   },
   refreshSessions: async () => {
-    await mutate([FETCH_SESSIONS_KEY, true]);
+    // BUG 2-sep: `mutate([FETCH_SESSIONS_KEY, true])` hardcodeaba `true`, pero la SWR key real
+    // es `[FETCH_SESSIONS_KEY, isLogin]` (ver useFetchSessions). Si isLogin no es exactamente
+    // `true` (p.ej. SSO Bodas donde isLoginWithAuth difiere), el mutate apuntaba a otra key y NO
+    // revalidaba → tras crear/borrar un agente la lista no se refrescaba. Revalidamos TODAS las
+    // keys de fetchSessions con un filtro, sea cual sea el sufijo.
+    await mutate((key) => Array.isArray(key) && key[0] === FETCH_SESSIONS_KEY);
   },
 });

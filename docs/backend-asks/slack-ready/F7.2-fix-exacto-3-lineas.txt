@@ -1,0 +1,125 @@
+DE: COORD-AppEventos
+PARA: API-IA
+DRI: api_ia_oncall
+CANAL: #coordinacion
+HILO: 1778170638.897419
+ASUNTO: 🎯 Fix exacto 502 — 3 líneas en rest_chat_handler.py:6398
+
+
+SSH api3-ia confirmé la línea exacta del bug. Es 1 cambio mínimo
+en el handler + 1 cambio en OpenAIClient. Total ~6 líneas.
+
+
+═══════════════════════════════════════════════════════════
+LÍNEA EXACTA DEL BUG
+═══════════════════════════════════════════════════════════
+
+archivo: /opt/backend/rest_chat_handler.py
+líneas: 6398-6402
+
+```python
+if provider in ("openai", "gpt", "groq", "deepseek"):
+    client = OpenAIClient(api_key=api_key)        # ← FALTA base_url
+    result = await client.chat(model=model, messages=messages,
+                               temperature=payload.get("temperature", 0),
+                               response_format=response_format, **extra)
+```
+
+→ provider=groq cae en este bucket, instancia OpenAIClient SIN base_url,
+  AsyncOpenAI por defecto va a https://api.openai.com/v1
+  → la key gsk_ se rechaza con 401 → backend convierte a 502.
+
+Para `deepseek` también: actualmente caería en el mismo problema
+(API key DeepSeek a api.openai.com).
+
+
+═══════════════════════════════════════════════════════════
+FIX exacto (~6 líneas)
+═══════════════════════════════════════════════════════════
+
+1️⃣ services/ai/providers/openai.py:18-26
+   Aceptar base_url opcional (ya existe el patrón en openrouter.py):
+
+```python
+class OpenAIClient:
+    def __init__(self, api_key: str, base_url: Optional[str] = None):
+        self.api_key = api_key
+        kwargs = {"api_key": api_key}
+        if base_url:
+            kwargs["base_url"] = base_url
+        self.client = AsyncOpenAI(**kwargs)
+```
+
+2️⃣ rest_chat_handler.py:6398
+   Pasar base_url según provider:
+
+```python
+if provider in ("openai", "gpt", "groq", "deepseek"):
+    base_url = None
+    if provider == "groq":
+        base_url = "https://api.groq.com/openai/v1"
+    elif provider == "deepseek":
+        base_url = "https://api.deepseek.com/v1"
+    client = OpenAIClient(api_key=api_key, base_url=base_url)
+    # ...resto igual
+```
+
+3️⃣ Bonus opcional (mejor manejo errores) — openai.py:90
+```python
+from fastapi import HTTPException
+# ...
+elif "invalid_api_key" in error_msg or "Incorrect API key" in error_msg:
+    raise HTTPException(status_code=401,
+                        detail=f"API key inválida para {provider}: {e}")
+```
+
+→ Cliente recibe 401 (auth error) en vez de 502 (servicio caído).
+
+
+═══════════════════════════════════════════════════════════
+VERIFICACIÓN
+═══════════════════════════════════════════════════════════
+
+Tras deploy, smoke esperado:
+
+```bash
+curl -X POST https://api-ia.bodasdehoy.com/chat/structured \
+  -H "Content-Type: application/json" \
+  -H "X-Development: bodasdehoy" \
+  -d '{"messages":[{"role":"user","content":"Genera título corto"}],
+       "schema":{"type":"object","properties":{"titulo":{"type":"string"}},
+                "required":["titulo"]}}'
+```
+→ Esperado: 200 + {"success":true, "data":{"titulo":"..."}, "tracingId":"..."}
+
+(Yo hago el smoke en cuanto avéseis del deploy y arranco Fase 3b
+inmediato.)
+
+
+═══════════════════════════════════════════════════════════
+DATOS VERIFICADOS EN /opt/backend (SSH read-only)
+═══════════════════════════════════════════════════════════
+
+• La URL https://api.groq.com/openai/v1 YA está conocida en 5 sitios:
+  - services/ai_credentials_service.py:118
+  - utils/api_key_manager.py:335
+  - core/llm_adapters/groq_adapter.py:13
+  - core/orchestrator.py:91
+  - tests test_all_providers.py:182
+
+• Pero NO existe services/ai/providers/groq.py — Groq cae en el
+  bucket openai. Por eso al añadir `if provider == "groq"` resuelves.
+
+• Mismo patrón funciona ya en openrouter.py:30:
+  base_url="https://openrouter.ai/api/v1"  (verificado SSH)
+
+
+═══════════════════════════════════════════════════════════
+NameError /webapi/models (Bug #2 de F7) — pendiente
+═══════════════════════════════════════════════════════════
+
+Sigue en pie. Si queréis investigo ese también por SSH y os mando
+fix exacto. Solo decidme si va dentro del mismo PR o separado.
+
+
+DRI: coord_appeventos — SSH solo lectura, no toqué nada.

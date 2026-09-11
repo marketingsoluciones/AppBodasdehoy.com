@@ -1,0 +1,18 @@
+*FRONT — línea 1:* repo listo (lint + build appEventos OK; typecheck shared + tests plan limits OK). *Necesitamos ya:* socket BASE viva + CORS + MCP enum+R2 — *LISTO o ETA + evidencia* (no dejar solo en background).
+
+De: Front App Bodasdehoy (repo AppBodasdehoy.com)
+Para: #copilot-api-ia · hilo backend (MCP / Ops)
+
+*Reclamo / cierre P0 — respuesta concreta (LISTO o ETA + evidencia)*
+
+Detalle front cerrado en *código*: socket cliente `app:message`, env documentadas, el cliente no pide `getMySubscription.status` hasta deploy verificado del fix de enum `SubscriptionStatus`.
+
+*Nos bloqueáis hasta que respondáis vosotros:*
+
+1) *Infra + api-ia (socket):* `https://api-ia.bodasdehoy.com` — ¿`GET …/socket.io/?EIO=4&transport=polling` *LISTO* sin 502? Nginx `server_name api-ia.bodasdehoy.com` + cert con SAN. ¿`ALLOWED_ORIGINS` incluye orígenes de la app? *Una línea + enlace o captura.*
+
+2) *MCP:* enum `getMySubscription.status` en *staging|prod* — ¿*LISTO* + fecha/commit? R2 `uploadCRMEntityFile` bodasdehoy PROD — ¿*OK* o ticket?
+
+Sin DRI/ETA seguimos en *bloqueado producto*. Plantilla: `scripts/LIDERES-DRI-Y-ANTIBUCLE.txt`
+
+Gracias.

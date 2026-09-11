@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
 // Forzar uso del runtime de Node.js para poder hacer peticiones HTTP
 export const runtime = 'nodejs';
 
 const getBackendUrl = (): string =>
-  process.env.PYTHON_BACKEND_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  'https://api-ia.bodasdehoy.com';
+  resolveServerBackendOrigin();
 
 /**
  * API Route: Identificar Usuario

@@ -1,4 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { resolveApiBodasGraphqlUrl } from '../../utils/apiEndpoints';
+import { getInternalSecret } from '../../utils/internalSecret';
 
 /**
  * /api/notifications — Proxy server-side a api2 para notificaciones.
@@ -14,16 +16,39 @@ import type { NextApiRequest, NextApiResponse } from 'next';
  * GET /api/notifications?userId=Ii6UZ...&dev=champagne-events&tab=pending&page=1
  */
 
-const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
+const API_MCP_URL = resolveApiBodasGraphqlUrl();
+
+/**
+ * Lee SUPPORT_SECRET_KEY de env. Throw EXPLÍCITO si no está configurada.
+ * Antes había un fallback hardcoded (mismo valor 3 veces) que filtraba la
+ * key real en git → eliminado 2026-06-26 por política PROHIBIDO FALLBACK +
+ * recomendación AWS SES "no almacenar credenciales en repos terceros".
+ */
+function getSupportKey(): string {
+  const key = process.env.SUPPORT_SECRET_KEY;
+  if (!key) {
+    throw new Error(
+      '[notifications.ts] SUPPORT_SECRET_KEY no configurado. Configurar en .env del servidor (NUNCA hardcodear en código).',
+    );
+  }
+  return key;
+}
 
 // Server-side: generar Firebase ID token para api2
 async function getServerToken(userId: string): Promise<string | null> {
   try {
     // 1. Generar custom token via Firebase Admin en api2
-    const supportKey = process.env.SUPPORT_SECRET_KEY || 'b83ac223ebddaf5a3a303c3972e4efa27039b6d8bafc40793599cb7cefc7f433';
-    const impersonateRes = await fetch(API2_URL, {
+    const supportKey = getSupportKey();
+    // Unificación secretos api-mcp (29-jun): X-Internal-Secret junto a legacy.
+    const internalSecret = getInternalSecret();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'X-Development': 'bodasdehoy',
+      ...(internalSecret ? { 'X-Internal-Secret': internalSecret } : {}),
+    };
+    const impersonateRes = await fetch(API_MCP_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Development': 'bodasdehoy' },
+      headers,
       body: JSON.stringify({
         query: `mutation($args: SupportImpersonationArgs!) {
           supportGenerateImpersonationToken(args: $args) { success token }
@@ -68,15 +93,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!notificationId) return res.status(400).json({ error: 'notificationId required' });
     const development = bodyDev || 'bodasdehoy';
     const uid = bodyUserId || '';
+    // BUG 3 v2: leer Authorization Bearer del header (prioridad) + cookie (fallback).
+    const postAuthHeader = req.headers.authorization || req.headers.Authorization;
+    const postBearer = typeof postAuthHeader === 'string' && postAuthHeader.startsWith('Bearer ')
+      ? postAuthHeader.slice('Bearer '.length).trim()
+      : null;
     const cookieToken = req.cookies?.['idTokenV0.1.0'];
     const headers: Record<string, string> = { 'Content-Type': 'application/json', 'X-Development': development };
-    if (cookieToken && cookieToken.startsWith('ey')) headers['Authorization'] = `Bearer ${cookieToken}`;
-    else {
-      headers['X-Support-Key'] = process.env.SUPPORT_SECRET_KEY || 'b83ac223ebddaf5a3a303c3972e4efa27039b6d8bafc40793599cb7cefc7f433';
-      if (uid) headers['X-User-Id'] = uid;
+    if (postBearer && postBearer.startsWith('ey')) headers['Authorization'] = `Bearer ${postBearer}`;
+    else if (cookieToken && cookieToken.startsWith('ey')) headers['Authorization'] = `Bearer ${cookieToken}`;
+    else if (uid) {
+      headers['X-User-Id'] = uid;
     }
+    // Unificación secretos api-mcp v2 (29-jun): X-Internal-Secret es el ÚNICO
+    // secret auth servicio-servicio. X-Support-Key retirado (api-mcp endpoint
+    // /api/internal/* ya devuelve 401 al viejo). X-User-Id se mantiene como
+    // identidad (no secret).
+    const internalSecret = getInternalSecret();
+    if (internalSecret) headers['X-Internal-Secret'] = internalSecret;
     try {
-      const r = await fetch(API2_URL, { method: 'POST', headers, body: JSON.stringify({ query: MARK_AS_READ, variables: { notificationId } }) });
+      const r = await fetch(API_MCP_URL, { method: 'POST', headers, body: JSON.stringify({ query: MARK_AS_READ, variables: { notificationId } }) });
       const d = await r.json();
       return res.status(200).json({ success: d?.data?.markNotificationAsRead?.success ?? false });
     } catch { return res.status(500).json({ success: false }); }
@@ -92,8 +128,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!userId) return res.status(400).json({ error: 'userId required' });
 
-  // Intentar obtener token server-side
-  // Primero probar con la cookie del request (si el usuario tiene Firebase auth real)
+  // BUG 3 v2 QA #34 (29-jun): el handler antes SOLO leía cookies. Si el
+  // front enviaba Authorization: Bearer en header (como hace Notifications.tsx
+  // tras el fix anterior), el handler lo IGNORABA → hadToken:false →
+  // backend usaba support key fallback → 0 notifs.
+  // Fix: priorizar header Authorization explícito, luego cookie.
+  const reqAuthHeader = req.headers.authorization || req.headers.Authorization;
+  const bearerFromHeader = typeof reqAuthHeader === 'string' && reqAuthHeader.startsWith('Bearer ')
+    ? reqAuthHeader.slice('Bearer '.length).trim()
+    : null;
   const cookieToken = req.cookies?.['idTokenV0.1.0'];
 
   // Construir headers para api2
@@ -102,16 +145,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     'X-Development': development,
   };
 
-  if (cookieToken && cookieToken.startsWith('ey')) {
+  // Prioridad: 1) Authorization Bearer header explícito (Notifications.tsx),
+  //            2) cookie idTokenV0.1.0 (SSO cross-app)
+  if (bearerFromHeader && bearerFromHeader.startsWith('ey')) {
+    headers['Authorization'] = `Bearer ${bearerFromHeader}`;
+  } else if (cookieToken && cookieToken.startsWith('ey')) {
     headers['Authorization'] = `Bearer ${cookieToken}`;
   }
 
-  // Si no hay token, usar support key + X-User-Id como fallback (bypass/test)
-  const supportKey = process.env.SUPPORT_SECRET_KEY || 'b83ac223ebddaf5a3a303c3972e4efa27039b6d8bafc40793599cb7cefc7f433';
+  // Si no hay JWT del usuario, identificar el caller con X-User-Id.
+  // El AUTH servicio-servicio lo da X-Internal-Secret abajo.
   if (!headers['Authorization']) {
-    headers['X-Support-Key'] = supportKey;
     headers['X-User-Id'] = userId;
   }
+  // Unificación secretos api-mcp v2 (29-jun): X-Internal-Secret es el ÚNICO
+  // secret auth servicio-servicio. X-Support-Key retirado.
+  const internalSecret = getInternalSecret();
+  if (internalSecret) headers['X-Internal-Secret'] = internalSecret;
 
   try {
     // Query notifications
@@ -120,7 +170,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     else if (tab === 'reviewed') filters.read = true;
     // 'history' and 'all' = no filter (all notifications)
 
-    const notifRes = await fetch(API2_URL, {
+    const notifRes = await fetch(API_MCP_URL, {
       method: 'POST',
       headers,
       body: JSON.stringify({
@@ -163,7 +213,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       notifications: notifs?.notifications ?? [],
       _debug: {
         hadToken: !!headers['Authorization'],
-        usedSupportKey: !!headers['X-Support-Key'],
+        hadInternalSecret: !!headers['X-Internal-Secret'],
         api2Response: notifData?.errors ? 'errors' : 'ok',
       },
     });

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';
 
 export interface StorageData {
   monthlyCost: number;

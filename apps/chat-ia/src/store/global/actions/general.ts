@@ -41,7 +41,7 @@ export const generalActionSlice: StateCreator<
     try {
       const { dispatch } = await import('@lobechat/electron-client-ipc');
 
-      const url = `/chat?session=${sessionId}&mode=single`;
+      const url = `/asistente?session=${sessionId}&mode=single`;
 
       const result = await dispatch('createMultiInstanceWindow', {
         path: url,
@@ -63,7 +63,7 @@ export const generalActionSlice: StateCreator<
     try {
       const { dispatch } = await import('@lobechat/electron-client-ipc');
 
-      const url = `/chat?session=${sessionId}&topic=${topicId}&mode=single`;
+      const url = `/asistente?session=${sessionId}&topic=${topicId}&mode=single`;
 
       const result = await dispatch('createMultiInstanceWindow', {
         path: url,

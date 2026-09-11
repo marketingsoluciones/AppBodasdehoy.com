@@ -71,7 +71,7 @@ En **Copilot/LobeChat** el front llama hoy a API2 para: auth (JWT, login), factu
 2. ¿Hay o habrá en api-ia un flujo de **login / intercambio de token** (p. ej. Firebase → JWT) para que el front no llame a API2 para auth?
 3. **Billing / wallet / invoices:** ¿Los debe exponer api-ia (proxy a API2) o se mantienen en API2 y el front de Copilot sigue llamando a API2 solo para eso?
 
-Con esa confirmación el front podrá planificar la migración (ver listado completo en `docs/LISTADO-LLAMADAS-API2-AUDITORIA.md`).
+Con esa confirmación el front podrá planificar la migración (ver listado completo en `docs/LISTADO-LLAMADAS-MCP-AUDITORIA.md`).
 
 ---
 
@@ -86,7 +86,7 @@ Con esa confirmación el front podrá planificar la migración (ver listado comp
 ## Referencias en el repo
 
 - **Informe detallado:** `docs/INFORME-BACKEND-API-IA-IMPLEMENTAR.md`
-- **Listado de llamadas a API2 (auditoría):** `docs/LISTADO-LLAMADAS-API2-AUDITORIA.md`
+- **Listado de llamadas a MCP (auditoría):** `docs/LISTADO-LLAMADAS-MCP-AUDITORIA.md`
 - **Despliegue app-test:** `docs/DESPLIEGUE-APP-TEST-COPILOT.md`
 
 Cuando los endpoints estén listos, el front solo tendrá que definir las variables de entorno indicadas; no hará falta cambiar código.

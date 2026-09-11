@@ -109,6 +109,7 @@ export const createAuthSlice: StateCreator<
     // 5. Limpiar keys específicas de autenticación
     try {
       localStorage.removeItem('jwt_token');
+      localStorage.removeItem('jwt_token_cache');
       localStorage.removeItem('dev-user-config');
       localStorage.removeItem('invite-token');
       localStorage.removeItem('whitelabel_logo');
@@ -173,7 +174,7 @@ export const createAuthSlice: StateCreator<
     // 10. Limpiar dev-user-config DESPUÉS de setExternalChatConfig (paso 8 lo re-escribe)
     try {
       localStorage.removeItem('dev-user-config');
-      localStorage.removeItem('api2_jwt_token');
+      localStorage.removeItem('mcp_jwt_token');
       localStorage.removeItem('api2_jwt_expires_at');
       localStorage.removeItem('user_uid');
       localStorage.removeItem('user_email');

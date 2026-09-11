@@ -1,0 +1,55 @@
+DE: COORD-AppEventos
+PARA: API-IA
+DRI: api-ia backend_oncall
+ASUNTO: 3 bugs RAG/knowledge-base bloquean migración chat-ia → api-ia
+
+Hola equipo api-ia. Auditamos la paridad del RAG antes de migrar el RAG nativo de chat-ia a vuestros endpoints. El flujo subir→vectorizar→GUARDAR→buscar está roto en "guardar". No podemos migrar (perderíamos funcionalidad) hasta que esto pase. 3 bugs, todos en api-ia.bodasdehoy.com, tenant bodasdehoy:
+
+────────────────────────────────────
+BUG 1 (ALTA) — /api/lobechat-kb/embed NO guarda en ChromaDB
+────────────────────────────────────
+El body es CORRECTO (cumple schema EmbedRequest). Falla al guardar:
+
+curl -X POST https://api-ia.bodasdehoy.com/api/lobechat-kb/embed \
+  -H "Content-Type: application/json" -H "X-Development: bodasdehoy" \
+  -d '{"text":"El catering para la boda incluye menu de 3 platos","user_id":"smoke-test","file_id":"smoke-file-1"}'
+
+→ 500 {"error":"internal_error","message":"Error guardando embedding en ChromaDB","trace_id":"trc_15646feae4b4"}
+
+Lo usa chat-ia (lobechatKBMiddleware.ts). Pedimos: revisar trace trc_15646feae4b4, confirmar
+si ChromaDB está levantado y si existe la colección para tenant bodasdehoy.
+
+────────────────────────────────────
+BUG 2 (MEDIA) — /api/lobechat-kb/batch-embed contrato array vs objeto
+────────────────────────────────────
+Vuestro OpenAPI dice que /batch-embed espera un ARRAY [{text,user_id,file_id}].
+chat-ia (rag.ts:73) envía un OBJETO {file_id, user_id} SIN text (solo dispara la tarea por file_id).
+
+curl -X POST .../api/lobechat-kb/batch-embed -H "X-Development: bodasdehoy" \
+  -d '{"file_id":"smoke-file-1","user_id":"smoke-test"}'
+→ 422 "Input should be a valid list"
+
+DECISIÓN DE CONTRATO (necesitamos vuestra postura):
+ - Opción A: el FRONT manda el array de chunks ya con sus textos. Problema: el front NO tiene los
+   textos de los chunks, solo el file_id (vosotros tenéis el archivo vía /files/*).
+ - Opción B (recomendado COORD): /batch-embed recibe {file_id, user_id} y api-ia lee los chunks
+   del archivo internamente y los vectoriza. El front solo dispara por file_id.
+¿Confirmáis Opción B o preferís otra? Según vuestra respuesta, COORD alinea el front.
+
+────────────────────────────────────
+BUG 3 (BAJA-MEDIA) — /api/lobechat-kb/query-embedding 500 al generar embedding
+────────────────────────────────────
+curl -X POST .../api/lobechat-kb/query-embedding -H "X-Development: bodasdehoy" \
+  -d '{"query":"flores para boda en jardin"}'
+→ 500 "Error generando embedding" (3/3). Traces: trc_b6d95ca8bb50, trc_844a0d4c53b3, trc_ac90d6a4f0bd
+
+OJO: /webapi/embeddings y /search SÍ generan embedding (dims 1024). O sea el motor funciona por
+otra ruta; /query-embedding usa un code path que falla. chat-ia NO lo usa hoy (usa /search), pero
+conviene arreglarlo. Pedimos: revisar por qué /query-embedding falla y /search no.
+
+────────────────────────────────────
+LO QUE SÍ FUNCIONA (verificado): /search (200, dims 1024), /webapi/embeddings (200), /files/health, /lobechat-kb/stats.
+
+Cuando confirméis fix de BUG 1 + decisión BUG 2, COORD re-ejecuta el smoke. Si 3/3 verde → migramos.
+
+DRI: api-ia → responder con plan + fecha en este hilo.

@@ -67,12 +67,16 @@ export interface UpdateMessageParams {
   imageList?: ChatImageItem[];
   metadata?: MessageMetadata;
   model?: string;
+  // observabilidad/tracing (Langfuse): el flujo de generateAIChat/plugin actualiza el mensaje
+  // con su traceId/observationId tras el stream. Campos opcionales, no rompen DB legacy.
+  observationId?: string;
   provider?: string;
   reasoning?: ModelReasoning;
   role?: string;
   search?: GroundingSearch;
   toolCalls?: MessageToolCall[];
   tools?: ChatToolPayload[] | null;
+  traceId?: string;
 }
 
 export interface NewMessageQueryParams {

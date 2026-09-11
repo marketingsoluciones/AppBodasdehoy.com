@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
+import { resolveMcpOrigin } from '@/const/mcpEndpoints';
 
 export const runtime = 'nodejs';
-
-const getApiIaUrl = (): string =>
-  process.env.PYTHON_BACKEND_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  'https://api-ia.bodasdehoy.com';
-
-const getApi2Url = (): string =>
-  process.env.API2_URL || 'https://api2.eventosorganizador.com';
+const API_IA_ORIGIN = resolveServerBackendOrigin();
+const MCP_ORIGIN = resolveMcpOrigin();
 
 /**
  * Proxy catch-all: /api/messages/[...path]
@@ -16,7 +12,7 @@ const getApi2Url = (): string =>
  * Arquitectura objetivo: TODO pasa por api-ia (orquestador).
  *
  * TEMPORAL (hasta que api-ia implemente GAP 1 del RFC 2026-03-05):
- *   /api/messages/whatsapp/* → api2 /api/whatsapp/*  (Baileys QR personal)
+ *   /api/messages/whatsapp/* → MCP /api/whatsapp/*  (Baileys QR personal)
  *
  * Definitivo:
  *   todo lo demás → api-ia /api/messages/*
@@ -28,7 +24,7 @@ const getApi2Url = (): string =>
  *   /api/messages/web/*        → api-ia (Widget embebible + SSE)
  *
  * TODO: Cuando api-ia implemente /api/messages/conversations con datos Baileys
- *       y /api/messages/whatsapp/session/:dev, eliminar el bloque whatsapp→api2.
+ *       y /api/messages/whatsapp/session/:dev, eliminar el bloque whatsapp→MCP.
  */
 async function proxyRequest(request: NextRequest, path: string[]): Promise<NextResponse> {
   const subpath = path.join('/');
@@ -37,13 +33,20 @@ async function proxyRequest(request: NextRequest, path: string[]): Promise<NextR
 
   let targetUrl: string;
   if (subpath.startsWith('whatsapp/')) {
-    // TEMPORAL: WhatsApp Baileys va directo a api2 hasta que api-ia lo orqueste
-    const api2Path = subpath.replace(/^whatsapp\//, '');
-    targetUrl = `${getApi2Url()}/api/whatsapp/${api2Path}${search}`;
+    const waPath = subpath.replace(/^whatsapp\//, '');
+    // MIGRACIÓN (QA 26-ago): los endpoints de MENSAJES (messages/send, messages/template)
+    // migraron a api-ia — MCP ya NO expone /api/whatsapp/messages/* (404 "Cannot POST").
+    // La SESIÓN/QR (Baileys, session/*) SIGUE en MCP. Enrutamos cada uno a su backend:
+    //   whatsapp/messages/* → api-ia   ·   whatsapp/session/* (y resto) → MCP
+    if (waPath.startsWith('messages/')) {
+      targetUrl = `${API_IA_ORIGIN}/api/whatsapp/${waPath}${search}`;
+    } else {
+      targetUrl = `${MCP_ORIGIN}/api/whatsapp/${waPath}${search}`;
+    }
   } else {
     // api-ia expone conversations/{id} sin el sufijo /messages — normalizar el path
     const normalizedSubpath = subpath.replace(/^(conversations\/[^/]+)\/messages$/, '$1');
-    targetUrl = `${getApiIaUrl()}/api/messages/${normalizedSubpath}${search}`;
+    targetUrl = `${API_IA_ORIGIN}/api/messages/${normalizedSubpath}${search}`;
   }
 
   // Propagar headers de autenticación y contexto completos

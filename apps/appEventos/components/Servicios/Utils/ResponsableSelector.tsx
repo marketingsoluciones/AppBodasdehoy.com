@@ -113,7 +113,7 @@ export const ResponsableSelector: FC<props> = ({ disable, handleChange, ...props
                                             className="bg-white cursor-pointer absolute border border-gray-400 rounded-full shadow-lg -top-5 w-10 h-10 translate-y-1/2 -translate-x-1 flex items-center justify-center transition-all ">
                                             {!showResposables && idx === 2 && selectIcon.length > 3
                                                 ? "+" + (selectIcon.length - 2)
-                                                : <img src={
+                                                : <img alt={item ?? 'responsable'} src={
                                                     GruposResponsablesArry?.find((elem) => elem?.title === item)?.icon
                                                         ? GruposResponsablesArry.find((elem) => elem?.title === item).icon
                                                         : usersList.find((elem) => elem?.displayName === item)?.photoURL
@@ -134,7 +134,7 @@ export const ResponsableSelector: FC<props> = ({ disable, handleChange, ...props
                         {field?.value?.map((item, idx) => {
                             return (
                                 < div key={idx} className="flex items-center space-x-1 px-1 py-2 md:py-1 hover:bg-gray-200 overflow-hidden rounded-full truncate ">
-                                    <img src={
+                                    <img alt={item ?? 'responsable'} src={
                                         GruposResponsablesArry?.find((elem) => elem?.title === item)?.icon
                                             ? GruposResponsablesArry.find((elem) => elem?.title === item).icon
                                             : usersList.find((elem) => elem?.displayName === item)?.photoURL

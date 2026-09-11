@@ -3,6 +3,7 @@ import { AuthContextProvider, EventContextProvider } from "../context"
 import VistaSinCookie from "./vista-sin-cookie"
 import { useMounted } from "../hooks/useMounted"
 import CopilotIframe from "../components/Copilot/CopilotIframe"
+import { usePlanLimits } from "../hooks/usePlanLimits"
 
 const STYLES = [
   { key: "romantico", label: "Romántico", emoji: "🌹", desc: "Flores blancas, velas, drapeados, tonos rosa y marfil" },
@@ -19,6 +20,23 @@ const DisenioEspacios: FC = () => {
   useMounted()
   const { user, verificationDone, config } = AuthContextProvider()
   const { event } = EventContextProvider()
+  const { plan, loading: planLoading } = usePlanLimits()
+
+  if (config?.copilotEnabled !== true) {
+    if (typeof window !== 'undefined') window.location.replace('/')
+    return null
+  }
+  const isAuthenticated = !!user?.uid && user?.displayName !== "guest"
+  const canUseDesignIA =
+    !!plan &&
+    Array.isArray((plan as any)?.product_limits) &&
+    (plan as any).product_limits.some(
+      (l: any) => l?.sku === "image-gen" && (l?.free_quota > 0 || l?.overage_enabled === true)
+    )
+  if (isAuthenticated && !planLoading && !canUseDesignIA) {
+    if (typeof window !== 'undefined') window.location.replace('/facturacion')
+    return null
+  }
 
   if (config?.copilotEnabled === false) {
     if (typeof window !== 'undefined') window.location.replace('/')
@@ -34,7 +52,7 @@ const DisenioEspacios: FC = () => {
       <div className="flex h-screen w-full overflow-hidden bg-base">
         {/* Panel lateral de referencia de estilos */}
         <aside className="hidden lg:flex flex-col w-72 xl:w-80 shrink-0 border-r border-gray-200 bg-white overflow-y-auto">
-          <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-pink-50">
+          <div className="p-4 border-b border-gray-100 bg-base">
             <h2 className="text-base font-semibold text-gray-800">🏛️ Diseño de Espacios</h2>
             <p className="text-xs text-gray-500 mt-1">
               Visualiza tu salón con IA. Habla con el asistente para generar ideas.
@@ -49,7 +67,7 @@ const DisenioEspacios: FC = () => {
               {STYLES.map((s) => (
                 <div
                   key={s.key}
-                  className="flex items-start gap-2.5 p-2.5 rounded-lg bg-gray-50 hover:bg-purple-50 transition-colors cursor-default"
+                  className="flex items-start gap-2.5 p-2.5 rounded-lg bg-gray-50 hover:bg-base transition-colors cursor-default"
                 >
                   <span className="text-lg shrink-0">{s.emoji}</span>
                   <div className="min-w-0">

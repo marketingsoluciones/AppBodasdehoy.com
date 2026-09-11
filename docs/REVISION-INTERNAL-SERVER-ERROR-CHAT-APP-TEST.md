@@ -56,7 +56,7 @@ Por tanto: **"Internal Server Error" dentro del iframe del Copilot = fallo en ch
 2. **Logs del servidor chat-test:**  
    Buscar en consola del proceso Next.js (o logs de despliegue) el stack trace del error (el handler de `/webapi/chat` y el catch final loguean con `console.error`).
 3. **Variables de entorno:**  
-   `PYTHON_BACKEND_URL`, `USE_PYTHON_BACKEND`, etc. Si el proxy a api-ia falla o hay config incorrecta, puede acabar en 500.
+   `API_IA_URL`, `USE_PYTHON_BACKEND`, etc. Si el proxy a api-ia falla o hay config incorrecta, puede acabar en 500.
 4. **Health de api-ia:**  
    Si chat-test hace proxy a api-ia y api-ia está caído o devuelve error, el route puede convertir eso en 500/502.
 

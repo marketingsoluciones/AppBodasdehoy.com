@@ -194,3 +194,24 @@ export const haveCommentsChanged = (prevComments: Comment[], newComments: Commen
       oldComment.attachments?.length !== newComment.attachments?.length;
   });
 };
+// Limpia valores de `responsable` mal formados (JSON escapado/anidado como
+// ["\"Bodas\""] o strings con corchetes/comillas) → lista de nombres limpios.
+export const cleanResponsables = (raw: any): string[] => {
+  const out: string[] = [];
+  const walk = (v: any) => {
+    if (v == null) return;
+    if (Array.isArray(v)) { v.forEach(walk); return; }
+    let s = String(v).trim();
+    for (let i = 0; i < 3 && s && (s[0] === '[' || s[0] === '"'); i++) {
+      try {
+        const p = JSON.parse(s);
+        if (Array.isArray(p)) { p.forEach(walk); return; }
+        s = String(p).trim();
+      } catch { break; }
+    }
+    s = s.replace(/[[\]"\\]/g, '').trim();
+    if (s) out.push(s);
+  };
+  walk(raw);
+  return Array.from(new Set(out));
+};

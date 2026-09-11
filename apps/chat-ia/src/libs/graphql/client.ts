@@ -8,6 +8,7 @@ import { createClient } from 'graphql-ws';
 import { BRANDING_NAME } from '@lobechat/const';
 import { getSupportKey } from '@/const/supportKeys';
 import { getAPIOriginHeader, getCurrentDevelopment } from '@/utils/developmentDetector';
+import { resolvePublicMcpGraphqlUrl, resolveServerMcpGraphqlUrl } from '@/const/mcpEndpoints';
 
 // ✅ FIX: Suprimir errores de campos faltantes en cache de Apollo
 // Estos errores ocurren cuando la API no devuelve campos opcionales como 'aiModel'
@@ -27,14 +28,12 @@ if (typeof window !== 'undefined') {
   };
 }
 
-// Configuración de endpoints - en el navegador usar same-origin para evitar CORS
-const getBackendUrl = () =>
-  typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030');
-const BACKEND_URL = getBackendUrl();
-const HTTP_ENDPOINT =
-  process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT ||
-  (BACKEND_URL ? `${BACKEND_URL}/graphql` : '/api/graphql');
-const WS_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_WS_ENDPOINT || `ws://localhost:8030/graphql`;
+const HTTP_ENDPOINT = typeof window !== 'undefined' ? '/api/graphql' : resolveServerMcpGraphqlUrl();
+
+const WS_ENDPOINT =
+  typeof window !== 'undefined'
+    ? resolvePublicMcpGraphqlUrl().replace(/^https:/, 'wss:').replace(/^http:/, 'ws:')
+    : resolveServerMcpGraphqlUrl().replace(/^https:/, 'wss:').replace(/^http:/, 'ws:');
 
 // Crear link para agregar headers de autenticación dinámicamente
 const authLink = new SetContextLink((prevContext) => {
@@ -150,10 +149,9 @@ const splitLink =
 // Apollo Client
 export const apolloClient = new ApolloClient({
   cache: new InMemoryCache({
-    // ✅ FIX: Permitir campos faltantes en el cache (evita errores "Missing field 'aiModel'")
-    // @ts-expect-error - Apollo InMemoryCache config
-    addTypename: true,
-    // ✅ NO fallar si hay campos undefined
+    // addTypename es true por DEFAULT en Apollo Client (ya no se pasa explícito).
+    // Antes había un `addTypename: true` con @ts-expect-error pero esa opción
+    // NO existe en InMemoryCacheConfig — silenciosamente ignorada por Apollo.
     possibleTypes: {},
     typePolicies: {
       // ✅ FIX: Manejar campos opcionales en tipos de mensaje

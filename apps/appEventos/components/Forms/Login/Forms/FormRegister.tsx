@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import { publicKey } from './../../../../publicKey.js'
+import { publicKey } from './../../../../publicKey'
 import { Formik, Form, ErrorMessage } from "formik";
 import { Dispatch, FC, SetStateAction, useState } from "react";
 import { EmailIcon, Eye, EyeSlash, LockClosed, PhoneMobile, UserForm } from "../../../icons";
@@ -12,7 +12,7 @@ import { parseJwt, phoneUtil, useAuthentication } from "../../../../utils/Authen
 import { fetchApiBodas, fetchApiEventos, queries } from "../../../../utils/Fetching";
 import { useRouter } from "next/navigation";
 import { FirebaseError } from 'firebase/app';
-import Cookies from 'js-cookie';
+import { setCrossAppIdToken } from '@bodasdehoy/shared/auth';
 import * as yup from "yup";
 import { useActivity } from '../../../../hooks/useActivity';
 import InputField from '../../InputField';
@@ -71,10 +71,10 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
     }).test("Unico", "Correo inválido", async (value) => {
       const name = document.activeElement?.getAttribute("name")
       if (name !== "identifier" && value?.includes("@")) {
-        const result = await fetchApiBodas({
+        // Migrado a api-mcp 2026-05-17 — getEmailValid implementado en canonical
+        const result = await fetchApiEventos({
           query: queries.getEmailValid,
           variables: { email: value },
-          development: config?.development
         })
         return result?.valid
       } else {
@@ -130,8 +130,9 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
       );
       UserFirebase = userCredential.user;
       const idToken = await userCredential.user.getIdToken()
-      const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-      Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
+      // BUG-1 (informe QA 21-jun): safeJwtExpiry undefined → session cookie.
+      // Escritor único de la cookie compartida (SessionBridge), atributos consistentes.
+      if (idToken) setCrossAppIdToken(idToken)
 
       values.uid = userCredential.user.uid;
     } catch (error) {
@@ -151,8 +152,9 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
             const userCredential: UserCredential = await signInWithCustomToken(getAuth(), result)
             UserFirebase = userCredential.user
             const idToken = await userCredential.user.getIdToken()
-            const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-            Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
+            // BUG-1 (informe QA 21-jun): safeJwtExpiry undefined → session cookie.
+            // Escritor único de la cookie compartida (SessionBridge), atributos consistentes.
+            if (idToken) setCrossAppIdToken(idToken)
             await getSessionCookie(idToken)
             values.uid = UserFirebase.uid
           } catch {
@@ -212,10 +214,14 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
               mobile: (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
             }
           }
-        }).catch(() => {})
+        }).catch((error) => {
+          // Tracking de preregistro best-effort: si falla NO bloquea el registro.
+          console.warn('[FormRegister] updateActivityLink preregistered falló:', error?.message ?? error)
+        })
       }
       setPhoneNumber(values?.phoneNumber)
-    } catch {
+    } catch (error) {
+      console.warn('[FormRegister] handlePreRegister:', error)
     }
   }
 
@@ -251,13 +257,21 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
             <div className={`w-full relative ${WihtProvider ? "hidden" : ""}`}>
               <InputFieldIcons
                 name="password"
-                type={passwordView ? "password" : "text"}
-                autoComplete="off"
+                // BUG-CW-N02 (informe QA 22-jun noche): la lógica estaba INVERTIDA —
+                // passwordView=false (default "ocultar") devolvía type="text" que
+                // exponía la contraseña en texto plano. El usuario veía su password
+                // sin máscara al teclearla. Fix: passwordView=true → "text", false → "password".
+                type={passwordView ? "text" : "password"}
+                // OBS-1 (informe QA 21-jun): autoComplete="new-password" señaliza al browser
+                // que es una contraseña NUEVA (no pre-rellenar con credenciales guardadas).
+                autoComplete="new-password"
                 label={t("password")}
                 autoFocus={!!preregister}
                 icon={<LockClosed className="absolute w-4 h-4 inset-y-0 left-4 m-auto  text-gray-500" />} />
               <div onClick={() => { setPasswordView(!passwordView) }} className="absolute cursor-pointer inset-y-0 top-5 right-4 m-auto w-4 h-4 text-gray-500" >
-                {!passwordView ? <Eye /> : <EyeSlash />}
+                {/* Cuando ocultas (default), muestras icono "ojo abierto" (clic para mostrar);
+                    cuando muestras, "ojo tachado" (clic para ocultar). */}
+                {passwordView ? <EyeSlash /> : <Eye />}
               </div>
             </div>
           }

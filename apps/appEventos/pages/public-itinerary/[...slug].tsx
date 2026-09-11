@@ -12,6 +12,7 @@ import { TimeZone } from "../../components/icons";
 import { getTimeZoneCity } from "../../utils/FormatTime";
 import { useTranslation } from "react-i18next";
 import { BsCalendarPlus } from "react-icons/bs";
+import { resolveApiBodasOrigin } from "../../utils/apiEndpoints";
 
 interface props {
   evento: Event | null
@@ -25,7 +26,7 @@ interface TaskReduce {
   tasks?: Task[]
 }
 
-const apiAppImgBase = (process.env.NEXT_PUBLIC_BASE_URL || "https://apiapp.bodasdehoy.com").replace(/\/$/, "");
+const apiAppImgBase = resolveApiBodasOrigin().replace(/\/$/, "");
 
 const PublicItineraryUnavailable = ({ title, body }: { title: string; body: string }) => (
   <div className="min-h-[60vh] w-full flex flex-col items-center justify-center px-6 py-16 text-center bg-base">
@@ -42,20 +43,6 @@ const Slug: FC<props> = (props) => {
   const [tasksReduce, setTasksReduce] = useState<TaskReduce[]>()
   const { t } = useTranslation()
 
-  if (props?.error) {
-    const isSlug = props.error === "invalid-slug"
-    return (
-      <PublicItineraryUnavailable
-        title={isSlug ? "Enlace no válido" : "No se pudo cargar el itinerario"}
-        body={
-          isSlug
-            ? "La dirección del itinerario está incompleta o mal formada. Comprueba que hayas abierto el enlace completo."
-            : "Hubo un problema al obtener los datos. Puede ser temporal: prueba de nuevo en unos minutos."
-        }
-      />
-    )
-  }
-
   /** Si eventsGroup está vacío (invitado en ruta pública), EventContext hace setEvent(null) al cambiar user; no perder el SSR. */
   const effectiveEvent = useMemo(() => {
     if (event?.itinerarios_array?.length) return event
@@ -68,6 +55,7 @@ const Slug: FC<props> = (props) => {
   const itinerarioId = slugParts[2]
 
   useEffect(() => {
+    if (props?.error) return
     const ev = props?.evento
     if (!ev?.itinerarios_array?.[0]) return
     const it0 = ev.itinerarios_array[0]
@@ -79,12 +67,14 @@ const Slug: FC<props> = (props) => {
   }, [props.evento, setEvent])
 
   useEffect(() => {
+    if (props?.error) return
     setTimeout(() => {
       setEnd(true)
     }, 2000);
   }, [])
 
   useEffect(() => {
+    if (props?.error) return
     const ev = effectiveEvent
     if (ev?.itinerarios_array?.[0]?.tasks?.length > 0) {
       const tasks = [ev?.itinerarios_array?.[0]?.tasks?.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())]
@@ -107,6 +97,20 @@ const Slug: FC<props> = (props) => {
       setTasksReduce([])
     }
   }, [effectiveEvent])
+
+  if (props?.error) {
+    const isSlug = props.error === "invalid-slug"
+    return (
+      <PublicItineraryUnavailable
+        title={isSlug ? "Enlace no válido" : "No se pudo cargar el itinerario"}
+        body={
+          isSlug
+            ? "La dirección del itinerario está incompleta o mal formada. Comprueba que hayas abierto el enlace completo."
+            : "Hubo un problema al obtener los datos. Puede ser temporal: prueba de nuevo en unos minutos."
+        }
+      />
+    )
+  }
 
   if (!props?.evento?.itinerarios_array?.length) {
     return (
@@ -157,6 +161,7 @@ const Slug: FC<props> = (props) => {
                 src={effectiveEvent?.imgEvento ? `${apiAppImgBase}/${effectiveEvent?.imgEvento?.i800}` : defaultImagenes[effectiveEvent?.tipo?.toLowerCase()]}
                 className="h-[90%] object-cover object-top rounded-md border-1 border-gray-600 block"
                 alt={effectiveEvent?.nombre}
+                onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[effectiveEvent?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
               />
               <div className='hidden md:flex flex-col font-display font-semibold text-md text-gray-500 px-2 leading-3'>
                 <span className='text-sm text-primary text-[12px] first-letter:capitalize'>{effectiveEvent?.tipo}</span>
@@ -215,33 +220,35 @@ export async function getServerSideProps({ params, req }) {
       };
     }
     const development = developmentFromRequestHost(req?.headers?.host)
-    let evento: Event | null = null;
+    // Visor PÚBLICO sin login → getPublicItinerario (backend, 11-sep): devuelve SOLO el
+    // itinerario con tareas spectatorView=true (nunca el evento ni tareas privadas).
+    let itinerario: any = null;
     try {
-      const data = await fetchApiEventosServer({
-        query: queries.getItinerario,
-        variables: {
-          evento_id,
-          itinerario_id
-        },
+      const data: any = await fetchApiEventosServer({
+        query: queries.getPublicItinerario,
+        variables: { evento_id, itinerario_id },
         development,
       });
-      evento = data.getItinerario;
+      itinerario = data?.getPublicItinerario ?? data;
     } catch (error) {
       try {
-        evento = await fetchApiEventos({
-          query: queries.getItinerario,
-          variables: {
-            evento_id,
-            itinerario_id
-          }
-        }) as any;
+        const data2: any = await fetchApiEventos({
+          query: queries.getPublicItinerario,
+          variables: { evento_id, itinerario_id }
+        });
+        itinerario = data2?.getPublicItinerario ?? data2;
       } catch (error2) {
         throw error2;
       }
     }
+    // Envolver el itinerario público en la forma que espera la página (evento con
+    // itinerarios_array). No exponemos datos del evento (nombre/imagen) por privacidad.
+    const evento: Event | null = (itinerario && itinerario._id)
+      ? ({ _id: evento_id, nombre: itinerario.title || "", tipo: "", itinerarios_array: [itinerario] } as any)
+      : null;
     if (evento) {
-      openGraphData.openGraph.title = `${evento?.itinerarios_array?.[0]?.title || "Itinerario"}`
-      openGraphData.openGraph.description = `Mira el itinerario del evento ${evento?.nombre} y no te pierdas de nada`
+      openGraphData.openGraph.title = `${itinerario?.title || "Itinerario"}`
+      openGraphData.openGraph.description = `Mira el itinerario y no te pierdas de nada`
     }
     return {
       props: {

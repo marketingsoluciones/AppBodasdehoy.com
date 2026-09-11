@@ -6,7 +6,7 @@ export const GuestEmailCell: FC<GuestCellProps> = ({ value, row }) => {
   const router = useRouter();
 
   if (value !== "") {
-    return <div>{value}</div>;
+    return <span>{value}</span>;
   }
 
   return (

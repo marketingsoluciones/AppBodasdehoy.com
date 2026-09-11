@@ -74,7 +74,7 @@ export const DEMO_EVENT: Event = {
     coste_estimado: 18500,
     coste_final: 18200,
     pagado: 12400,
-    currency: '€',
+    currency: 'eur', // 27-jun: símbolo '€' → ISO 'eur' por coherencia y petición api-mcp
     visibleColumns: [],
     totalStimatedGuests: { children: 12, adults: 130 },
     weddingPlannerIngresos: [],

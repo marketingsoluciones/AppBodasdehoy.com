@@ -3,6 +3,7 @@ import { ChevronDown, Search, X, Check, User, Calendar } from 'lucide-react';
 import { TableDropdownProps, SelectOption, TASK_STATUSES, TASK_PRIORITIES } from './NewTypes';
 import { useTranslation } from 'react-i18next';
 import { fetchApiEventos, queries } from '../../../utils/Fetching';
+import { isStudioPathname } from '../../../utils/studioPaths';
 
 export const TableDropdown: React.FC<TableDropdownProps> = ({ options, value, onChange, placeholder = "Seleccionar...", multiple = false, searchable = false, size = 'md' }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -154,11 +155,34 @@ export const TableDropdown: React.FC<TableDropdownProps> = ({ options, value, on
 };
 
 // Dropdown especializado para estados
+const useStudioDrop = () => typeof window !== "undefined"
+  && isStudioPathname(window.location.pathname)
+  && new URLSearchParams(window.location.search).get("studio") !== "legacy";
+
+// Estado = chip de color (fondo suave). Prioridad = solo texto de color. Fiel a
+// tareasvistatabla_1.html: sin caja de dropdown; la edición se hace abriendo la fila.
+const EST_CHIP: Record<string, [string, string, string]> = {
+  pending: ["#f0f0f2", "#3A3A42", "#3A3A42"], in_progress: ["#FCE7F0", "#D83E7C", "#EF5B94"],
+  completed: ["#E4F5EE", "#2FB37E", "#2FB37E"], blocked: ["#FBE3ED", "#D83E7C", "#D83E7C"],
+};
+const PRIO_TXT: Record<string, string> = { alta: "#D83E7C", media: "#8F6E14", baja: "#2FB37E" };
+
 export const StatusDropdown: React.FC<{
   value: string;
   onChange: (value: string) => void;
   size?: 'sm' | 'md' | 'lg';
 }> = ({ value, onChange, size = 'md' }) => {
+  const { t } = useTranslation();
+  if (useStudioDrop()) {
+    const opt = TASK_STATUSES.find((o: any) => o.value === (value || 'pending')) || TASK_STATUSES[0];
+    const [bg, fg, dot] = EST_CHIP[String(opt.value)] ?? EST_CHIP.pending;
+    return (
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 11px", borderRadius: 12, background: bg, color: fg, font: "600 11px Poppins", whiteSpace: "nowrap" }}>
+        <span style={{ width: 7, height: 7, borderRadius: "50%", background: dot, flex: "none" }} />
+        {t(opt.label)}
+      </span>
+    );
+  }
   return (
     <TableDropdown
       options={TASK_STATUSES}
@@ -176,6 +200,15 @@ export const PriorityDropdown: React.FC<{
   onChange: (value: string) => void;
   size?: 'sm' | 'md' | 'lg';
 }> = ({ value, onChange, size = 'md' }) => {
+  const { t } = useTranslation();
+  if (useStudioDrop()) {
+    const opt = TASK_PRIORITIES.find((o: any) => o.value === (value || 'media')) || TASK_PRIORITIES[0];
+    return (
+      <span style={{ font: "600 12px Poppins", color: PRIO_TXT[String(opt.value)] ?? "#8F6E14", whiteSpace: "nowrap" }}>
+        {t(opt.label)}
+      </span>
+    );
+  }
   return (
     <TableDropdown
       options={TASK_PRIORITIES}

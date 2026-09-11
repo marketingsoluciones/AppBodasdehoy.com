@@ -1,4 +1,4 @@
-import { CrawlErrorResult, CrawlSuccessResult } from '@lobechat/web-crawler';
+import { CrawlErrorResult, CrawlSuccessResult } from '../webCrawler';
 
 export interface CrawlSinglePageQuery {
   url: string;

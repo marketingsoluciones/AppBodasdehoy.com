@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bypass Local Champagne Events</title>
+  <meta charset="utf-8">
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px;
+      background: #fafae4; /* Color base champagne events */
+      color: #333;
+    }
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #d07a49; /* Color secundario champagne */
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #555;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #ecb290; /* Color primario champagne */
+    }
+    button {
+      background: #ecb290;
+      color: white;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #d07a49;
+    }
+    .result {
+      margin-top: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border-left: 4px solid #ecb290;
+      display: none;
+    }
+    .result.show {
+      display: block;
+    }
+    .code {
+      background: #f1f3f4;
+      padding: 15px;
+      border-radius: 6px;
+      font-family: monospace;
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+    .instructions {
+      background: #e8f4fd;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 30px;
+      border-left: 4px solid #2196f3;
+    }
+    .instructions h3 {
+      margin-top: 0;
+      color: #1976d2;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🍾 Bypass Local Champagne Events</h1>
+    <p>Simula el bypass cuando no hay conectividad a los dominios.</p>
+    
+    <div class="form-group">
+      <label for="email">Email del usuario principal:</label>
+      <input type="email" id="email" placeholder="ej: admin@champagne-events.com.mx" value="jcc@bodasdehoy.com">
+    </div>
+    
+    <div class="form-group">
+      <label for="development">Development (whitelabel):</label>
+      <select id="development">
+        <option value="champagne-events" selected>champagne-events</option>
+        <option value="bodasdehoy">bodasdehoy</option>
+        <option value="eventosorganizador">eventosorganizador</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="uid">UID (opcional - si tienes acceso a API2):</label>
+      <input type="text" id="uid" placeholder="ej: upSETrmXc7ZnsIhrjDjbHd7u2up1">
+    </div>
+    
+    <button onclick="activateBypass()">🔓 Activar Bypass Local</button>
+    
+    <div id="result" class="result">
+      <h3>✅ Bypass Activado</h3>
+      <p>Se han establecido las siguientes variables en localStorage:</p>
+      <div class="code" id="codeOutput"></div>
+      
+      <div class="instructions">
+        <h3>📋 Instrucciones para usar el bypass:</h3>
+        <ol>
+          <li>Abre la app de champagne events en tu navegador</li>
+          <li>Abre las herramientas de desarrollador (F12)</li>
+          <li>Pega el siguiente código en la consola:</li>
+          <div class="code" id="consoleCode"></div>
+          <li>Refresca la página (F5)</li>
+          <li>Verifica que estás autenticado como el usuario especificado</li>
+        </ol>
+        
+        <h3>🔍 Verificación:</h3>
+        <p>Ejecuta en consola:</p>
+        <div class="code">
+          console.log('dev_bypass:', localStorage.getItem('dev_bypass'));
+          console.log('dev_bypass_email:', localStorage.getItem('dev_bypass_email'));
+          console.log('__dev_domain:', localStorage.getItem('__dev_domain'));
+          console.log('dev_bypass_uid:', localStorage.getItem('dev_bypass_uid'));
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function activateBypass() {
+      const email = document.getElementById('email').value;
+      const development = document.getElementById('development').value;
+      const uid = document.getElementById('uid').value;
+      
+      // Establecer localStorage
+      localStorage.setItem('dev_bypass', 'true');
+      localStorage.setItem('dev_bypass_email', email);
+      localStorage.setItem('__dev_domain', development);
+      if (uid) {
+        localStorage.setItem('dev_bypass_uid', uid);
+      }
+      
+      // Mostrar resultado
+      const resultDiv = document.getElementById('result');
+      const codeOutput = document.getElementById('codeOutput');
+      const consoleCode = document.getElementById('consoleCode');
+      
+      let code = `localStorage.setItem('dev_bypass', 'true');\n`;
+      code += `localStorage.setItem('dev_bypass_email', '${email}');\n`;
+      code += `localStorage.setItem('__dev_domain', '${development}');\n`;
+      if (uid) {
+        code += `localStorage.setItem('dev_bypass_uid', '${uid}');\n`;
+      }
+      
+      codeOutput.textContent = code;
+      consoleCode.textContent = code;
+      
+      resultDiv.classList.add('show');
+      
+      // Scroll al resultado
+      resultDiv.scrollIntoView({ behavior: 'smooth' });
+      
+      console.log('[Local Bypass] ✅ Activado para:', email);
+      console.log('[Local Bypass] Development:', development);
+      if (uid) console.log('[Local Bypass] UID:', uid);
+    }
+    
+    // Cargar valores por defecto si existen en localStorage
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedEmail = localStorage.getItem('dev_bypass_email');
+      const savedDev = localStorage.getItem('__dev_domain');
+      const savedUid = localStorage.getItem('dev_bypass_uid');
+      
+      if (savedEmail) document.getElementById('email').value = savedEmail;
+      if (savedDev) document.getElementById('development').value = savedDev;
+      if (savedUid) document.getElementById('uid').value = savedUid;
+    });
+  </script>
+</body>
+</html>

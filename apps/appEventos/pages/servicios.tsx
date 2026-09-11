@@ -9,6 +9,7 @@ import EventLoadingOrError from "../components/Utils/EventLoadingOrError"
 import { motion } from "framer-motion"
 import { useSearchParams } from "next/navigation"
 import { useMounted } from "../hooks/useMounted"
+import { useEventSyncWithUrl } from "../hooks/useEventSyncWithUrl"
 import CopilotFilterBar from "../components/Utils/CopilotFilterBar"
 
 
@@ -18,6 +19,7 @@ const Itinerario: FC<any> = (props) => {
     const { user, setUser, verificationDone, forCms } = AuthContextProvider()
     const searchParams = useSearchParams()
     useMounted()
+    useEventSyncWithUrl()  // BUG-12: hook centralizado (sustituye el patrón inline previo)
 
     const queryEvent = searchParams.get("event")
 
@@ -51,6 +53,9 @@ const Itinerario: FC<any> = (props) => {
     if (!user) {
         return <VistaSinCookie />
     }
+    const isStudioTareas = typeof window !== "undefined"
+        && window.location.pathname === "/servicios"
+        && new URLSearchParams(window.location.search).get("studio") !== "legacy"
     if (!event) return <EventLoadingOrError skeleton={<SkeletonTimeline groups={2} tasksPerGroup={3} />} />
     return (
         <section className={`${forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4" : "bg-base  w-full pt-2 md:py-0"} flex`}>
@@ -58,9 +63,14 @@ const Itinerario: FC<any> = (props) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="mx-auto inset-x-0 w-full pl-2 pr-[1px] md:px-4 gap-4 relative">
-                <BlockTitle title={"Tasks"} />
-                <CopilotFilterBar entity="services" />
+                className={`max-w-screen-lg mx-auto inset-x-0 w-full ${isStudioTareas ? "px-4 pt-3" : "pl-2 pr-[1px] md:px-4"} gap-4 relative`}>
+                {/* En móvil studio, TareasStudioMovil (vía ItineraryPanel) y TareasVacioStudio
+                    traen su propia cabecera "Lista de tareas"; el holder de escritorio se oculta
+                    en móvil para no duplicarla. */}
+                <div className={isStudioTareas ? "hidden md:block" : ""}>
+                    <BlockTitle title={"Lista de tareas"} />
+                    <CopilotFilterBar entity="services" />
+                </div>
                 <BoddyIter />
             </motion.div>
         </section>

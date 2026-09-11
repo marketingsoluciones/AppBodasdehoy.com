@@ -1,6 +1,6 @@
 'use client';
 
-import { ModelProvider } from 'model-bank';
+import { ModelProvider } from '@lobechat/types';
 import { useTranslation } from 'react-i18next';
 
 import { FormInput, FormPassword } from '@/components/FormInput';

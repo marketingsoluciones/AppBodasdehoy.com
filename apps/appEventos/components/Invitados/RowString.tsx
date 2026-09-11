@@ -2,7 +2,7 @@ import { cloneElement, FC, useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { useAllowed } from "../../hooks/useAllowed";
 import { EventContextProvider } from "../../context";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiEventos, fetchApiBodas, queries } from "../../utils/Fetching";
 
 interface props {
   initialValue: string
@@ -21,16 +21,24 @@ export const RowString: FC<props> = (props) => {
   const [isAllowed] = useAllowed()
 
   const handleChange = ({ value }) => {
-    const f1 = event?.invitados_array?.findIndex(elem => elem._id === guestID)
-    event.invitados_array[f1][variable] = value
-    setEvent({ ...event })
-    fetchApiEventos({
+    // Inmutable: NO mutar event.invitados_array directamente. Reemplazamos la
+    // referencia para que React detecte el cambio y los useMemo/useEffect que
+    // comparen invitados_array por referencia se invaliden correctamente.
+    setEvent((prev: any) => {
+      if (!prev?.invitados_array) return prev
+      const idx = prev.invitados_array.findIndex((elem: any) => elem._id === guestID)
+      if (idx < 0) return prev
+      const next = { ...prev }
+      next.invitados_array = [...prev.invitados_array]
+      next.invitados_array[idx] = { ...next.invitados_array[idx], [variable]: value }
+      return next
+    })
+    fetchApiBodas({
       query: queries.editGuests,
       variables: {
         eventID: event._id,
         guestID,
-        variable,
-        value: value
+        datos: { [variable]: value }
       },
     }).then(() => {
       setValue(value)

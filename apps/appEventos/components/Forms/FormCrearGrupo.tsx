@@ -1,8 +1,9 @@
 import { Form, Formik } from "formik";
+import { formikValidateUx } from "./formikValidateUx";
 import { EventContextProvider } from "../../context";
 import InputField from "./InputField";
 import * as yup from "yup";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 
@@ -21,16 +22,23 @@ const FormCrearGrupo = ({ set, state }) => {
 
   const handleSubmit = async (values, actions) => {
     try {
-      const { grupos_array }: any = await fetchApiEventos({
+      const result: any = await fetchApiBodas({
         query: queries.createGroup,
         variables: {
           eventID: event._id,
-          name: values.nombre,
+          grupo: values.nombre,
         },
       });
+      // fetchApiBodas devuelve null en error GraphQL (NO lanza). No destructurar {evento}
+      // directo (lanzaría en null) y confirmar éxito REAL antes del toast + actualizar lista.
+      if (!result?.success || (result?.errors?.length ?? 0) > 0) {
+        const backendMsg = result?.errors?.[0]?.message;
+        toast("error", `${t("Ha ocurrido un error al crear el grupo")}${backendMsg ? `: ${backendMsg}` : ""}`);
+        return;
+      }
       setEvent((old) => ({
         ...old,
-        grupos_array,
+        grupos_array: result?.evento?.grupos_array ?? old?.grupos_array,
       }));
       toast("success", t("Grupo creado con exito"));
     } catch (error) {
@@ -42,6 +50,7 @@ const FormCrearGrupo = ({ set, state }) => {
   };
   return (
     <Formik
+      {...formikValidateUx}
       initialValues={initialValues}
       onSubmit={handleSubmit}
       validationSchema={validationSchema}

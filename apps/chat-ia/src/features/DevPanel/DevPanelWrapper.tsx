@@ -1,12 +1,16 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { memo, useEffect, useState, useMemo } from 'react';
 
 import { getDebugConfig } from '@/envs/debug';
 import { useUserStore } from '@/store/user';
 import { userProfileSelectors } from '@/store/user/slices/auth/selectors';
 
-import DevPanel from './index';
+// SPRINT-AA: DevPanel (tabs + debugger + logger UI) solo se renderiza si user es admin
+// o tiene query ?debug=true. Para 99% sessions normales NO se necesita → dynamic ssr:false
+// saca todo el panel del bundle inicial. DevPanelWrapper mantiene lógica check síncrona.
+const DevPanel = dynamic(() => import('./index'), { ssr: false });
 
 /**
  * Lista de emails con acceso al panel de debug (hardcoded + env)

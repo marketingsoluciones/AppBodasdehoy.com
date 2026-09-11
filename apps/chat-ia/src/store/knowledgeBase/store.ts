@@ -6,15 +6,13 @@ import { createDevtools } from '../middleware/createDevtools';
 import { KnowledgeBaseStoreState, initialState } from './initialState';
 import { KnowledgeBaseContentAction, createContentSlice } from './slices/content';
 import { KnowledgeBaseCrudAction, createCrudSlice } from './slices/crud';
-import { RAGEvalAction, createRagEvalSlice } from './slices/ragEval';
 
 //  ===============  聚合 createStoreFn ============ //
 
 export interface KnowledgeBaseStore
   extends KnowledgeBaseStoreState,
     KnowledgeBaseCrudAction,
-    KnowledgeBaseContentAction,
-    RAGEvalAction {
+    KnowledgeBaseContentAction {
   // empty
 }
 
@@ -24,7 +22,6 @@ const createStore: StateCreator<KnowledgeBaseStore, [['zustand/devtools', never]
   ...initialState,
   ...createCrudSlice(...parameters),
   ...createContentSlice(...parameters),
-  ...createRagEvalSlice(...parameters),
 });
 
 //  ===============  实装 useStore ============ //

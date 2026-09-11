@@ -1,0 +1,211 @@
+═══════════════════════════════════════════════════════════════════════════
+ AUDITORÍA FRONT — 17/06/2026 (v2)
+ PARA: cowork (auditor de confianza, login real en UI)
+ DE:   COORD-FRONT AppBodasdehoy
+ OBJETIVO: que esté todo funcionando al 100% — necesito hechos, no especulación
+═══════════════════════════════════════════════════════════════════════════
+
+CONTEXTO RÁPIDO
+─────────────────────────────────────────
+Acabo de desplegar 2 fixes importantes y tengo 2 informes de un auditor menos
+fiable (Trae) que apuntan a bugs que NO he podido confirmar al 100% por código.
+Necesito que TÚ audites con login real en la UI y me traigas EVIDENCIA dura.
+
+BUILDS A USAR (hard-refresh Cmd+Shift+R o incógnito si ves otro hash):
+  · app-dev.bodasdehoy.com → BUILD_ID: TQP4SI7S1hJCjh4J7HGLK  (17-jun, con BUG-19 fix)
+  · chat-dev.bodasdehoy.com → BUILD_ID: V25QUtu9 (sin cambios respecto a tu auditoría anterior)
+
+QUE EL BUILD_ID QUE VES COINCIDA es REQUISITO. Si no coincide, reportarlo y NO
+seguir — sería falso positivo. Para verlo:
+  DevTools → Network → primera petición a app-dev → Response Headers / Body → buscar "buildId"
+  o ver en el <script> de _next/static/<BUILD_ID>/...
+
+USUARIOS (password lorca2012M*+):
+  · bodasdehoy.com@gmail.com   ADMIN (Google OAuth)
+  · jcc@bodasdehoy.com         colaborador (email/password) ← úsalo si OAuth da problemas
+  · jcc@marketingsoluciones.com colaborador (a veces "auth/network-request-failed", ignora)
+
+
+═══════════════════════════════════════════════════════════════════════════
+ BLOQUE 1 — VERIFICAR FIXES DESPLEGADOS (deben estar OK)
+═══════════════════════════════════════════════════════════════════════════
+
+✅ BUG-19 (CRÍTICO) — /mesas crasheaba al crear mesa
+─────────────────────────────────────────────────
+Antes: TypeError "Cannot read properties of undefined (reading 'x')" tumbaba todo el plano.
+Fix desplegado en TQP4SI7S1hJCjh4J7HGLK:
+  - apps/appEventos/components/Mesas/DragableDefault.tsx (guard item?.position?.x ?? 0)
+  - apps/appEventos/components/Mesas/LienzoDragable.tsx (mismo guard)
+  - apps/appEventos/components/Forms/TableConfigurator.tsx (construye mesa local
+    con position+title+tipo, en vez de spread crudo del result api-mcp).
+
+PROBAR:
+  1. Login en app-dev con jcc@bodasdehoy.com.
+  2. Seleccionar evento "Boda Isabel & Raúl" (admin tiene 0 eventos en DEV, por eso jcc).
+  3. Ir a Mesas / Configurar mesas → ¿abre el plano sin crashear?
+  4. Crear una mesa nueva con el botón "+" (configurador visual).
+     ¿Se añade visualmente al plano sin ErrorBoundary?
+  5. DevTools → Console → ¿hay TypeError "Cannot read properties of undefined (reading 'x')"?
+     ¿Hay algún warning sobre _id temporal?
+EVIDENCIA QUE NECESITO:
+  - Captura del plano de mesas con la mesa nueva añadida (o de fallo)
+  - Console logs (filtrar "error", "TypeError", "Warning")
+  - Network → respuesta de mutation createTable (qué devuelve: success/errors/evento/table)
+
+✅ Socket.io → api-ia (BUG-02 socket 404 que QA reportaba)
+─────────────────────────────────────────────────
+Verificar que en /messages o cualquier vista realtime NO aparezca:
+  ws://api-mcp/socket.io/?... → 404
+Debería ir a api-ia y dar handshake 200 con SID válido.
+
+PROBAR:
+  1. Login app-dev como jcc@bodasdehoy.com.
+  2. Network → filtrar "socket.io" → ¿la URL es api-ia.bodasdehoy.com? ¿status 200 + body con "sid"?
+EVIDENCIA: captura Network del handshake.
+
+
+═══════════════════════════════════════════════════════════════════════════
+ BLOQUE 2 — AUDITAR BUGS REPORTADOS POR TRAE (probables falsos positivos)
+═══════════════════════════════════════════════════════════════════════════
+
+🔴 INFORME TRAE #1 — "Crear evento falla con 'Falta información de usuario (uid/nombre)'"
+─────────────────────────────────────────────────
+QUE DIJO TRAE:
+  - Al guardar evento "Boda de Ana Luisa y Miguel" (Boda, 12/04/2027, Europe/Madrid)
+    aparece el error literal: "Falta información de usuario (uid/nombre). Refresca
+    la página e inténtalo de nuevo."
+  - Trae lo declaró P0 con causa "sesión parcial / desincronización".
+
+LO QUE YO VERIFIQUÉ EN CÓDIGO:
+  - El throw está en apps/appEventos/components/Forms/FormCrearEvento.tsx:135.
+  - Salta cuando TODAS estas fuentes son null:
+      * getAuth().currentUser?.uid
+      * AuthContext user?.uid
+      * (values as any)?.usuario_id
+    Y mismo para usuario_nombre (displayName/email).
+  - Ya existe un fix (commit f666c251 del 13-jun) que carga el perfil real de BD
+    en login para evitar name/email null. Ya hay onVisibilityChange que refresca
+    token Firebase al volver a la pestaña.
+
+QUÉ NECESITO QUE COMPRUEBES (con login REAL como ADMIN Google OAuth):
+  1. Login en app-dev como bodasdehoy.com@gmail.com con Google OAuth.
+     - Antes de ir a "crear evento": DevTools → Application → Cookies →
+       ¿están AMBAS: idTokenV0.1.0 + sessionBodas (domain .bodasdehoy.com)?
+     - DevTools → Console → escribir:
+         firebase.auth().currentUser?.uid
+         firebase.auth().currentUser?.displayName
+         firebase.auth().currentUser?.email
+       ¿Devuelve valores reales o null/undefined?
+  2. Ir a "crear evento" → rellenar: Nombre "Boda Test Audit", Tipo Boda,
+     Fecha 12/04/2027, Zona Europe/Madrid → pulsar Guardar.
+     - ¿Aparece el toast "Falta información de usuario..."? ¿O guarda OK?
+     - Si aparece: ¿desaparece tras refresh (F5) y reintento?
+  3. Repetir con jcc@bodasdehoy.com (email/password, NO OAuth) → ¿pasa lo mismo?
+  4. DevTools → Network → filtrar "graphql" → ¿llega a salir la petición eventCreate?
+     ¿Con qué payload (input)? ¿Llega usuario_id? ¿usuario_nombre? Captura del JSON enviado.
+
+HIPÓTESIS QUE QUIERO QUE CONFIRMES/DESCARTES:
+  H1: Es timing — Firebase aún hidratando cuando usuario pulsa Guardar muy rápido.
+      → Si tras F5 + reintento guarda OK, es esto. NO es bug bloqueador, es fix UX.
+  H2: Es un caso real de sesión rota — admin Google OAuth NO termina de poblar
+      displayName/email en AuthContext nunca.
+      → Si tras F5 sigue fallando, es esto. Es bug real.
+  H3: Trae tenía cache viejo / estaba en build sin f666c251.
+      → Si en BUILD TQP4SI7S1hJCjh4J7HGLK no se reproduce nunca, es esto.
+
+🔴 INFORME TRAE #2 — "Servicios → crear tarea falla con TaskInput.titulo / enum / 404"
+─────────────────────────────────────────────────
+QUE DIJO TRAE (errores backend literales que mostró):
+  POST /api/proxy/graphql
+  404
+  Cannot POST /uploads/graphql
+
+  Variable "$task" got invalid value { descripcion: "..." };
+  Field "titulo" of required type "String!" was not provided.
+
+  Variable "$task" got invalid value "media" at "task.prioridad";
+  Value "media" does not exist in "TaskPrioridad" enum.
+
+  Field "responsable" is not defined by type "TaskInput".
+  Field "tips" is not defined by type "TaskInput".
+
+LO QUE YO VERIFIQUÉ EN CÓDIGO:
+  - El front usa fetchApiEventos → adapter apiMcpAdapter.ts:498 que mapea
+    `createTask(task:TaskInput)` legacy → `crearTarea(tarea:TareaInput)` canonical.
+  - Probé EN VIVO contra api-mcp con shape del adapter:
+      → crearTarea respondió: success:false, "UNAUTHENTICATED" (shape OK, solo falta JWT)
+      → createTask legacy respondió: "Cannot query field _id on type Task" (mutation rota)
+  - El adapter manda `crearTarea` correctamente, así que el front NO debería ver
+    los errores que reporta Trae si está en BUILD TQP4SI7S1hJCjh4J7HGLK.
+
+QUÉ NECESITO QUE COMPRUEBES (con login REAL):
+  1. Login app-dev como jcc@bodasdehoy.com.
+  2. Seleccionar evento "Boda Isabel & Raúl" → ir a Servicios.
+  3. Verificar que estás en BUILD_ID TQP4SI7S1hJCjh4J7HGLK (Network primera carga).
+  4. DevTools → Network → filtrar "graphql".
+  5. Pulsar "+" para crear tarea nueva. Rellenar:
+     - Título/descripción: "Tarea Audit Test"
+     - Prioridad: media
+     - Responsable: novia
+     - Guardar
+  6. CAPTURAR:
+     a. URL exacta de la petición POST (¿es /api/proxy/graphql, /api/proxy-bodas/graphql, o api-mcp directo?)
+     b. Status code (200, 400, 404, 500)
+     c. Request payload (Body completo del POST) — necesito ver si manda:
+        - mutation createTask o crearTarea
+        - task:TaskInput o tarea:TareaInput
+        - campos: descripcion, titulo, responsable, tips, prioridad
+     d. Response body (errores GraphQL si los hay, success/errors/task)
+  7. ¿La tarea aparece en la lista de Servicios tras crearla? ¿Persiste al recargar (F5)?
+  8. Console → ¿hay errores rojos? ¿Avisos sobre adapter o mutation?
+
+HIPÓTESIS QUE QUIERO QUE CONFIRMES/DESCARTES:
+  H1: Trae estaba en build cache viejo SIN adapter MCP → vio errores de createTask
+      legacy contra apiapp roto. En build nuevo NO se reproduce.
+  H2: El adapter MCP no se aplica en esta pantalla concreta (Servicios) y SÍ
+      manda createTask legacy → error real, hay que arreglar.
+  H3: El adapter SÍ se aplica pero crearTarea de api-mcp tiene OTRO bug
+      (auth, schema, lo que sea) → reportar a api-mcp.
+
+
+═══════════════════════════════════════════════════════════════════════════
+ BLOQUE 3 — BUGS PENDIENTES de auditorías anteriores
+═══════════════════════════════════════════════════════════════════════════
+
+Si llegas con tiempo después de los 2 anteriores, valida estos:
+
+BUG-14 ADMIN VE 0 EVENTOS — bodasdehoy.com@gmail.com con Google OAuth
+─────────────────────────────────────────────────
+  - getAllUserRelatedEventsByEmail(... bodasdehoy.com@gmail.com ...).total → 185 vía API
+  - getEventosByUsuario(uid_admin, ...) → 0 en la UI dashboard
+  ¿Qué uid se envía? ¿La respuesta es total:0 con success:true (datos reales)
+  o success:false (auth/conexión)? Capturar Network.
+
+BUG-17 Presupuesto no re-renderiza tras crear partida
+BUG-18 Invitaciones sin feedback al enviar
+BUG-15 Tipo evento no precarga
+BUG-16 Nombre invitado truncado
+BUG-UI-01 menú "USER" placeholder
+BUG-NAV-1 click Cerrar Sesión → /public-card en vez de /login
+
+Para cada uno: reproducir, capturar Network/Console, decir si sigue o no.
+
+
+═══════════════════════════════════════════════════════════════════════════
+ FORMATO DE RESPUESTA QUE NECESITO
+═══════════════════════════════════════════════════════════════════════════
+
+Para cada bug auditado:
+  - BUILD_ID que vi (confirmar que coincide con TQP4SI7S1hJCjh4J7HGLK / V25QUtu9)
+  - ESTADO: ✅ resuelto / 🔴 sigue / 🟡 parcial / ❓ no reproducible
+  - EVIDENCIA: capturas + payloads Network + logs Console
+  - DIAGNÓSTICO: qué falla exacto (URL, query, field, valor)
+  - CULPA: ¿front, api-mcp, api-ia, o entorno?
+  - HIPÓTESIS confirmada/descartada de las que te di
+
+Y resumen final en tabla:
+  | Bug | BUILD_ID | Estado | Culpa | Próxima acción |
+  |---|---|---|---|---|
+
+GRACIAS. Cuando tengas el informe, vuélveme el mismo formato y yo decido qué
+arreglar en el front, qué escalar a api-mcp/api-ia y qué declarar cerrado.

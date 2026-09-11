@@ -90,11 +90,11 @@ export const BoardStatistics: React.FC<BoardStatisticsProps> = ({
     color?: string;
   }) => {
     const colorClasses = {
-      blue: 'bg-pink-50 text-primary border-pink-200',
-      green: 'bg-[#eeffee] text-green border-[#b2ffb2]',
-      red: 'bg-[#fff0f0] text-[#ff2525] border-[#ffbfbf]',
+      blue: 'bg-base text-primary border-primary',
+      green: 'bg-emerald-50 text-emerald-700 border-emerald-300',
+      red: 'bg-red-50 text-red-700 border-red-300',
       amber: 'bg-amber-50 text-amber-600 border-amber-200',
-      purple: 'bg-purple-50 text-purple-600 border-purple-200',
+      purple: 'bg-secondary/10 text-secondary border-secondary',
       gray: 'bg-gray-50 text-gray-600 border-gray-200'
     };
 
@@ -116,14 +116,14 @@ export const BoardStatistics: React.FC<BoardStatisticsProps> = ({
           <div className="mt-3 flex items-center space-x-1">
             {trend === 'up' && (
               <>
-                <TrendingUp className="w-4 h-4 text-green" />
-                <span className="text-xs text-green">{t('Mejorando')}</span>
+                <TrendingUp className="w-4 h-4 text-emerald-600" />
+                <span className="text-xs text-emerald-600">{t('Mejorando')}</span>
               </>
             )}
             {trend === 'down' && (
               <>
-                <TrendingDown className="w-4 h-4 text-[#ff2525]" />
-                <span className="text-xs text-[#ff2525]">{t('Bajando')}</span>
+                <TrendingDown className="w-4 h-4 text-red-600" />
+                <span className="text-xs text-red-600">{t('Bajando')}</span>
               </>
             )}
             {trend === 'stable' && (
@@ -211,7 +211,7 @@ export const BoardStatistics: React.FC<BoardStatisticsProps> = ({
             <span className="text-sm text-gray-600 w-20">{t('Alta')}</span>
             <div className="flex-1 bg-gray-200 rounded-full h-6 relative overflow-hidden">
               <div 
-                className="absolute inset-y-0 left-0 bg-[#fff0f0]0 rounded-full flex items-center justify-end pr-2"
+                className="absolute inset-y-0 left-0 bg-red-500 rounded-full flex items-center justify-end pr-2"
                 style={{ width: `${statistics.totalTasks > 0 ? (statistics.highPriorityTasks / statistics.totalTasks) * 100 : 0}%` }}
               >
                 <span className="text-xs text-white font-medium">{statistics.highPriorityTasks}</span>
@@ -235,7 +235,7 @@ export const BoardStatistics: React.FC<BoardStatisticsProps> = ({
             <span className="text-sm text-gray-600 w-20">{t('Baja')}</span>
             <div className="flex-1 bg-gray-200 rounded-full h-6 relative overflow-hidden">
               <div 
-                className="absolute inset-y-0 left-0 bg-[#eeffee]0 rounded-full flex items-center justify-end pr-2"
+                className="absolute inset-y-0 left-0 bg-emerald-500 rounded-full flex items-center justify-end pr-2"
                 style={{ width: `${statistics.totalTasks > 0 ? (statistics.lowPriorityTasks / statistics.totalTasks) * 100 : 0}%` }}
               >
                 <span className="text-xs text-white font-medium">{statistics.lowPriorityTasks}</span>
@@ -246,9 +246,9 @@ export const BoardStatistics: React.FC<BoardStatisticsProps> = ({
       </div>
 
       {/* Insights y recomendaciones */}
-      <div className="bg-pink-50 border border-pink-200 rounded-lg p-4">
-        <h4 className="text-sm font-medium text-primary mb-2">{t('Insights')}</h4>
-        <ul className="space-y-1 text-sm text-primary">
+      <div className="bg-base border border-primary rounded-lg p-4">
+        <h4 className="text-sm font-medium text-gray-800 mb-2">{t('Insights')}</h4>
+        <ul className="space-y-1 text-sm text-gray-700">
           {statistics.completionRate < 50 && (
             <li>• {t('La tasa de completado está por debajo del 50%. Considera revisar las prioridades.')}</li>
           )}

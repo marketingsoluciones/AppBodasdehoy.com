@@ -72,7 +72,13 @@ export const InputCommentsOld: FC<props> = ({ itinerario, task, tempPastedAndDro
             .then(() => {
               elem.loading = false
             })
-            .catch(() => {})
+            .catch((error) => {
+              // Marcar el archivo como error para que la UI pueda mostrar estado
+              // (el componente debe leer elem.loading/elem.error en su render).
+              elem.loading = false
+              ;(elem as any).error = error?.code ?? error?.message ?? 'upload_failed'
+              console.warn('[InputCommentsOld] uploadBytesResumable falló:', elem.file?.name, error?.message ?? error)
+            })
         })
         Promise.all(promises).then(() => {
           setTempPastedAndDropFiles([...tempPastedAndDropFiles])
@@ -102,19 +108,33 @@ export const InputCommentsOld: FC<props> = ({ itinerario, task, tempPastedAndDro
       fetchApiEventos({
         query: queries.createComment,
         variables: {
-          eventID: event?._id,
-          itinerarioID: itinerario?._id,
-          taskID: task?._id,
-          comment: valueSend,
-          attachments,
-          nicknameUnregistered
+          task_id: task?._id,
+          development: config?.development || "bodasdehoy",
+          comment: { mensaje: valueSend }
         },
-        domain: config.domain
-      }).then((results: Comment) => {
+        development: config?.development
+      }).then((res: any) => {
+        const results = {
+          _id: res?._id || `temp-${Date.now()}`,
+          comment: valueSend,
+          uid: user?.uid,
+          createdAt: new Date(),
+          nicknameUnregistered,
+          attachments: [],
+        } as unknown as Comment;
         const f1 = event?.itinerarios_array.findIndex(elm => elm?._id === itinerario?._id)
         const f2 = event?.itinerarios_array[f1]?.tasks.findIndex(elm => elm?._id === task?._id)
-        event?.itinerarios_array[f1]?.tasks[f2]?.comments.push(results)
-        setEvent({ ...event })
+        setEvent((prev) => ({
+          ...prev,
+          itinerarios_array: prev.itinerarios_array.map((it, i) =>
+            i !== f1 ? it : {
+              ...it,
+              tasks: it.tasks.map((tk, j) =>
+                j !== f2 ? tk : { ...tk, comments: [...(tk.comments ?? []), results] }
+              ),
+            }
+          ),
+        }))
         const asd = event?.detalles_compartidos_array?.filter(elem => ["edit", "view"].includes(elem?.permissions?.find(el => el.title === "servicios")?.value))?.map(elem => elem.uid) ?? []
         let qwe = [...asd, event?.usuario_id]
         const af1 = qwe?.findIndex(elem => elem === user?.uid)

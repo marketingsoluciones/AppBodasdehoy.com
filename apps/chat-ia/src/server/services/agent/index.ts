@@ -1,8 +1,6 @@
 import { LobeChatDatabase } from '@lobechat/database';
 
 import {
-  DEFAULT_OPENING_MESSAGE,
-  DEFAULT_OPENING_QUESTIONS,
   getOpeningMessageForDevelopment,
   getOpeningQuestionsForDevelopment,
 } from '@/const/agents/defaultCopilotSystemRole';

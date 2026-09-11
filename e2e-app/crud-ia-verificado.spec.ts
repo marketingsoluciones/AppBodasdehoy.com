@@ -16,7 +16,7 @@
  *   - Al menos un evento en la cuenta de prueba
  */
 import { test, expect } from '@playwright/test';
-import { clearSession, loginAndSelectEvent, gotoModule, waitForAppReady } from './helpers';
+import { clearSession, loginAndSelectEvent, navigateToModule, waitForAppReady } from './helpers';
 import { getChatUrl } from './fixtures';
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
@@ -132,7 +132,7 @@ test.describe('CRUD via IA — Verificación cruzada en appEventos', () => {
     if (!eventId) { console.log('ℹ️ No hay evento — skip'); return; }
 
     // Paso 2: Contar invitados iniciales
-    await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await navigateToModule(page, 'invitados');
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(2000);
     const rows = page.locator('table tr, [class*="guest-row"], [class*="invitado"]');
@@ -148,7 +148,7 @@ test.describe('CRUD via IA — Verificación cruzada en appEventos', () => {
     console.log(`Respuesta IA crear invitado: ${reply.slice(0, 100)}`);
 
     // Paso 4: Volver a appEventos y verificar
-    await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await navigateToModule(page, 'invitados');
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -188,7 +188,7 @@ test.describe('CRUD via IA — Verificación cruzada en appEventos', () => {
     console.log(`Respuesta IA crear tarea: ${reply.slice(0, 100)}`);
 
     // Verificar en /servicios (kanban de tareas)
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await navigateToModule(page, 'servicios');
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -199,7 +199,7 @@ test.describe('CRUD via IA — Verificación cruzada en appEventos', () => {
       console.log(`✅ Tarea "${TASK_DESC}" visible en /servicios (kanban)`);
       await expect(taskEl.first()).toBeVisible();
     } else {
-      await page.goto(`${BASE_URL}/itinerario`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+      await navigateToModule(page, 'itinerario');
       await waitForAppReady(page, 15_000);
       await page.waitForTimeout(2000);
       const taskEl2 = page.getByText(TASK_DESC, { exact: false });
@@ -230,7 +230,7 @@ test.describe('CRUD via IA — Verificación cruzada en appEventos', () => {
     const reply = await sendPromptAndWaitReply(page, prompt, 60_000);
     console.log(`Respuesta IA asignar tarea: ${reply.slice(0, 100)}`);
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await navigateToModule(page, 'servicios');
     await waitForAppReady(page, 15_000);
     await page.waitForTimeout(3000);
 
@@ -260,7 +260,7 @@ test.describe('CRUD via IA — Verificación cruzada en appEventos', () => {
     const reply = await sendPromptAndWaitReply(page, prompt, 60_000);
     console.log(`Respuesta IA crear presupuesto: ${reply.slice(0, 100)}`);
 
-    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await navigateToModule(page, 'presupuesto');
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -296,7 +296,7 @@ test.describe('CRUD via IA — Verificación cruzada en appEventos', () => {
     console.log(`Respuesta IA completar tarea: ${reply.slice(0, 100)}`);
 
     // Verificar en /servicios — columna "Completadas" o "completed"
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await navigateToModule(page, 'servicios');
     await waitForAppReady(page, 15_000);
     await page.waitForTimeout(3000);
 

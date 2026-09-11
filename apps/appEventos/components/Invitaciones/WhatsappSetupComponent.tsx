@@ -52,11 +52,7 @@ export function WhatsappSetupComponent({ setShowModalSetupWhatsapp, setSession, 
         // Llamar a la API directamente sin actualizar el estado
         await fetchApiBodas({
           query: queries.whatsappDisconnectSession,
-          variables: {
-            args: {
-              sessionId
-            }
-          },
+          variables: { sessionKey: sessionId },
           development: config.development
         })
       } catch (err) {
@@ -81,19 +77,16 @@ export function WhatsappSetupComponent({ setShowModalSetupWhatsapp, setSession, 
       setError(null);
       const result: CreateSessionResponse = await fetchApiBodas({
         query: queries.whatsappCreateSession,
-        variables: {
-          args: {
-            sessionId,
-            development: config.development,
-            userId: user?.uid,
-            phoneNumber: phoneNumber || undefined
-          }
-        },
+        variables: { sessionKey: sessionId },
         development: config.development
       });
       if (result.success) {
-        setSession(result.session || null);
-        setQrCode(result.qrCode || null);
+        // api-mcp devuelve session.sessionKey en lugar de session.id; mapear para compat consumer.
+        // userId/connectionTime/lastActivity no son expuestos por api-mcp — degradación graceful.
+        const s = result.session as any;
+        const mapped = s ? { ...s, id: s.sessionKey, userId: user?.uid ?? null } : null;
+        setSession(mapped);
+        setQrCode(s?.qrCode || null);
       } else {
         setError(result.error || 'Error al crear la sesión');
       }
@@ -115,15 +108,15 @@ export function WhatsappSetupComponent({ setShowModalSetupWhatsapp, setSession, 
 
       const result: CreateSessionResponse = await fetchApiBodas({
         query: queries.whatsappRegenerateQR,
-        variables: {
-          sessionId
-        },
+        variables: { sessionKey: sessionId },
         development: config.development
       });
 
       if (result.success) {
-        setSession(result.session || null);
-        setQrCode(result.qrCode || null);
+        const s = result.session as any;
+        const mapped = s ? { ...s, id: s.sessionKey, userId: user?.uid ?? null } : null;
+        setSession(mapped);
+        setQrCode(s?.qrCode || null);
       } else {
         setError(result.error || 'Error al regenerar el código QR');
       }
@@ -147,11 +140,7 @@ export function WhatsappSetupComponent({ setShowModalSetupWhatsapp, setSession, 
 
       const result = await fetchApiBodas({
         query: queries.whatsappDisconnectSession,
-        variables: {
-          args: {
-            sessionId
-          }
-        },
+        variables: { sessionKey: sessionId },
         development: config.development
       });
 

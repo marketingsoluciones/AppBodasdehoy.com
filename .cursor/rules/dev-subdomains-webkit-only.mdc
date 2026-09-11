@@ -1,0 +1,67 @@
+---
+description: "En -dev/local: diagnóstico solo local/VPN; sin Vercel salvo que pidan test/prod. WebKit."
+alwaysApply: true
+---
+
+# Memoria operativa persistente
+
+Este equipo: **casi siempre en DEV** (`localhost`, `127.0.0.1`, cualquier `*-dev.*` vía **VPN hacia vuestra máquina**). Eso es el contexto por defecto.
+
+## Prohibición explícita para el asistente (contexto `-dev` / local)
+
+Cuando el usuario o el propio hostname indiquen **local**, **`localhost`**, **`127.0.0.1`** o **`*-dev.*`**:
+
+- **No** centrar la respuesta en Vercel, ni en “redeploy”, ni en “variables del dashboard de Vercel”, ni en “preview en la nube”, ni en “build remoto”, salvo que el usuario **pregunte explícitamente** por test, producción o hosting.
+- **No** sugerir pasar a test o producción como siguiente paso si **aún no funciona en local**. Orden acordado: **primero que funcione en local (`-dev`/VPN)**; test/prod no son tema hasta que el usuario lo diga.
+
+Si hace falta una sola frase sobre hosting, que sea **opcional** y al final, no como hipótesis principal del fallo.
+
+## Dónde “vive” el código (regla que no se debe olvidar)
+
+| Patrón de host | Qué significa para el agente |
+|----------------|------------------------------|
+| **Cualquier subdominio con `-dev`** (p. ej. `app-dev…`, `chat-dev…`) | **Vuestra máquina vía VPN** (ver bloque siguiente): lo que corre es lo que tenéis en local (`pnpm dev` / `next dev`, proxies, `.env*`). Diagnóstico: proceso local, DNS hacia el host `-dev`, cookies, puerto fijo del túnel, código en disco. |
+| **`localhost` / `127.0.0.1` + puerto** | Igual: **local**. Misma barra que `-dev`. |
+| **`-test`** o **producción** (sin `-dev`) | Solo si el usuario **abre** ese entorno: ahí sí pueden aplicar builds en hosting, CDN, etc. **No** mezclar con el hilo de `-dev` salvo que pidan comparar. |
+
+## VPN (fuera de Cursor; no pedir “levantarla”)
+
+- La **VPN la gestionáis fuera de Cursor**; en este equipo está **siempre levantada** y en el **mismo puerto** (túnel estable hacia la máquina local).
+- El agente **no** debe listar como paso rutinario: “activa la VPN”, “cambia el puerto del túnel”, etc. Solo tiene sentido mencionar conectividad VPN/túnel si el usuario **describe** caída explícita hacia `*-dev.*` (timeout, host inaccesible) y entonces acotar con él.
+
+## Variables de entorno (en local / `-dev`)
+
+- En **local**, las `NEXT_PUBLIC_*` las lee el **servidor de desarrollo** de Next al arrancar (`next dev`) desde `.env.development.local`, `.env.local`, etc. del app (`apps/appEventos`, `apps/chat-ia`, …). Tras cambiar un `.env`, suele hacer falta **reiniciar** el dev server.
+- **No** usar como primera explicación “hay que cambiar la env en el panel del proveedor de hosting” cuando el contexto es `-dev`/VPN.
+
+## Restricción de navegador (obligatoria)
+
+- En este repositorio/equipo: **solo Playwright WebKit (Safari)** para pruebas automatizadas.
+- Prohibido usar o recomendar Chromium/Chrome/Firefox/Puppeteer para validar flujos.
+
+## Significado de `-dev` (obligatorio)
+
+- Cualquier subdominio que contenga **`-dev`** (`*-dev.*`) se considera **desarrollo / local** (túnel VPN fijo hacia vuestra máquina, o mismo concepto operativo que localhost).
+- `app-dev` y equivalentes son la vía principal de pruebas de este proyecto cuando no se pide explícitamente test o prod.
+
+## Localhost = mismo entorno DEV (obligatorio, no olvidar)
+
+- **`http://localhost`**, **`http://127.0.0.1`** y puertos locales habituales (p. ej. **`:3220`** para appEventos) son **el mismo entorno de desarrollo** que los dominios `*-dev`: misma build en curso, mismas cookies/sesión típicas de dev y mismas expectativas de backend/proxy que cuando accedes vía `https://app-dev…`.
+- No tratar “local” como neutral o “sin entorno”: operativamente es **DEV**, no producción ni `*-test`.
+- Scripts y documentación pueden usar `BASE_URL` a `127.0.0.1:PUERTO` o a `https://app-dev…` indistintamente; el agente no debe asumir que solo el hostname `-dev` implica dev y localhost no.
+
+## Matriz de uso de entornos
+
+- **`-dev` + localhost**: lo único que importa por defecto; validación y explicaciones **solo** en este bucket.
+- **`-test` / producción**: fuera de alcance hasta que el usuario cambie de entorno o lo pida; no sustituyen la barra local.
+
+## Conducta del asistente
+
+- Priorizar `app-dev` (VPN → máquina local) o `localhost` / `127.0.0.1` en el puerto de dev para login y pruebas funcionales.
+- Si detecta scripts que usen Chromium para este flujo, migrarlos a WebKit.
+- Evitar suposiciones de entorno `app-test` como predeterminado cuando el contexto es dev/local.
+- Mantener una sola sesión Playwright activa; cerrar la anterior antes de iniciar otra.
+
+## Fuente de contexto
+
+- Esta regla es la **referencia persistente**: en **`-dev`/local** el agente **no** desvía el hilo hacia hosting remoto. Si hace falta documentar más (dominio → entorno), añadirlo aquí en un párrafo.

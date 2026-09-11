@@ -22,6 +22,7 @@ import {
   waitForCopilotReady,
   waitForMessagesScreen,
   waitForRightSideResult,
+  navigateToModule,
 } from './helpers';
 import { TEST_CREDENTIALS, TEST_URLS } from './fixtures';
 
@@ -97,7 +98,7 @@ test.describe('Copilot — preguntas en app-test, panel derecho para feedback', 
     let eventId = await loginAndSelectEventByName(page, EMAIL, PASSWORD, BASE_URL, EVENTO_RAUL_ISABEL);
     if (!eventId) eventId = await loginAndSelectEvent(page, EMAIL, PASSWORD, BASE_URL);
     if (eventId) {
-      await page.goto(`${BASE_URL}/resumen-evento`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+      await navigateToModule(page, 'resumen');
     } else {
       await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 30_000 });
     }

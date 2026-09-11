@@ -16,7 +16,7 @@
  *     npx playwright test e2e-app/invitado-y-link.spec.ts --headed
  */
 import { test, expect } from '@playwright/test';
-import { clearSession, waitForAppReady, loginAndSelectEvent } from './helpers';
+import { clearSession, waitForAppReady, loginAndSelectEvent, navigateToModule } from './helpers';
 
 const BASE_URL = process.env.BASE_URL || 'https://app-test.bodasdehoy.com';
 const isAppTest =
@@ -107,10 +107,7 @@ test.describe('Invitado — crear y verificar link', () => {
 
     // Navegar a invitados
     const navStart = Date.now();
-    await page.goto(`${BASE_URL}/invitados`, {
-      waitUntil: 'domcontentloaded',
-      timeout: 40_000,
-    });
+    await navigateToModule(page, 'invitados');
     await waitForAppReady(page, 20_000);
     const navTime = Date.now() - navStart;
     console.log(`⏱️ Carga /invitados: ${navTime}ms`);

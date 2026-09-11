@@ -73,6 +73,10 @@ async function capturePage(page, name, url) {
   networkFails.length = 0;
   pageErrors.length = 0;
 
+  page.removeAllListeners('response');
+  page.removeAllListeners('console');
+  page.removeAllListeners('pageerror');
+
   page.on('response', (r) => {
     const status = r.status();
     if (status >= 400) {
@@ -92,7 +96,9 @@ async function capturePage(page, name, url) {
 
   console.log(`\n📍 Cargando ${name}: ${url}`);
   try {
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 25000 });
+    const isLocal = /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?/i.test(url);
+    const timeout = isLocal ? 90000 : 25000;
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
     await sleep(3000);
   } catch (e) {
     const err = e instanceof Error ? e : new Error(String(e));
@@ -106,8 +112,15 @@ async function capturePage(page, name, url) {
   networkFails.slice(0, 15).forEach((e) => console.log(`      [${e.status}] ${e.url}`));
   console.log(`   Consola (error/warn): ${consoleErrors.length}`);
   consoleErrors.slice(0, 15).forEach((e) => console.log(`      [${e.type}] ${e.text}`));
-  console.log(`   PageError: ${pageErrors.length}`);
-  pageErrors.forEach((m) => console.log(`      ${m}`));
+  const filteredPageErrors = pageErrors.filter(
+    (m) =>
+      !(
+        m.includes('firebaseapp.com') &&
+        m.includes('Protocols must match')
+      ),
+  );
+  console.log(`   PageError: ${filteredPageErrors.length}`);
+  filteredPageErrors.forEach((m) => console.log(`      ${m}`));
   if (bodyText && /Internal Server Error|Error 500|Error Capturado/i.test(bodyText)) {
     console.log('   ⚠️ Contenido de página contiene posible error:');
     console.log('      ' + bodyText.replace(/\n/g, '\n      ').slice(0, 400));

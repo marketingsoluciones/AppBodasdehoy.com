@@ -29,7 +29,7 @@ const DepositsHistory = ({ deposits, currency }) => {
         query: queries.deleteWeddingPlannerIngreso,
         variables: {
           evento_id: event?._id,
-          weddingPlannerIngreso_id: depositId,
+          ingreso_id: depositId,
         },
       });
 

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔓 Test Bypass Champagne Events</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5e6d3 0%, #e8d9c5 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #5c3d2e;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(92, 61, 46, 0.1);
+            border: 2px solid #d4b896;
+        }
+        
+        h1 {
+            color: #8b5a2b;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        h1::before {
+            content: "🍾";
+            font-size: 2em;
+        }
+        
+        .subtitle {
+            color: #a67c52;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .card {
+            background: #f9f5f0;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 5px solid #d4b896;
+        }
+        
+        .card h2 {
+            color: #8b5a2b;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .data-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e8d9c5;
+        }
+        
+        .data-label {
+            font-size: 0.9em;
+            color: #a67c52;
+            margin-bottom: 5px;
+        }
+        
+        .data-value {
+            font-weight: bold;
+            color: #5c3d2e;
+            word-break: break-all;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #d4b896 0%, #b89a7a 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(180, 150, 120, 0.3);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #8b5a2b 0%, #6b4520 100%);
+        }
+        
+        .steps {
+            margin-top: 30px;
+        }
+        
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e8d9c5;
+        }
+        
+        .step:last-child {
+            border-bottom: none;
+        }
+        
+        .step-number {
+            background: #d4b896;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .code {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .icon {
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔓 Test Bypass Champagne Events</h1>
+        <p class="subtitle">Solución inmediata usando datos REALES de fixtures</p>
+        
+        <div class="warning">
+            <span class="icon">⚠️</span>
+            <div>
+                <strong>IMPORTANTE:</strong> Este bypass solo funciona en <code>app-test.champagne-events.com.mx</code><br>
+                NO funciona en localhost según el código AuthContext.
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>📋 Datos REALES usados</h2>
+            <p>Extraídos de fixtures: <code>e2e-app/fixtures/champagne-events/eventos-sanitizados.json</code></p>
+            
+            <div class="data-grid">
+                <div class="data-item">
+                    <div class="data-label">🆔 UID</div>
+                    <div class="data-value" id="uid">TEST_OWNER_UID_001</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">📧 Email</div>
+                    <div class="data-value" id="email">test-owner@champagne-events.com.mx</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">👤 Nombre</div>
+                    <div class="data-value" id="name">Test Owner</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">🏭 Development</div>
+                    <div class="data-value" id="dev">champagne-events</div>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary" onclick="activateBypass()">
+                🚀 Activar Bypass Ahora
+            </button>
+            
+            <a href="https://app-test.champagne-events.com.mx/api/dev/bypass?email=test-owner@champagne-events.com.mx&development=champagne-events&uid=TEST_OWNER_UID_001" 
+               target="_blank" class="btn">
+                🌐 Abrir en Nueva Pestaña
+            </a>
+        </div>
+        
+        <div class="card">
+            <h2>📝 Pasos a seguir</h2>
+            
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <strong>Activar bypass</strong>
+                        <p>Haz clic en "Activar Bypass Ahora" o abre el enlace en nueva pestaña.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <strong>Verificar localStorage</strong>
+                        <p>Después de cargar, abre consola (F12) y ejecuta:</p>
+                        <div class="code">
+// Verificar bypass activado
+console.log('dev_bypass:', localStorage.getItem('dev_bypass'));
+console.log('dev_bypass_email:', localStorage.getItem('dev_bypass_email'));
+console.log('dev_bypass_uid:', localStorage.getItem('dev_bypass_uid'));
+console.log('__dev_domain:', localStorage.getItem('__dev_domain'));
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <strong>Refrescar página (F5)</strong>
+                        <p>El AuthContext detectará el bypass y creará usuario simulado.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <strong>Verificar login exitoso</strong>
+                        <p>Deberías ver:</p>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>Nombre "Test Owner" en esquina superior derecha</li>
+                            <li>Tema champagne events (colores beige/marrón)</li>
+                            <li>Evento "juanito" (comunión)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>🔧 Verificación rápida</h2>
+            <button class="btn" onclick="checkBypass()">
+                🔍 Verificar Bypass Actual
+            </button>
+            
+            <div id="checkResult" style="margin-top: 20px;"></div>
+        </div>
+        
+        <div class="success">
+            <span class="icon">✅</span>
+            <div>
+                <strong>¿Por qué esto funciona?</strong><br>
+                Usamos datos REALES de fixtures que existen en la base de datos de test.<br>
+                El usuario <code>TEST_OWNER_UID_001</code> es el owner de los eventos de fixtures.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function activateBypass() {
+            const email = document.getElementById('email').textContent;
+            const uid = document.getElementById('uid').textContent;
+            const dev = document.getElementById('dev').textContent;
+            
+            const url = `https://app-test.champagne-events.com.mx/api/dev/bypass?email=${encodeURIComponent(email)}&development=${dev}&uid=${uid}`;
+            
+            // Abrir en nueva ventana
+            window.open(url, '_blank');
+            
+            // Mostrar mensaje
+            alert('✅ Bypass activado\n\nSe abrirá en nueva pestaña.\n\nDespués de cargar:\n1. Verifica localStorage (F12)\n2. Refresca página (F5)');
+        }
+        
+        function checkBypass() {
+            const resultDiv = document.getElementById('checkResult');
+            
+            try {
+                const devBypass = localStorage.getItem('dev_bypass');
+                const email = localStorage.getItem('dev_bypass_email');
+                const uid = localStorage.getItem('dev_bypass_uid');
+                const domain = localStorage.getItem('__dev_domain');
+                
+                const hostname = window.location.hostname;
+                const isTestEnv = hostname.includes('chat-test') || 
+                                 hostname.includes('app-test') || 
+                                 hostname.includes('test.') || 
+                                 hostname.includes('app-dev');
+                
+                let html = '<div class="data-grid">';
+                
+                html += `<div class="data-item">
+                    <div class="data-label">📍 Hostname</div>
+                    <div class="data-value">${hostname}</div>
+                </div>`;
+                
+                html += `<div class="data-item">
+                    <div class="data-label">🎯 Entorno Test</div>
+                    <div class="data-value">${isTestEnv ? '✅ Sí' : '❌ No'}</div>
+                </div>`;
+                
+                html += `<div class="data-item">
+                    <div class="data-label">🔓 Bypass Activo</div>
+                    <div class="data-value">${devBypass === 'true' ? '✅ Sí' : '❌ No'}</div>
+                </div>`;
+                
+                html += `<div class="data-item">
+                    <div class="data-label">📧 Email</div>
+                    <div class="data-value">${email || 'No establecido'}</div>
+                </div>`;
+                
+                if (uid) {
+                    html += `<div class="data-item">
+                        <div class="data-label">🆔 UID</div>
+                        <div class="data-value">${uid.substring(0, 20)}...</div>
+                    </div>`;
+                }
+                
+                if (domain) {
+                    html += `<div class="data-item">
+                        <div class="data-label">🏭 Development</div>
+                        <div class="data-value">${domain}</div>
+                    </div>`;
+                }
+                
+                html += '</div>';
+                
+                // Recomendaciones
+                if (!isTestEnv) {
+                    html += '<div class="warning" style="margin-top: 15px;">';
+                    html += '<span class="icon">⚠️</span>';
+                    html += '<div><strong>No estás en entorno test.</strong><br>El bypass solo funciona en app-test.champagne-events.com.mx</div>';
+                    html += '</div>';
+                }
+                
+                if (devBypass !== 'true') {
+                    html += '<div class="warning" style="margin-top: 15px;">';
+                    html += '<span class="icon">⚠️</span>';
+                    html += '<div><strong>Bypass no activado.</strong><br>Haz clic en "Activar Bypass Ahora"</div>';
+                    html += '</div>';
+                }
+                
+                if (isTestEnv && devBypass === 'true') {
+                    html += '<div class="success" style="margin-top: 15px;">';
+                    html += '<span class="icon">✅</span>';
+                    html += '<div><strong>✅ Bypass configurado correctamente.</strong><br>Refresca la página (F5) para iniciar sesión.</div>';
+                    html += '</div>';
+                }
+                
+                resultDiv.innerHTML = html;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="warning">
+                    <span class="icon">❌</span>
+                    <div>Error al verificar: ${error.message}</div>
+                </div>`;
+            }
+        }
+        
+        // Verificar automáticamente al cargar
+        window.addEventListener('load', () => {
+            setTimeout(checkBypass, 1000);
+        });
+    </script>
+</body>
+</html>

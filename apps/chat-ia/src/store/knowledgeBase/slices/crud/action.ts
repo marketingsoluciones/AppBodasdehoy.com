@@ -63,7 +63,9 @@ export const createCrudSlice: StateCreator<
   useFetchKnowledgeBaseItem: (id) =>
     useClientDataSWR<KnowledgeBaseItem | undefined>(
       [FETCH_KNOWLEDGE_BASE_ITEM_KEY, id],
-      () => knowledgeBaseService.getKnowledgeBaseById(id),
+      // CAPA 2 PASO C: cast desde UserConfigKB (api-ia) a KnowledgeBaseItem (front).
+      async () =>
+        (await knowledgeBaseService.getKnowledgeBaseById(id)) as unknown as KnowledgeBaseItem | undefined,
       {
         onSuccess: (item) => {
           if (!item) return;
@@ -82,7 +84,8 @@ export const createCrudSlice: StateCreator<
   useFetchKnowledgeBaseList: (params = {}) =>
     useClientDataSWR<KnowledgeBaseItem[]>(
       FETCH_KNOWLEDGE_BASE_LIST_KEY,
-      () => knowledgeBaseService.getKnowledgeBaseList(),
+      async () =>
+        (await knowledgeBaseService.getKnowledgeBaseList()) as unknown as KnowledgeBaseItem[],
       {
         fallbackData: [],
         onSuccess: () => {

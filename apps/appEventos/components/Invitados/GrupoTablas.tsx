@@ -1,14 +1,13 @@
-import { useEffect, useRef, useState, useMemo, FC, Dispatch, SetStateAction, cloneElement, useCallback } from "react";
+import { useEffect, useRef, useState, useMemo, FC, Dispatch, SetStateAction, cloneElement, useCallback, ReactNode } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { useRouter } from "next/navigation";
 import { EventContextProvider, EventsGroupContextProvider } from "../../context";
-import { api } from "../../api";
 import DataTableFinal from "./DataTable";
 import { BorrarInvitado } from "../../hooks/EditarInvitado";
 import { CanceladoIcon, ConfirmadosIcon, DotsOpcionesIcon, PendienteIcon, } from "../icons";
 import { Event, guests, table } from "../../utils/Interfaces";
 import { DataTableGroupContextProvider, DataTableGroupProvider, } from "../../context/DataTableGroupContext";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiEventos, fetchApiBodas, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
 import { LiaLinkSolid } from "react-icons/lia";
@@ -48,14 +47,34 @@ interface handleMoveGuest {
 
 
 
+/**
+ * Antes este handler mutaba event.planSpace[f1].tables[f2].guests con splice/push
+ * y luego hacía setEvent({ ...event }). El spread top-level NO clona los hijos →
+ * React no detecta el cambio en planSpace[].tables[].guests; cualquier memo o
+ * useEffect que dependa de identidad de referencia se queda con datos viejos.
+ *
+ * Refactor: actualizar inmutablemente usando el updater funcional de setEvent
+ * (ya envuelto en EventContext con persistencia a localStorage).
+ */
 export const handleMoveGuest = (props: handleMoveGuest) => {
   try {
     const { invitadoID, previousTable, lastTable, f1, event, setEvent, toast } = props
     if (previousTable?._id) {
       const f2 = event?.planSpace[f1]?.tables?.findIndex(elem => elem._id === previousTable?._id)
-      const f3 = event.planSpace[f1].tables[f2].guests.findIndex(elem => elem._id === invitadoID)
-      event.planSpace[f1].tables[f2].guests.splice(f3, 1)
-      setEvent({ ...event })
+      const newGuests = event.planSpace[f1].tables[f2].guests.filter(g => g._id !== invitadoID)
+
+      setEvent((prev) => ({
+        ...prev,
+        planSpace: prev.planSpace.map((ps, i) =>
+          i !== f1 ? ps : {
+            ...ps,
+            tables: ps.tables.map((tb, j) =>
+              j !== f2 ? tb : { ...tb, guests: newGuests }
+            ),
+          }
+        ),
+      }))
+
       fetchApiEventos({
         query: queries.editTable,
         variables: {
@@ -63,7 +82,7 @@ export const handleMoveGuest = (props: handleMoveGuest) => {
           planSpaceID: event?.planSpace[f1]?._id,
           tableID: event.planSpace[f1].tables[f2]?._id,
           variable: "guests",
-          valor: JSON.stringify([...event.planSpace[f1].tables[f2]?.guests])
+          valor: JSON.stringify(newGuests),
         },
       });
       if (!lastTable) {
@@ -75,8 +94,23 @@ export const handleMoveGuest = (props: handleMoveGuest) => {
         if (!lastTable?.guests?.map(el => el.chair).includes(i)) {
           if (lastTable) {
             const f2 = event?.planSpace[f1]?.tables?.findIndex(elem => elem._id === lastTable?._id)
-            event.planSpace[f1].tables[f2].guests.push({ _id: invitadoID, chair: i, order: new Date() })
-            setEvent({ ...event })
+            const newGuests = [
+              ...event.planSpace[f1].tables[f2].guests,
+              { _id: invitadoID, chair: i, order: new Date() },
+            ]
+
+            setEvent((prev) => ({
+              ...prev,
+              planSpace: prev.planSpace.map((ps, k) =>
+                k !== f1 ? ps : {
+                  ...ps,
+                  tables: ps.tables.map((tb, j) =>
+                    j !== f2 ? tb : { ...tb, guests: newGuests }
+                  ),
+                }
+              ),
+            }))
+
             fetchApiEventos({
               query: queries.editTable,
               variables: {
@@ -84,7 +118,7 @@ export const handleMoveGuest = (props: handleMoveGuest) => {
                 planSpaceID: event?.planSpace[f1]?._id,
                 tableID: event.planSpace[f1].tables[f2]?._id,
                 variable: "guests",
-                valor: JSON.stringify([...event.planSpace[f1].tables[f2]?.guests])
+                valor: JSON.stringify(newGuests),
               },
             });
             toast("success", `${props.t("El invitado fue sentado en la mesa")}; ${lastTable.title}, ${props.t("puesto")}: ${i + 1}`,)
@@ -94,6 +128,7 @@ export const handleMoveGuest = (props: handleMoveGuest) => {
       }
     }
   } catch (error) {
+    console.error('[handleMoveGuest] error:', error)
   }
 }
 
@@ -106,7 +141,12 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   const [data, setData] = useState<{ titulo: string; data: guestsExt[] }[]>([]);
   const [isAllowed] = useAllowed()
   const [acompañanteID, setAcompañanteID] = useState({ id: "", crear: true })
-  const [modal, setModal] = useState({ state: false, title: null, handle: () => { } })
+  const [modal, setModal] = useState<{
+    state: boolean
+    title: string | null
+    subTitle?: ReactNode
+    handle: (() => void) | null
+  }>({ state: false, title: null, subTitle: null, handle: () => { } })
 
 
   useEffect(() => {
@@ -114,7 +154,11 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   }, [acompañanteID.id])
 
   useEffect(() => {
-    setInvitadoCero(event?.invitados_array?.filter(elem => elem?.rol === event?.grupos_array?.[0])[0]?.nombre)
+    setInvitadoCero(
+      event?.invitados_array?.find(
+        (elem) => elem?.rol?.toLowerCase() === event?.grupos_array?.[0]?.toLowerCase()
+      )?.nombre
+    )
   }, [event?.invitados_array, event?.grupos_array, event])
 
   useEffect(() => {
@@ -136,15 +180,20 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
       item.tableNameRecepcion = tableRecepcion?.title ? tableRecepcion : { title: "no asignado" }
       item.tableNameCeremonia = tableCeremonia?.title ? tableCeremonia : { title: "no asignado" }
 
-      if (event?.grupos_array?.includes(item?.rol)) {
-        acc[item.rol] = { titulo: item.rol, data: acc[item.rol]?.data ? [...acc[item.rol]?.data, item] : [item] }
+      // Match case-insensitive: SelectField antiguo guardaba rol en minúsculas
+      // mientras grupos_array mantiene "Familia novia". Usar la clave canónica del grupo.
+      const grupoKey = event?.grupos_array?.find(
+        (g) => g?.toLowerCase() === item?.rol?.toLowerCase()
+      )
+      if (grupoKey) {
+        acc[grupoKey] = { titulo: grupoKey, data: acc[grupoKey]?.data ? [...acc[grupoKey]?.data, item] : [item] }
       } else {
         acc["no asignado"] = { titulo: "no asignado", data: acc["no asignado"]?.data ? [...acc["no asignado"]?.data, item] : [item] }
       }
       return acc;
     }, asd);
     Data && setData(Object.values(Data));
-  }, [allFilterGuests]);
+  }, [allFilterGuests, event?.invitados_array, event?.grupos_array, event?.planSpace]);
 
   const renderRowSubComponent = useCallback(({ row }) => (
     <SubTabla
@@ -177,13 +226,12 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
           const resultado = arr.map((invitado) => {
             if (invitado._id === rowID) {
               //Para escribir en base de datos
-              fetchApiEventos({
+              fetchApiBodas({
                 query: queries.editGuests,
                 variables: {
                   eventID: event._id,
                   guestID: invitado._id,
-                  variable: reemplazar,
-                  value: value
+                  datos: { [reemplazar]: value }
                 },
               });
               return {
@@ -539,16 +587,15 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
           }
           const value = initialValue;
           const handleClick = () => {
-            fetchApiEventos({
+            fetchApiBodas({
               query: queries.eventUpdate,
               variables: {
                 idEvento: event._id,
-                variable: "showChildrenGuest",
-                value: !props?.row?.isExpanded ? props.row.original._id : ""
+                input: { showChildrenGuest: !props?.row?.isExpanded ? props.row.original._id : "" }
               }
             })
-            event.showChildrenGuest = !props?.row?.isExpanded ? props.row.original._id : null
-            setEvent({ ...event })
+            const newShowChildrenGuest = !props?.row?.isExpanded ? props.row.original._id : null
+            setEvent((prev) => ({ ...prev, showChildrenGuest: newShowChildrenGuest }))
           }
           return (
             <div className="relative w-full flex justify-center items-center">
@@ -628,22 +675,21 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
 
           const DeleteGroup = async () => {
             try {
-              const params = {
-                query: `mutation {
-                  borraGrupo(evento_id:"${event._id}",nombre_grupo:"${title}"){
-                    _id
+              await fetchApiBodas({
+                query: `mutation($evento_id:ID!,$grupo_id:ID!){
+                  borraGrupo(evento_id:$evento_id, grupo_id:$grupo_id){
+                    success errors{ field message code }
                   }
                 }`,
-                variables: {},
-              };
-
-              await api.ApiApp(params);
+                variables: { evento_id: event._id, grupo_id: title },
+              });
             } catch (error) {
             } finally {
               setEvent((old) => ({
                 ...old,
                 grupos_array: old.grupos_array.filter((e) => e !== title),
               }));
+              setModal({ state: false, title: null, handle: null });
             }
           };
 
@@ -663,7 +709,24 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                   {Lista.map((item, idx) => (
                     <li
                       key={idx}
-                      onClick={() => DeleteGroup()}
+                      onClick={() => {
+                        setShow(false);
+                        setModal({
+                          state: true,
+                          title: title,
+                          subTitle: (
+                            <span className="flex flex-col">
+                              <strong>
+                                {t(
+                                  "warningdeletegroup",
+                                  "Si borras el grupo no lo podrás recuperar."
+                                )}
+                              </strong>
+                            </span>
+                          ),
+                          handle: () => DeleteGroup(),
+                        });
+                      }}
                       className="font-display cursor-pointer border-base border block px-4 text-sm text-gray-500 hover:text-gray-500 hover:bg-base"
                     >
                       {t(item)}
@@ -718,59 +781,49 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
               function: () => HandleEdit(row.row.original._id),
             },
           ];
-          //gvp*hqx7xgf.PWP0xky
-          //miki.ibarra@vivetuboda.com
 
           return (
-            <>
-              {modal.state && <Modal set={setModal} state={modal} classe={"w-[95%] md:w-[450px] h-[200px] flex items-center justify-center"}>
-                <DeleteConfirmation setModal={setModal} modal={modal} />
-              </Modal>}
-              <ClickAwayListener onClickAway={() => show && setShow(false)}>
-                <div className="w-full flex justify-end items-center relative">
-                  <span
-                    onClick={() => !isAllowed() ? null : setShow(!show)}
-                    className="cursor-pointer relative w-max rounded-lg text-sm text-gray-700"
-                  >
-                    <DotsOpcionesIcon className="text-gray-500 w-4 h-4" />
-                  </span>
-                  <ul
-                    className={`${show ? "block" : "hidden"
-                      } top-0 right-0 absolute w-max border border-base bg-white capitalize rounded-md overflow-hidden shadow-lg z-10 translate-x-[-12px]`}
-                  >
-                    {Lista.map((item, idx) => (
-                      <li
-                        key={idx}
-                        onClick={() => {
-                          item.title.toLowerCase() === "borrar"
-                            ? setModal({
-                              state: true,
-                              title: <span>
-                                <strong>
-                                  {`${row.row.cells[0].value} `}
-                                </strong>
-                                <span>{`${!row.row.cells[5].value
-                                  ? "será borrado"
-                                  : row.row.cells[5].value === 1
-                                    ? `y su acompañante serán borrados`
-                                    : `y sus ${row.row.cells[5].value} acompañantes serán borrados`
-                                  } de la lista de invitados`}
-                                </span>
-                              </span>,
-                              handle: () => item.function()
-                            })
-                            : item.function()
-                        }
-                        }
-                        className="font-display cursor-pointer border-base border block px-4 text-sm text-gray-500 hover:text-gray-500 hover:bg-base py-3"
-                      >
-                        {t(item.title)}
-                      </li>
-                    ))}
-                  </ul>
-                </div >
-              </ClickAwayListener >
-            </>
+            <ClickAwayListener onClickAway={() => show && setShow(false)}>
+              <div className="w-full flex justify-end items-center relative">
+                <span
+                  onClick={() => !isAllowed() ? null : setShow(!show)}
+                  className="cursor-pointer relative w-max rounded-lg text-sm text-gray-700"
+                >
+                  <DotsOpcionesIcon className="text-gray-500 w-4 h-4" />
+                </span>
+                <ul
+                  className={`${show ? "block" : "hidden"
+                    } top-0 right-0 absolute w-max border border-base bg-white capitalize rounded-md overflow-hidden shadow-lg z-10 translate-x-[-12px]`}
+                >
+                  {Lista.map((item, idx) => (
+                    <li
+                      key={idx}
+                      onClick={() => {
+                        item.title.toLowerCase() === "borrar"
+                          ? setModal({
+                            state: true,
+                            title: `${row.row.cells[0].value}`,
+                            subTitle: <span>
+                              {!row.row.cells[5].value
+                                ? "Será borrado de la lista de invitados."
+                                : row.row.cells[5].value === 1
+                                  ? "Él y su acompañante serán borrados de la lista de invitados."
+                                  : `Él y sus ${row.row.cells[5].value} acompañantes serán borrados de la lista de invitados.`
+                              }
+                            </span>,
+                            handle: () => item.function()
+                          })
+                          : item.function()
+                      }
+                      }
+                      className="font-display cursor-pointer border-base border block px-4 text-sm text-gray-500 hover:text-gray-500 hover:bg-base py-3"
+                    >
+                      {t(item.title)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </ClickAwayListener>
           );
         },
       },
@@ -790,6 +843,15 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   return (
     <DataTableGroupProvider>
       <div className="w-[200%] md:w-[100%]">
+        {modal.state && (
+          <Modal
+            set={setModal}
+            state={modal}
+            classe={"w-[380px] max-w-[95%] h-auto min-h-[220px] !top-1/2 !left-1/2 !right-auto !bottom-auto -translate-x-1/2 -translate-y-1/2"}
+          >
+            <DeleteConfirmation setModal={setModal} modal={modal} />
+          </Modal>
+        )}
         <CopilotFilterBar entity="guests" />
         {/* <CheckBoxAll /> */}
         {displayedData?.map((item, idx: number) => {
@@ -836,16 +898,19 @@ const CheckBoxAll: FC<any> = ({ check, ...rest }) => {
 
   const eliminarTodo = async () => {
     try {
-      const { invitados_array }: any = await fetchApiEventos({
+      const res: any = await fetchApiBodas({
         query: queries.removeGuests,
         variables: {
           eventID: event._id,
           guests: arrIDs,
         },
       });
+      // api-mcp devuelve invitados_array bajo .evento (EventoBatchResponse).
+      // Fallback a la lista vieja para no vaciar la tabla si viene null.
+      const invitados_array = res?.evento?.invitados_array ?? res?.invitados_array
       setEvent((old) => ({
         ...old,
-        invitados_array,
+        invitados_array: invitados_array ?? old.invitados_array,
       }));
       dispatch({ type: "RESET_STATE" });
       toast("success", t("Invitado eliminado con exito"));

@@ -15,9 +15,16 @@ const Clear = memo(() => {
   const editor = useChatInputStore((s) => s.editor);
   const [confirmOpened, setConfirmOpened] = useState(false);
 
+  // BUG QA 10-jul #3: el Popconfirm de "Limpiar conversación" quedaba
+  // huérfano encima de la respuesta del Copilot con Cancel/OK persistente.
+  // Causa: onConfirm ejecutaba handleClear pero NO cerraba el popover
+  // controlado (open={confirmOpened} sin setConfirmOpened(false) en el
+  // handler). Además si se cancelaba con la tecla Esc o click fuera,
+  // onOpenChange dependía de antd. Cierre explícito en confirm + cancel.
   const handleClear = async () => {
     editor?.cleanDocument();
     onClear?.();
+    setConfirmOpened(false);
   };
 
   return (
@@ -25,6 +32,7 @@ const Clear = memo(() => {
       arrow={false}
       okButtonProps={{ danger: true, type: 'primary' }}
       onConfirm={handleClear}
+      onCancel={() => setConfirmOpened(false)}
       onOpenChange={setConfirmOpened}
       open={confirmOpened}
       placement={'topRight'}

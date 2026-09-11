@@ -2,16 +2,31 @@
   "name": "@bodasdehoy/copilot-shared",
   "version": "1.0.0",
   "description": "Shared chat components for BodasdeHoy monorepo",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
-    "type-check": "tsc --noEmit"
+    "build": "tsc",
+    "dev": "tsc --watch --preserveWatchOutput",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build",
+    "type-check": "tsc --noEmit",
+    "lint": "echo \"no lint configured\" && exit 0"
   },
   "peerDependencies": {
     "react": ">=18.2.0",
     "react-dom": ">=18.2.0",
     "antd": "^5.0.0",
-    "@lobehub/ui": "^1.0.0",
+    "@lobehub/ui": ">=1.0.0",
     "@lobehub/editor": "^1.20.2",
     "zustand": "^5.0.0",
     "zustand-utils": "^1.0.0",
@@ -25,8 +40,8 @@
     "use-merge-value": "^1.0.0"
   },
   "devDependencies": {
-    "@types/react": "^18.2.0",
-    "typescript": "^5.0.0"
+    "@types/react": "^19.2.8",
+    "typescript": "^5.9.3"
   },
   "keywords": [
     "chat",

@@ -1,8 +1,11 @@
 import { SetStateAction, useEffect, useState, useRef, Dispatch, FC, useMemo } from "react";
+import { createPortal } from "react-dom";
+import ClickAwayListener from "react-click-away-listener";
 import { motion } from "framer-motion";
 import { LineaHome } from "../components/icons";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, LoadingContextProvider, } from "../context";
-import Card, { handleClickCard } from "../components/Home/Card";
+import Card, { handleClickCard, defaultImagenes } from "../components/Home/Card";
+import MisEventosMovil from "../components/Home/MisEventosMovil";
 import CardEmpty from "../components/Home/CardEmpty";
 import FormCrearEvento from "../components/Forms/FormCrearEvento";
 import ModalLeft from "../components/Utils/ModalLeft";
@@ -13,8 +16,8 @@ import VistaSinCookie from "../pages/vista-sin-cookie"
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { useToast } from "../hooks/useToast";
+import { useDateTime } from "../hooks/useDateTime";
 import { useTranslation } from 'react-i18next';
-import { TbTableShare } from "react-icons/tb";
 import { SelectModeSort } from "../components/Utils/SelectModeSort";
 import EventNotFound from "../components/Utils/EventNotFound";
 import CopilotFilterBar from "../components/Utils/CopilotFilterBar";
@@ -29,6 +32,24 @@ const Home: NextPage = () => {
   const shouldRenderChild = useDelayUnmount(valirQuery, 500);
   const [showEditEvent, setShowEditEvent] = useState<boolean>(false);
   const [showGuestRegisterModal, setShowGuestRegisterModal] = useState(false);
+
+  // Modal invitado "Tu evento está listo": la web detrás NO se oculta — se reconoce el evento
+  // recién creado. Desenfoque suave (blur 3px) + opacity .85 sobre el contenido (#__next); el
+  // modal va por portal a body, así que no le afecta. El velo (.35) vive en el propio modal.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const el = document.getElementById("__next");
+    if (!el) return;
+    if (showGuestRegisterModal) {
+      el.style.transition = "filter .2s ease, opacity .2s ease";
+      el.style.filter = "blur(3px)";
+      el.style.opacity = "0.85";
+    } else {
+      el.style.filter = "";
+      el.style.opacity = "";
+    }
+    return () => { el.style.filter = ""; el.style.opacity = ""; };
+  }, [showGuestRegisterModal]);
   const prevEventsLengthRef = useRef<number>(0);
   const router = useRouter()
   const toast = useToast()
@@ -37,6 +58,8 @@ const Home: NextPage = () => {
   const [eventNotFound, setEventNotFound] = useState<boolean>(false)
   const eventsLoadStartRef = useRef<number | null>(null)
   const [eventsLoadSeconds, setEventsLoadSeconds] = useState(0)
+  const [restoreSessionSeconds, setRestoreSessionSeconds] = useState(0)
+  const [restoreSessionGiveUp, setRestoreSessionGiveUp] = useState(false)
 
   // Query params usando router.query (Pages Router)
   const pAccShas = typeof router.query.pAccShas === 'string' ? router.query.pAccShas : null
@@ -63,6 +86,45 @@ const Home: NextPage = () => {
     }, 400)
     return () => clearInterval(id)
   }, [waitingEventsList])
+
+  const shouldRestoreSession =
+    verificationDone &&
+    eventsGroupDone &&
+    !user &&
+    typeof window !== 'undefined' &&
+    !!localStorage.getItem('appEventos_activeEventId')
+
+  useEffect(() => {
+    if (!shouldRestoreSession) {
+      setRestoreSessionSeconds(0)
+      setRestoreSessionGiveUp(false)
+      return
+    }
+
+    const start = Date.now()
+    const intervalId = window.setInterval(() => {
+      setRestoreSessionSeconds(Math.floor((Date.now() - start) / 1000))
+    }, 400)
+
+    // BUG-NEW-12 fix QA #32 (28-jun): el setTimeout de 6s borraba
+    // activeEventId cuando Firebase tardaba en hidratar en mobile/4G
+    // → user perdía su evento activo y al re-loguear veía "primero
+    // crea evento" pese a tener bodas en BD.
+    // Fix: NO borrar activeEventId al timeout (solo redirigir a login).
+    // Si la sesión sigue válida tras login, el evento se restaura.
+    // Subido timeout 6s→15s para mobile/4G más lento.
+    const giveUpId = window.setTimeout(() => {
+      setRestoreSessionGiveUp(true)
+
+      const loginUrl = config?.pathLogin ? `${config.pathLogin}?restore=1` : '/login?restore=1'
+      window.location.href = loginUrl
+    }, 15000)
+
+    return () => {
+      window.clearInterval(intervalId)
+      window.clearTimeout(giveUpId)
+    }
+  }, [shouldRestoreSession, config?.pathLogin])
 
   // Mostrar error si la API de eventos falla (403 = sesión; 502/503 = servidor; otro = genérico).
   // No mostrar si no hay usuario logueado (usuario libre/guest): no se cargan eventos, no tiene sentido el mensaje.
@@ -124,7 +186,7 @@ const Home: NextPage = () => {
     return (
       <div className="flex items-center justify-center h-screen w-full bg-white px-4">
         <div className="flex flex-col items-center gap-3 text-center max-w-sm">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-500" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
           <p className="text-sm font-medium text-gray-700">Cargando tus eventos…</p>
           <p className="text-2xl font-semibold tabular-nums text-primary">{eventsLoadSeconds}s</p>
           <p className="text-xs text-gray-400">
@@ -151,7 +213,7 @@ const Home: NextPage = () => {
     if (pAccShas && !eventNotFound) {
       return (
         <div className="flex items-center justify-center h-screen">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-500" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
         </div>
       )
     }
@@ -159,7 +221,7 @@ const Home: NextPage = () => {
       router.push(`/confirmar-asistencia?pGuestEvent=${pGuestEvent}`)
       return (
         <div className="flex items-center justify-center h-screen">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-500" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
         </div>
       )
     }
@@ -167,12 +229,43 @@ const Home: NextPage = () => {
       router?.push(`/login`)
       return (
         <div className="flex items-center justify-center h-screen">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-500" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
         </div>
       )
     }
     if (!user) {
+      const wasLoggedIn = typeof window !== 'undefined' && localStorage.getItem('appEventos_activeEventId')
+      if (wasLoggedIn) {
+        return (
+          <div className="flex items-center justify-center h-screen w-full bg-white px-4">
+            <div className="flex flex-col items-center gap-3 text-center max-w-sm">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
+              <p className="text-sm font-medium text-gray-700">Restaurando sesión…</p>
+              <p className="text-xs text-gray-400">Esto suele tardar unos segundos tras recargar.</p>
+              <p className="text-2xl font-semibold tabular-nums text-primary">{restoreSessionSeconds}s</p>
+              {restoreSessionGiveUp && (
+                <a
+                  href={config?.pathLogin ? `${config.pathLogin}?restore=1` : '/login?restore=1'}
+                  className="mt-2 inline-flex items-center justify-center px-4 py-2 rounded-full bg-primary text-white font-medium text-sm hover:opacity-80 transition"
+                >
+                  Ir a iniciar sesión
+                </a>
+              )}
+            </div>
+          </div>
+        )
+      }
       if (router.pathname === "/") {
+        // bodasdehoy: la entrada es invitado + nudge (NUNCA la landing de marketing).
+        // El verificador crea el guest; aquí solo evitamos el flash de LandingVisitante
+        // por si en algún borde queda user=null tras verificar.
+        if (["bodasdehoy"].includes(config?.development)) {
+          return (
+            <div className="flex items-center justify-center h-screen w-full bg-white">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
+            </div>
+          );
+        }
         return <LandingVisitante />;
       }
       return <VistaSinCookie />;
@@ -181,7 +274,7 @@ const Home: NextPage = () => {
     return (
       <>
         {shouldRenderChild && (
-          <ModalLeft state={valirQuery} set={setValirQuery}>
+          <ModalLeft state={valirQuery} set={setValirQuery} studio={router.query.studio !== "legacy"}>
             {showEditEvent ?
               <FormCrearEvento state={valirQuery} set={setValirQuery} EditEvent={showEditEvent} />
               : <FormCrearEvento state={valirQuery} set={setValirQuery} />
@@ -189,35 +282,46 @@ const Home: NextPage = () => {
           </ModalLeft>
         )}
 
-        {/* Modal de conversión para guests — aparece tras crear el primer evento */}
-        {showGuestRegisterModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
-            <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 flex flex-col items-center gap-4 text-center">
-              <div className="text-4xl">🎉</div>
-              <h2 className="font-display text-xl font-semibold text-gray-800">
-                ¡Tu evento está listo!
-              </h2>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                Has creado tu evento. <strong>Regístrate gratis</strong> para guardarlo de forma permanente, gestionar invitados, presupuesto e itinerario, y usar el asistente IA.
-              </p>
-              <div className="flex flex-col gap-2 w-full mt-2">
-                <a
-                  href={config?.pathLogin ? `${config.pathLogin}?q=register` : '/login?q=register'}
-                  className="w-full py-3 rounded-full bg-primary text-white font-medium text-sm hover:opacity-80 transition text-center"
-                >
-                  Crear cuenta gratis
-                </a>
-                <button
-                  onClick={() => setShowGuestRegisterModal(false)}
-                  className="w-full py-2 text-sm text-gray-500 hover:text-gray-700 transition"
-                >
-                  Continuar como invitado (perderás los datos al cerrar)
-                </button>
+        {/* Modal de conversión para guests — aparece tras crear el primer evento (fiel a modaleventolisto.html).
+            Portal a body: escapa ancestros con transform → el backdrop oscurece TODO (incl. header) y centra en el viewport real. */}
+        {showGuestRegisterModal && typeof document !== "undefined" && createPortal(
+          <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(40,40,46,.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: "'Poppins',sans-serif" }}>
+            <style dangerouslySetInnerHTML={{ __html: "@keyframes gpop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}.gcta:hover{background:#D83E7C!important;}.ginv:hover{color:#3A3A42!important;}" }} />
+            <div style={{ width: 440, maxWidth: '94vw', background: '#fff', borderRadius: 22, boxShadow: '0 30px 80px rgba(0,0,0,.35)', overflow: 'hidden', padding: '30px 30px 26px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Cabecera */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 4 }}>
+                <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#FCE7F0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EF5B94', animation: 'gpop .45s ease', marginBottom: 10 }}>
+                  <svg width="26" height="26" viewBox="1.5 1.5 21 13.5" style={{ overflow: 'visible' }} fill="currentColor"><path d="M9 2C6.2 2 4 4.4 4 7.4c0 2.9 2 5.3 4.4 5.6l-.6 1.5h2.4L9.6 13C12 12.7 14 10.3 14 7.4 14 4.4 11.8 2 9 2z" /><path d="M16.5 5c-1.9 0-3.5 1.7-3.5 3.9 0 2 1.3 3.7 3 4l-.4 1.1h1.8L17 12.9c1.7-.3 3-2 3-4C20 6.7 18.4 5 16.5 5z" opacity=".55" /></svg>
+                </div>
+                <div style={{ font: '700 19px Poppins', color: '#3A3A42' }}>¡Tu evento está listo!</div>
+                {(eventsGroup?.[eventsGroup.length - 1]?.nombre) && <div style={{ font: '500 12.5px Poppins', color: '#D83E7C' }}>{eventsGroup[eventsGroup.length - 1].nombre}</div>}
+              </div>
+              {/* Intro */}
+              <div style={{ font: '400 12.5px/1.6 Poppins', color: '#6b6b72', textAlign: 'center' }}>Crea tu cuenta gratis para guardarlo y gestionarlo todo:</div>
+              {/* Beneficios */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+                {['Tu evento guardado de forma permanente', 'Invitados, mesas, presupuesto e itinerario', 'Copilot, tu asistente IA para planificar'].map((b, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ width: 20, height: 20, borderRadius: '50%', background: '#E2F6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1F8A5F" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M4 12l5 5L20 6" /></svg></span>
+                    <span style={{ font: '500 12.5px Poppins', color: '#3A3A42' }}>{b}</span>
+                  </div>
+                ))}
+              </div>
+              {/* CTA */}
+              <a href={config?.pathLogin ? `${config.pathLogin}?q=register` : '/login?q=register'} className="gcta" style={{ width: '100%', padding: 14, borderRadius: 12, background: '#EF5B94', color: '#fff', font: '600 14px Poppins', border: 'none', cursor: 'pointer', boxShadow: '0 6px 16px rgba(239,91,148,.3)', textAlign: 'center', textDecoration: 'none', display: 'block' }}>Crear cuenta gratis</a>
+              {/* Login (línea suelta, centrada) */}
+              <div style={{ font: '500 12.5px Poppins', color: '#6b6b72', textAlign: 'center' }}>¿Ya tienes cuenta? <a href={config?.pathLogin || '/login'} style={{ color: '#EF5B94', fontWeight: 600, textDecoration: 'none' }}>Inicia sesión</a></div>
+              {/* Secundario: franja gris diferenciada (full-bleed a los bordes del card) */}
+              <div style={{ background: '#FAF9FB', borderTop: '1px solid #f0f0f2', margin: '0 -30px -26px', padding: '14px 30px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <button onClick={() => setShowGuestRegisterModal(false)} className="ginv" style={{ font: '600 12.5px Poppins', color: '#6b6b72', cursor: 'pointer', padding: '2px 8px', background: 'none', border: 'none' }}>Seguir como invitado</button>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5, font: '400 11px Poppins', color: '#8F6E14' }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 3L2 20h20L12 3z" /><path d="M12 10v4M12 17.5v.1" /></svg>Perderás los datos al cerrar la sesión</span>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
+        {router.query.studio !== "legacy" && <MisEventosMovil onCreate={() => setValirQuery(true)} />}
         <section id="rootsection" className="section relative w-full flex flex-col">
           <Banner state={valirQuery} set={setValirQuery} />
           <GridCards
@@ -229,13 +333,6 @@ const Home: NextPage = () => {
             refreshEventsGroup={refreshEventsGroup}
           />
         </section>
-        <style jsx>
-          {`
-            .section {
-              height: calc(100vh - 144px);
-            }
-          `}
-        </style>
       </>
     );
   }
@@ -245,7 +342,7 @@ const Home: NextPage = () => {
   return (
     <div className="flex items-center justify-center h-screen w-full bg-white px-4">
       <div className="flex flex-col items-center gap-3 text-center max-w-sm">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-500" />
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
         <p className="text-sm font-medium text-gray-700">Cargando tus eventos…</p>
         <p className="text-2xl font-semibold tabular-nums text-primary">{eventsLoadSeconds}s</p>
         <p className="text-xs text-gray-400">
@@ -267,8 +364,16 @@ interface propsBanner {
 const Banner: FC<propsBanner> = ({ set, state }) => {
   const { t } = useTranslation();
   const { eventsGroup } = EventsGroupContextProvider();
-  const { actionModals, setActionModals } = AuthContextProvider()
+  const { actionModals, setActionModals, user, config } = AuthContextProvider()
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const routerBanner = useRouter()
+  // Banner rediseñado (studio) = vista POR DEFECTO (rollback ?studio=legacy).
+  const studio = routerBanner.query.studio !== "legacy"
+  // Nudge de registro: solo para invitados (guest). Reusa la ruta de registro
+  // existente (?q=register → registro studio).
+  const isGuest = user?.displayName === "guest"
+  const pathLoginBanner = config?.pathLogin || "/login"
+  const registerHref = pathLoginBanner.includes("?") ? `${pathLoginBanner}&q=register` : `${pathLoginBanner}?q=register`
 
   // Dynamic import to avoid SSR issues
   const [planLimits, setPlanLimits] = useState<any>(null)
@@ -286,6 +391,137 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
     }
   }
   return (
+    studio ? (
+      <>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .nudge-cta:hover{background:#D83E7C !important;}
+          .she-hero{max-width:1100px;margin:0 auto;padding:44px 24px 70px;display:grid;grid-template-columns:1.05fr 1fr;gap:44px;align-items:center;font-family:'Poppins',sans-serif;}
+          @media (max-width:900px){.she-hero{grid-template-columns:1fr;}}
+          .she-chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #FCE7F0;box-shadow:0 3px 10px rgba(239,91,148,.1);color:#D83E7C;font:600 12px Poppins;padding:7px 16px;border-radius:20px;margin-bottom:24px;}
+          .she-titulo{font:600 40px/1.14 Poppins;color:#3A3A42;letter-spacing:-1px;margin-bottom:12px;}
+          .she-titulo .grad{background:linear-gradient(100deg,#EF5B94,#D83E7C);-webkit-background-clip:text;background-clip:text;color:transparent;}
+          .she-sub{font:400 14.5px/1.6 Poppins;color:#6b6b72;margin-bottom:24px;max-width:390px;}
+          .she-cta{display:inline-flex;align-items:center;gap:9px;padding:13px 26px;border-radius:10px;background:#EF5B94;color:#fff;font:600 14px Poppins;border:none;cursor:pointer;box-shadow:0 6px 16px rgba(239,91,148,.3);transition:transform .15s,background .15s;}
+          .she-cta:hover{background:#D83E7C;transform:translateY(-2px);}
+          .she-social{display:flex;align-items:center;gap:12px;margin-top:26px;}
+          .she-avatars{display:flex;}
+          .she-avatars>div{width:34px;height:34px;border-radius:50%;border:2.5px solid #fff;}
+          .she-avatars>div+div{margin-left:-10px;}
+          .she-av1{background:linear-gradient(135deg,#f9c8dc,#EF5B94);}
+          .she-av2{background:linear-gradient(135deg,#e8d3c4,#c9a24b);}
+          .she-av3{background:linear-gradient(135deg,#d4c8e8,#8e7cc3);}
+          .she-avmas{background:#FCE7F0;color:#D83E7C;display:flex;align-items:center;justify-content:center;font:700 10px Poppins;}
+          .she-social-txt{font:500 12.5px/1.45 Poppins;color:#8a8a90;}
+          .she-social-txt b{color:#3A3A42;}
+          .she-visual{position:relative;max-width:390px;justify-self:end;width:100%;pointer-events:none;user-select:none;}
+          .she-halo{position:absolute;inset:-30px -10px -30px 30px;background:radial-gradient(circle at 65% 40%, #FCE7F0 0%, rgba(252,231,240,0) 68%);z-index:0;}
+          .she-card{position:relative;z-index:1;background:#fff;border:1px solid #f0f0f2;border-radius:24px;box-shadow:0 24px 60px rgba(0,0,0,.1);overflow:hidden;}
+          .she-card-head{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f4f4f6;}
+          .she-card-tipo{font:600 10px Poppins;color:#EF5B94;letter-spacing:.6px;}
+          .she-card-nombre{font:700 15px Poppins;color:#3A3A42;}
+          .she-card-fecha{display:flex;align-items:center;gap:6px;background:#FBF0DA;color:#E0A32B;font:600 11px Poppins;padding:5px 12px;border-radius:20px;}
+          .she-card-fecha i{width:6px;height:6px;border-radius:50%;background:#E0A32B;}
+          .she-card-foto{width:100%;height:170px;object-fit:cover;display:block;background:#f2f2f4;}
+          .she-card-stats{padding:16px 20px;display:flex;gap:10px;}
+          .she-stat{flex:1;background:#faf9fb;border:1px solid #f0f0f2;border-radius:12px;padding:10px 14px;text-align:center;}
+          .she-stat .num{font:700 16px Poppins;color:#3A3A42;}
+          .she-stat .num.rosa{color:#EF5B94;}
+          .she-stat .num.verde{color:#2FB37E;}
+          .she-stat .lbl{font:500 10px Poppins;color:#9aa0a6;}
+          .she-card-botones{padding:0 20px 18px;display:flex;gap:10px;}
+          .she-card-botones button{flex:1;padding:12px;border-radius:10px;background:#fff;border:1.5px solid #F3B6CE;color:#EF5B94;font:600 12.5px Poppins;cursor:pointer;}
+          .she-countdown{position:absolute;bottom:-52px;right:-14px;z-index:2;background:#fff;border:1px solid #f0f0f2;border-radius:14px;box-shadow:0 10px 26px rgba(0,0,0,.12);padding:12px 16px;display:flex;gap:14px;}
+          .she-countdown .sep{width:1px;background:#f0f0f2;}
+          .she-countdown .u{text-align:center;}
+          .she-countdown .n{font:700 17px Poppins;color:#3A3A42;}
+          .she-countdown .n.rosa{color:#EF5B94;}
+          .she-countdown .l{font:500 9.5px Poppins;color:#9aa0a6;}
+        ` }} />
+        <div className="bg-base w-full">
+          {isGuest && (
+            <div style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 24px 0" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", background: "linear-gradient(100deg,#FFF0F6,#FDE8F1)", border: "1px solid #F8CFE2", borderRadius: 14, padding: "12px 16px 12px 14px", fontFamily: "'Poppins',sans-serif" }}>
+                <span style={{ width: 36, height: 36, borderRadius: 11, background: "linear-gradient(135deg,#F586B1,#EF5B94)", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", boxShadow: "0 5px 12px rgba(239,91,148,.28)" }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M12 3l1.8 4.8 4.7 1.2-4.7 1.2L12 15l-1.8-4.8L5.5 9l4.7-1.2z" /><path d="M18.5 15l.9 2.3 2.3.9-2.3.9-.9 2.3-.9-2.3-2.3-.9 2.3-.9z" opacity=".6" /></svg>
+                </span>
+                <div style={{ flex: 1, minWidth: 200 }}>
+                  <div style={{ font: "600 13.5px Poppins", color: "#3A3A42" }}>{t("guestNudge.title", { defaultValue: "Estás en modo prueba" })}</div>
+                  <div style={{ font: "500 12px/1.4 Poppins", color: "#9c6480" }}>{t("guestNudge.desc", { defaultValue: "Regístrate gratis para guardar tu evento y no perder tus cambios." })}</div>
+                </div>
+                <Link href={registerHref} className="nudge-cta" style={{ flex: "none", display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: 999, background: "#EF5B94", color: "#fff", font: "600 13px Poppins", textDecoration: "none", boxShadow: "0 6px 16px rgba(239,91,148,.32)" }}>
+                  {t("guestNudge.cta", { defaultValue: "Regístrate gratis" })}
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+                </Link>
+              </div>
+            </div>
+          )}
+          <section className="she-hero">
+            {/* IZQUIERDA */}
+            <div>
+              <div className="she-chip">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="#EF5B94"><path d="M12 3l1.7 4.6L18 9l-4.3 1.4L12 15l-1.7-4.6L6 9l4.3-1.4L12 3z" /></svg>
+                Para wedding planners, proveedores y parejas
+              </div>
+              <h1 className="she-titulo">Todos tus eventos,<br />gestionados <span className="grad">sin estrés</span></h1>
+              <p className="she-sub">Invitados, mesas, presupuesto e invitaciones, cada evento en un solo lugar.</p>
+              <button className="she-cta" onClick={() => ConditionalAction()}>
+                Empieza a organizar
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+              </button>
+              <div className="she-social">
+                <div className="she-avatars">
+                  <div className="she-av1"></div><div className="she-av2"></div><div className="she-av3"></div><div className="she-avmas">+12k</div>
+                </div>
+                <div className="she-social-txt">Más de <b>12.000 profesionales y parejas</b><br />ya organizan sus eventos aquí</div>
+              </div>
+            </div>
+            {/* DERECHA: tarjeta de ejemplo (ilustrativa) */}
+            <div className="she-visual">
+              <div className="she-halo"></div>
+              <div className="she-card">
+                <div className="she-card-head">
+                  <div style={{ lineHeight: 1.25 }}>
+                    <div className="she-card-tipo">BODA</div>
+                    <div className="she-card-nombre">Boda Luis y Carla</div>
+                  </div>
+                  <span className="she-card-fecha"><i></i>18 Nov 2028</span>
+                </div>
+                <img className="she-card-foto" src="/studio/hero-evento-ejemplo.jpg" alt="Foto del evento" />
+                <div className="she-card-stats">
+                  <div className="she-stat"><div className="num rosa">4 de 6</div><div className="lbl">pasos del evento</div></div>
+                  <div className="she-stat"><div className="num">100</div><div className="lbl">invitados totales</div></div>
+                  <div className="she-stat"><div className="num verde">50 de 50</div><div className="lbl">sentados en tu evento</div></div>
+                </div>
+                <div className="she-card-botones">
+                  <button>Ver mi itinerario</button>
+                  <button>Lugar del evento</button>
+                </div>
+              </div>
+              <div className="she-countdown">
+                <div className="u"><div className="n">24</div><div className="l">días</div></div>
+                <div className="sep"></div>
+                <div className="u"><div className="n">12</div><div className="l">horas</div></div>
+                <div className="sep"></div>
+                <div className="u"><div className="n rosa">59</div><div className="l">min</div></div>
+              </div>
+            </div>
+          </section>
+        </div>
+        {showUpgradeModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
+            <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 flex flex-col items-center gap-4 text-center">
+              <div className="text-4xl">🎉</div>
+              <h2 className="font-display text-xl font-semibold text-gray-800">Has llegado al límite de eventos</h2>
+              <p className="text-sm text-gray-600 leading-relaxed">{planLimits?.upgradeMessage?.('events-count') || 'Actualiza tu plan para crear más eventos.'}</p>
+              <div className="flex flex-col gap-2 w-full mt-2">
+                <Link href="/facturacion" className="w-full py-3 rounded-full bg-primary text-white font-medium text-sm hover:opacity-80 transition text-center">Ver planes</Link>
+                <button onClick={() => setShowUpgradeModal(false)} className="w-full py-2 text-sm text-gray-500 hover:text-gray-700 transition">Cerrar</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    ) : (
     <div className="banner bg-base w-full flex justify-center h-[48%] md:h-[60%] min-h-[48%] md:min-h-[400px] px-5 md:px-0 overflow-hidden relative mb-1">
       <div className="md:max-w-screen-lg 2xl:max-w-screen-xl w-full grid md:grid-cols-5 h-full">
         <div className="flex flex-col justify-center relative py-10 md:py-0 col-span-2">
@@ -311,11 +547,11 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="hidden md:block relative overflow-hidden col-span-3"
+          className="relative overflow-hidden col-span-3"
         >
           {/* <CircleBanner className="w-full h-auto top-12 transform translate-y-1/6 absolute bottom-0 right-0 left-2 z-0" /> */}
           <img
-            className="z-20 image mx-auto inset-x-0 relative top-16"
+            className="z-20 image mx-auto inset-x-0 relative top-6 md:top-16 w-full h-auto max-w-[520px] object-contain"
             src="/IndexImg2.png"
             alt=""
             width={520}
@@ -333,14 +569,9 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
             width: 600px;
           }
           .image {
-            height: 500px;
-          }
-
-          @media only screen and (min-width: 1536px) {
-            .image {
-              height: 500px;
-
-            }
+            /* Altura automática: el mockup del teléfono conserva su proporción
+               natural (antes height fija 260/500px + w-full = imagen estirada). */
+            height: auto;
           }
         `}
       </style>
@@ -374,6 +605,7 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
         </div>
       )}
     </div>
+    )
   );
 };
 
@@ -408,21 +640,21 @@ const GridCards: FC<propsGridCards> = ({
 }) => {
   const { t } = useTranslation();
   const { eventsGroup, copilotFilter } = EventsGroupContextProvider();
-  const { idxGroupEvent, setIdxGroupEvent } = EventContextProvider()
+  const { user, setUser, config } = AuthContextProvider();
+  const { idxGroupEvent, setIdxGroupEvent, setEvent } = EventContextProvider()
+  const toastGrid = useToast()
+  const { utcDateFormated } = useDateTime()
+  const [vista, setVista] = useState<"grid" | "tabla">("grid")
   const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<number>(idxGroupEvent?.isActiveStateSwiper)
   const [tabsGroup, setTabsGroup] = useState<dataTab[]>([]);
   const [idxNew, setIdxNew] = useState<number>(-2)
-  const [isModalVisible, setIsModalVisible] = useState(false);
   const [orderAndDirection, setOrderAndDirection] = useState<SelectModeSortType>({ order: "fecha", direction: "desc" })
+  const [ordenOpen, setOrdenOpen] = useState(false)
+  const [mountedFab, setMountedFab] = useState(false)
+  useEffect(() => { setMountedFab(true) }, [])
 
-  const handleMouseEnter = () => {
-    setIsModalVisible(true);
-  };
   const router = useRouter()
 
-  const handleMouseLeave = () => {
-    setIsModalVisible(false);
-  };
   useEffect(() => {
     if (eventsGroup) {
       const arrNuevo = eventsGroup?.reduce((acc, event) => {
@@ -449,9 +681,12 @@ const GridCards: FC<propsGridCards> = ({
       const result: dataTab[] = Object.entries(arrNuevo).map((eventos: any[]) => {
         const events = eventos[1]
         const eventsSort = events?.sort((a: any, b: any) => {
-          const aNew = a.fecha_creacion.length < 16 ? parseInt(a.fecha_creacion) : new Date(a.fecha_creacion).getTime()
-          const bNew = b.fecha_creacion.length < 16 ? parseInt(b.fecha_creacion) : new Date(b.fecha_creacion).getTime()
-          return bNew - aNew
+          // Defensivo: eventos locales de invitado (u otros) pueden no traer fecha_creacion → no romper.
+          const aFc = String(a?.fecha_creacion ?? "")
+          const bFc = String(b?.fecha_creacion ?? "")
+          const aNew = aFc.length < 16 ? parseInt(aFc) : new Date(aFc).getTime()
+          const bNew = bFc.length < 16 ? parseInt(bFc) : new Date(bFc).getTime()
+          return (bNew || 0) - (aNew || 0)
         })
         return ({
           status: eventos[0],
@@ -492,6 +727,61 @@ const GridCards: FC<propsGridCards> = ({
     }));
   }, [tabsGroup, copilotFilter]);
 
+  // Grid rediseñado (studio, por defecto; rollback ?studio=legacy)
+  const studio = (router as any)?.query?.studio !== "legacy";
+  const activeIdx = Number.isInteger(isActiveStateSwiper) ? isActiveStateSwiper : 0;
+  // Estados (spec owner): Activos/Realizados automáticos por FECHA; Archivados manual;
+  // Compartidos = eventos donde NO soy dueño. Activos/Realizados/Archivados listan solo MIS eventos.
+  const studioGroups = useMemo(() => {
+    const uid = user?.uid;
+    const idSet = (copilotFilter && copilotFilter.entity === "events" && copilotFilter.ids?.length) ? new Set(copilotFilter.ids) : null;
+    const all = (eventsGroup ?? []).filter(Boolean).filter((e: any) => !idSet || idSet.has(e._id));
+    const todayStart = new Date().setHours(0, 0, 0, 0);
+    // fecha puede venir como ms ("1830297600000") o ISO ("2028-01-01"); parseInt de un ISO
+    // devuelve el año → hay que parsear como utcDateFormated (ms-string vs fecha real).
+    const fechaMs = (f: any) => {
+      if (f == null) return NaN;
+      const s = String(f);
+      const d = (!s.includes("T") && !s.includes("-")) ? new Date(parseInt(s)) : new Date(s);
+      return d.getTime();
+    };
+    const bucketOf = (e: any) => {
+      if (String(e?.estatus ?? "").toLowerCase().includes("archiv")) return "archivado";
+      const ms = fechaMs(e?.fecha);
+      return (!Number.isNaN(ms) && ms < todayStart) ? "realizado" : "activo";
+    };
+    const mine = all.filter((e: any) => e?.usuario_id === uid);
+    const shared = all.filter((e: any) => e?.usuario_id && uid && e.usuario_id !== uid);
+    return [
+      { label: "Activos", status: "activo", data: mine.filter((e: any) => bucketOf(e) === "activo") },
+      { label: "Realizados", status: "realizado", data: mine.filter((e: any) => bucketOf(e) === "realizado") },
+      { label: "Archivados", status: "archivado", data: mine.filter((e: any) => bucketOf(e) === "archivado") },
+      { label: "Compartidos", status: "compartido", data: shared },
+    ];
+  }, [eventsGroup, user, copilotFilter]);
+  const fechaMsOf = (f: any) => { if (f == null) return NaN; const s = String(f); const d = (!s.includes("T") && !s.includes("-")) ? new Date(parseInt(s)) : new Date(s); return d.getTime(); };
+  const sortEvents = (arr: any[]) => {
+    const items = [...(arr || [])];
+    if (orderAndDirection?.order === "fecha") {
+      items.sort((a, b) => orderAndDirection.direction === "asc" ? fechaMsOf(a?.fecha) - fechaMsOf(b?.fecha) : fechaMsOf(b?.fecha) - fechaMsOf(a?.fecha));
+    } else if (orderAndDirection?.order === "nombre") {
+      items.sort((a, b) => orderAndDirection.direction === "asc" ? String(a.nombre).localeCompare(b.nombre) : String(b.nombre).localeCompare(a.nombre));
+    }
+    return items;
+  };
+  // Helpers vista tabla
+  const getBucket = (e: any): "activo" | "realizado" | "archivado" => {
+    if (String(e?.estatus ?? "").toLowerCase().includes("archiv")) return "archivado";
+    const ms = fechaMsOf(e?.fecha);
+    return (!Number.isNaN(ms) && ms < new Date().setHours(0, 0, 0, 0)) ? "realizado" : "activo";
+  };
+  const bucketLbl: Record<string, string> = { activo: t("Activo"), realizado: t("Realizado"), archivado: t("Archivado") };
+  const tevColor = (s: string) => { const c = ["#EF5B94", "#8e7cc3", "#c9a24b", "#5aa9e6", "#2FB37E", "#e07a5f", "#7b8794"]; let h = 0; for (const ch of String(s || "?")) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return c[h % c.length]; };
+  const eventoImg = (e: any) => e?.imgEvento?.i320 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${e.imgEvento.i320}`)}` : (defaultImagenes[e?.tipo?.toLowerCase()] || defaultImagenes["otro"]);
+  const invitadosCount = (e: any) => { const a = e?.invitados_array; if (Array.isArray(a)) return a.length; if (typeof a === "string") { try { const p = JSON.parse(a); return Array.isArray(p) ? p.length : 0; } catch { return 0; } } return 0; };
+  const presupuestoFmt = (e: any) => { let po: any = e?.presupuesto_objeto; if (typeof po === "string") { try { po = JSON.parse(po); } catch { po = null; } } const val = Number(po?.coste_estimado ?? po?.presupuesto_total ?? po?.coste_final ?? 0) || 0; try { return new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(val); } catch { return `${val} €`; } };
+  const abrirFila = (ev: any) => { if (!ev?._id) { toastGrid("error", t("Error: Evento no válido")); return; } toastGrid("success", t("Abriendo evento...")); handleClickCard({ t, final: true, config, data: ev, setEvent, user, setUser, router }).then((r: any) => { if (r) toastGrid("warning", r); }).catch(() => { try { setEvent(ev); setTimeout(() => router.push("/resumen-evento"), 100); } catch { } }); };
+
   return (
     <div className="flex flex-col max-h-[calc(52%-4px)]">
       {eventsGroupError && !eventsGroupSessionExpired && (
@@ -515,6 +805,193 @@ const GridCards: FC<propsGridCards> = ({
         </div>
       )}
       <CopilotFilterBar entity="events" className="mx-4" />
+      {studio ? (
+      <>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .evc-card{position:relative;border-radius:16px;background:#fff;border:1px solid #f0f0f2;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.05);transition:transform .18s,box-shadow .18s;}
+          .evc-card:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(0,0,0,.12);}
+          .evc-card.seleccionada{border:1.5px solid #EF5B94;}
+          .evc-badge-sel{position:absolute;bottom:-9px;left:14px;display:flex;align-items:center;gap:5px;white-space:nowrap;background:#EF5B94;color:#fff;font:600 9.5px Poppins;letter-spacing:.4px;padding:4px 11px;border-radius:12px;box-shadow:0 4px 12px rgba(239,91,148,.4);z-index:3;}
+          .evc-foto{position:relative;height:104px;border-radius:15px 15px 0 0;background-color:#f2f2f4;}
+          .evc-tipo{position:absolute;top:10px;left:10px;background:rgba(255,255,255,.92);color:#3A3A42;font:700 9.5px Poppins;letter-spacing:.8px;padding:4px 10px;border-radius:12px;text-transform:uppercase;z-index:2;}
+          .evc-avatar-wrap{position:absolute;top:8px;right:8px;z-index:2;}
+          .evc-avatars{display:flex;align-items:center;}
+          .evc-av{width:22px;height:22px;border-radius:50%;border:2px solid #fff;color:#fff;font:700 9px Poppins;display:flex;align-items:center;justify-content:center;position:relative;flex:none;}
+          .evc-av + .evc-av{margin-left:-8px;}
+          .evc-av-more{background:#f2f2f4;color:#8a8a90;}
+          .evc-av-dot{position:absolute;bottom:-1px;right:-1px;width:7px;height:7px;border-radius:50%;background:#2FB37E;border:1.5px solid #fff;}
+          .evc-body{padding:12px 14px 13px;}
+          .evc-fila{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;position:relative;}
+          .evc-nombre{font:600 13px Poppins;color:#3A3A42;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+          .evc-fecha{font:500 11px Poppins;color:#8a8a90;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+          .evc-dots{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#8a8a90;flex:none;background:none;border:none;cursor:pointer;}
+          .evc-dots:hover{background:#f5f5f7;color:#EF5B94;}
+          .evc-pie{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:9px;}
+          .evc-pill{display:inline-flex;align-items:center;gap:5px;font:600 10px Poppins;padding:4px 10px;border-radius:12px;}
+          .evc-pill i{width:5px;height:5px;border-radius:50%;background:currentColor;}
+          .evc-pill--activo{background:#FBF0DA;color:#E0A32B;}
+          .evc-pill--pendiente{background:#FBF0DA;color:#E0A32B;}
+          .evc-pill--archivado{background:#f2f2f4;color:#8a8a90;}
+          .evc-pill--realizado{background:#E4F5EE;color:#2FB37E;}
+          .evc-compartido{font:500 10px Poppins;color:#8a8a90;}
+          .evc-menu{position:absolute;top:30px;right:0;z-index:10;background:#fff;border:1px solid #f0f0f2;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.14);padding:6px;min-width:150px;}
+          .evc-menu-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:8px;font:500 12px Poppins;color:#3A3A42;cursor:pointer;}
+          .evc-menu-item:hover{background:#fdf8fa;color:#EF5B94;}
+          .evc-menu-item.peligro{color:#D83E7C;}
+          .evc-menu-item.peligro:hover{background:#FBE4EF;}
+          .evc-menu-sep{height:1px;background:#f0f0f2;margin:4px 8px;}
+          .orden-item:hover{background:#fdf8fa;}
+          .tev-tabla{background:#fff;border:1px solid #f0f0f2;border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,.05);overflow:hidden;}
+          .tev-head,.tev-row{display:grid;grid-template-columns:2.2fr 1fr 1.2fr 0.8fr 1.2fr 0.8fr 1fr 1.1fr;gap:12px;align-items:center;padding:12px 22px;}
+          .tev-head{background:#faf9fb;border-bottom:1px solid #f0f0f2;font:700 10.5px Poppins;color:#a0a0a8;letter-spacing:.6px;text-transform:uppercase;}
+          .tev-head>div,.tev-row>div{text-align:center;}
+          .tev-head>div:first-child,.tev-row>div:first-child{text-align:left;}
+          .tev-row{border-bottom:1px solid #f5f5f7;cursor:pointer;}
+          .tev-row:hover{background:#fdf8fa;}
+          .tev-row:last-child{border-bottom:none;}
+          .tev-nombre{display:flex;align-items:center;gap:11px;min-width:0;}
+          .tev-foto{width:40px;height:40px;border-radius:10px;flex:none;background-size:cover;background-position:center;background-color:#f2f2f4;}
+          .tev-nombre b{font:600 12.5px Poppins;color:#3A3A42;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+          .tev-pill{display:inline-flex;align-items:center;gap:5px;font:600 10.5px Poppins;padding:4px 10px;border-radius:12px;}
+          .tev-pill i{width:5px;height:5px;border-radius:50%;background:currentColor;}
+          .tev-pill--activo{background:#FBF0DA;color:#E0A32B;}
+          .tev-pill--realizado{background:#E4F5EE;color:#2FB37E;}
+          .tev-pill--archivado{background:#f2f2f4;color:#8a8a90;}
+          .tev-txt{font:500 12px Poppins;color:#6b6b72;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+          .tev-tipo{font:600 11px Poppins;color:#8a8a90;letter-spacing:.5px;text-transform:uppercase;}
+          .tev-num{font:600 12.5px Poppins;color:#3A3A42;}
+          .tev-avatars{display:flex;align-items:center;justify-content:center;}
+          .tev-av{width:24px;height:24px;border-radius:50%;color:#fff;display:inline-flex;align-items:center;justify-content:center;font:700 9.5px Poppins;border:2px solid #fff;flex:none;}
+          .tev-av+.tev-av{margin-left:-8px;}
+          .tev-av-gris{background:#f2f2f4;color:#8a8a90;}
+        ` }} />
+        <div className="md:flex-1 min-w-0 overflow-y-auto" style={{ background: "#fff", borderTop: "1px solid #f0f0f2", width: "100%", paddingTop: 28 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 14, maxWidth: 1240, margin: "0 auto", padding: "0 24px", width: "100%" }}>
+          <div style={{ flex: 1, minWidth: 0 }} className="hidden md:block" />
+          <div style={{ display: "flex", gap: 6, background: "#f5f5f7", borderRadius: 12, padding: 5, flexWrap: "wrap", justifyContent: "center" }}>
+            {studioGroups.map((g, i) => {
+              const active = activeIdx === i;
+              return (
+                <div key={i} onClick={() => setIsActiveStateSwiper(i)} style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 18px", borderRadius: 9, color: active ? "#EF5B94" : "#8a8a90", font: "600 12.5px Poppins", cursor: "pointer", whiteSpace: "nowrap" }}>
+                  {t(g.label)}
+                  <span style={{ minWidth: 20, height: 20, borderRadius: 10, background: active ? "#FCE7F0" : "#ececef", color: active ? "#D83E7C" : "#8a8a90", font: "600 10.5px Poppins", display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 6px" }}>{g.data.length}</span>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 16 }} className="justify-center md:justify-end">
+            <div style={{ position: "relative" }}>
+              <div onClick={() => setOrdenOpen(!ordenOpen)} style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", color: (orderAndDirection.order !== "fecha" || orderAndDirection.direction !== "desc") ? "#EF5B94" : "#6b6b72" }}>
+                <span style={{ font: "600 12.5px Poppins" }}>{t("Ordenar")}</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}><path d="M6 9l6 6 6-6" /></svg>
+              </div>
+              {ordenOpen && (
+                <ClickAwayListener onClickAway={() => setOrdenOpen(false)}>
+                  <div style={{ position: "absolute", top: 26, right: 0, zIndex: 20, background: "#fff", border: "1px solid #f0f0f2", borderRadius: 12, boxShadow: "0 12px 30px rgba(0,0,0,.14)", padding: 6, minWidth: 150 }}>
+                    {[{ k: "fecha", l: "Fecha" }, { k: "nombre", l: "Nombre" }].map((o) => {
+                      const sel = orderAndDirection.order === o.k;
+                      return (
+                        <div key={o.k} className="orden-item" onClick={() => setOrderAndDirection((p) => ({ ...p, order: o.k as any }))} style={{ display: "flex", alignItems: "center", gap: 9, padding: "9px 12px", borderRadius: 8, font: `${sel ? 600 : 500} 12px Poppins`, color: "#3A3A42", cursor: "pointer" }}>
+                          <span style={{ width: 7, height: 7, borderRadius: "50%", background: sel ? "#2FB37E" : "#e7e7ea", flex: "none" }} />{t(o.l)}
+                        </div>
+                      );
+                    })}
+                    <div style={{ height: 1, background: "#f0f0f2", margin: "4px 8px" }} />
+                    {[{ k: "asc", l: "Ascendente" }, { k: "desc", l: "Descendente" }].map((o) => {
+                      const sel = orderAndDirection.direction === o.k;
+                      return (
+                        <div key={o.k} className="orden-item" onClick={() => setOrderAndDirection((p) => ({ ...p, direction: o.k as any }))} style={{ display: "flex", alignItems: "center", gap: 9, padding: "9px 12px", borderRadius: 8, font: `${sel ? 600 : 500} 12px Poppins`, color: "#3A3A42", cursor: "pointer" }}>
+                          <span style={{ width: 7, height: 7, borderRadius: "50%", background: sel ? "#2FB37E" : "#e7e7ea", flex: "none" }} />{t(o.l)}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ClickAwayListener>
+              )}
+            </div>
+            <div onClick={() => setVista(v => v === "tabla" ? "grid" : "tabla")} title={(vista === "tabla" ? t("Ver como tarjetas") : t("Ver como tabla")) as string} className="hidden md:flex" style={{ width: 34, height: 34, borderRadius: 9, border: "1.5px solid #E7E7EA", background: "#fff", alignItems: "center", justifyContent: "center", color: "#6b6b72", cursor: "pointer", flex: "none" }}>
+              {vista === "tabla" ? (
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>
+              ) : (
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 9h18M9 9v11" /></svg>
+              )}
+            </div>
+          </div>
+        </div>
+        <div style={{ maxWidth: 1240, margin: "0 auto", padding: "22px 24px 64px", width: "100%" }} className="min-w-0">
+          {(() => {
+            const g = studioGroups[activeIdx] || studioGroups[0];
+            const items = sortEvents(g.data);
+            if (items.length === 0) {
+              return (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "60px 20px", background: "#fff", border: "1.5px dashed #E7E7EA", borderRadius: 18 }}>
+                  <div style={{ width: 72, height: 72, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", marginBottom: 18 }}>
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M9 2C6.2 2 4 4.4 4 7.4c0 2.9 2 5.3 4.4 5.6l-.6 1.5h2.4L9.6 13C12 12.7 14 10.3 14 7.4 14 4.4 11.8 2 9 2z" /><path d="M16.5 5c-1.9 0-3.5 1.7-3.5 3.9 0 2 1.3 3.7 3 4l-.4 1.1h1.8L17 12.9c1.7-.3 3-2 3-4C20 6.7 18.4 5 16.5 5z" opacity=".55" /></svg>
+                  </div>
+                  <div style={{ font: "600 16px Poppins", color: "#3A3A42", marginBottom: 6 }}>{t("Aún no tienes eventos aquí")}</div>
+                  <div style={{ font: "400 13px/1.6 Poppins", color: "#8a8a90", maxWidth: 340, marginBottom: 22 }}>{t("Crea un evento y empieza a organizar invitados, mesas e invitaciones en un solo lugar.")}</div>
+                  {g.status === "activo" && (
+                    <button onClick={() => setNewEvent(!state)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "13px 26px", borderRadius: 10, background: "#EF5B94", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Empezar")}
+                    </button>
+                  )}
+                </div>
+              );
+            }
+            if (vista === "tabla") {
+              return (
+                <div style={{ overflowX: "auto" }}>
+                  <div className="tev-tabla" style={{ minWidth: 900 }}>
+                    <div className="tev-head">
+                      <div>{t("Nombre del evento")}</div><div>{t("Estado")}</div><div>{t("Propietario")}</div><div>{t("Tipo")}</div><div>{t("Fecha del evento")}</div><div>{t("Invitados")}</div><div>{t("Compartidos")}</div><div>{t("Presupuesto")}</div>
+                    </div>
+                    {items.map((ev, i) => {
+                      const bk = getBucket(ev);
+                      const shared = [...(ev?.detalles_compartidos_array ?? [])];
+                      const propietario = ev?.detalles_usuario_id?.displayName || ev?.usuario_nombre || "—";
+                      return (
+                        <div key={ev?._id || i} className="tev-row" onClick={() => abrirFila(ev)}>
+                          <div className="tev-nombre"><div className="tev-foto" style={{ backgroundImage: `url('${eventoImg(ev)}')` }} /><b>{ev?.nombre}</b></div>
+                          <div><span className={`tev-pill tev-pill--${bk}`}><i />{bucketLbl[bk]}</span></div>
+                          <div className="tev-txt">{propietario}</div>
+                          <div className="tev-tipo">{ev?.tipo === "otro" ? t("otro") : t(ev?.tipo)}</div>
+                          <div className="tev-txt">{utcDateFormated(ev?.fecha)}</div>
+                          <div className="tev-num">{invitadosCount(ev)}</div>
+                          <div className="tev-avatars">
+                            {shared.length > 0 ? (() => {
+                              const maxShown = 3; const overflow = shared.length > maxShown ? shared.length - maxShown : 0; const visible = shared.slice(-Math.min(shared.length, maxShown));
+                              return (<>{overflow > 0 && <span className="tev-av tev-av-gris">+{overflow}</span>}{visible.map((u: any, k: number) => <span key={k} className="tev-av" title={u?.email || u?.displayName || ""} style={{ background: tevColor(u?.email || u?.displayName) }}>{String(u?.displayName || u?.email || "?").charAt(0).toUpperCase()}</span>)}</>);
+                            })() : (
+                              <span className="tev-av tev-av-gris">{String(propietario || "?").charAt(0).toUpperCase()}</span>
+                            )}
+                          </div>
+                          <div className="tev-num">{presupuestoFmt(ev)}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {items.map((evento, i) => (
+                  <Card key={evento?._id || i} data={items} grupoStatus={g.status} idx={i} onSelect={() => setIdxGroupEvent({ idx: i, isActiveStateSwiper: activeIdx, event_id: evento._id })} />
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+        </div>
+        {mountedFab && studioGroups.some(g => g.data.length > 0) && createPortal(
+          <button onClick={() => setNewEvent(!state)} title={t("Crear evento") as string} className="hidden md:flex" style={{ position: "fixed", bottom: 26, right: 30, zIndex: 60, alignItems: "center", gap: 8, padding: "14px 24px", borderRadius: 10, background: "#EF5B94", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 10px 26px rgba(239,91,148,.4)" }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Crear evento")}
+          </button>,
+          document.body
+        )}
+      </>
+      ) : (
+      <>
       <div className="w-full h-10 flex">
         <div className="flex-1" />
         <div className="inline-flex gap-4 py-2">
@@ -522,7 +999,10 @@ const GridCards: FC<propsGridCards> = ({
             <button
               onClick={(e) => setIsActiveStateSwiper(idx)}
               key={idx}
-              className={`${isActiveStateSwiper == idx ? `bg-${item.color} text-white` : "bg-white text-gray-500"} w-max px-4 py-0.5 rounded-xl flex items-center justify-center cursor-pointer hover:bg-${item.color} hover:text-gray-500 transition focus:outline-none text-sm font-display`}
+              // BUG-CW-N16 (informe QA 23-jun 5ª ronda): tabs Pendientes/Archivados/
+              // Realizados tenían py-0.5 → altura total 24px, muy por debajo del
+              // mínimo 44px de Apple HIG. Subido a py-2 + min-h-[44px] para tap fácil.
+              className={`${isActiveStateSwiper == idx ? `bg-${item.color} text-white` : "bg-white text-gray-500"} w-max px-4 py-2 min-h-[44px] rounded-xl flex items-center justify-center cursor-pointer hover:bg-${item.color} hover:text-gray-500 transition focus:outline-none text-sm font-display`}
             >
               {t(item.nombre)}
             </button>
@@ -530,22 +1010,9 @@ const GridCards: FC<propsGridCards> = ({
         </div>
         <div className="flex-1 h-full flex justify-end items-center px-4 relative space-x-4" >
           <SelectModeSort value={orderAndDirection} setValue={setOrderAndDirection} />
-          <div
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            className="cursor-pointer hidden md:block "
-            onClick={() => router.push("/eventos")}
-          >
-            <TbTableShare className="h-5 w-5 text-gray-700 hover:text-gray-900" />
-            {isModalVisible && (
-              <div className="modal absolute w-36 z-50 text-[10px] px-[5px] bg-gray-500 text-white rounded-md -translate-x-full flex justify-center">
-                Cambiar a vista de tabla
-              </div>
-            )}
-          </div>
         </div>
       </div>
-      <div className="flex flex-col md:flex-1 overflow-x-scroll md:overflow-clip">
+      <div className="flex flex-col md:flex-1 min-w-0 overflow-x-scroll md:overflow-clip pt-4">
         {displayedTabsGroup.map((group, idx) => {
           if (orderAndDirection?.order) {
             group?.data?.sort((a, b) => {
@@ -555,23 +1022,23 @@ const GridCards: FC<propsGridCards> = ({
                 return orderAndDirection.direction === "asc" ? dateA - dateB : dateB - dateA;
               }
               if (orderAndDirection.order === "nombre") {
-                return orderAndDirection.direction === "asc" ? a.nombre.localeCompare(b.nombre) : b.nombre.localeCompare(a.nombre);
+                const an = String(a?.nombre || ""); const bn = String(b?.nombre || "");
+                return orderAndDirection.direction === "asc" ? an.localeCompare(bn) : bn.localeCompare(an);
               }
               return 0;
             });
           }
           return (
-            <div key={idx} className={`${isActiveStateSwiper !== idx && "hidden"} mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-x-4 gap-y-3`}>
+            <div key={idx} className={`${isActiveStateSwiper !== idx && "hidden"} mb-6 grid min-w-0 grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-3`}>
               {isActiveStateSwiper == idx ? (
                 <>
                   {group?.data?.map((evento, idx) => {
                     return (
                       <div
                         key={idx}
-                        className="flex items-center justify-center my-3"
-                        onClick={() => { setIdxGroupEvent({ idx, isActiveStateSwiper, event_id: evento._id }) }}
+                        className="flex items-center justify-center my-3 min-w-0"
                       >
-                        <Card data={group.data} grupoStatus={group.status} idx={idx} />
+                        <Card data={group.data} grupoStatus={group.status} idx={idx} onSelect={() => setIdxGroupEvent({ idx, isActiveStateSwiper, event_id: evento._id })} />
                       </div>
                     )
                   })}
@@ -593,6 +1060,8 @@ const GridCards: FC<propsGridCards> = ({
           )
         })}
       </div>
+      </>
+      )}
     </div >
   );
 };
@@ -614,7 +1083,7 @@ const LandingVisitante: FC = () => {
   ];
 
   return (
-    <div className="flex flex-col items-center w-full bg-base min-h-[calc(100vh-144px)] overflow-y-auto">
+    <div className="paper flex flex-col items-center w-full bg-base min-h-[calc(100vh-144px)] overflow-y-auto">
       {/* Hero */}
       <div className="w-full max-w-3xl px-6 pt-12 pb-8 flex flex-col items-center text-center gap-5">
         <div className="w-40 h-16 flex items-center justify-center">

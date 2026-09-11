@@ -189,6 +189,28 @@ test.describe('Auth Flow — chat-ia', () => {
 
     if (onLogin) {
       console.log(`⚠️  AF03 BUG: login correcto no redirigió al chat (sigue en /login). Posible error Firebase o redirect loop.`);
+      const issuesBtn = page.getByRole('button', { name: /\d+\s+issues/i }).first();
+      if (await issuesBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await issuesBtn.click().catch(() => {});
+        await page.waitForTimeout(1000);
+      }
+
+      const devToolsBtn = page.getByRole('button', { name: /Open Next\.js Dev Tools/i }).first();
+      if (await devToolsBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await devToolsBtn.click().catch(() => {});
+        await page.waitForTimeout(1500);
+      }
+
+      await page
+        .screenshot({ path: 'test-results/auth-flow-af03-nextjs-devtools.png', fullPage: true })
+        .catch(() => {});
+
+      const alertText = await page
+        .locator('[role="alert"]')
+        .first()
+        .textContent()
+        .catch(() => null);
+      if (alertText) console.log(`AF03 NextJS alert: ${alertText.slice(0, 400)}`);
     }
     if (onError) {
       console.log(`⚠️  AF03 BUG: login redirigió a página de error`);

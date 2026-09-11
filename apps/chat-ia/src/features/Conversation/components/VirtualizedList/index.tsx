@@ -78,12 +78,12 @@ const VirtualizedList = memo<VirtualizedListProps>(({ mobile, dataSource, itemCo
   if (isFirstLoading || !isCurrentChatLoaded) return <SkeletonList mobile={mobile} />;
 
   return (
-    <VirtuosoContext value={virtuosoRef}>
+    <VirtuosoContext.Provider value={virtuosoRef}>
       <Virtuoso
         atBottomStateChange={setAtBottom}
         atBottomThreshold={50 * (mobile ? 2 : 1)}
         components={{
-          List,
+          List: List as any,
         }}
 
         computeItemKey={(_, item) => item}
@@ -121,7 +121,7 @@ const VirtualizedList = memo<VirtualizedListProps>(({ mobile, dataSource, itemCo
           }}
         />
       </WideScreenContainer>
-    </VirtuosoContext>
+    </VirtuosoContext.Provider>
   );
 });
 

@@ -45,7 +45,11 @@ export const DEFAULT_AGENT_CONFIG: LobeAgentConfig = {
   },
 
   // 🛠️ Plugins (opcional)
-  plugins: [],
+  // lobe-event-panel: habilita el panel contextual del evento (show_event_section) por defecto.
+  // Sin esto, el modelo NO recibe la herramienta → nunca abre el panel (QA 4-ago, Bug #4:
+  // "muéstrame el presupuesto" → 0 llamadas, respuesta genérica). Las tools al modelo se filtran
+  // por agentConfig.plugins (tool.ts:23 / generateAIChat.ts:687).
+  plugins: ['lobe-event-panel'],
 
   // ✅ AUTO por defecto (como Cursor)
   provider: 'auto',

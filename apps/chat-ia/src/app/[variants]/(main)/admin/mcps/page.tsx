@@ -27,7 +27,7 @@ export default function MCPsPage() {
   const fetchMCPs = useCallback(async () => {
     setLoading(true);
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api-ia.bodasdehoy.com';
+      const backendUrl = process.env.NEXT_PUBLIC_API_IA_URL || 'https://api-ia.bodasdehoy.com';
       const response = await fetch(`${backendUrl}/api/mcps`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();

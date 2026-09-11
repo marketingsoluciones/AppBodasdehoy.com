@@ -1,0 +1,68 @@
+DE: COORD-AppEventos (FRONT chat-ia/appbodas)
+PARA: API-IA
+DRI: api-ia backend_oncall
+ASUNTO: PENDIENTES de api-ia hacia chat-ia (consolidado 2026-06-11) — 6 abiertos
+
+# ============================================================
+# LO QUE NECESITAMOS DE API-IA — estado al 2026-06-11
+# ============================================================
+
+## ✅ YA CERRADO (no requiere acción, solo confirmación)
+# RAG chat-ia migrado 3/3 verde (verificado COORD por curl, Qdrant):
+#   /embed, /batch-embed-file (B1), /search → OK. rag.ts cableado.
+
+## 🟡 PENDIENTE 1 — Fase 2 batch-embed-file con file_id PURO (sin file_url/text)
+# En prod el front llama: {file_id, user_id} SIN file_url ni text.
+# api-ia debe resolver file_url INTERNAMENTE a partir del file_id (R2).
+# PREGUNTA: ¿con SOLO {file_id,user_id} ya resolvéis la URL en R2?
+# Necesito saber QUÉ lookup hacéis (file_id -> url) para pasaros un file_id real de prueba.
+$ curl -X POST https://api-ia.bodasdehoy.com/api/lobechat-kb/batch-embed-file \
+    -H "X-Development: bodasdehoy" -d '{"file_id":"<REAL>","user_id":"<REAL>"}'
+# => esperado: success + total_chunks (api-ia descarga de R2 por file_id)
+
+## 🔴 PENDIENTE 2 — /chat/structured 502 (si sigue abierto)
+# Reportado en F6/F7/F7.1/F7.2: /chat/structured daba 502 (root cause base_url Groq
+# faltante en OpenAIClient → gsk_ a api.openai.com → 401 → 502).
+# PREGUNTA: ¿está desplegado el fix de las 3 líneas (rest_chat_handler.py:6398 + openai.py:18)?
+# Confirmad y re-corremos smoke /chat/structured.
+
+## 🔴 PENDIENTE 3 — Billing en /chat/structured (bypass)
+# F9: streaming /chat factura OK, pero /chat/structured BYPASEA los 4 módulos de billing
+# (api_key_monitor + usage_tracking + cost_auditor + audit_alerts).
+# PREGUNTA: ¿se integró el billing en /chat/structured? Toda feature IA debe medir+facturar.
+
+## 🟡 PENDIENTE 4 — files: endpoint register-metadata (sin re-subir binario)
+# Auditado 2026-06-11: /api/files/list, /api/storage/files/{id}/metadata, remove → OK (funcionan).
+# GAP: el flujo legacy del front sube binario (uploadService) y LUEGO registra metadata aparte.
+# api-ia solo tiene /api/files/upload (multipart: binario+metadata juntos). NO hay forma de
+# registrar metadata de un binario YA subido. Workaround actual (file/apiIa.ts:77-91): createFile
+# es PASSTHROUGH — construye el id desde la URL; si la URL no encaja, inventa id (randomUUID) = frágil.
+# PETICIÓN: exponed POST /api/files/register-metadata {url, filename, size, user_id, ...}
+#           que devuelva el file_id canónico, sin re-subir el binario.
+# (También útil para fase 2 RAG: ese file_id sería el que pasamos a batch-embed-file.)
+# Menor: ¿endpoint dedupe por hash? ¿cancelar tasks asíncronos? (file/apiIa.ts:157,168). No bloqueante.
+
+## 🟢 PENDIENTE 5 (menor) — image generations: endpoint de STATUS
+# Auditado 2026-06-11: GET /image/generations?topic_id= y DELETE /image/generations/{gen_id}?topic_id=
+# YA EXISTEN y funcionan (antes no → el front tenía stubs). Vamos a des-stubear deleteGeneration. ✅
+# FALTA: getGenerationStatus no tiene endpoint dedicado. ¿Exponéis GET /image/generations/{gen_id}/status
+#        o derivamos el status del GET por gen_id? Confirmad para cablear bien.
+
+## 🟠 PENDIENTE 6 — branding config devuelve URLs con protocolo DUPLICADO (https://https://)
+# Detectado 2026-06-11 simulando visitante (reporte UX). GET /chat/config (y /api/config proxy)
+# devuelve TODAS las URLs de media con "https://" duplicado → ERR_NAME_NOT_RESOLVED, logo/favicon roto.
+# Evidencia (curl real, tenant bodasdehoy):
+#   "logo":"https://https://media.eventosorganizador.com/bodasdehoy/branding/logos/logo.png"
+#   "favicon":"https://https://media.eventosorganizador.com/.../favicon-32x32.png"
+#   (8 campos afectados: logo, favicon, apple_touch_icon, og_image + 4 icons)
+# IMPACTO: logo/favicon/branding NO cargan en el front (cualquier tenant con este patrón).
+# El front ya aplica un saneo defensivo (normalizeMediaUrl) PERO el origen está mal:
+# api-ia construye la URL anteponiendo "https://" a un valor que YA lo tiene.
+# PETICIÓN: corregir la construcción de URLs de branding en api-ia (no anteponer protocolo si ya existe).
+
+# ------------------------------------------------------------
+# NO bloqueante para nosotros pero conviene cerrar:
+#   /query-embedding ya FUNCIONA (era bug, resuelto con Qdrant). OK.
+# ------------------------------------------------------------
+
+DRI: api-ia → responder estado de PENDIENTE 1/2/3/4/5/6 + fecha en este hilo.

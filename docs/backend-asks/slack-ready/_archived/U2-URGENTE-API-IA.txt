@@ -1,0 +1,105 @@
+DE: COORD-AppEventos
+PARA: API-IA
+DRI: api_ia_oncall
+CANAL: #coordinacion · workspace eventosorganizador.slack.com
+HILO: 1778170638.897419
+ASUNTO: ⏰ URGENTE — lo que necesito YA de api-ia para cerrar CAPA 2
+
+
+Necesito 2 cosas vuestras para no bloquearme. Vuestro mensaje del
+05-jun decía "todo lo demás ya está desbloqueado" — perfecto, pero
+faltan 2 decisiones que SÍ os tocan a vosotros:
+
+
+═══════════════════════════════════════════════════════════
+🔴 [1] DECISIÓN SOBRE 3 SERVICIOS (cerrar CAPA 2 COMPLETA)
+═══════════════════════════════════════════════════════════
+
+Pendiente desde el mensaje 1d/1c (no habéis respondido aún):
+
+  [A] aiProvider
+      api-ia tiene READ + RUNTIME (/api/providers/{development},
+      /webapi/models/{provider}, etc.) PERO NO CRUD por id de
+      provider del USUARIO.
+
+      ¿Opción (c) deprecar persistencia y guardar en
+      userConfig.aiProviders[] (igual que plugin)?
+        → SÍ → yo replico el patrón ApiIaProviderService en ~1h
+        → NO → necesitamos CRUD user-scoped → ¿quién lo implementa?
+
+  [B] chatGroup
+      api-mcp modela grupos como { sessionIds[] } plano. El front
+      necesita ChatGroupAgent con order + role.
+
+      ¿Opciones?
+        (a) deprecar order/role del front (grupos simples sin metadato)
+        (b) ticket api-mcp para modelar ChatGroupAgent con order+role
+        (c) deprecar persistencia: guardar en userConfig.chatGroups[]
+            con order/role como JSON local
+
+  [C] knowledgeBase
+      api-ia tiene /api/admin/kb/* (admin sistema) y /api/lobechat-kb/*
+      (runtime RAG). NO CRUD POR USUARIO.
+
+      ¿Opciones?
+        (a) deprecar del front (usuarios no crean KBs propias)
+        (b) endpoint CRUD user-scoped: /api/users/me/knowledge-bases
+        (c) deprecar persistencia: userConfig.knowledgeBases[]
+
+ATAJO: si los 3 son (c) "deprecar persistencia + userConfig",
+respondedme con UNA LÍNEA "ABC = c, c, c" y cierro CAPA 2 entera
+en 2-3h replicando el patrón de plugin/commit 30799792.
+
+IMPACTO: con esta decisión + Thread (esperando api-mcp) →
+CAPA 3 lista para borrar drizzle/pglite/@trpc/* del package.json →
+-25k módulos, build chat-ia 10min → 3-4min.
+
+
+═══════════════════════════════════════════════════════════
+🟡 [2] PROXY REST Thread — cuando api-mcp publique
+═══════════════════════════════════════════════════════════
+
+api-mcp ETA 1-2h con Thread + 4 ajustes (continuation/standalone,
+Active/Archived/Deprecated, SendMessageInput, enums tipados).
+
+Cuando notifiquen, vosotros exponéis los 6 endpoints REST:
+
+  GET    /chat/topics/{topic_id}/threads
+  POST   /chat/topics/{topic_id}/threads
+  PATCH  /chat/threads/{thread_id}
+  DELETE /chat/threads/{thread_id}?removeChildren=true|false
+  POST   /chat/topics/{topic_id}/threads/with-message
+  DELETE /chat/topics/{topic_id}/threads
+
+CRÍTICO: aplicar transformación uppercase/lowercase en type/status
+(igual que ya hacéis con role del message):
+  front ↔ api-ia      → minúsculas
+  api-ia ↔ api-mcp    → MAYÚSCULAS
+
+Ya tengo services/thread/apiIa.ts pre-escrito (commit 887c2ccd) que
+envía minúsculas y espera minúsculas de vuelta. Si vosotros NO hacéis
+la transformación, se rompe.
+
+ETA estimada por vosotros: ~1 día tras la señal de api-mcp.
+
+
+═══════════════════════════════════════════════════════════
+🟢 [3] OPCIONAL — getUserRegistrationDuration
+═══════════════════════════════════════════════════════════
+
+api-mcp confirmó que User.createdAt YA existe. Solo necesito que
+expongáis /api/auth/registration-duration o similar.
+
+Mientras no esté, mantengo el stub TODO en services/user/apiIa.ts
+que devuelve duration: 0. NO bloquea nada.
+
+
+═══════════════════════════════════════════════════════════
+🎯 LO QUE NECESITO HOY EN 1 RESPUESTA SLACK
+═══════════════════════════════════════════════════════════
+
+  [1] Decisión A/B/C  →  "ABC = ?, ?, ?"  (3 letras: a, b o c cada una)
+  [2] Confirmación que aplicaréis uppercase/lowercase Thread (sí/no)
+
+
+DRI: coord_appeventos — con 4 letras desbloqueas CAPA 2 completa.
