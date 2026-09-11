@@ -63,7 +63,7 @@ const Itinerario: FC<any> = (props) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className={`mx-auto inset-x-0 w-full ${isStudioTareas ? "px-2 md:px-0" : "pl-2 pr-[1px] md:px-4"} gap-4 relative`}>
+                className={`max-w-screen-lg mx-auto inset-x-0 w-full ${isStudioTareas ? "px-4 pt-3" : "pl-2 pr-[1px] md:px-4"} gap-4 relative`}>
                 {/* En móvil studio, TareasStudioMovil trae su propia cabecera "Tareas";
                     el holder de escritorio se oculta para no duplicarla. */}
                 <div className={isStudioTareas ? "hidden md:block" : ""}>

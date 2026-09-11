@@ -357,7 +357,7 @@ const Mesas: FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 ">
+              className="max-w-screen-lg mx-auto inset-x-0 w-full px-4 pt-3 ">
               <CopilotFilterBar entity={['tables', 'guests']} />
               <BlockTitle title={"Mesas y asientos"} />
             </motion.div>
