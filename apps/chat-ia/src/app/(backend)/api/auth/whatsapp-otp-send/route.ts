@@ -48,7 +48,8 @@ export async function POST(request: NextRequest) {
     const res = await fetch(
       `${API_IA_ORIGIN}/api/whatsapp/messages/send?development=${encodeURIComponent(development)}`,
       {
-        body: JSON.stringify({ content, phone_number: phone }),
+        // purpose=auth_otp → api-ia/api-mcp deben exentar de billing (OTP de login no se cobra).
+        body: JSON.stringify({ content, phone_number: phone, purpose: 'auth_otp' }),
         headers: { 'Content-Type': 'application/json', 'X-Development': development },
         method: 'POST',
         signal: AbortSignal.timeout(15_000),
