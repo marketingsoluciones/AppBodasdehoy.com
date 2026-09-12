@@ -15,9 +15,21 @@ const fechaMs = (f: any) => {
 const MisEventosMovil: FC<{ onCreate: () => void }> = ({ onCreate }) => {
   const { t } = useTranslation();
   const { eventsGroup } = EventsGroupContextProvider();
-  const { user } = AuthContextProvider();
+  const { user, config } = AuthContextProvider();
   const [tab, setTab] = useState(0);
   const [showAll, setShowAll] = useState(false);
+
+  // Color de marca (mismo gate isBodas que LoginStudio/Navigation): bodasdehoy
+  // conserva su rosa EXACTO; otras marcas usan su config.theme.
+  const _p = config?.theme?.primaryColor;
+  const isBodas = !_p || config?.development === 'bodasdehoy';
+  const cLight = isBodas ? '#EF5B94' : _p;
+  const cDark = isBodas ? '#D83E7C' : (config?.theme?.secondaryColor || _p);
+  const cPale = isBodas ? '#FCE7F0' : `color-mix(in srgb, ${cLight} 12%, white)`;
+  const cBorder = isBodas ? '#F3B6CE' : `color-mix(in srgb, ${cLight} 45%, white)`;
+  const cSh1 = isBodas ? '0 3px 10px rgba(239,91,148,.1)' : `0 3px 10px color-mix(in srgb, ${cLight} 12%, transparent)`;
+  const cSh3 = isBodas ? '0 6px 16px rgba(239,91,148,.3)' : `0 6px 16px color-mix(in srgb, ${cLight} 32%, transparent)`;
+  const cHeroGrad = isBodas ? 'linear-gradient(100deg,#EF5B94,#D83E7C)' : `linear-gradient(100deg, ${cLight}, ${cDark})`;
 
   const groups = useMemo(() => {
     const uid = user?.uid;
@@ -55,10 +67,10 @@ const MisEventosMovil: FC<{ onCreate: () => void }> = ({ onCreate }) => {
       <div className="mev-scroll" style={{ flex: 1, overflowY: "auto" }}>
         {/* Hero */}
         <div style={{ padding: "34px 20px 10px" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "#fff", border: "1px solid #FCE7F0", boxShadow: "0 3px 10px rgba(239,91,148,.1)", color: "#D83E7C", font: "600 10px Poppins", padding: "5px 12px", borderRadius: 16, marginBottom: 16, whiteSpace: "nowrap" }}><svg width="11" height="11" viewBox="0 0 24 24" fill="#EF5B94"><path d="M12 3l1.7 4.6L18 9l-4.3 1.4L12 15l-1.7-4.6L6 9l4.3-1.4L12 3z" /></svg>{t("Para wedding planners y parejas")}</div>
-          <h1 style={{ font: "600 27px/1.25 Poppins", color: "#3A3A42", letterSpacing: "-.5px", marginBottom: 12 }}>{t("Todos tus eventos, gestionados")} <span style={{ background: "linear-gradient(100deg,#EF5B94,#D83E7C)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" } as any}>{t("sin estrés")}</span></h1>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "#fff", border: `1px solid ${cPale}`, boxShadow: cSh1, color: cDark, font: "600 10px Poppins", padding: "5px 12px", borderRadius: 16, marginBottom: 16, whiteSpace: "nowrap" }}><svg width="11" height="11" viewBox="0 0 24 24" fill={cLight}><path d="M12 3l1.7 4.6L18 9l-4.3 1.4L12 15l-1.7-4.6L6 9l4.3-1.4L12 3z" /></svg>{t("Para wedding planners y parejas")}</div>
+          <h1 style={{ font: "600 27px/1.25 Poppins", color: "#3A3A42", letterSpacing: "-.5px", marginBottom: 12 }}>{t("Todos tus eventos, gestionados")} <span style={{ background: cHeroGrad, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" } as any}>{t("sin estrés")}</span></h1>
           <p style={{ font: "400 13px/1.65 Poppins", color: "#6b6b72", marginBottom: 22 }}>{t("Invitados, mesas, presupuesto e invitaciones, cada evento en un solo lugar.")}</p>
-          <button onClick={onCreate} style={{ display: "inline-flex", alignItems: "center", gap: 8, whiteSpace: "nowrap", padding: "12px 22px", borderRadius: 10, background: "#EF5B94", color: "#fff", font: "600 13px Poppins", border: "none", boxShadow: "0 6px 16px rgba(239,91,148,.3)", cursor: "pointer" }}>{t("Empieza a organizar")}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></button>
+          <button onClick={onCreate} style={{ display: "inline-flex", alignItems: "center", gap: 8, whiteSpace: "nowrap", padding: "12px 22px", borderRadius: 10, background: cLight, color: "#fff", font: "600 13px Poppins", border: "none", boxShadow: cSh3, cursor: "pointer" }}>{t("Empieza a organizar")}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></button>
         </div>
 
         {/* Contenedor tarjetas */}
@@ -68,8 +80,8 @@ const MisEventosMovil: FC<{ onCreate: () => void }> = ({ onCreate }) => {
             {groups.map((gr, i) => {
               const on = tab === i;
               return (
-                <div key={i} onClick={() => { setTab(i); setShowAll(false); }} style={{ display: "flex", alignItems: "center", gap: 6, padding: "12px 16px", borderRadius: 22, background: on ? "#FCE7F0" : "#fff", border: on ? "1.5px solid #F3B6CE" : "1.5px solid #E7E7EA", color: on ? "#D83E7C" : "#8a8a90", font: "600 11.5px Poppins", cursor: "pointer", whiteSpace: "nowrap", flex: "none" }}>
-                  {t(gr.label)}<span style={{ minWidth: 17, height: 17, borderRadius: 9, background: on ? "#fff" : "#ececef", color: on ? "#D83E7C" : "#8a8a90", font: "600 9.5px Poppins", display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 5px" }}>{gr.data.length}</span>
+                <div key={i} onClick={() => { setTab(i); setShowAll(false); }} style={{ display: "flex", alignItems: "center", gap: 6, padding: "12px 16px", borderRadius: 22, background: on ? cPale : "#fff", border: on ? `1.5px solid ${cBorder}` : "1.5px solid #E7E7EA", color: on ? cDark : "#8a8a90", font: "600 11.5px Poppins", cursor: "pointer", whiteSpace: "nowrap", flex: "none" }}>
+                  {t(gr.label)}<span style={{ minWidth: 17, height: 17, borderRadius: 9, background: on ? "#fff" : "#ececef", color: on ? cDark : "#8a8a90", font: "600 9.5px Poppins", display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 5px" }}>{gr.data.length}</span>
                 </div>
               );
             })}
@@ -78,9 +90,9 @@ const MisEventosMovil: FC<{ onCreate: () => void }> = ({ onCreate }) => {
           {/* Tarjetas o empty state */}
           {filtered.length === 0 ? (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: "50px 20px" }}>
-              <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", marginBottom: 16 }}><svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M9 2C6.2 2 4 4.4 4 7.4c0 2.9 2 5.3 4.4 5.6l-.6 1.5h2.4L9.6 13C12 12.7 14 10.3 14 7.4 14 4.4 11.8 2 9 2z" /><path d="M16.5 5c-1.9 0-3.5 1.7-3.5 3.9 0 2 1.3 3.7 3 4l-.4 1.1h1.8L17 12.9c1.7-.3 3-2 3-4C20 6.7 18.4 5 16.5 5z" opacity=".55" /></svg></div>
+              <div style={{ width: 64, height: 64, borderRadius: "50%", background: cPale, display: "flex", alignItems: "center", justifyContent: "center", color: cLight, marginBottom: 16 }}><svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M9 2C6.2 2 4 4.4 4 7.4c0 2.9 2 5.3 4.4 5.6l-.6 1.5h2.4L9.6 13C12 12.7 14 10.3 14 7.4 14 4.4 11.8 2 9 2z" /><path d="M16.5 5c-1.9 0-3.5 1.7-3.5 3.9 0 2 1.3 3.7 3 4l-.4 1.1h1.8L17 12.9c1.7-.3 3-2 3-4C20 6.7 18.4 5 16.5 5z" opacity=".55" /></svg></div>
               <div style={{ font: "600 15px Poppins", color: "#3A3A42", marginBottom: 6 }}>{t("Crea tu primer evento")}</div>
-              {g.status === "activo" && <button onClick={onCreate} style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 22px", borderRadius: 10, background: "#EF5B94", color: "#fff", font: "600 13px Poppins", border: "none", boxShadow: "0 6px 16px rgba(239,91,148,.3)", cursor: "pointer" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Empezar")}</button>}
+              {g.status === "activo" && <button onClick={onCreate} style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 22px", borderRadius: 10, background: cLight, color: "#fff", font: "600 13px Poppins", border: "none", boxShadow: cSh3, cursor: "pointer" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Empezar")}</button>}
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 4 }}>

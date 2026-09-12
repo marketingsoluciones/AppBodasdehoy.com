@@ -23,14 +23,24 @@ const curSym = (c?: string) => {
 };
 
 const DASH = "1.5px dashed #F4A9C8";
-const dashBtn: React.CSSProperties = { display: "block", margin: "14px auto 0", height: 40, width: 170, borderRadius: 11, background: "transparent", border: DASH, color: "#EF5B94", font: "600 12px Poppins", cursor: "pointer" };
+const dashBtn: React.CSSProperties = { display: "block", margin: "14px auto 0", height: 40, width: 170, borderRadius: 11, background: "transparent", border: DASH, color: "var(--color-primary, #EF5B94)", font: "600 12px Poppins", cursor: "pointer" };
 const secTitle: React.CSSProperties = { font: "600 15px Poppins", color: "#6b6b72", margin: "0 2px 9px" };
 const cardStyle: React.CSSProperties = { background: "#fff", border: "1px solid #f0f0f2", borderRadius: 15, boxShadow: "0 3px 10px rgba(0,0,0,.04)" };
 
 const ResumenStudioMovil: FC = () => {
   const router = useRouter();
   const { event } = EventContextProvider() as any;
-  const { user } = AuthContextProvider() as any;
+  const { user, config } = AuthContextProvider() as any;
+  // Color de marca (gate isBodas, igual que LoginStudio/Navigation): bodasdehoy exacto, resto config.theme.
+  const _p = config?.theme?.primaryColor;
+  const isBodas = !_p || config?.development === 'bodasdehoy';
+  const cLight = isBodas ? '#EF5B94' : _p;
+  const cDark = isBodas ? '#D83E7C' : (config?.theme?.secondaryColor || _p);
+  const cPale = isBodas ? '#FCE7F0' : `color-mix(in srgb, ${cLight} 12%, white)`;
+  const cGrad135 = isBodas ? 'linear-gradient(135deg,#EF5B94,#f588b3)' : `linear-gradient(135deg, ${cLight}, color-mix(in srgb, ${cLight} 55%, white))`;
+  const cGrad90 = isBodas ? 'linear-gradient(90deg,#EF5B94,#f588b3)' : `linear-gradient(90deg, ${cLight}, color-mix(in srgb, ${cLight} 55%, white))`;
+  const cSh28 = isBodas ? '0 6px 16px rgba(239,91,148,.28)' : `0 6px 16px color-mix(in srgb, ${cLight} 30%, transparent)`;
+  const cSh26 = isBodas ? '0 8px 20px rgba(239,91,148,.26)' : `0 8px 20px color-mix(in srgb, ${cLight} 28%, transparent)`;
   const [openShare, setOpenShare] = useState(false);
   const [isMounted, setIsMounted] = useState(false);   // drawer editar evento
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
@@ -72,7 +82,7 @@ const ResumenStudioMovil: FC = () => {
   const over = gastado > estimado && estimado > 0;
   const fmt = (n: number) => `${Math.round(n).toLocaleString("es-ES")} ${cur}`;
   const presupPct = estimado > 0 ? Math.min((gastado / estimado) * 100, 100) : (gastado > 0 ? 100 : 0);
-  const presupColor = over ? "#D83E7C" : "#EF5B94";
+  const presupColor = over ? cDark : cLight;
 
   const isOwner = event?.usuario_id === user?.uid;
 
@@ -131,7 +141,7 @@ const ResumenStudioMovil: FC = () => {
 
   // Invitados: 3 métricas con badge
   const invStats = [
-    { n: total, l: "Total", soft: "#FCE7F0", fg: "#EF5B94", d: "M12 5v14M5 12h14" },
+    { n: total, l: "Total", soft: cPale, fg: cLight, d: "M12 5v14M5 12h14" },
     { n: confirmados, l: "Confirmados", soft: "#E4F5EE", fg: "#2FB37E", d: "M5 12l5 5L20 7" },
     { n: pendientes, l: "Pendientes", soft: "#FBF0DA", fg: "#C99A3B", d: "M12 6v6l4 2" },
   ];
@@ -151,22 +161,22 @@ const ResumenStudioMovil: FC = () => {
           <div style={{ position: "relative", height: 170, background: "#f4f4f6" }}>
             <img src={heroSrc} alt={event?.nombre} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[event?.tipo?.toLowerCase()] || defaultImagenes["otro"]; }} />
             <div style={{ position: "absolute", top: 10, right: 10, display: "flex", gap: 8 }}>
-              <div onClick={() => isOwner && setOpenShare(true)} title="Compartir" style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,.92)", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", boxShadow: "0 3px 10px rgba(0,0,0,.14)", cursor: isOwner ? "pointer" : "default" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4" /></svg></div>
-              <div onClick={() => isOwner && setIsMounted(true)} title="Editar evento" style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,.92)", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", boxShadow: "0 3px 10px rgba(0,0,0,.14)", opacity: isOwner ? 1 : .5, cursor: isOwner ? "pointer" : "default" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></div>
+              <div onClick={() => isOwner && setOpenShare(true)} title="Compartir" style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,.92)", display: "flex", alignItems: "center", justifyContent: "center", color: cLight, boxShadow: "0 3px 10px rgba(0,0,0,.14)", cursor: isOwner ? "pointer" : "default" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4" /></svg></div>
+              <div onClick={() => isOwner && setIsMounted(true)} title="Editar evento" style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,.92)", display: "flex", alignItems: "center", justifyContent: "center", color: cLight, boxShadow: "0 3px 10px rgba(0,0,0,.14)", opacity: isOwner ? 1 : .5, cursor: isOwner ? "pointer" : "default" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></div>
             </div>
           </div>
           <div style={{ padding: "16px 18px 18px", textAlign: "center" }}>
             <div style={{ font: "700 20px Poppins", color: "#4a4a52", textTransform: "uppercase" }}>{event?.nombre}</div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 6, font: "600 12px Poppins", color: "#8a8a90" }}>{fechaTxt}<span style={{ background: "#FCE7F0", color: "#EF5B94", font: "600 10.5px Poppins", padding: "3px 10px", borderRadius: 20 }}>{tipoTxt}</span></div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 6, font: "600 12px Poppins", color: "#8a8a90" }}>{fechaTxt}<span style={{ background: cPale, color: cLight, font: "600 10.5px Poppins", padding: "3px 10px", borderRadius: 20 }}>{tipoTxt}</span></div>
             {dias !== null && (
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 7, marginTop: 9, background: "linear-gradient(135deg,#EF5B94,#f588b3)", color: "#fff", font: "500 12px Poppins", padding: "6px 14px", borderRadius: 22, boxShadow: "0 6px 16px rgba(239,91,148,.28)" }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M6 2h12M6 22h12M6 2c0 5 4 6 4 10s-4 5-4 10M18 2c0 5-4 6-4 10s4 5 4 10" /></svg>{dias === 0 ? "¡Es hoy!" : `Faltan ${dias.toLocaleString("es-ES")} días`}</div>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 7, marginTop: 9, background: cGrad135, color: "#fff", font: "500 12px Poppins", padding: "6px 14px", borderRadius: 22, boxShadow: cSh28 }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M6 2h12M6 22h12M6 2c0 5 4 6 4 10s-4 5-4 10M18 2c0 5-4 6-4 10s4 5 4 10" /></svg>{dias === 0 ? "¡Es hoy!" : `Faltan ${dias.toLocaleString("es-ES")} días`}</div>
             )}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16 }}>
               <div style={{ font: "600 11px Poppins", color: "#8a8a90", whiteSpace: "nowrap" }}>Estado <span style={{ color: "#3A3A42" }}>· {pct}%</span></div>
-              <div style={{ font: "600 11px Poppins", color: "#EF5B94", whiteSpace: "nowrap" }}>{estadoMsg}</div>
+              <div style={{ font: "600 11px Poppins", color: cLight, whiteSpace: "nowrap" }}>{estadoMsg}</div>
             </div>
             <div style={{ position: "relative", height: 7, borderRadius: 8, background: "#f0f0f2", marginTop: 7 }}>
-              <div style={{ position: "absolute", inset: 0, height: "100%", width: `${pct}%`, background: "linear-gradient(90deg,#EF5B94,#f588b3)", borderRadius: 8, transition: "width .9s cubic-bezier(.2,.7,.2,1)" }} />
+              <div style={{ position: "absolute", inset: 0, height: "100%", width: `${pct}%`, background: cGrad90, borderRadius: 8, transition: "width .9s cubic-bezier(.2,.7,.2,1)" }} />
             </div>
             <div style={{ display: "flex", justifyContent: "center", gap: 6, marginTop: 12, flexWrap: "wrap" }}>
               {heroChips.map((c, i) => (
@@ -183,7 +193,7 @@ const ResumenStudioMovil: FC = () => {
             const on = !!stepsDone[i];
             return (
               <div key={i} onClick={() => setStepsDone((prev) => prev.map((v, idx) => (idx === i ? !v : v)))} style={{ flex: "none", display: "flex", alignItems: "center", gap: 7, padding: "8px 12px", borderRadius: 999, cursor: "pointer", background: on ? "#faf9fb" : "#fff", border: on ? "1.5px solid #f0f0f2" : DASH }}>
-                <div style={{ width: 18, height: 18, borderRadius: "50%", background: on ? "#FCE7F0" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", color: on ? "#EF5B94" : "#c9c9cf", font: "700 9px Poppins", flex: "none" }}>{on ? "✓" : ""}</div>
+                <div style={{ width: 18, height: 18, borderRadius: "50%", background: on ? cPale : "#fff", display: "flex", alignItems: "center", justifyContent: "center", color: on ? cLight : "#c9c9cf", font: "700 9px Poppins", flex: "none" }}>{on ? "✓" : ""}</div>
                 <span style={{ font: "500 11px Poppins", color: on ? "#a0a0a8" : "#3A3A42", whiteSpace: "nowrap" }}>{title}</span>
               </div>
             );
@@ -194,7 +204,7 @@ const ResumenStudioMovil: FC = () => {
         <div style={secTitle}>Presupuesto</div>
         <div style={{ ...cardStyle, padding: 16, marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 11, flex: "none", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round"><path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2V5z" /><path d="M2 9v1c0 1.1.9 2 2 2h1" /></svg></div>
+            <div style={{ width: 38, height: 38, borderRadius: 11, flex: "none", background: cPale, display: "flex", alignItems: "center", justifyContent: "center", color: cLight }}><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round"><path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2V5z" /><path d="M2 9v1c0 1.1.9 2 2 2h1" /></svg></div>
             <div style={{ flex: 1 }}><div style={{ font: "500 10.5px Poppins", color: "#a0a0a8" }}>Estimado</div><div style={{ font: "600 15px Poppins", color: "#3A3A42" }}>{fmt(estimado)}</div></div>
             <div style={{ textAlign: "right" }}><div style={{ font: "500 10.5px Poppins", color: "#a0a0a8" }}>Pagado</div><div style={{ font: "600 15px Poppins", color: presupColor }}>{fmt(gastado)}</div></div>
           </div>
@@ -233,10 +243,10 @@ const ResumenStudioMovil: FC = () => {
         </div>
 
         {/* BANNER INVITACIONES compacto */}
-        <div style={{ borderRadius: 15, padding: "13px 16px", background: "linear-gradient(135deg,#EF5B94,#f588b3)", marginBottom: 14, boxShadow: "0 8px 20px rgba(239,91,148,.26)", display: "flex", alignItems: "center", gap: 11 }}>
+        <div style={{ borderRadius: 15, padding: "13px 16px", background: cGrad135, marginBottom: 14, boxShadow: cSh26, display: "flex", alignItems: "center", gap: 11 }}>
           <div style={{ width: 34, height: 34, flex: "none", borderRadius: 10, background: "rgba(255,255,255,.18)", display: "flex", alignItems: "center", justifyContent: "center" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.9}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg></div>
           <div style={{ flex: 1, minWidth: 0 }}><div style={{ font: "600 13px Poppins", color: "#fff" }}>Invitaciones</div><div style={{ font: "500 10.5px Poppins", color: "#fff", opacity: .85 }}>{enviadas} de {total} enviadas · {confirmados} confirmadas</div></div>
-          <button onClick={() => router.push("/invitaciones")} style={{ flex: "none", padding: "9px 14px", borderRadius: 10, background: "#fff", color: "#EF5B94", font: "600 11.5px Poppins", whiteSpace: "nowrap", border: "none", cursor: "pointer" }}>Enviar</button>
+          <button onClick={() => router.push("/invitaciones")} style={{ flex: "none", padding: "9px 14px", borderRadius: 10, background: "#fff", color: cLight, font: "600 11.5px Poppins", whiteSpace: "nowrap", border: "none", cursor: "pointer" }}>Enviar</button>
         </div>
 
         {/* MESAS */}
@@ -245,9 +255,9 @@ const ResumenStudioMovil: FC = () => {
           {mesasList.length === 0 && <div style={{ textAlign: "center", padding: "18px 0", font: "500 11.5px Poppins", color: "#a0a0a8" }}>Aún no has creado planos de mesas.</div>}
           {mesasList.map((m, i) => (
             <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < mesasList.length - 1 ? "1px solid #f2f2f4" : "none" }}>
-              <div style={{ width: 38, height: 38, borderRadius: 11, flex: "none", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}><svg width="19" height="19" viewBox="-2 -2 28 28" fill="none" stroke="currentColor" strokeWidth={1.7}><ellipse cx="12" cy="9" rx="8" ry="3" /><path d="M6 10v8M18 10v8" /></svg></div>
+              <div style={{ width: 38, height: 38, borderRadius: 11, flex: "none", background: cPale, display: "flex", alignItems: "center", justifyContent: "center", color: cLight }}><svg width="19" height="19" viewBox="-2 -2 28 28" fill="none" stroke="currentColor" strokeWidth={1.7}><ellipse cx="12" cy="9" rx="8" ry="3" /><path d="M6 10v8M18 10v8" /></svg></div>
               <div style={{ flex: 1, minWidth: 0 }}><div style={{ font: "600 12px Poppins", color: "#3A3A42" }}>{m.name}</div><div style={{ font: "500 10px Poppins", color: "#a0a0a8" }}>{m.total} mesas</div></div>
-              <div style={{ display: "flex", alignItems: "center", gap: 5, background: "#FCE7F0", padding: "4px 10px", borderRadius: 20 }}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="3.2" /></svg><span style={{ font: "600 11px Poppins", color: "#EF5B94", whiteSpace: "nowrap" }}>{m.seated} sentados</span></div>
+              <div style={{ display: "flex", alignItems: "center", gap: 5, background: cPale, padding: "4px 10px", borderRadius: 20 }}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={cLight} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="3.2" /></svg><span style={{ font: "600 11px Poppins", color: cLight, whiteSpace: "nowrap" }}>{m.seated} sentados</span></div>
             </div>
           ))}
           <button onClick={() => router.push("/mesas")} style={dashBtn}>Ver mesas</button>
@@ -259,7 +269,7 @@ const ResumenStudioMovil: FC = () => {
           {itinerariosList.length === 0 && <div style={{ textAlign: "center", padding: "18px 0", font: "500 11.5px Poppins", color: "#a0a0a8" }}>Aún no has creado itinerarios.</div>}
           {itinerariosList.map((it, i) => (
             <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < itinerariosList.length - 1 ? "1px solid #f2f2f4" : "none" }}>
-              <div style={{ width: 38, height: 38, borderRadius: 11, flex: "none", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M4 10h16M8 3v4M16 3v4" /></svg></div>
+              <div style={{ width: 38, height: 38, borderRadius: 11, flex: "none", background: cPale, display: "flex", alignItems: "center", justifyContent: "center", color: cLight }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M4 10h16M8 3v4M16 3v4" /></svg></div>
               <div style={{ flex: 1, minWidth: 0 }}><div style={{ font: "600 12px Poppins", color: "#3A3A42" }}>{it.name}</div><div style={{ font: "500 10px Poppins", color: "#a0a0a8" }}>{it.acts} actividades{it.desde ? ` · ${it.desde} – ${it.hasta}` : ""}</div></div>
             </div>
           ))}
@@ -268,9 +278,9 @@ const ResumenStudioMovil: FC = () => {
 
         {/* MOMENTOS */}
         <div style={{ ...cardStyle, padding: "15px 16px", display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
-          <div style={{ width: 38, height: 38, borderRadius: 11, flex: "none", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7}><rect x="4" y="5" width="16" height="14" rx="2" /><circle cx="9" cy="10" r="1.6" /><path d="M5.5 18l4-4 2.5 2.5L16 13l2.5 3" /></svg></div>
+          <div style={{ width: 38, height: 38, borderRadius: 11, flex: "none", background: cPale, display: "flex", alignItems: "center", justifyContent: "center", color: cLight }}><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7}><rect x="4" y="5" width="16" height="14" rx="2" /><circle cx="9" cy="10" r="1.6" /><path d="M5.5 18l4-4 2.5 2.5L16 13l2.5 3" /></svg></div>
           <div style={{ flex: 1, minWidth: 0 }}><div style={{ font: "600 13px Poppins", color: "#6b6b72" }}>Momentos</div><div style={{ font: "500 10.5px Poppins", color: "#8a8a90" }}>{albumes} álbumes compartidos</div></div>
-          <button onClick={() => router.push("/momentos")} style={{ flex: "none", height: 36, padding: "0 14px", borderRadius: 10, background: "transparent", border: DASH, color: "#EF5B94", font: "600 11.5px Poppins", whiteSpace: "nowrap", cursor: "pointer" }}>{albumes > 0 ? "Ver álbumes" : "Crear álbum"}</button>
+          <button onClick={() => router.push("/momentos")} style={{ flex: "none", height: 36, padding: "0 14px", borderRadius: 10, background: "transparent", border: DASH, color: cLight, font: "600 11.5px Poppins", whiteSpace: "nowrap", cursor: "pointer" }}>{albumes > 0 ? "Ver álbumes" : "Crear álbum"}</button>
         </div>
 
         {/* NOTAS INTERNAS (el propio componente ya es colapsable con su título + backend real) */}
