@@ -652,6 +652,14 @@ const GridCards: FC<propsGridCards> = ({
   const { t } = useTranslation();
   const { eventsGroup, copilotFilter } = EventsGroupContextProvider();
   const { user, setUser, config } = AuthContextProvider();
+  // Color de marca del grid (tabs/empty/FAB): mismo gate isBodas — bodasdehoy exacto, resto config.theme.
+  const _grdP = config?.theme?.primaryColor;
+  const grdBodas = !_grdP || config?.development === 'bodasdehoy';
+  const grdLight = grdBodas ? '#EF5B94' : _grdP;
+  const grdDark = grdBodas ? '#D83E7C' : (config?.theme?.secondaryColor || _grdP);
+  const grdPale = grdBodas ? '#FCE7F0' : `color-mix(in srgb, ${grdLight} 12%, white)`;
+  const grdSh3 = grdBodas ? '0 6px 16px rgba(239,91,148,.3)' : `0 6px 16px color-mix(in srgb, ${grdLight} 30%, transparent)`;
+  const grdSh4 = grdBodas ? '0 10px 26px rgba(239,91,148,.4)' : `0 10px 26px color-mix(in srgb, ${grdLight} 40%, transparent)`;
   const { idxGroupEvent, setIdxGroupEvent, setEvent } = EventContextProvider()
   const toastGrid = useToast()
   const { utcDateFormated } = useDateTime()
@@ -821,8 +829,8 @@ const GridCards: FC<propsGridCards> = ({
         <style dangerouslySetInnerHTML={{ __html: `
           .evc-card{position:relative;border-radius:16px;background:#fff;border:1px solid #f0f0f2;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.05);transition:transform .18s,box-shadow .18s;}
           .evc-card:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(0,0,0,.12);}
-          .evc-card.seleccionada{border:1.5px solid #EF5B94;}
-          .evc-badge-sel{position:absolute;bottom:-9px;left:14px;display:flex;align-items:center;gap:5px;white-space:nowrap;background:#EF5B94;color:#fff;font:600 9.5px Poppins;letter-spacing:.4px;padding:4px 11px;border-radius:12px;box-shadow:0 4px 12px rgba(239,91,148,.4);z-index:3;}
+          .evc-card.seleccionada{border:1.5px solid ${grdLight};}
+          .evc-badge-sel{position:absolute;bottom:-9px;left:14px;display:flex;align-items:center;gap:5px;white-space:nowrap;background:${grdLight};color:#fff;font:600 9.5px Poppins;letter-spacing:.4px;padding:4px 11px;border-radius:12px;box-shadow:0 4px 12px color-mix(in srgb, ${grdLight} 40%, transparent);z-index:3;}
           .evc-foto{position:relative;height:104px;border-radius:15px 15px 0 0;background-color:#f2f2f4;}
           .evc-tipo{position:absolute;top:10px;left:10px;background:rgba(255,255,255,.92);color:#3A3A42;font:700 9.5px Poppins;letter-spacing:.8px;padding:4px 10px;border-radius:12px;text-transform:uppercase;z-index:2;}
           .evc-avatar-wrap{position:absolute;top:8px;right:8px;z-index:2;}
@@ -836,7 +844,7 @@ const GridCards: FC<propsGridCards> = ({
           .evc-nombre{font:600 13px Poppins;color:#3A3A42;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
           .evc-fecha{font:500 11px Poppins;color:#8a8a90;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
           .evc-dots{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#8a8a90;flex:none;background:none;border:none;cursor:pointer;}
-          .evc-dots:hover{background:#f5f5f7;color:#EF5B94;}
+          .evc-dots:hover{background:#f5f5f7;color:${grdLight};}
           .evc-pie{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:9px;}
           .evc-pill{display:inline-flex;align-items:center;gap:5px;font:600 10px Poppins;padding:4px 10px;border-radius:12px;}
           .evc-pill i{width:5px;height:5px;border-radius:50%;background:currentColor;}
@@ -847,8 +855,8 @@ const GridCards: FC<propsGridCards> = ({
           .evc-compartido{font:500 10px Poppins;color:#8a8a90;}
           .evc-menu{position:absolute;top:30px;right:0;z-index:10;background:#fff;border:1px solid #f0f0f2;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.14);padding:6px;min-width:150px;}
           .evc-menu-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:8px;font:500 12px Poppins;color:#3A3A42;cursor:pointer;}
-          .evc-menu-item:hover{background:#fdf8fa;color:#EF5B94;}
-          .evc-menu-item.peligro{color:#D83E7C;}
+          .evc-menu-item:hover{background:#fdf8fa;color:${grdLight};}
+          .evc-menu-item.peligro{color:${grdDark};}
           .evc-menu-item.peligro:hover{background:#FBE4EF;}
           .evc-menu-sep{height:1px;background:#f0f0f2;margin:4px 8px;}
           .orden-item:hover{background:#fdf8fa;}
@@ -883,16 +891,16 @@ const GridCards: FC<propsGridCards> = ({
             {studioGroups.map((g, i) => {
               const active = activeIdx === i;
               return (
-                <div key={i} onClick={() => setIsActiveStateSwiper(i)} style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 18px", borderRadius: 9, color: active ? "#EF5B94" : "#8a8a90", font: "600 12.5px Poppins", cursor: "pointer", whiteSpace: "nowrap" }}>
+                <div key={i} onClick={() => setIsActiveStateSwiper(i)} style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 18px", borderRadius: 9, color: active ? grdLight : "#8a8a90", font: "600 12.5px Poppins", cursor: "pointer", whiteSpace: "nowrap" }}>
                   {t(g.label)}
-                  <span style={{ minWidth: 20, height: 20, borderRadius: 10, background: active ? "#FCE7F0" : "#ececef", color: active ? "#D83E7C" : "#8a8a90", font: "600 10.5px Poppins", display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 6px" }}>{g.data.length}</span>
+                  <span style={{ minWidth: 20, height: 20, borderRadius: 10, background: active ? grdPale : "#ececef", color: active ? grdDark : "#8a8a90", font: "600 10.5px Poppins", display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 6px" }}>{g.data.length}</span>
                 </div>
               );
             })}
           </div>
           <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 16 }} className="justify-center md:justify-end">
             <div style={{ position: "relative" }}>
-              <div onClick={() => setOrdenOpen(!ordenOpen)} style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", color: (orderAndDirection.order !== "fecha" || orderAndDirection.direction !== "desc") ? "#EF5B94" : "#6b6b72" }}>
+              <div onClick={() => setOrdenOpen(!ordenOpen)} style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", color: (orderAndDirection.order !== "fecha" || orderAndDirection.direction !== "desc") ? grdLight : "#6b6b72" }}>
                 <span style={{ font: "600 12.5px Poppins" }}>{t("Ordenar")}</span>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}><path d="M6 9l6 6 6-6" /></svg>
               </div>
@@ -936,13 +944,13 @@ const GridCards: FC<propsGridCards> = ({
             if (items.length === 0) {
               return (
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "60px 20px", background: "#fff", border: "1.5px dashed #E7E7EA", borderRadius: 18 }}>
-                  <div style={{ width: 72, height: 72, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", marginBottom: 18 }}>
+                  <div style={{ width: 72, height: 72, borderRadius: "50%", background: grdPale, display: "flex", alignItems: "center", justifyContent: "center", color: grdLight, marginBottom: 18 }}>
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M9 2C6.2 2 4 4.4 4 7.4c0 2.9 2 5.3 4.4 5.6l-.6 1.5h2.4L9.6 13C12 12.7 14 10.3 14 7.4 14 4.4 11.8 2 9 2z" /><path d="M16.5 5c-1.9 0-3.5 1.7-3.5 3.9 0 2 1.3 3.7 3 4l-.4 1.1h1.8L17 12.9c1.7-.3 3-2 3-4C20 6.7 18.4 5 16.5 5z" opacity=".55" /></svg>
                   </div>
                   <div style={{ font: "600 16px Poppins", color: "#3A3A42", marginBottom: 6 }}>{t("Aún no tienes eventos aquí")}</div>
                   <div style={{ font: "400 13px/1.6 Poppins", color: "#8a8a90", maxWidth: 340, marginBottom: 22 }}>{t("Crea un evento y empieza a organizar invitados, mesas e invitaciones en un solo lugar.")}</div>
                   {g.status === "activo" && (
-                    <button onClick={() => setNewEvent(!state)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "13px 26px", borderRadius: 10, background: "#EF5B94", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}>
+                    <button onClick={() => setNewEvent(!state)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "13px 26px", borderRadius: 10, background: grdLight, color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: "pointer", boxShadow: grdSh3 }}>
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Empezar")}
                     </button>
                   )}
@@ -995,7 +1003,7 @@ const GridCards: FC<propsGridCards> = ({
         </div>
         </div>
         {mountedFab && studioGroups.some(g => g.data.length > 0) && createPortal(
-          <button onClick={() => setNewEvent(!state)} title={t("Crear evento") as string} className="hidden md:flex" style={{ position: "fixed", bottom: 26, right: 30, zIndex: 60, alignItems: "center", gap: 8, padding: "14px 24px", borderRadius: 10, background: "#EF5B94", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 10px 26px rgba(239,91,148,.4)" }}>
+          <button onClick={() => setNewEvent(!state)} title={t("Crear evento") as string} className="hidden md:flex" style={{ position: "fixed", bottom: 26, right: 30, zIndex: 60, alignItems: "center", gap: 8, padding: "14px 24px", borderRadius: 10, background: grdLight, color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: "pointer", boxShadow: grdSh4 }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Crear evento")}
           </button>,
           document.body
