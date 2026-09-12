@@ -375,6 +375,17 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
   const pathLoginBanner = config?.pathLogin || "/login"
   const registerHref = pathLoginBanner.includes("?") ? `${pathLoginBanner}&q=register` : `${pathLoginBanner}?q=register`
 
+  // Color de marca del hero desktop studio (.she-*): mismo gate isBodas — bodasdehoy exacto, resto config.theme.
+  const _sheP = config?.theme?.primaryColor;
+  const sheBodas = !_sheP || config?.development === 'bodasdehoy';
+  const sheLight = sheBodas ? '#EF5B94' : _sheP;
+  const sheDark = sheBodas ? '#D83E7C' : (config?.theme?.secondaryColor || _sheP);
+  const shePale = sheBodas ? '#FCE7F0' : `color-mix(in srgb, ${sheLight} 12%, white)`;
+  const sheBorder = sheBodas ? '#F3B6CE' : `color-mix(in srgb, ${sheLight} 45%, white)`;
+  const sheGrad = sheBodas ? 'linear-gradient(100deg,#EF5B94,#D83E7C)' : `linear-gradient(100deg,${sheLight},${sheDark})`;
+  const sheSh1 = sheBodas ? 'rgba(239,91,148,.1)' : `color-mix(in srgb, ${sheLight} 12%, transparent)`;
+  const sheSh3 = sheBodas ? 'rgba(239,91,148,.3)' : `color-mix(in srgb, ${sheLight} 30%, transparent)`;
+
   // Dynamic import to avoid SSR issues
   const [planLimits, setPlanLimits] = useState<any>(null)
   useEffect(() => {
@@ -394,30 +405,30 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
     studio ? (
       <>
         <style dangerouslySetInnerHTML={{ __html: `
-          .nudge-cta:hover{background:#D83E7C !important;}
+          .nudge-cta:hover{background:${sheDark} !important;}
           .she-hero{max-width:1100px;margin:0 auto;padding:44px 24px 70px;display:grid;grid-template-columns:1.05fr 1fr;gap:44px;align-items:center;font-family:'Poppins',sans-serif;}
           @media (max-width:900px){.she-hero{grid-template-columns:1fr;}}
-          .she-chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #FCE7F0;box-shadow:0 3px 10px rgba(239,91,148,.1);color:#D83E7C;font:600 12px Poppins;padding:7px 16px;border-radius:20px;margin-bottom:24px;}
+          .she-chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid ${shePale};box-shadow:0 3px 10px ${sheSh1};color:${sheDark};font:600 12px Poppins;padding:7px 16px;border-radius:20px;margin-bottom:24px;}
           .she-titulo{font:600 40px/1.14 Poppins;color:#3A3A42;letter-spacing:-1px;margin-bottom:12px;}
-          .she-titulo .grad{background:linear-gradient(100deg,#EF5B94,#D83E7C);-webkit-background-clip:text;background-clip:text;color:transparent;}
+          .she-titulo .grad{background:${sheGrad};-webkit-background-clip:text;background-clip:text;color:transparent;}
           .she-sub{font:400 14.5px/1.6 Poppins;color:#6b6b72;margin-bottom:24px;max-width:390px;}
-          .she-cta{display:inline-flex;align-items:center;gap:9px;padding:13px 26px;border-radius:10px;background:#EF5B94;color:#fff;font:600 14px Poppins;border:none;cursor:pointer;box-shadow:0 6px 16px rgba(239,91,148,.3);transition:transform .15s,background .15s;}
-          .she-cta:hover{background:#D83E7C;transform:translateY(-2px);}
+          .she-cta{display:inline-flex;align-items:center;gap:9px;padding:13px 26px;border-radius:10px;background:${sheLight};color:#fff;font:600 14px Poppins;border:none;cursor:pointer;box-shadow:0 6px 16px ${sheSh3};transition:transform .15s,background .15s;}
+          .she-cta:hover{background:${sheDark};transform:translateY(-2px);}
           .she-social{display:flex;align-items:center;gap:12px;margin-top:26px;}
           .she-avatars{display:flex;}
           .she-avatars>div{width:34px;height:34px;border-radius:50%;border:2.5px solid #fff;}
           .she-avatars>div+div{margin-left:-10px;}
-          .she-av1{background:linear-gradient(135deg,#f9c8dc,#EF5B94);}
+          .she-av1{background:linear-gradient(135deg,color-mix(in srgb, ${sheLight} 25%, white),${sheLight});}
           .she-av2{background:linear-gradient(135deg,#e8d3c4,#c9a24b);}
           .she-av3{background:linear-gradient(135deg,#d4c8e8,#8e7cc3);}
-          .she-avmas{background:#FCE7F0;color:#D83E7C;display:flex;align-items:center;justify-content:center;font:700 10px Poppins;}
+          .she-avmas{background:${shePale};color:${sheDark};display:flex;align-items:center;justify-content:center;font:700 10px Poppins;}
           .she-social-txt{font:500 12.5px/1.45 Poppins;color:#8a8a90;}
           .she-social-txt b{color:#3A3A42;}
           .she-visual{position:relative;max-width:390px;justify-self:end;width:100%;pointer-events:none;user-select:none;}
-          .she-halo{position:absolute;inset:-30px -10px -30px 30px;background:radial-gradient(circle at 65% 40%, #FCE7F0 0%, rgba(252,231,240,0) 68%);z-index:0;}
+          .she-halo{position:absolute;inset:-30px -10px -30px 30px;background:radial-gradient(circle at 65% 40%, ${shePale} 0%, rgba(252,231,240,0) 68%);z-index:0;}
           .she-card{position:relative;z-index:1;background:#fff;border:1px solid #f0f0f2;border-radius:24px;box-shadow:0 24px 60px rgba(0,0,0,.1);overflow:hidden;}
           .she-card-head{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f4f4f6;}
-          .she-card-tipo{font:600 10px Poppins;color:#EF5B94;letter-spacing:.6px;}
+          .she-card-tipo{font:600 10px Poppins;color:${sheLight};letter-spacing:.6px;}
           .she-card-nombre{font:700 15px Poppins;color:#3A3A42;}
           .she-card-fecha{display:flex;align-items:center;gap:6px;background:#FBF0DA;color:#E0A32B;font:600 11px Poppins;padding:5px 12px;border-radius:20px;}
           .she-card-fecha i{width:6px;height:6px;border-radius:50%;background:#E0A32B;}
@@ -425,30 +436,30 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
           .she-card-stats{padding:16px 20px;display:flex;gap:10px;}
           .she-stat{flex:1;background:#faf9fb;border:1px solid #f0f0f2;border-radius:12px;padding:10px 14px;text-align:center;}
           .she-stat .num{font:700 16px Poppins;color:#3A3A42;}
-          .she-stat .num.rosa{color:#EF5B94;}
+          .she-stat .num.rosa{color:${sheLight};}
           .she-stat .num.verde{color:#2FB37E;}
           .she-stat .lbl{font:500 10px Poppins;color:#9aa0a6;}
           .she-card-botones{padding:0 20px 18px;display:flex;gap:10px;}
-          .she-card-botones button{flex:1;padding:12px;border-radius:10px;background:#fff;border:1.5px solid #F3B6CE;color:#EF5B94;font:600 12.5px Poppins;cursor:pointer;}
+          .she-card-botones button{flex:1;padding:12px;border-radius:10px;background:#fff;border:1.5px solid ${sheBorder};color:${sheLight};font:600 12.5px Poppins;cursor:pointer;}
           .she-countdown{position:absolute;bottom:-52px;right:-14px;z-index:2;background:#fff;border:1px solid #f0f0f2;border-radius:14px;box-shadow:0 10px 26px rgba(0,0,0,.12);padding:12px 16px;display:flex;gap:14px;}
           .she-countdown .sep{width:1px;background:#f0f0f2;}
           .she-countdown .u{text-align:center;}
           .she-countdown .n{font:700 17px Poppins;color:#3A3A42;}
-          .she-countdown .n.rosa{color:#EF5B94;}
+          .she-countdown .n.rosa{color:${sheLight};}
           .she-countdown .l{font:500 9.5px Poppins;color:#9aa0a6;}
         ` }} />
         <div className="bg-base w-full">
           {isGuest && (
             <div style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 24px 0" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", background: "linear-gradient(100deg,#FFF0F6,#FDE8F1)", border: "1px solid #F8CFE2", borderRadius: 14, padding: "12px 16px 12px 14px", fontFamily: "'Poppins',sans-serif" }}>
-                <span style={{ width: 36, height: 36, borderRadius: 11, background: "linear-gradient(135deg,#F586B1,#EF5B94)", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", boxShadow: "0 5px 12px rgba(239,91,148,.28)" }}>
+                <span style={{ width: 36, height: 36, borderRadius: 11, background: `linear-gradient(135deg, color-mix(in srgb, ${sheLight} 40%, white), ${sheLight})`, display: "flex", alignItems: "center", justifyContent: "center", flex: "none", boxShadow: `0 5px 12px ${sheSh3}` }}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M12 3l1.8 4.8 4.7 1.2-4.7 1.2L12 15l-1.8-4.8L5.5 9l4.7-1.2z" /><path d="M18.5 15l.9 2.3 2.3.9-2.3.9-.9 2.3-.9-2.3-2.3-.9 2.3-.9z" opacity=".6" /></svg>
                 </span>
                 <div style={{ flex: 1, minWidth: 200 }}>
                   <div style={{ font: "600 13.5px Poppins", color: "#3A3A42" }}>{t("guestNudge.title", { defaultValue: "Estás en modo prueba" })}</div>
                   <div style={{ font: "500 12px/1.4 Poppins", color: "#9c6480" }}>{t("guestNudge.desc", { defaultValue: "Regístrate gratis para guardar tu evento y no perder tus cambios." })}</div>
                 </div>
-                <Link href={registerHref} className="nudge-cta" style={{ flex: "none", display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: 999, background: "#EF5B94", color: "#fff", font: "600 13px Poppins", textDecoration: "none", boxShadow: "0 6px 16px rgba(239,91,148,.32)" }}>
+                <Link href={registerHref} className="nudge-cta" style={{ flex: "none", display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: 999, background: sheLight, color: "#fff", font: "600 13px Poppins", textDecoration: "none", boxShadow: `0 6px 16px ${sheSh3}` }}>
                   {t("guestNudge.cta", { defaultValue: "Regístrate gratis" })}
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
                 </Link>
@@ -459,7 +470,7 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
             {/* IZQUIERDA */}
             <div>
               <div className="she-chip">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="#EF5B94"><path d="M12 3l1.7 4.6L18 9l-4.3 1.4L12 15l-1.7-4.6L6 9l4.3-1.4L12 3z" /></svg>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill={sheLight}><path d="M12 3l1.7 4.6L18 9l-4.3 1.4L12 15l-1.7-4.6L6 9l4.3-1.4L12 3z" /></svg>
                 Para wedding planners, proveedores y parejas
               </div>
               <h1 className="she-titulo">Todos tus eventos,<br />gestionados <span className="grad">sin estrés</span></h1>
