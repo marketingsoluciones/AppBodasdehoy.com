@@ -99,12 +99,11 @@ async function loginChat(page: Page): Promise<boolean> {
  * Devuelve el texto acumulado de todos los mensajes visibles.
  */
 async function chat(page: Page, text: string, waitMs = 60_000): Promise<string> {
-  // Esperar a que el historial termine de hidratar antes de fijar el corte del turno.
+  // Esperar a que el historial termine de hidratar. El chat virtualiza el DOM, por lo que
+  // un contador tomado antes del envío no es un corte estable: puede empezar en cero y
+  // poblar mensajes antiguos después. Localizamos siempre la última aparición del prompt.
   await page.waitForTimeout(1500);
   const msgSelector = 'article';
-  let previousMessageCount = await page.locator(msgSelector).count();
-  await page.waitForTimeout(750);
-  previousMessageCount = await page.locator(msgSelector).count();
 
   const ta = page.locator('div[contenteditable="true"]').last();
   await ta.waitFor({ state: 'visible', timeout: 20_000 });
@@ -116,20 +115,23 @@ async function chat(page: Page, text: string, waitMs = 60_000): Promise<string> 
 
   const deadline = Date.now() + waitMs;
   let lastText = '';
+  let stableMatches = 0;
   await page.waitForTimeout(5_000);
   while (Date.now() < deadline) {
     const articles = await page.locator(msgSelector).allTextContents();
-    const assistantMsgs = articles.slice(previousMessageCount).filter((value) => {
-      const trimmed = value.trim();
-      if (trimmed.length <= 5) return false;
-      const userPrefix = text.trim().slice(0, 40).toLowerCase();
-      const articlePrefix = trimmed.slice(0, 40).toLowerCase();
-      if (articlePrefix.startsWith(userPrefix.slice(0, 25))) return false;
-      if (userPrefix.startsWith(articlePrefix.slice(0, 25))) return false;
-      return true;
-    });
+    let userIndex = -1;
+    for (let index = articles.length - 1; index >= 0; index -= 1) {
+      if (articles[index].trim().includes(text.trim())) {
+        userIndex = index;
+        break;
+      }
+    }
+    const assistantMsgs = userIndex >= 0
+      ? articles.slice(userIndex + 1).map((value) => value.trim()).filter((value) => value.length > 5)
+      : [];
     const joined = assistantMsgs.join('\\n').trim();
-    if (joined.length > 10 && joined === lastText) return joined;
+    stableMatches = joined.length > 10 && joined === lastText ? stableMatches + 1 : 0;
+    if (stableMatches >= 2) return joined;
     lastText = joined;
     await page.waitForTimeout(2_000);
   }
@@ -201,7 +203,7 @@ test.describe('2. Consultas al chat IA — datos reales del evento', () => {
   });
 
   test('[CF03] pregunta cuántos invitados tiene el evento', async ({ page }) => {
-    await chatValidated(page, '¿Cuántos invitados tengo confirmados en mi boda? Dame el número exacto.', {
+    await chatValidated(page, 'En el evento "Boda de Isabel & Raúl", ¿cuántos invitados confirmados tengo? Dame el número exacto.', {
       expectedCategory: ['tool_executed', 'data_response'],
       requiredKeywords: ['invitad'],
       forbiddenPatterns: ['How can I assist'],
