@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { useBandejaStore } from '@/store/bandeja';
 
@@ -32,24 +32,7 @@ interface UseMessageStreamOptions {
   onTyping?: (data: StreamMessage) => void;
 }
 
-/**
- * Hook de suscripción a eventos de mensajería en tiempo real.
- *
- * Eje A rediseño (commit d943f484): NO abre EventSource propio. Se
- * suscribe al SSE singleton que mantiene useBandejaStore.initBandeja().
- * Filtra eventos por conversationId / channel y dispara los callbacks
- * onMessage / onTyping / onStatusUpdate.
- *
- * Resultado vs versión anterior:
- *   - 0 EventSource abiertos por este hook (antes 1 por instancia)
- *   - reconnect/backoff ya lo gestiona el store singleton
- *   - typing y status_update SE PROPAGAN si el backend los emite via
- *     el SSE global; los eventos van al state del store
- *
- * Backwards-compat: misma firma. `connected` y `error` se derivan del
- * estado del store. `shouldFallbackToPolling` se mantiene siempre false
- * (el store reconecta indefinidamente con backoff).
- */
+/** Subscribe to the actual SSE event, never a synthesized conversation summary. */
 export function useMessageStream({
   conversationId,
   channel,
@@ -58,9 +41,8 @@ export function useMessageStream({
   onTyping,
   onStatusUpdate,
 }: UseMessageStreamOptions = {}) {
-  const sseInitialized = useBandejaStore((s) => s._sseInitialized);
-  const isLeader = useBandejaStore((s) => s._isLeaderTab);
-  const [error] = useState<string | null>(null);
+  const connected = useBandejaStore((s) => s._sseConnected);
+  const error = useBandejaStore((s) => s.error);
 
   // Las callbacks pueden cambiar entre renders sin reabrir suscripción.
   const callbacksRef = useRef({ onMessage, onStatusUpdate, onTyping });
@@ -68,50 +50,37 @@ export function useMessageStream({
 
   useEffect(() => {
     if (!enabled) return;
-    let lastSyncSeen = useBandejaStore.getState()._lastSyncAt;
-
+    let sequence = useBandejaStore.getState()._eventSequence;
     const unsub = useBandejaStore.subscribe((state) => {
-      // Cualquier cambio del store (incluye applyEvent que cambia
-      // _lastSyncAt + actualiza conversations/notifications). El payload
-      // exacto del evento no se conserva en el store por diseño; en su
-      // lugar exponemos la conversación afectada y el último mensaje.
-      if (state._lastSyncAt === lastSyncSeen) return;
-      lastSyncSeen = state._lastSyncAt;
-
-      // Filtrar por conversationId si se pasó
-      if (conversationId) {
-        const conv = state.conversations[conversationId];
-        if (!conv) return;
-        // Si la conversación coincide y tiene lastMessage reciente,
-        // sintetizar el StreamMessage compatible con la firma vieja.
+      if (state._eventSequence === sequence) return;
+      sequence = state._eventSequence;
+      const event = state._lastEvent;
+      if (!event || !('convId' in event)) return;
+      if (conversationId && event.convId !== conversationId) return;
+      const eventChannel = state.conversations[event.convId]?.channel ??
+        (event.type === 'new_message' ? event.message?.channel : undefined);
+      if (channel && eventChannel && eventChannel !== channel) return;
+      if (channel && !conversationId && !eventChannel) return;
+      if (event.type === 'new_message') {
+        const msg = event.message;
+        const id = msg?.id ?? msg?.message_id;
+        if (!id) return; // REST reconciliation handles payloads without a stable ID.
         callbacksRef.current.onMessage?.({
-          attachments: [],
-          channel: conv.channel,
-          conversationId: conv.id,
-          fromUser: false,
-          id: `${conv.id}-${conv.lastMessageAt}`,
-          text: conv.lastMessage,
-          timestamp: conv.lastMessageAt,
+          attachments: msg.attachments ?? [],
+          channel: eventChannel,
+          conversationId: event.convId,
+          fromUser: msg.fromUser ?? msg.from_user ?? (msg.direction === 'outbound' || msg.fromMe === true),
+          id: String(id),
+          status: msg.status,
+          text: msg.text ?? msg.content ?? '',
+          timestamp: msg.timestamp ?? msg.created_at ?? new Date().toISOString(),
         });
-      } else if (channel) {
-        // Filtrar por canal: cuando llegue cualquier mensaje del canal,
-        // sintetizar StreamMessage de la última conversación afectada.
-        const last = Object.values(state.conversations)
-          .filter((c) => c.channel === channel)
-          .sort(
-            (a, b) =>
-              new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime(),
-          )[0];
-        if (!last) return;
-        callbacksRef.current.onMessage?.({
-          attachments: [],
-          channel: last.channel,
-          conversationId: last.id,
-          fromUser: false,
-          id: `${last.id}-${last.lastMessageAt}`,
-          text: last.lastMessage,
-          timestamp: last.lastMessageAt,
-        });
+      } else if (event.type === 'typing') {
+        callbacksRef.current.onTyping?.({ id: event.userId, conversationId: event.convId,
+          channel: eventChannel, fromUser: false, text: '', timestamp: new Date().toISOString() });
+      } else if (event.type === 'read_receipt') {
+        callbacksRef.current.onStatusUpdate?.({ id: event.msgId, conversationId: event.convId,
+          channel: eventChannel, fromUser: true, text: '', status: 'read', timestamp: new Date().toISOString() });
       }
     });
 
@@ -121,14 +90,10 @@ export function useMessageStream({
   }, [enabled, conversationId, channel]);
 
   return {
-    /** Conectado = el store tiene SSE activo Y soy leader o degradación local */
-    connected: sseInitialized && (isLeader || typeof BroadcastChannel === 'undefined'),
-    /** No-op — el store gestiona disconnect via destroyBandeja al desmontar */
-    disconnect: () => {},
+    connected,
+    disconnect: () => {}, // Lifecycle is owned by the layout/store.
     error,
-    /** No-op — el store reconecta automático */
-    reconnect: () => {},
-    /** Siempre false — el store reconecta indefinidamente con backoff */
-    shouldFallbackToPolling: false,
+    reconnect: () => { void useBandejaStore.getState().refresh(); },
+    shouldFallbackToPolling: !connected,
   };
 }

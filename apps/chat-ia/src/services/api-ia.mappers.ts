@@ -120,5 +120,13 @@ export function mapApiIaMessage(raw: RawApiIaMessage): UIChatMessage {
 export function mapApiIaMessages(rawList: RawApiIaMessage[] | undefined): UIChatMessage[] {
   // Defensa: igual que las sesiones, api-ia puede dar data no-array (success:false). No lanzar.
   const safeList = Array.isArray(rawList) ? rawList : [];
-  return safeList.map(mapApiIaMessage).filter((m) => !!m.id);
+  return safeList.map(mapApiIaMessage).filter((m) => !!m.id).sort((a, b) => {
+    const chronological = a.createdAt - b.createdAt;
+    if (chronological) return chronological;
+    // Mongo IDs resolve same-timestamp messages without reversing user/assistant.
+    if (/^[a-f0-9]{24}$/i.test(a.id) && /^[a-f0-9]{24}$/i.test(b.id)) {
+      return a.id.localeCompare(b.id);
+    }
+    return 0;
+  });
 }

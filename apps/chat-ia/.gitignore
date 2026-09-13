@@ -122,3 +122,6 @@ e2e/reports
 
 # graphql-codegen output (FASE 1, regenerable desde SDL público)
 src/generated/
+
+# Side-by-side DEV builds selected by CHAT_BUILD_DIR
+.next-*/

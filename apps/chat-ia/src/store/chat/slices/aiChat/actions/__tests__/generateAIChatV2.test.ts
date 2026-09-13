@@ -9,6 +9,7 @@ import { aiChatService } from '@/services/aiChat';
 import { chatService } from '@/services/chat';
 import { messageService } from '@/services/message';
 import { agentChatConfigSelectors } from '@/store/agent/selectors';
+import { useSessionStore } from '@/store/session';
 import { UploadFileItem } from '@/types/files/upload';
 
 import { useChatStore } from '../../../../store';
@@ -71,6 +72,8 @@ beforeEach(() => {
 
   // Setup default spies that most tests need
   spyOnMessageService();
+  // This suite exercises the send flow, not the background session PATCH.
+  vi.spyOn(useSessionStore.getState(), 'triggerSessionUpdate').mockImplementation(async () => {});
 
   // Setup common mock methods that most V2 tests need
   act(() => {
@@ -132,6 +135,14 @@ describe('generateAIChatV2 actions', () => {
     });
 
     describe('message creation', () => {
+      it('captures the draft before clearing the editor', async () => {
+        const getJSONState = vi.fn(() => ({ text: 'QA draft' }));
+        const clearContent = vi.fn();
+        act(() => useChatStore.setState({ mainInputEditor: { getJSONState, clearContent } as any }));
+        await act(async () => { await useChatStore.getState().sendMessageInServer({ message: 'QA draft' }); });
+        expect(getJSONState.mock.invocationCallOrder[0]).toBeLessThan(clearContent.mock.invocationCallOrder[0]);
+      });
+
       it('should create user message and trigger AI processing', async () => {
         const { result } = renderHook(() => useChatStore());
 

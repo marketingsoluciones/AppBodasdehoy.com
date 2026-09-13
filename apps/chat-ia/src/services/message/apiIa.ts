@@ -38,6 +38,28 @@ const origin = () => (typeof window !== 'undefined' ? window.location.origin : '
 const tenant = () =>
   (typeof window !== 'undefined' && localStorage.getItem('current_development')) || 'bodasdehoy';
 
+// Persist only the resolved session ID, scoped to both brand and identity.
+// Never cache a JWT or reuse a session merely because the UI calls it "inbox".
+function inboxStorageKey(): string | undefined {
+  if (typeof window === 'undefined') return;
+  try {
+    const config = JSON.parse(localStorage.getItem('dev-user-config') || '{}');
+    const authorization = buildAuthHeaders().Authorization;
+    let subject: string | undefined;
+    if (authorization) {
+      const payload = authorization.replace(/^Bearer /i, '').split('.')[1];
+      if (payload) {
+        try {
+          const claims = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+          subject = claims.sub || claims.user_id || claims.email;
+        } catch { /* A non-JWT auth header may still have an explicit user context. */ }
+      }
+    }
+    const identity = subject || config.userId;
+    if (identity) return `chat:inbox-session:${encodeURIComponent(tenant())}:${encodeURIComponent(identity)}`;
+  } catch { /* Storage unavailable: do not reuse another identity's session. */ }
+}
+
 async function call(method: string, path: string, body?: unknown): Promise<any> {
   // BUG-MSG-01 paridad (auditoría 24-jun): api-ia exige X-Development en todos
   // los endpoints /api/backend/chat/... no solo en /chat/sessions. Helper
@@ -75,22 +97,22 @@ async function call(method: string, path: string, body?: unknown): Promise<any> 
  * lanza pending() para que NUNCA se active sin confirmar el endpoint.
  */
 export class ApiIaMessageService implements IMessageService {
-  // #9 (4-sep): REVERTIDO el intento de OPCIÓN B (persistir inbox con sessionId='inbox').
-  // Verificado en vivo (user real + JWT): POST /chat/messages {sessionId:'inbox'} → HTTP 200
-  // pero {success:false, errors:[{message:'Error enviando mensaje'}]} → api-ia NO persiste el
-  // inbox con ese sessionId, y como call() lanza ante success:false rompería el envío. Volvemos
-  // a mapear inbox→null (no POST, id local, sin romper) hasta que api-ia confirme el sessionId
-  // real del inbox / payload correcto. Ver [[project_9_asistente_persistencia_inbox_opcionB]].
-  private toDbSessionId = (sessionId: string | undefined) =>
-    sessionId === INBOX_SESSION_ID ? null : sessionId;
+  private resolvedInboxes = new Map<string, string>();
+
+  private toDbSessionId = (sessionId: string | undefined) => {
+    if (sessionId && sessionId !== INBOX_SESSION_ID) return sessionId;
+    const key = inboxStorageKey();
+    if (!key) return null;
+    if (this.resolvedInboxes.has(key)) return this.resolvedInboxes.get(key)!;
+    try { return sessionStorage.getItem(key); } catch { return null; }
+  };
 
   // ───────── LECTURA (GET /chat/messages confirmado por api-ia) ─────────
   getMessages: IMessageService['getMessages'] = async (sessionId, topicId) => {
     const dbSessionId = this.toDbSessionId(sessionId);
     // Guard: NO lanzar GET /chat/messages con ?sessionId= vacío → api-ia responde 400
     // (reporte 14-jun §0: "chat atascado en esqueletos" = bucle de 400 por sessionId vacío).
-    // dbSessionId es null para INBOX (mapeo revertido, ver toDbSessionId) → el inbox NO se lee
-    // por esta ruta hasta que api-ia confirme su sessionId real. undefined/''/null → [].
+    // Before the first successful POST there is no resolved inbox session to read.
     if (dbSessionId === undefined || dbSessionId === null || dbSessionId === '') return [];
     const qs = new URLSearchParams({ sessionId: String(dbSessionId) });
     if (topicId) qs.set('topicId', topicId);
@@ -112,12 +134,9 @@ export class ApiIaMessageService implements IMessageService {
   // Devuelve {success, data:{id,...}}.
   createMessage: IMessageService['createMessage'] = async ({ sessionId, ...params }) => {
     const dbSessionId = this.toDbSessionId(sessionId);
-    // #9 (4-sep, REVERTIDO): el intento de persistir el inbox con sessionId='inbox' se
-    // deshizo — POST /chat/messages devuelve success:false ('Error enviando mensaje') para
-    // 'inbox'. Volvemos al comportamiento previo: inbox (dbSessionId=null) → id local sin POST,
-    // sin romper el envío. Pendiente contrato de api-ia (sessionId real / payload del inbox).
-    if (dbSessionId === null || dbSessionId === undefined || dbSessionId === '') {
-      return `local-inbox-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const scopeKey = inboxStorageKey();
+    if ((!sessionId || sessionId === INBOX_SESSION_ID) && !scopeKey) {
+      throw new Error('[message/apiIa] inbox: identidad no disponible');
     }
     const res = await call('POST', '/chat/messages', {
       // campos extra del flujo (parentId, topicId, etc.) van también — api-ia ignora los no usados.
@@ -134,6 +153,14 @@ export class ApiIaMessageService implements IMessageService {
     const d = res?.data ?? res;
     const id = d?.id ?? d?._id ?? d?.messageId;
     if (!id) throw new Error('[message/apiIa] createMessage: respuesta sin id');
+    if (!sessionId || sessionId === INBOX_SESSION_ID) {
+      const resolvedSession = res?.sessionId || dbSessionId;
+      if (!resolvedSession) throw new Error('[message/apiIa] createMessage: respuesta sin sessionId resuelto');
+      if (scopeKey && scopeKey === inboxStorageKey()) {
+        this.resolvedInboxes.set(scopeKey, resolvedSession);
+        try { sessionStorage.setItem(scopeKey, resolvedSession); } catch { /* Private mode. */ }
+      }
+    }
     return id as string;
   };
 

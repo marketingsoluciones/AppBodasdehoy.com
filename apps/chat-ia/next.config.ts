@@ -36,6 +36,8 @@ const standaloneConfig: NextConfig = {
 };
 
 const nextConfig: NextConfig = {
+  // DEV operations can build beside the running release, then activate via PM2.
+  distDir: process.env.CHAT_BUILD_DIR || '.next',
   ...(isStandaloneMode ? standaloneConfig : {}),
   assetPrefix: process.env.NEXT_PUBLIC_ASSET_PREFIX,
   env: {
@@ -449,6 +451,11 @@ const nextConfig: NextConfig = {
     console.log('[next.config] Proxying API requests to:', backendUrl);
 
     return {
+      // Explicit transport routes must precede the dynamic UI catch-all.
+      beforeFiles: [
+        { source: '/api/messages/stream', destination: `${backendUrl}/api/messages/stream` },
+        { source: '/api/notifications/:path*', destination: `${backendUrl}/api/notifications/:path*` },
+      ],
       // fallback: se aplica DESPUÉS de todos los routes (incluyendo dinámicos).
       // Esto permite que src/app/(backend)/api/memories/[...path]/route.ts
       // maneje /api/memories/* antes que el catch-all /api/:path*.

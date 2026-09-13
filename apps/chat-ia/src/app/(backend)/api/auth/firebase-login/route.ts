@@ -27,8 +27,9 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json().catch(() => ({ detail: 'Invalid response' }));
 
-    // DEBUG: ver qué devuelve api-ia
-    console.log(`[firebase-login] status=${response.status} | token=${data.token ? data.token.slice(0, 30) + '...' : 'NULL'} | user_id=${data.user_id || 'NULL'} | keys=${Object.keys(data).join(',')}`);
+    console.log(
+      `[firebase-login] status=${response.status} | hasToken=${Boolean(data.token || data.jwt_token)} | user_id=${data.user_id || 'NULL'}`,
+    );
 
     return NextResponse.json(data, { status: response.status });
   } catch (error: any) {

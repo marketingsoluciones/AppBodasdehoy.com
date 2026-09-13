@@ -16,19 +16,23 @@ const BASE_URL = process.env.BASE_URL || TEST_URLS.app;
 const isLocal = BASE_URL.includes('127.0.0.1') || BASE_URL.includes('localhost');
 const isDev =
   isLocal ||
-  BASE_URL.includes('app-dev.bodasdehoy.com');
+  BASE_URL.includes('app-dev.bodasdehoy.com') ||
+  BASE_URL.includes('app-dev.eventosorganizador.com');
 
 const CHAT_URL = process.env.CHAT_URL || TEST_URLS.chat;
 
 const U1_EMAIL = process.env.TEST_USER_EMAIL || 'bodasdehoy.com@gmail.com';
-const U1_PASSWORD = process.env.TEST_USER_PASSWORD || 'lorca2012M*+';
+const U1_PASSWORD = process.env.TEST_USER_PASSWORD || '';
 const U2_EMAIL = process.env.TEST_USER2_EMAIL || 'jcc@marketingsoluciones.com';
-const U2_PASSWORD = process.env.TEST_USER2_PASSWORD || 'lorca2012M*+';
+const U2_PASSWORD = process.env.TEST_USER2_PASSWORD || '';
 
 const hasU1Creds = Boolean(U1_EMAIL && U1_PASSWORD);
 const hasU2Creds = Boolean(U2_EMAIL && U2_PASSWORD);
 
-/** Login directo en chat (LobeChat) — navega a /login solo si no estamos ya ahí */
+const isAuthenticatedChatPath = (url: string) =>
+  /\/(?:chat|asistente)(?:[/?#]|$)/.test(new URL(url).pathname);
+
+/** Login directo en el frontend de Chat. */
 async function loginInChat(page: any, email: string, password: string): Promise<boolean> {
   try {
     if (!page.url().includes('/login')) {
@@ -36,12 +40,18 @@ async function loginInChat(page: any, email: string, password: string): Promise<
       await page.waitForTimeout(2000);
     }
 
+    // Una cookie SSO vigente redirige /login directamente al workspace actual.
+    if (isAuthenticatedChatPath(page.url())) return true;
+
     await page.locator('input[type="email"]').first().fill(email, { timeout: 10_000 });
     await page.locator('input[type="password"]').first().fill(password);
     await page.locator('button[type="submit"]').first().click();
 
-    await page.waitForURL((url: URL) => /\/chat(?:[/?#]|$)/.test(url.pathname), { timeout: 45_000 }).catch(() => {});
-    return /\/chat(?:[/?#]|$)/.test(new URL(page.url()).pathname);
+    await page.waitForURL(
+      (url: URL) => /\/(?:chat|asistente)(?:[/?#]|$)/.test(url.pathname),
+      { timeout: 45_000 },
+    ).catch(() => {});
+    return isAuthenticatedChatPath(page.url());
   } catch {
     return false;
   }
@@ -162,7 +172,7 @@ test.describe('Auth — Login en app-test', () => {
       'BUG_AUTH: cookie sessionBodas/idTokenV0.1.0 ausente tras login — sesión es guest, NO autenticada',
     ).toBeTruthy();
     expect(sessionCookie!.value.length).toBeGreaterThan(10);
-    console.log(`✅ Cookie de sesión: ${sessionCookie!.name}=${sessionCookie!.value.slice(0, 20)}...`);
+    console.log(`✅ Cookie de sesión presente: ${sessionCookie!.name}`);
   });
 
   test('sesión persiste tras reload de página', async ({ context, page }) => {
@@ -206,7 +216,8 @@ test.describe('Auth — Login en app-test', () => {
       console.log('ℹ️ Redirect cross-domain (webkit) — pass sin crash');
       return;
     }
-    const hasLoginContent = /Bodas de Hoy|Iniciar sesión|Registrarse|login|plataforma/i.test(text);
+    const hasLoginContent =
+      /Bodas de Hoy|Eventos Organizador|Iniciar sesión|Registrarse|login|plataforma/i.test(text);
     expect(hasLoginContent).toBe(true);
     expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
   });

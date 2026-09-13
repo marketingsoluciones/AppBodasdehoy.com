@@ -12,6 +12,7 @@ import type { SSEEvent } from './types';
 
 const MIN_RETRY_MS = 1000;
 const MAX_RETRY_MS = 60_000;
+const IDLE_TIMEOUT_MS = 30_000; // API IA emits a heartbeat every 10 seconds.
 
 export type SSEEventHandler = (event: SSEEvent) => void;
 
@@ -34,7 +35,7 @@ class SSEManager {
   }
 
   start(): void {
-    if (this.abortController) return; // ya conectado
+    if (this.abortController || this.retryTimer) return;
     this.cancelled = false;
     void this.connect();
   }
@@ -54,19 +55,26 @@ class SSEManager {
     if (this.cancelled) return;
     const controller = new AbortController();
     this.abortController = controller;
-
-    const headers = {
-      Accept: 'text/event-stream',
-      ...this.options.authHeaders(),
+    let idleTimer: ReturnType<typeof setTimeout>;
+    const resetIdle = () => {
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => controller.abort(), IDLE_TIMEOUT_MS);
     };
+    resetIdle();
 
     try {
+      const headers = {
+        Accept: 'text/event-stream',
+        ...this.options.authHeaders(),
+      };
       const response = await fetch(this.options.url, {
         headers,
         signal: controller.signal,
       });
 
-      if (!response.ok || !response.body) {
+      if (this.cancelled || this.abortController !== controller) return;
+
+      if (!response.ok || !response.body || !response.headers.get('content-type')?.toLowerCase().startsWith('text/event-stream')) {
         throw new Error(`SSE ${response.status}`);
       }
 
@@ -81,18 +89,29 @@ class SSEManager {
         const { done, value } = await reader.read();
         if (done || this.cancelled) break;
 
+        resetIdle();
         buf += decoder.decode(value, { stream: true });
-        const blocks = buf.split('\n\n');
+        // Preserve an incomplete CRLF across reads; accept either framing.
+        const blocks = buf.split(/\r?\n\r?\n/);
         buf = blocks.pop() ?? '';
 
         for (const block of blocks) {
           this.parseBlock(block);
         }
       }
-    } catch (err: any) {
-      if (err?.name === 'AbortError' || this.cancelled) return;
-      this.options.onConnectionChange?.(false);
-      this.scheduleRetry();
+    } catch {
+      // Network failure and clean EOF both require reconnecting. stop() is
+      // distinguished by the controller identity, including stop/start races.
+    } finally {
+      clearTimeout(idleTimer!);
+      if (this.abortController === controller) {
+        this.abortController = null;
+        controller.abort();
+        if (!this.cancelled) {
+          this.options.onConnectionChange?.(false);
+          this.scheduleRetry();
+        }
+      }
     }
   }
 
@@ -108,6 +127,18 @@ class SSEManager {
     if (!data) return;
     try {
       const parsed = JSON.parse(data);
+      if (!parsed || typeof parsed !== 'object') return;
+      // API IA emits a flat message; its type is the media type (e.g. text),
+      // not the store event discriminator.
+      if (eventType === 'message' && (parsed.conversationId || parsed.convId) && (parsed.id || parsed.messageId)) {
+        this.options.onEvent({
+          type: 'new_message',
+          convId: parsed.conversationId || parsed.convId,
+          message: { ...parsed, id: parsed.id || parsed.messageId, direction: parsed.direction || (parsed.fromUser === false ? 'outbound' : 'inbound'), content: parsed.content ?? parsed.text ?? '' },
+        });
+        return;
+      }
+      if (eventType === 'connected' || eventType === 'ping') return;
       // Si el server manda {type, ...} usar el campo type del payload;
       // si no, usar el eventType del SSE.
       const event: SSEEvent = parsed.type ? parsed : { type: eventType as any, ...parsed };
@@ -121,6 +152,7 @@ class SSEManager {
     if (this.cancelled) return;
     const delay = this.retryDelay;
     this.retryTimer = setTimeout(() => {
+      this.retryTimer = null;
       this.retryDelay = Math.min(this.retryDelay * 2, MAX_RETRY_MS);
       this.connect();
     }, delay);

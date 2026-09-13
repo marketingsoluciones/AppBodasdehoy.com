@@ -95,6 +95,9 @@ export interface BandejaState {
   _broadcastInitialized: boolean;
   _isLeaderTab: boolean;
   _lastSyncAt: number;
+  _lastEvent: SSEEvent | null;
+  _eventSequence: number;
+  _sseConnected: boolean;
 
   // Estado UI mínimo (qué scope/canal está activo)
   activeScope: ConversationScope | string; // 'support' | 'brand' | eventId

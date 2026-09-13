@@ -3,16 +3,14 @@
 import { useRouter } from 'next/navigation';
 import { ReactNode, useEffect, useState } from 'react';
 
-import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
-import { useBandejaStore } from '@/store/bandeja';
 import { useUserStore } from '@/store/user';
 import { authSelectors } from '@/store/user/selectors';
 
 import { useBandejaBrand } from './utils/brand';
 import { BottomNavBar } from './components/BottomNavBar';
 import { useActiveBandejaTab } from './components/BandejaTabs';
-import { buildHeaders } from './utils/auth';
+import { useBandejaSession } from './hooks/useBandejaSession';
 
 interface MessagesLayoutProps {
   children: ReactNode;
@@ -90,18 +88,7 @@ export default function MessagesLayout({ children }: MessagesLayoutProps) {
   // Bandeja store singleton (commit 3bcec0be): inicializa REST + SSE 1 vez
   // por device. Todos los componentes consumen del store, evita N fetches +
   // N SSE simultáneos. Solo arranca con sesión válida.
-  const { checkAuth, isGuest: bandejaIsGuest } = useAuthCheck();
-  const initBandeja = useBandejaStore((s) => s.initBandeja);
-  const destroyBandeja = useBandejaStore((s) => s.destroyBandeja);
-  useEffect(() => {
-    if (bandejaIsGuest) return;
-    const { development } = checkAuth();
-    const dev = development || 'bodasdehoy';
-    void initBandeja(dev, () => buildHeaders());
-    return () => {
-      destroyBandeja();
-    };
-  }, [bandejaIsGuest, checkAuth, initBandeja, destroyBandeja]);
+  useBandejaSession();
 
   // Si deja de ser guest durante la gracia (token Bodas hidratado), no redirigimos.
   // Adicional: si hay JWT local válido, NO redirigir aunque los stores no se hayan

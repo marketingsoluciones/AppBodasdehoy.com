@@ -101,6 +101,8 @@ export const generateAIChatV2: StateCreator<
     // if message is empty or no files, then stop
     if (!message && !hasFile) return;
 
+    const jsonState = mainInputEditor?.getJSONState();
+
     // BUG-NEW-08 v2 QA #30 (27-jun): el setJSONState(null) NO limpia el
     // editor visualmente — usar clearContent() que invoca editor.cleanDocument()
     // (método correcto del ChatInputEditor). Sin esto, msg2 enviado rápido
@@ -164,7 +166,6 @@ export const generateAIChatV2: StateCreator<
     // Start tracking sendMessageInServer operation with AbortController
     const abortController = get().internal_toggleSendMessageOperation(operationKey, true)!;
 
-    const jsonState = mainInputEditor?.getJSONState();
     get().internal_updateSendMessageOperation(
       operationKey,
       { inputSendErrorMsg: undefined, inputEditorTempState: jsonState },

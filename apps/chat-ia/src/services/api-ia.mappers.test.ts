@@ -82,3 +82,21 @@ describe('api-ia mappers', () => {
     expect(list.map((m) => m.id)).toEqual(['m1', 'm3']);
   });
 });
+
+describe('chronological chat history', () => {
+  it('puts the latest user request last even when the API returns newest first', () => {
+    const rows = [
+      { id: 'latest', role: 'user', content: 'current question', createdAt: '2026-09-12T12:00:00Z' },
+      { id: 'old', role: 'user', content: 'old question', createdAt: '2026-09-11T12:00:00Z' },
+    ];
+    expect(mapApiIaMessages(rows).map(m => m.id)).toEqual(['old', 'latest']);
+    expect(rows[0].id).toBe('latest');
+  });
+  it('orders Mongo messages with the same timestamp by creation ID', () => {
+    const rows = [
+      { id: '6aa5c02df89151029da11078', role: 'assistant', createdAt: 1000 },
+      { id: '6aa5c02df89151029da11061', role: 'user', createdAt: 1000 },
+    ];
+    expect(mapApiIaMessages(rows).map(m => m.role)).toEqual(['user', 'assistant']);
+  });
+});

@@ -24,7 +24,7 @@
  */
 import { create } from 'zustand';
 
-import { initBroadcast, tryAcquireLeadership } from './broadcastSync';
+import { initBroadcast } from './broadcastSync';
 import { destroySSEManager, getSSEManager } from './sseClient';
 import type { BandejaState, Conversation, Notification, SSEEvent } from './types';
 
@@ -50,6 +50,81 @@ type BandejaStore = BandejaState & BandejaActions;
 let _broadcastHandle: ReturnType<typeof initBroadcast> | null = null;
 let _development: string | null = null;
 let _authHeadersFn: (() => Record<string, string>) | null = null;
+let _generation = 0;
+let _refreshPromise: Promise<void> | null = null;
+const seenMessages = new Set<string>();
+const MAX_SEEN_MESSAGES = 2000;
+
+async function fetchSnapshot() {
+  if (!_development || !_authHeadersFn) return;
+  if (_refreshPromise) return _refreshPromise;
+  const generation = _generation;
+  const development = _development;
+  const authHeaders = _authHeadersFn;
+  const before = useBandejaStore.getState();
+  const request = (async () => {
+    const headers = authHeaders();
+    // Each endpoint is independent: HTML, invalid JSON or a network error in
+    // notifications must not discard a valid conversations response.
+    const readList = async (url: string, field: string) => {
+      try {
+        const response = await fetch(url, { headers });
+        if (!response.ok) throw new Error(field + ' HTTP ' + response.status);
+        const data = await response.json();
+        if (data?.success === false) throw new Error(field + ': operación no exitosa');
+        const list = data?.[field] ?? data;
+        if (!Array.isArray(list)) throw new Error(field + ': respuesta inválida');
+        return { ok: true as const, list, error: null };
+      } catch (error) {
+        return { ok: false as const, list: [], error: error instanceof Error ? error.message : field + ': error' };
+      }
+    };
+    const [convsRes, notifsRes] = await Promise.all([
+      readList('/api/messages/conversations?development=' + encodeURIComponent(development), 'conversations'),
+      readList('/api/notifications?limit=20', 'notifications'),
+    ]);
+    if (generation !== _generation) return;
+    const conversations: Conversation[] = convsRes.list.filter((c: any) => c?.id).map((c: any) => ({
+      ...c,
+      conversationId: c.conversationId || c.id,
+      channelParam: c.channelParam || c.channel,
+      name: c.name || c.contact?.name || c.contact?.phone || c.id,
+      lastMessage: typeof c.lastMessage === 'string' ? c.lastMessage : c.lastMessage?.text || '',
+      lastMessageAt: c.lastMessageAt || c.lastMessage?.timestamp || '',
+      unreadCount: Number(c.unreadCount) || 0,
+      linkedEventId: c.linkedEventId ?? null,
+      linkedContactId: c.linkedContactId ?? null,
+    }));
+    const notifications: Notification[] = notifsRes.list;
+    const current = useBandejaStore.getState();
+    const nextConversations = Object.fromEntries(conversations.filter(c => c?.id).map(c => [c.id, c]));
+    // A snapshot started before an SSE event must not erase that newer event.
+    for (const [id, conversation] of Object.entries(current.conversations)) {
+      if (conversation === before.conversations[id]) continue;
+      const previous = before.conversations[id];
+      const changed = previous ? Object.fromEntries(Object.entries(conversation).filter(
+        ([key, value]) => value !== previous[key as keyof Conversation],
+      )) : conversation;
+      nextConversations[id] = { ...(nextConversations[id] ?? conversation), ...changed };
+    }
+    const previousNotifications = new Map(before.notifications.map(n => [n.id, n]));
+    const nextNotifications = new Map(notifications.map(n => [n.id, n]));
+    for (const notification of current.notifications) {
+      if (notification !== previousNotifications.get(notification.id)) nextNotifications.set(notification.id, notification);
+    }
+    useBandejaStore.setState({
+      ...(convsRes.ok ? { conversations: nextConversations } : {}),
+      ...(notifsRes.ok ? { notifications: [...nextNotifications.values()] } : {}),
+      error: [...new Set([convsRes.error, notifsRes.error].filter(Boolean))].join('; ') || null,
+      _lastSyncAt: Date.now(),
+    });
+    useBandejaStore.getState().recomputeUnreads();
+  })().catch((error: unknown) => {
+    if (generation === _generation) useBandejaStore.setState({ error: error instanceof Error ? error.message : 'Error de bandeja' });
+  });
+  _refreshPromise = request;
+  try { await request; } finally { if (_refreshPromise === request) _refreshPromise = null; }
+}
 
 export const useBandejaStore = create<BandejaStore>((set, get) => ({
   // Estado inicial
@@ -61,6 +136,9 @@ export const useBandejaStore = create<BandejaStore>((set, get) => ({
   _broadcastInitialized: false,
   _isLeaderTab: false,
   _lastSyncAt: 0,
+  _lastEvent: null,
+  _eventSequence: 0,
+  _sseConnected: false,
   activeScope: 'support',
   activeChannelFilter: 'all',
   loading: false,
@@ -68,43 +146,15 @@ export const useBandejaStore = create<BandejaStore>((set, get) => ({
 
   // ─── Lifecycle ──────────────────────────────────────────────────────────
   initBandeja: async (development, authHeaders) => {
-    if (get()._sseInitialized) return;
+    if (_development === development && (get()._sseInitialized || get().loading)) return;
+    get().destroyBandeja();
+    const generation = _generation;
 
     _development = development;
     _authHeadersFn = authHeaders;
     set({ loading: true, error: null });
 
-    // 1. Fetch inicial REST (1 sola vez por tab)
-    try {
-      const headers = authHeaders();
-      const [convsRes, notifsRes] = await Promise.all([
-        fetch(`/api/messages/conversations?development=${encodeURIComponent(development)}`, {
-          headers,
-        }),
-        fetch(`/api/notifications?limit=20`, { headers }),
-      ]);
-
-      if (convsRes.ok) {
-        const data = await convsRes.json();
-        const convs: Conversation[] = data?.conversations ?? data ?? [];
-        const map: Record<string, Conversation> = {};
-        for (const c of convs) {
-          if (c?.id) map[c.id] = c;
-        }
-        set({ conversations: map });
-      }
-
-      if (notifsRes.ok) {
-        const data = await notifsRes.json();
-        const notifs: Notification[] = data?.notifications ?? data ?? [];
-        set({ notifications: notifs });
-      }
-    } catch (err: any) {
-      set({ error: err?.message ?? 'Error inicial bandeja' });
-    } finally {
-      set({ loading: false, _lastSyncAt: Date.now() });
-      get().recomputeUnreads();
-    }
+    const snapshot = fetchSnapshot();
 
     // 2. BroadcastChannel cross-tab — leader election
     _broadcastHandle = initBroadcast({
@@ -121,19 +171,29 @@ export const useBandejaStore = create<BandejaStore>((set, get) => ({
       },
     });
 
-    set({ _broadcastInitialized: true, _isLeaderTab: tryAcquireLeadership() });
+    set({ _broadcastInitialized: true, _isLeaderTab: _broadcastHandle.isLeader() });
 
     // 3. SSE singleton — solo si soy leader tab
     startSSEIfLeader();
 
     set({ _sseInitialized: true });
+    await snapshot;
+    if (generation === _generation) set({ loading: false });
   },
 
   destroyBandeja: () => {
+    _generation++;
+    _refreshPromise = null;
+    _development = null;
+    _authHeadersFn = null;
+    seenMessages.clear();
     destroySSEManager();
     _broadcastHandle?.destroy();
     _broadcastHandle = null;
     set({
+      conversations: {}, notifications: [], typingByConv: {},
+      unreadCounts: { byChannel: {}, total: 0, notifications: 0 },
+      _lastEvent: null, _sseConnected: false, loading: false, error: null,
       _sseInitialized: false,
       _broadcastInitialized: false,
       _isLeaderTab: false,
@@ -142,7 +202,7 @@ export const useBandejaStore = create<BandejaStore>((set, get) => ({
 
   refresh: async () => {
     if (!_development || !_authHeadersFn) return;
-    await get().initBandeja(_development, _authHeadersFn);
+    await fetchSnapshot();
   },
 
   // ─── Mutations ──────────────────────────────────────────────────────────
@@ -167,6 +227,16 @@ export const useBandejaStore = create<BandejaStore>((set, get) => ({
   },
 
   applyEvent: (event) => {
+    if (event.type === 'new_message') {
+      const id = event.message?.id ?? event.message?.message_id;
+      if (id) {
+        const key = `${event.convId}:${id}`;
+        if (seenMessages.has(key)) return;
+        seenMessages.add(key);
+        if (seenMessages.size > MAX_SEEN_MESSAGES) seenMessages.delete(seenMessages.values().next().value!);
+      }
+      if (!get().conversations[event.convId]) void get().refresh();
+    }
     switch (event.type) {
       case 'new_message': {
         // Cuando llega mensaje nuevo, incrementar unread + actualizar last
@@ -180,7 +250,7 @@ export const useBandejaStore = create<BandejaStore>((set, get) => ({
                 ...conv,
                 lastMessage: event.message?.content ?? conv.lastMessage,
                 lastMessageAt: event.message?.timestamp ?? new Date().toISOString(),
-                unreadCount: conv.unreadCount + 1,
+                unreadCount: conv.unreadCount + (event.message?.direction ? (event.message.direction === 'outbound' ? 0 : 1) : (event.message?.fromUser || event.message?.from_user || event.message?.fromMe ? 0 : 1)),
               },
             },
           };
@@ -221,6 +291,7 @@ export const useBandejaStore = create<BandejaStore>((set, get) => ({
             ],
           },
         }));
+        _broadcastHandle?.broadcastFromLeader(event);
         break;
       }
       case 'read_receipt': {
@@ -295,6 +366,7 @@ export const useBandejaStore = create<BandejaStore>((set, get) => ({
         break;
       }
     }
+    set((state) => ({ _lastEvent: event, _eventSequence: state._eventSequence + 1 }));
   },
 
   recomputeUnreads: () => {
@@ -342,8 +414,10 @@ function startSSEIfLeader() {
     onEvent: (event) => {
       useBandejaStore.getState().applyEvent(event);
     },
-    onConnectionChange: (_connected) => {
-      // hook futuro para mostrar badge "reconectando..."
+    onConnectionChange: (connected) => {
+      useBandejaStore.setState({ _sseConnected: connected });
+      // API IA resumes from future events only; reconcile the disconnected gap.
+      if (connected) void useBandejaStore.getState().refresh();
     },
   });
   sse.start();

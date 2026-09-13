@@ -1,3 +1,4 @@
+import { LOADING_FLAT } from '@lobechat/const';
 import {
   SendMessageServerParams,
   SendMessageServerResponse,
@@ -99,7 +100,8 @@ class AiChatService {
 
     // 3) Mensaje de asistente (placeholder; el streaming rellena el contenido).
     const assistantMessageId = await messageService.createMessage({
-      content: '',
+      // API IA rejects empty content; reuse the existing loading marker.
+      content: LOADING_FLAT,
       fromModel: params.newAssistantMessage.model,
       fromProvider: params.newAssistantMessage.provider,
       role: 'assistant',
@@ -109,6 +111,11 @@ class AiChatService {
 
     // 4) Refetch listas para el store (mismo shape que devolvía el tRPC).
     const messages = await messageService.getMessages(sessionId ?? '', topicId);
+    // Do not replace optimistic input with an empty/stale REST snapshot.
+    // The caller's existing recovery path keeps the submitted message visible.
+    if (!messages.some((item) => item.id === userMessageId)) {
+      throw new Error('[aiChat] El mensaje enviado todavía no aparece en la sesión persistida');
+    }
     const topics = await topicService.getTopics({ sessionId } as any).catch(() => undefined);
 
     return {

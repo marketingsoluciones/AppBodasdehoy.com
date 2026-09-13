@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiIaMessageService } from './apiIa';
 
@@ -16,7 +16,13 @@ vi.mock('../api-ia.mappers', () => ({
 }));
 
 describe('ApiIaMessageService (persistencia vía api-ia)', () => {
-  afterEach(() => vi.restoreAllMocks());
+  beforeEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    localStorage.setItem('current_development', 'bodasdehoy');
+    localStorage.setItem('dev-user-config', JSON.stringify({ userId: 'qa-user-a' }));
+  });
+  afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
   const svc = () => new ApiIaMessageService();
 
@@ -38,10 +44,42 @@ describe('ApiIaMessageService (persistencia vía api-ia)', () => {
   });
 
   it('createMessage: INBOX_SESSION_ID → sessionId null', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ id: 'm' })));
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ id: 'm', sessionId: 'resolved-inbox' })));
     vi.stubGlobal('fetch', fetchMock);
     await svc().createMessage({ content: 'x', role: 'user', sessionId: 'inbox' } as any);
     expect(JSON.parse(fetchMock.mock.calls[0][1].body).sessionId).toBeNull();
+  });
+
+  it('reuses the resolved inbox for the assistant and subsequent reads, including reload', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ success: true, sessionId: 'resolved', data: { id: 'user-m' } })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ success: true, sessionId: 'resolved', data: { id: 'assistant-m' } })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ data: [{ id: 'user-m' }] })));
+    vi.stubGlobal('fetch', fetchMock);
+    const service = svc();
+    await service.createMessage({ content: 'QA', role: 'user', sessionId: 'inbox' } as any);
+    await service.createMessage({ content: '', role: 'assistant', sessionId: undefined } as any);
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body).sessionId).toBe('resolved');
+    expect(await svc().getMessages('inbox')).toEqual([{ id: 'user-m' }]);
+    expect(fetchMock.mock.calls[2][0]).toContain('sessionId=resolved');
+  });
+
+  it('does not reuse an inbox across identities or brands', async () => {
+    const fetchMock = vi.fn().mockImplementation(async () => new Response(JSON.stringify({ sessionId: 'scope-a', data: { id: 'm' } })));
+    vi.stubGlobal('fetch', fetchMock);
+    const service = svc();
+    await service.createMessage({ content: 'QA', role: 'user', sessionId: 'inbox' } as any);
+    localStorage.setItem('dev-user-config', JSON.stringify({ userId: 'qa-user-b' }));
+    expect(await service.getMessages('inbox')).toEqual([]);
+    localStorage.setItem('dev-user-config', JSON.stringify({ userId: 'qa-user-a' }));
+    localStorage.setItem('current_development', 'eventosorganizador');
+    expect(await service.getMessages('inbox')).toEqual([]);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects an unresolved inbox response instead of reporting a local ID as persisted', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ data: { id: 'm' } }))));
+    await expect(svc().createMessage({ content: 'QA', role: 'user', sessionId: 'inbox' } as any)).rejects.toThrow('sessionId resuelto');
   });
 
   it('updateMessage → PATCH /chat/messages/{id}', async () => {
