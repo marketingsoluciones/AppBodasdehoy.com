@@ -31,7 +31,21 @@ const ALLOWED_REDIRECT_HOSTS = [
   'editor.bodasdehoy.com', 'app-test.bodasdehoy.com', 'chat-test.bodasdehoy.com',
   'memories-test.bodasdehoy.com', 'app-dev.bodasdehoy.com', 'chat-dev.bodasdehoy.com',
   'memories-dev.bodasdehoy.com', 'localhost',
+  'app.eventosorganizador.com', 'chat.eventosorganizador.com', 'memories.eventosorganizador.com',
+  'editor.eventosorganizador.com', 'app-test.eventosorganizador.com', 'chat-test.eventosorganizador.com',
+  'memories-test.eventosorganizador.com', 'app-dev.eventosorganizador.com',
+  'chat-dev.eventosorganizador.com', 'memories-dev.eventosorganizador.com',
 ];
+
+function getCrossAppCookieDomain(request: NextRequest): string | undefined {
+  const forwarded = request.headers.get('x-forwarded-host');
+  const rawHost = forwarded || request.headers.get('host') || new URL(request.url).hostname;
+  const hostname = rawHost.split(':')[0].toLowerCase();
+  if (!/^[\d.a-z-]+$/.test(hostname)) return undefined;
+  if (hostname === 'localhost' || /^(?:\d+\.){3}\d+$/.test(hostname)) return undefined;
+  const parts = hostname.split('.');
+  return parts.length >= 2 ? `.${parts.slice(-2).join('.')}` : undefined;
+}
 
 function isSafeRedirect(urlStr: string): boolean {
   try {
@@ -92,7 +106,7 @@ export async function GET(request: NextRequest) {
       // Token inválido/expirado → redirigir al login + limpiar cookie para evitar bucle infinito
       const resp = NextResponse.redirect(buildPublicUrl(request, '/login'), 307);
       resp.cookies.set('idTokenV0.1.0', '', {
-        domain: '.bodasdehoy.com',
+        ...(getCrossAppCookieDomain(request) ? { domain: getCrossAppCookieDomain(request) } : {}),
         expires: new Date(0),
         path: '/',
         sameSite: 'lax',
@@ -130,6 +144,8 @@ export async function GET(request: NextRequest) {
     }
     const token = data.token || data.jwt_token || '';
     const email = data.email || '';
+    const cookieDomain = getCrossAppCookieDomain(request);
+    const cookieDomainAttribute = cookieDomain ? `; domain=${cookieDomain}` : '';
 
     // BUG QA #4 (30-jun, refactor 4-jul): chat-dev login NO generaba
     // sessionBodas → SSO chat→app no funcionaba. Replicamos la llamada a
@@ -165,10 +181,10 @@ export async function GET(request: NextRequest) {
       user_type: 'registered',
     };
     const configJson = JSON.stringify(config);
-    // Cookie sessionBodas cross-subdomain (.bodasdehoy.com) — 30 días.
+    // Cookie sessionBodas cross-subdomain de la marca actual — 30 días.
     // Si la mutación falló, queda vacío y NO seteamos cookie inválida.
     const sessionBodasCookieScript = sessionBodas
-      ? `document.cookie = 'sessionBodas=' + ${JSON.stringify(encodeURIComponent(sessionBodas))} + '; path=/; domain=.bodasdehoy.com; max-age=' + (30 * 24 * 60 * 60) + '; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');`
+      ? `document.cookie = 'sessionBodas=' + ${JSON.stringify(encodeURIComponent(sessionBodas))} + '; path=/${cookieDomainAttribute}; max-age=' + (30 * 24 * 60 * 60) + '; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');`
       : `console.warn('[sso-auto] sessionBodas vacío — SSO chat→app no disponible esta sesión');`;
 
     // Retornar HTML con script que setea localStorage y redirige a /chat
@@ -183,6 +199,9 @@ try {
   localStorage.setItem('dev-user-config', JSON.stringify(cfg));
   localStorage.setItem('jwt_token', ${JSON.stringify(token)});
   localStorage.setItem('mcp_jwt_token', ${JSON.stringify(token)});
+  localStorage.setItem('user_uid', ${JSON.stringify(userId)});
+  localStorage.setItem('user_email', ${JSON.stringify(email)});
+  localStorage.removeItem('user_display_name');
   document.cookie = 'dev-user-config=' + encodeURIComponent(JSON.stringify(cfg)) + '; path=/; max-age=' + (30 * 24 * 60 * 60) + '; SameSite=Lax';
   ${sessionBodasCookieScript}
 } catch(e) {}

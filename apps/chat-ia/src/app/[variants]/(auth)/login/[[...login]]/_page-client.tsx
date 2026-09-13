@@ -134,6 +134,9 @@ function RightPanel() {
       user_type: 'registered',
     };
     localStorage.setItem('dev-user-config', JSON.stringify(config));
+    localStorage.setItem('user_uid', userId);
+    localStorage.setItem('user_email', email || '');
+    localStorage.removeItem('user_display_name');
     document.cookie = `dev-user-config=${encodeURIComponent(JSON.stringify(config))}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
     if (token) {
       optimizedApiClient.setToken(token, userId, dev);
@@ -491,6 +494,9 @@ const SSO_SCRIPT = `
         timestamp: Date.now(), token: token, userId: userId, user_id: userId, user_type: 'registered',
       };
       try { localStorage.setItem('dev-user-config', JSON.stringify(config)); } catch(e) {}
+      try { localStorage.setItem('user_uid', userId); } catch(e) {}
+      try { localStorage.setItem('user_email', result.email || ''); } catch(e) {}
+      try { localStorage.removeItem('user_display_name'); } catch(e) {}
       try { document.cookie = 'dev-user-config=' + encodeURIComponent(JSON.stringify(config)) + '; path=/; max-age=' + (30 * 24 * 60 * 60) + '; SameSite=Lax'; } catch(e) {}
       if (token) {
         try { localStorage.setItem('jwt_token', token); } catch(e) {}
