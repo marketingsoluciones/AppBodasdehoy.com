@@ -219,7 +219,14 @@ const Profile = ({ user, state, set, studio = false, ...rest }) => {
           Cookies.remove(name);
           if (_crossAppDomain) Cookies.remove(name, { domain: _crossAppDomain });
         };
-        ["idTokenV0.1.0", "guestbodas", "current_development", config?.cookie].forEach(_removeAllVariants);
+        [
+          "idTokenV0.1.0",
+          "guestbodas",
+          "bodas_active_event",
+          "bodas_available_events",
+          "current_development",
+          config?.cookie,
+        ].forEach(_removeAllVariants);
         clearDevBypass()
         // BUG-01 (informe QA 22-jun): el logout del menú de Profile no limpiaba
         // sessionBodas_fallback ni appEventos_activeEventId. Riesgo de fuga de
@@ -227,6 +234,11 @@ const Profile = ({ user, state, set, studio = false, ...rest }) => {
         if (typeof window !== "undefined") {
           localStorage.removeItem('sessionBodas_fallback')
           localStorage.removeItem('appEventos_activeEventId')
+          // Los títulos del Copilot pueden contener datos del evento. En un dispositivo
+          // compartido no deben quedar visibles para la siguiente sesión.
+          Object.keys(localStorage)
+            .filter((key) => key.startsWith('copilot_sessions_v1_'))
+            .forEach((key) => localStorage.removeItem(key))
         }
         // Fase 3 (cross-tab): avisar a otras pestañas de appEventos para cierre inmediato.
         try { new BroadcastChannel('appeventos-auth').postMessage({ type: 'logout' }) } catch { /* no soportado */ }

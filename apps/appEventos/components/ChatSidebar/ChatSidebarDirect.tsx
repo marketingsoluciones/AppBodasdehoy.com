@@ -181,7 +181,8 @@ const ChatSidebarDirect: FC<ChatSidebarDirectProps> = ({ forceOverlay, overlayBr
     ...(collaboratorPermissions.length > 0 && { permissions: collaboratorPermissions }),
   }), [userEventRole, collaboratorPermissions, activeEventId, isEventListRoute, availableEvents]);
 
-  const stableUserId = user?.email || user?.uid || guestSessionId;
+  // El UID es la identidad estable y no expone el email en la clave de localStorage.
+  const stableUserId = user?.uid || guestSessionId;
   const defaultSessionId = user?.uid ? `user_${user.uid}` : guestSessionId;
 
   // ── Session management ──────────────────────────────────────────────────
