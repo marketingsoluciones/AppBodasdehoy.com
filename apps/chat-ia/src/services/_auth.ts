@@ -239,8 +239,8 @@ export const createHeaderWithAuth = async (params?: AuthParams): Promise<Headers
       // visitante (sin JWT, sujeto a los límites de visitante) — no se bloquea el mensaje.
     } else {
       const jwtToken =
+        localStorage.getItem('api2_jwt_token') ||
         localStorage.getItem('jwt_token') ||
-        localStorage.getItem('mcp_jwt_token') ||
         localStorage.getItem('mcp_jwt_token');
 
       if (jwtToken && jwtToken !== 'null' && jwtToken !== 'undefined') {

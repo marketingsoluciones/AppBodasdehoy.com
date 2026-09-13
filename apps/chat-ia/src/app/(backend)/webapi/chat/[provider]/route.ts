@@ -1,5 +1,6 @@
 import { getSupportKey } from '@/const/supportKeys';
 import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
+import { resolveChatProxyJwt } from './jwtCookie';
 
 export const maxDuration = 300;
 
@@ -219,40 +220,12 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
       headers['X-Support-Key'] = getSupportKey(dev);
     }
 
-    // Extraer JWT de cookie si no hay Authorization
-    // Prioridad: 1) cookie mcp_jwt (dedicada)
-    //            2) cookie dev-user-config.token (JWT de MCP guardado tras login)
-    // ⚠️ idTokenV0.1.0 NO se usa aquí: es Firebase ID token para SSO cross-app,
-    //    NO un JWT de MCP — enviarlo a api-ia causaría fallo de verificación JWT.
+    // Extraer JWT de cookie si no hay Authorization.
+    // Prioridad: api2_jwt (login actual), mcp_jwt (compatibilidad), dev-user-config.
+    // idTokenV0.1.0 es un Firebase ID token para SSO y no se reenvía como JWT de MCP.
     if (!headers['Authorization'] && !headers['authorization']) {
-      try {
-        const cookieHeader = req.headers.get('cookie') || '';
-
-        // 1) Cookie dedicada mcp_jwt
-        const jwtMatch = cookieHeader.match(/mcp_jwt=([^;]+)/);
-        if (jwtMatch) {
-          const jwt = decodeURIComponent(jwtMatch[1]);
-          if (jwt && jwt.startsWith('eyJ')) {
-            headers['Authorization'] = `Bearer ${jwt}`;
-          }
-        }
-
-        // 2) Fallback: dev-user-config.token (JWT de MCP)
-        if (!headers['Authorization']) {
-          const match = cookieHeader.match(/dev-user-config=([^;]+)/);
-          if (match) {
-            const decoded = decodeURIComponent(match[1]);
-            if (decoded.startsWith('{')) {
-              const config = JSON.parse(decoded);
-              if (config.token && (config.token as string).startsWith('eyJ')) {
-                headers['Authorization'] = `Bearer ${config.token}`;
-              }
-            }
-          }
-        }
-      } catch {
-        // Continuar sin auth
-      }
+      const jwt = resolveChatProxyJwt(req.headers.get('cookie') || '');
+      if (jwt) headers['Authorization'] = `Bearer ${jwt}`;
     }
 
     // SEGURIDAD CRÍTICA: Si el acceso es restringido (visitor/guest/invited),
@@ -265,9 +238,9 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
       console.warn(`[chat-proxy] ⚠️ Acceso restringido (userId="${userId}" role="${userRole}") — Authorization ELIMINADO para api-ia`);
     }
 
-    // DEBUG: verificar si Authorization se envía a api-ia
-    const authSnippet = headers['Authorization'] ? 'Bearer ' + headers['Authorization'].slice(7, 27) + '...' : 'NONE';
-    console.log(`[chat-proxy] → ${provider} | Auth: ${authSnippet} | Support-Key: ${headers['X-Support-Key'] ? 'YES' : 'NO'}`);
+    // Registrar únicamente presencia/ausencia: nunca fragmentos del token.
+    const authStatus = headers['Authorization'] ? 'PRESENT' : 'NONE';
+    console.log(`[chat-proxy] → ${provider} | Auth: ${authStatus} | Support-Key: ${headers['X-Support-Key'] ? 'YES' : 'NO'}`);
 
     // Timeout de 60 segundos
     const controller = new AbortController();
@@ -418,7 +391,6 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
         const decoder = new TextDecoder();
         const encoder = new TextEncoder();
         let buffer = '';
-        let chunkIndex = 0;
         // null = aún no detectado, 'custom' = event:/data: pairs, 'openai' = data: directo
         let sseMode: 'custom' | 'openai' | null = null;
 
@@ -476,7 +448,6 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
                       controller.enqueue(
                         encoder.encode(`event: text\ndata: ${JSON.stringify(text)}\n\n`)
                       );
-                      chunkIndex++;
                     
                     break;
                     }

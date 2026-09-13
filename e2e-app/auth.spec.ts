@@ -375,7 +375,7 @@ test.describe('Auth — Sesiones múltiples aisladas', () => {
       expect(session1.value).not.toBe(session2.value);
       console.log('✅ U1 y U2 tienen tokens de sesión distintos (sesiones aisladas)');
     } else {
-      console.log(`ℹ️ U1 cookie: ${session1?.value?.slice(0,15) ?? 'none'} | U2 cookie: ${session2?.value?.slice(0,15) ?? 'none'}`);
+      console.log(`ℹ️ Cookies de sesión presentes — U1: ${Boolean(session1)} | U2: ${Boolean(session2)}`);
     }
 
     await ctx1.close();
