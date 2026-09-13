@@ -26,15 +26,18 @@ interface MemoryRecallResult {
 
 /**
  * Genera un embedding de 1024 dimensiones para una query usando api-ia.
- * Llama POST /api/lobechat-kb/query-embedding
+ * Llama POST /api/knowledge-base/query-embedding
  *
  * Fallback: si el endpoint no existe, devuelve null (memoria deshabilitada).
  */
 async function generateQueryEmbedding(query: string): Promise<number[] | null> {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/lobechat-kb/query-embedding`, {
+    const response = await fetch(`${BACKEND_URL}/api/knowledge-base/query-embedding`, {
       body: JSON.stringify({ dimensions: 1024, query }),
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(process.env.INTERNAL_SECRET ? { 'X-Internal-Secret': process.env.INTERNAL_SECRET } : {}),
+      },
       method: 'POST',
       signal: AbortSignal.timeout(5000),
     });

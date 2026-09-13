@@ -5,7 +5,7 @@ import { CreateKnowledgeBaseParams } from '@/types/knowledgeBase';
 //   userConfig.knowledgeBases[] = [{ id, name, fileIds[] }]
 //
 //   Solo guarda la AGRUPACIÓN (qué fileIds forman cada KB). Los archivos viven en
-//   R2 vía /storage/upload y embedding/search via /api/lobechat-kb/*.
+//   R2 vía /storage/upload y embedding/search via /api/knowledge-base/*.
 //   No hay tabla user_knowledge_bases en backend.
 //
 //   Si en el futuro se necesita KB COMPARTIDA entre usuarios → ticket api-mcp,

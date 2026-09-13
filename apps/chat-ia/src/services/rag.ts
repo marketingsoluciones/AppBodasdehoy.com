@@ -2,8 +2,8 @@ import { SemanticSearchSchemaType } from '@/types/rag';
 
 // CAPA 2 PASO C 2026-06-05: RAG vía api-ia REST. Estado verificado 2026-06-11 (Qdrant):
 //   ✅ POST /webapi/files/parse        → parseFileContent / createParseFileTask / retryParseFile
-//   ✅ POST /api/lobechat-kb/search    → semanticSearch / semanticSearchForChat (smoke OK, score 0.74)
-//   ✅ POST /api/lobechat-kb/batch-embed-file → createEmbeddingChunksTask (B1: api-ia trocea por file_id)
+//   ✅ POST /api/knowledge-base/search    → semanticSearch / semanticSearchForChat (smoke OK, score 0.74)
+//   ✅ POST /api/knowledge-base/batch-embed-file → createEmbeddingChunksTask (B1: api-ia trocea por file_id)
 // Stubs:
 //   deleteMessageRagQuery → no-op (api-mcp gestiona cleanup al borrar message)
 
@@ -72,12 +72,12 @@ class RAGService {
   createEmbeddingChunksTask = async (id: string) => {
     const { userId } = getCtx();
     if (!userId) throw new Error('createEmbeddingChunksTask requires userId');
-    return apiPost('/api/lobechat-kb/batch-embed-file', { file_id: id, user_id: userId });
+    return apiPost('/api/knowledge-base/batch-embed-file', { file_id: id, user_id: userId });
   };
 
   semanticSearch = async (query: string, fileIds?: string[]) => {
     const { userId } = getCtx();
-    return apiPost('/api/lobechat-kb/search', {
+    return apiPost('/api/knowledge-base/search', {
       file_ids: fileIds,
       limit: 5,
       min_score: 0.5,
@@ -88,7 +88,7 @@ class RAGService {
 
   semanticSearchForChat = async (params: SemanticSearchSchemaType) => {
     const { userId } = getCtx();
-    return apiPost('/api/lobechat-kb/search', {
+    return apiPost('/api/knowledge-base/search', {
       file_ids: params.fileIds,
       knowledge_ids: params.knowledgeIds,
       limit: 8,

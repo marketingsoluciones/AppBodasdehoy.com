@@ -1,5 +1,5 @@
 /**
- * CAPA 3 PASO C — cliente REST para GET /api/lobechat-kb/files/{id}/chunks de api-ia.
+ * CAPA 3 PASO C — cliente REST para GET /api/knowledge-base/files/{id}/chunks de api-ia.
  *
  * Backend devuelve: { success, file_id, total, data: ChunkItem[], warning? }
  * API actual (tRPC) devuelve: useInfiniteQuery con { items, nextCursor }
@@ -75,7 +75,7 @@ function toFileChunk(raw: ApiIaChunkRaw): FileChunk {
 
 export async function fetchChunks(fileId: string): Promise<FileChunk[]> {
   const res = await fetch(
-    `${API_IA_BASE}/api/lobechat-kb/files/${encodeURIComponent(fileId)}/chunks`,
+    `${API_IA_BASE}/api/knowledge-base/files/${encodeURIComponent(fileId)}/chunks`,
     { headers: authHeaders(), method: 'GET' },
   );
   if (!res.ok) {
