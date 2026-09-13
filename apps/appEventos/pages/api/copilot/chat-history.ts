@@ -13,22 +13,6 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 
 import { resolveApiIaOrigin } from '../../../utils/apiEndpoints';
 
-// SupportKeys por whitelabel — api-ia los exige cuando no hay JWT válido.
-// Mantenido inline para evitar dep a chat-ia o packages/shared.
-const SUPPORT_KEYS: Record<string, string> = {
-  annloevents: 'SK-annloevents-bc71e2d9',
-  bodasdehoy: 'SK-bodasdehoy-a71f5b3c',
-  'champagne-events': 'SK-champagne-events-d4c92a10',
-  corporativozr: 'SK-corporativozr-0f1e8c72',
-  eventosintegrados: 'SK-eventosintegrados-9184f2c0',
-  eventosorganizador: 'SK-eventosorganizador-6e38d7f4',
-  eventosplanificador: 'SK-eventosplanificador-ae273c81',
-  miamorcitocorazon: 'SK-miamorcitocorazon-4a7e1c9d',
-  ohmaratilano: 'SK-ohmaratilano-df63a0b5',
-  theweddingplanner: 'SK-theweddingplanner-5c9e41ad',
-  vivetuboda: 'SK-vivetuboda-5f92c1ab',
-};
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
@@ -42,10 +26,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const auth = req.headers.authorization || '';
+  const token = auth.replace(/^Bearer\s+/i, '').trim();
+  if (!token || token === 'undefined' || token === 'null') {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
   const development = (req.headers['x-development'] as string) || 'bodasdehoy';
   const limitNum = Number.isFinite(limit) && limit > 0 ? Math.min(limit, 200) : 50;
-  const supportKey = SUPPORT_KEYS[development] || SUPPORT_KEYS.bodasdehoy;
-
   const apiIaOrigin = resolveApiIaOrigin();
 
   try {
@@ -54,8 +40,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       headers: {
         ...(auth ? { Authorization: auth } : {}),
         'X-Development': development,
-        // X-Support-Key per-tenant: identidad whitelabel.
-        'X-Support-Key': supportKey,
         // Unificación secretos api-mcp v2 (29-jun): X-Internal-Secret AUTH
         // servicio-servicio. api-ia acepta en su inbound centralizado.
         ...(process.env.INTERNAL_SECRET
@@ -66,13 +50,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     if (!response.ok) {
       console.warn(`[chat-history] api-ia non-ok: ${response.status}`);
-      return res.status(200).json({ messages: [] });
+      return res.status(response.status).json({ error: 'API_IA_HISTORY_FAILED', messages: [] });
     }
     const data = await response.json();
-    const list = Array.isArray(data.messages) ? data.messages : (data.messages ?? []);
+    const list = Array.isArray(data.messages) ? data.messages : [];
     return res.status(200).json({ messages: list });
   } catch (e) {
     console.error('[chat-history] api-ia error:', e);
-    return res.status(200).json({ messages: [] });
+    return res.status(503).json({ error: 'API_IA_HISTORY_UNAVAILABLE', messages: [] });
   }
 }

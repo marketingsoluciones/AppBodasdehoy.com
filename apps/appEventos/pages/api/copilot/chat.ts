@@ -84,21 +84,6 @@ const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 
-// Support keys for API2 authentication
-const SUPPORT_KEYS: Record<string, string> = {
-  'annloevents': 'SK-annloevents-bc71e2d9',
-  'bodasdehoy': 'SK-bodasdehoy-a71f5b3c',
-  'champagne-events': 'SK-champagne-events-d4c92a10',
-  'corporativozr': 'SK-corporativozr-0f1e8c72',
-  'eventosintegrados': 'SK-eventosintegrados-9184f2c0',
-  'eventosorganizador': 'SK-eventosorganizador-6e38d7f4',
-  'eventosplanificador': 'SK-eventosplanificador-ae273c81',
-  'miamorcitocorazon': 'SK-miamorcitocorazon-4a7e1c9d',
-  'ohmaratilano': 'SK-ohmaratilano-df63a0b5',
-  'theweddingplanner': 'SK-theweddingplanner-5c9e41ad',
-  'vivetuboda': 'SK-vivetuboda-5f92c1ab',
-};
-
 // Cache for API keys
 interface ApiKeyCache {
   key: string;
@@ -388,10 +373,11 @@ async function getWhitelabelApiKey(development: string): Promise<{ apiKey: strin
     return { apiKey: cached.key, model: cached.model, provider: cached.provider };
   }
 
-  const supportKey = SUPPORT_KEYS[development] || SUPPORT_KEYS['bodasdehoy'];
+  const internalSecret = process.env.INTERNAL_SECRET?.trim();
+  if (!internalSecret) return null;
   const query = `
-    query {
-      getWhiteLabelConfig(development: "${development}", supportKey: "${supportKey}") {
+    query GetWhiteLabelConfig($development: String!, $supportKey: String!) {
+      getWhiteLabelConfig(development: $development, supportKey: $supportKey) {
         success
         aiProvider
         aiModel
@@ -412,7 +398,7 @@ async function getWhitelabelApiKey(development: string): Promise<{ apiKey: strin
         'Content-Type': 'application/json',
         ...(internalSecret ? { 'X-Internal-Secret': internalSecret } : {}),
       },
-      body: JSON.stringify({ query }),
+      body: JSON.stringify({ query, variables: { development, supportKey: internalSecret } }),
     });
 
     if (!response.ok) return null;

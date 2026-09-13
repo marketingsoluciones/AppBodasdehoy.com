@@ -11,6 +11,8 @@ try {
   }
 } catch (_) { /* falla silente si no hay git */ }
 const nextConfig = {
+  // Permite compilar una nueva release DEV junto a la que sigue activa.
+  distDir: process.env.APP_BUILD_DIR || '.next',
   // Habilitar React Strict Mode para mejor desarrollo
   reactStrictMode: true,
   env: {

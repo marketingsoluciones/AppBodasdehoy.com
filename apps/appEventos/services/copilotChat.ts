@@ -596,8 +596,8 @@ const normalizeHistoryMessage = (m: any): ChatMessage => ({
 });
 
 /**
- * Obtiene el historial de chat. Primero intenta API2 (GET /api/copilot/chat-history).
- * Si falla, usa el store en memoria (GET /api/chat/messages) para no dejar el panel vacío.
+ * Obtiene el historial persistido en API-IA/API-MCP.
+ * No usa almacenamiento local compartido por proceso.
  */
 export const getChatHistory = async (
   sessionId: string,
@@ -614,65 +614,18 @@ export const getChatHistory = async (
         },
       }
     );
-
-    if (response.ok) {
-      const data = await response.json();
-      const list = data.messages || [];
-      return list.map(normalizeHistoryMessage);
-    }
-
-    // API2 o proxy falló: fallback al store en memoria
-    const fallback = await fetch(
-      `${CHAT_API_BASE}/api/chat/messages?sessionId=${encodeURIComponent(sessionId)}`
-    );
-    if (!fallback.ok) return [];
-    const fallbackData = await fallback.json();
-    const fallbackList = fallbackData.messages || [];
-    return fallbackList.map(normalizeHistoryMessage);
+    if (!response.ok) return [];
+    const data = await response.json();
+    const list = Array.isArray(data.messages) ? data.messages : [];
+    return list.map(normalizeHistoryMessage);
   } catch (error) {
-    console.warn('[CopilotChat] Error fetching history (API2), trying fallback:', error);
-    try {
-      const fallback = await fetch(
-        `${CHAT_API_BASE}/api/chat/messages?sessionId=${encodeURIComponent(sessionId)}`
-      );
-      if (!fallback.ok) return [];
-      const fallbackData = await fallback.json();
-      const fallbackList = fallbackData.messages || [];
-      return fallbackList.map(normalizeHistoryMessage);
-    } catch (fallbackError) {
-      console.error('[CopilotChat] Fallback history failed:', fallbackError);
-      return [];
-    }
-  }
-};
-
-/**
- * Persiste un mensaje en la sesión (POST /api/chat/messages).
- * Usar después de cada intercambio user/assistant para tener historial.
- */
-export const persistChatMessage = async (
-  sessionId: string,
-  role: 'user' | 'assistant',
-  content: string,
-  id?: string
-): Promise<void> => {
-  try {
-    const response = await fetch(`${CHAT_API_BASE}/api/chat/messages`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionId, role, content, id: id || generateMessageId() }),
-    });
-    if (!response.ok) {
-      console.warn('[CopilotChat] persist message failed:', response.status);
-    }
-  } catch (error) {
-    console.warn('[CopilotChat] persist message error:', error);
+    console.warn('[CopilotChat] Error fetching canonical history:', error);
+    return [];
   }
 };
 
 export default {
   sendChatMessage,
   getChatHistory,
-  persistChatMessage,
   generateMessageId,
 };
