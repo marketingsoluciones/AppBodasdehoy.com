@@ -89,9 +89,13 @@ interface RawApiIaMessage {
   createdAt?: number | string;
   id?: string;
   meta?: any;
+  metadata?: any;
+  reasoning?: any;
   role?: string;
   sessionId?: string;
   text?: string;
+  toolCalls?: any[];
+  tools?: any[];
   topicId?: string;
   updatedAt?: number | string;
 }
@@ -104,14 +108,19 @@ interface RawApiIaMessage {
  */
 export function mapApiIaMessage(raw: RawApiIaMessage): UIChatMessage {
   const createdAt = toEpoch(raw.createdAt);
+  const persistenceMetadata = raw.metadata ?? {};
   return {
     content: raw.content ?? raw.text ?? '',
     createdAt,
     id: raw.id ?? raw._id ?? '',
     meta: raw.meta ?? {},
+    reasoning: raw.reasoning ?? persistenceMetadata.reasoning,
     role: (raw.role ?? 'assistant').toLowerCase() as UIChatMessage['role'],
     sessionId: raw.sessionId,
     topicId: raw.topicId,
+    tools: raw.tools ?? persistenceMetadata.tools ?? raw.toolCalls,
+    traceId: persistenceMetadata.traceId,
+    observationId: persistenceMetadata.observationId,
     updatedAt: toEpoch(raw.updatedAt) || createdAt,
   } as UIChatMessage;
 }

@@ -73,6 +73,21 @@ describe('api-ia mappers', () => {
     expect(m.createdAt).toBeGreaterThan(0);
   });
 
+  it('mapApiIaMessage: restaura tools y trazas persistidas dentro de metadata', () => {
+    const tools = [{ id: 'call-1', type: 'function', function: { name: 'get_event_guests' } }];
+    const m = mapApiIaMessage({
+      content: '40 invitados',
+      id: 'm-rich',
+      metadata: { observationId: 'obs-1', tools, traceId: 'trace-1' },
+      reasoning: { content: 'Analizando' },
+      role: 'ASSISTANT',
+    });
+    expect(m.tools).toEqual(tools);
+    expect(m.reasoning).toEqual({ content: 'Analizando' });
+    expect(m.traceId).toBe('trace-1');
+    expect(m.observationId).toBe('obs-1');
+  });
+
   it('mapApiIaMessages: filtra mensajes sin id y mapea el resto', () => {
     const list = mapApiIaMessages([
       { content: 'a', id: 'm1', role: 'user' },
