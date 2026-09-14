@@ -18,6 +18,7 @@ import {
   type WhatsAppChannel,
 } from '@/services/mcpApi/whatsapp';
 import { useChatStore } from '@/store/chat';
+import { canManageMessaging } from '@/utils/jwtRole';
 import { useWhatsAppSession } from '../../messages/hooks/useWhatsAppSession';
 
 const { Title, Text, Paragraph } = Typography;
@@ -212,11 +213,15 @@ const TYPE_LABELS: Record<string, string> = {
 function ChannelCard({
   channel,
   development: _development,
+  canManage = false,
   onConnect,
   onDelete,
 }: {
   channel: WhatsAppChannel;
   development: string;
+  /** Gate N27 (auditoría QA 14-09): solo roles agente/admin ven las acciones.
+   * Defensa visual — la autorización real debe ser server-side en api-mcp. */
+  canManage?: boolean;
   onConnect: () => void;
   onDelete: () => void;
 }) {
@@ -238,14 +243,16 @@ function ChannelCard({
             {channel.phoneNumber && <div><Text style={{ fontSize: 12 }} type="secondary">+{channel.phoneNumber}</Text></div>}
           </div>
         </Space>
-        <Space>
-          {channel.type !== 'WAB' && (
-            <Button onClick={onConnect} size="small" style={{ borderColor: '#52c41a', color: '#52c41a' }}>
-              {channel.status === 'ACTIVE' ? 'Gestionar' : 'Conectar'}
-            </Button>
-          )}
-          <Button danger onClick={onDelete} size="small">Eliminar</Button>
-        </Space>
+        {canManage && (
+          <Space>
+            {channel.type !== 'WAB' && (
+              <Button onClick={onConnect} size="small" style={{ borderColor: '#52c41a', color: '#52c41a' }}>
+                {channel.status === 'ACTIVE' ? 'Gestionar' : 'Conectar'}
+              </Button>
+            )}
+            <Button danger onClick={onDelete} size="small">Eliminar</Button>
+          </Space>
+        )}
       </div>
     </Card>
   );
@@ -439,6 +446,10 @@ function IntegrationsPageInner() {
   const currentUserId = useChatStore((s) => s.currentUserId);
   const development = useChatStore((s) => s.development) || 'bodasdehoy';
   const isAuthenticated = !!(currentUserId && currentUserId !== 'visitante@guest.local');
+  // Gate N27 (auditoría QA 14-09): la sesión WhatsApp es GLOBAL de marca.
+  // Solo roles que gestionan mensajería ven conectar/eliminar. Defensa visual;
+  // la autorización real debe ser server-side en api-mcp.
+  const canManage = canManageMessaging();
 
   const [channels, setChannels] = useState<WhatsAppChannel[]>([]);
   const [loadingChannels, setLoadingChannels] = useState(true);
@@ -626,7 +637,7 @@ function IntegrationsPageInner() {
                   </div>
                 </div>
               </div>
-              {isAuthenticated && (
+              {isAuthenticated && canManage && (
                 <Button
                   block
                   onClick={() => setShowCreateModal(true)}
@@ -676,7 +687,7 @@ function IntegrationsPageInner() {
         <section>
           <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
             <Text strong>Canales WhatsApp</Text>
-            {!apiError && (
+            {!apiError && canManage && (
               <Button onClick={() => setShowCreateModal(true)} size="small" style={{ borderColor: '#52c41a', color: '#52c41a' }}>
                 + Añadir número
               </Button>
@@ -715,6 +726,7 @@ function IntegrationsPageInner() {
             <Space direction="vertical" size="small" style={{ width: '100%' }}>
               {channels.map((ch) => (
                 <ChannelCard
+                  canManage={canManage}
                   channel={ch}
                   development={development}
                   key={ch.id}

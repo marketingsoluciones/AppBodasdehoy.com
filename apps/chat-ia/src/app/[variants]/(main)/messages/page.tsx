@@ -8,6 +8,7 @@ import { ChannelSidebar } from './components/ChannelSidebar';
 import { InboxFilters, type ChannelFilter, type RsvpFilter } from './components/InboxFilters';
 import { ScopeSelector, type ScopeId } from './components/ScopeSelector';
 import { UnifiedFeedView } from './components/UnifiedFeedView';
+import { canManageMessaging } from '@/utils/jwtRole';
 import { type FeedItem, useUnifiedFeed } from './hooks/useUnifiedFeed';
 
 // El guard de auth vive en el layout hermano (messages/layout.tsx): valida
@@ -241,22 +242,28 @@ export default function MessagesPage() {
                     Mensajes y notificaciones en un solo sitio. Selecciona una conversación
                     para ver el detalle.
                   </div>
-                  <div className="mt-4 flex items-center justify-center gap-2">
-                    <button
-                      className="rounded-lg bg-pink-500 px-3 py-2 text-xs font-semibold text-white hover:bg-pink-600"
-                      onClick={() => router.push('/messages/whatsapp')}
-                      type="button"
-                    >
-                      Conectar WhatsApp
-                    </button>
-                    <button
-                      className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
-                      onClick={() => router.push('/settings/integrations')}
-                      type="button"
-                    >
-                      Conectar canal
-                    </button>
-                  </div>
+                  {canManageMessaging() ? (
+                    <div className="mt-4 flex items-center justify-center gap-2">
+                      <button
+                        className="rounded-lg bg-pink-500 px-3 py-2 text-xs font-semibold text-white hover:bg-pink-600"
+                        onClick={() => router.push('/messages/whatsapp')}
+                        type="button"
+                      >
+                        Conectar WhatsApp
+                      </button>
+                      <button
+                        className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+                        onClick={() => router.push('/settings/integrations')}
+                        type="button"
+                      >
+                        Conectar canal
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="mt-4 text-xs text-gray-400">
+                      Contacta con soporte para activar la mensajería de tu evento.
+                    </div>
+                  )}
                 </>
               )}
             </div>

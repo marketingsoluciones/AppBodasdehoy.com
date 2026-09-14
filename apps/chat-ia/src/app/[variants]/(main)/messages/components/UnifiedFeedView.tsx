@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { Virtuoso } from 'react-virtuoso';
+import { canManageMessaging } from '@/utils/jwtRole';
 
 import type { FeedItem } from '../hooks/useUnifiedFeed';
 
@@ -254,13 +255,15 @@ export function UnifiedFeedView({ items, loading, onItemClick }: UnifiedFeedView
               <p className="font-medium text-gray-700">Sin resultados</p>
               <p className="mt-1 text-sm text-gray-400">Prueba otro filtro o cambia la búsqueda</p>
             </div>
-            <button
-              className="mt-2 rounded-lg bg-pink-500 px-4 py-2 text-sm font-medium text-white hover:bg-pink-600 transition-colors"
-              onClick={() => router.push('/settings/integrations')}
-              type="button"
-            >
-              Conectar canal
-            </button>
+            {canManageMessaging() && (
+              <button
+                className="mt-2 rounded-lg bg-pink-500 px-4 py-2 text-sm font-medium text-white hover:bg-pink-600 transition-colors"
+                onClick={() => router.push('/settings/integrations')}
+                type="button"
+              >
+                Conectar canal
+              </button>
+            )}
           </div>
         ) : (
           <Virtuoso
