@@ -15,7 +15,9 @@ import { Fragment, type ReactNode } from 'react';
 
 function renderInline(text: string, keyPrefix: string): ReactNode[] {
   // Orden: código primero (no se toca su interior), luego negrita, luego cursiva
-  const pattern = /(`[^`]+`)|(\*\*[^*]+\*\*)|(\*[^*]+\*)/g;
+  // Los lookarounds evitan enfasis intrapalabra: 2*3*4 NO es cursiva,
+  // pero *importante* si (borde no alfanumerico).
+  const pattern = /(`[^`]+`)|(\*\*[^*]+\*\*)|((?<![\w*])\*[^*]+\*(?![\w*]))/g;
   const out: ReactNode[] = [];
   let last = 0;
   let m: RegExpExecArray | null;
