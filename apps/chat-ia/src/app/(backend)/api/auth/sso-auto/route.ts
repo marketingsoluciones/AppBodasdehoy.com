@@ -107,21 +107,25 @@ export async function GET(request: NextRequest) {
     //
     // Fix: si backend NO devuelve user_id, EXTRAER uid del JWT Firebase
     // (ssoToken, payload.sub o payload.user_id). NUNCA caer a email.
-    let userId = data.user_id;
-    if (!userId && ssoToken) {
-      try {
-        // JWT payload está en el 2º segmento (separado por puntos), base64url-encoded
-        const payloadB64 = ssoToken.split('.')[1];
-        if (payloadB64) {
-          const padded = payloadB64.padEnd(payloadB64.length + (4 - payloadB64.length % 4) % 4, '=');
-          const json = JSON.parse(Buffer.from(padded, 'base64').toString('utf-8'));
-          // Firebase ID token usa `user_id` o `sub` para el uid
-          userId = json.user_id || json.sub || '';
-        }
-      } catch (e) {
-        console.warn('[sso-auto] No se pudo extraer uid del JWT firebase:', (e as Error)?.message);
+    //
+    // FIX N15 (auditoría QA 14-09): decodificamos el payload del JWT Firebase UNA
+    // vez y de ahí salen uid + email + name. Antes el SSO no tocaba
+    // user_email/user_display_name/user_uid → la sesión nueva heredaba la
+    // identidad del usuario anterior en localStorage (PII cruzada + cuota
+    // resuelta contra la cuenta equivocada).
+    let fbPayload: Record<string, any> | null = null;
+    try {
+      // JWT payload está en el 2º segmento (separado por puntos), base64url-encoded
+      const payloadB64 = ssoToken.split('.')[1];
+      if (payloadB64) {
+        const padded = payloadB64.padEnd(payloadB64.length + (4 - payloadB64.length % 4) % 4, '=');
+        fbPayload = JSON.parse(Buffer.from(padded, 'base64').toString('utf-8'));
       }
+    } catch (e) {
+      console.warn('[sso-auto] No se pudo decodificar el JWT firebase:', (e as Error)?.message);
     }
+    // Firebase ID token usa `user_id` o `sub` para el uid
+    let userId = data.user_id || fbPayload?.user_id || fbPayload?.sub || '';
     // Último fallback: SOLO si no hay manera de obtener uid, usar email
     // (mejor login degradado que crash total). Loguear para diagnóstico.
     if (!userId) {
@@ -129,7 +133,10 @@ export async function GET(request: NextRequest) {
       if (userId) console.warn('[sso-auto] FALLBACK email como userId — INSERT messages fallará:', userId);
     }
     const token = data.token || data.jwt_token || '';
-    const email = data.email || '';
+    // email/name SIEMPRE del Firebase token (fuente de verdad de la sesión),
+    // nunca de valores cacheados del cliente ni de data.email sin validar.
+    const email = fbPayload?.email || data.email || '';
+    const displayName = fbPayload?.name || '';
 
     // BUG QA #4 (30-jun, refactor 4-jul): chat-dev login NO generaba
     // sessionBodas → SSO chat→app no funcionaba. Replicamos la llamada a
@@ -171,8 +178,10 @@ export async function GET(request: NextRequest) {
       ? `document.cookie = 'sessionBodas=' + ${JSON.stringify(encodeURIComponent(sessionBodas))} + '; path=/; domain=.bodasdehoy.com; max-age=' + (30 * 24 * 60 * 60) + '; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');`
       : `console.warn('[sso-auto] sessionBodas vacío — SSO chat→app no disponible esta sesión');`;
 
-    // Retornar HTML con script que setea localStorage y redirige a /chat
-    // Esto ejecuta inmediatamente sin necesidad de React/hydration
+    // FIX N15 (auditoría QA 14-09): purgar la identidad del usuario anterior
+    // ANTES de escribir la nueva. El SSO entraba sin logout previo y los valores
+    // user_email/user_display_name/user_uid del login anterior sobrevivían →
+    // la sesión nueva mostraba nombre/email/plan de OTRO usuario.
     const html = `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><title>Iniciando sesión...</title></head>
@@ -180,6 +189,15 @@ export async function GET(request: NextRequest) {
 <script>
 try {
   var cfg = ${configJson};
+  // Purgar identidad anterior (N15)
+  localStorage.removeItem('user_email');
+  localStorage.removeItem('user_display_name');
+  localStorage.removeItem('user_uid');
+  localStorage.removeItem('user_photo_url');
+  // Escribir identidad de ESTA sesión, derivada del JWT Firebase server-side
+  localStorage.setItem('user_email', ${JSON.stringify(email)});
+  localStorage.setItem('user_uid', ${JSON.stringify(userId)});
+  if (${JSON.stringify(displayName)}) localStorage.setItem('user_display_name', ${JSON.stringify(displayName)});
   localStorage.setItem('dev-user-config', JSON.stringify(cfg));
   localStorage.setItem('jwt_token', ${JSON.stringify(token)});
   localStorage.setItem('mcp_jwt_token', ${JSON.stringify(token)});
