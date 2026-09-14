@@ -5,6 +5,7 @@ import { Event, detalle_compartidos_array } from '../utils/Interfaces';
 import { readCache, writeCache } from '../utils/Funciones';
 import { useRouter, usePathname } from 'next/navigation';
 import { getDevelopmentNameFromHostname } from '@bodasdehoy/shared/types';
+import { normalizeEventShareForUser } from '../utils/normalizeSharedEvent';
 
 /** Estado de filtro activo enviado por el Copilot via postMessage FILTER_VIEW */
 export interface CopilotFilter {
@@ -314,15 +315,9 @@ const EventsGroupProvider = ({ children }) => {
 
               const normalizedEvents = events.map((event, index) => {
                 if (event?.compartido_array?.length) {
-                  console.log(`[EventsGroup] Procesando evento ${index + 1}/${events.length}: ${event.nombre || event._id}`)
-                  const fMyUid = event?.compartido_array?.findIndex(elem => elem === user?.uid)
-                  if (fMyUid > -1) {
-                    event.permissions = [...event.detalles_compartidos_array[fMyUid].permissions]
-                    event.compartido_array.splice(fMyUid, 1)
-                    event.detalles_compartidos_array?.splice(fMyUid, 1)
-                  }
+                  console.log("[EventsGroup] Procesando evento " + (index + 1) + "/" + events.length + ": " + (event.nombre || event._id))
                 }
-                return event
+                return normalizeEventShareForUser(event, user?.uid)
               })
 
               const allUidsSet = new Set<string>()
