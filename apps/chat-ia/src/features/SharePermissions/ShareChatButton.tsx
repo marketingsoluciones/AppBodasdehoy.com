@@ -1,15 +1,17 @@
 'use client';
 
 import { ActionIcon, Modal } from '@lobehub/ui';
-import { Checkbox, Input, message } from 'antd';
+import { Checkbox, message } from 'antd';
 import { Share2 } from 'lucide-react';
 import { memo, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
+import { shareChat } from './sharing';
+import { RecipientPicker } from './RecipientPicker';
+
 interface ShareChatButtonProps {
   currentUserId: string;
-  development?: string;
-  ownerId: string;
+  canManage: boolean;
   sessionId: string;
 }
 
@@ -22,7 +24,7 @@ interface ShareChatButtonProps {
  * - Integrado con el middleware actualizado
  */
 export const ShareChatButton = memo<ShareChatButtonProps>(
-  ({ sessionId, ownerId, currentUserId, development = 'bodasdehoy' }) => {
+  ({ sessionId, canManage, currentUserId }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [targetUser, setTargetUser] = useState('');
     const [canRead, setCanRead] = useState(true);
@@ -31,13 +33,13 @@ export const ShareChatButton = memo<ShareChatButtonProps>(
     const [loading, setLoading] = useState(false);
 
     // Solo mostrar si es el owner
-    if (ownerId !== currentUserId) {
+    if (!canManage || !currentUserId) {
       return null;
     }
 
     const handleShare = async () => {
       if (!targetUser.trim()) {
-        message.error('Por favor ingresa un email o ID de usuario');
+        message.error('Selecciona un usuario de los resultados.');
         return;
       }
 
@@ -49,38 +51,18 @@ export const ShareChatButton = memo<ShareChatButtonProps>(
       setLoading(true);
 
       try {
-        const response = await fetch('/api/chat/share', {
-          body: JSON.stringify({
-            can_delete: canDelete,
-            can_read: canRead,
-            can_write: canWrite,
-            session_id: sessionId,
-            target_user_id: targetUser.trim(),
-          }),
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Development': development,
-            'X-User-ID': currentUserId,
-          },
-          method: 'POST',
+        await shareChat(sessionId, targetUser, {
+          can_delete: canDelete, can_read: canRead, can_write: canWrite,
         });
-
-        if (response.ok) {
-          await response.json();
-          message.success('Chat compartido exitosamente');
-          setIsOpen(false);
-          setTargetUser('');
-          // Reset permisos
-          setCanRead(true);
-          setCanWrite(false);
-          setCanDelete(false);
-        } else {
-          const error = await response.json();
-          message.error(error.detail || 'Error al compartir chat');
-        }
+        message.success('Chat compartido exitosamente');
+        setIsOpen(false);
+        setTargetUser('');
+        setCanRead(true);
+        setCanWrite(false);
+        setCanDelete(false);
       } catch (error) {
         console.error('Error sharing chat:', error);
-        message.error('Error de red al compartir chat');
+        message.error(error instanceof Error ? error.message : 'No se pudo compartir el chat');
       } finally {
         setLoading(false);
       }
@@ -97,10 +79,11 @@ export const ShareChatButton = memo<ShareChatButtonProps>(
 
         <Modal
           cancelText="Cancelar"
-          okButtonProps={{ loading }}
+          okButtonProps={{ loading, disabled: !targetUser }}
           okText="Compartir"
           onCancel={() => setIsOpen(false)}
           onOk={handleShare}
+          destroyOnClose
           open={isOpen}
           title="Compartir Chat"
           width={480}
@@ -108,17 +91,13 @@ export const ShareChatButton = memo<ShareChatButtonProps>(
           <Flexbox gap={16} padding={16}>
             <div>
               <label style={{ display: 'block', fontWeight: 500, marginBottom: 8 }}>
-                Usuario (Email o ID)
+                Usuario
               </label>
-              <Input
-                onChange={(e) => setTargetUser(e.target.value)}
-                placeholder="ejemplo@email.com o +34600000000"
-                size="large"
+              <RecipientPicker
+                currentUserId={currentUserId}
                 value={targetUser}
+                onChange={setTargetUser}
               />
-              <div style={{ color: '#666', fontSize: 12, marginTop: 4 }}>
-                Ingresa el email o teléfono del usuario con quien quieres compartir
-              </div>
             </div>
 
             <div>

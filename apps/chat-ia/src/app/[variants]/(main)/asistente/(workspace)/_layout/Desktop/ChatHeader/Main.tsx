@@ -14,7 +14,10 @@ import { useGlobalStore } from '@/store/global';
 import { systemStatusSelectors } from '@/store/global/selectors';
 import { useSessionStore } from '@/store/session';
 import { sessionMetaSelectors, sessionSelectors } from '@/store/session/selectors';
-import { ShareChatButton } from '@/features/SharePermissions';
+import ShareChatButton from '@/features/SharePermissions/ShareChatButton';
+import { useChatShareAccess } from '@/features/SharePermissions/useChatShareAccess';
+import { useUserStore } from '@/store/user';
+import { userProfileSelectors } from '@/store/user/selectors';
 
 import TogglePanelButton from '../../../../features/TogglePanelButton';
 import ActiveEventChip from './ActiveEventChip';
@@ -62,9 +65,8 @@ const Main = memo<{ className?: string }>(({ className }) => {
   const displayTitle = isInbox ? t('inbox.title') : title;
   const showSessionPanel = useGlobalStore(systemStatusSelectors.showSessionPanel);
 
-  // Para ShareChatButton - TODO: Obtener de autenticación real
-  const currentUserId = 'current-user@example.com'; // Reemplazar con usuario real
-  const ownerId = currentUserId; // Reemplazar con owner real del chat
+  const currentUserId = useUserStore(userProfileSelectors.userId);
+  const canManage = useChatShareAccess(currentSessionId, currentUserId);
 
   if (!init)
     return (
@@ -95,10 +97,10 @@ const Main = memo<{ className?: string }>(({ className }) => {
         <ActiveEventChip />
       </Flexbox>
       {/* Botón para compartir chat con permisos granulares */}
-      {!isInbox && currentSessionId && (
+      {!isInbox && currentSessionId && currentUserId && canManage && (
         <ShareChatButton
           currentUserId={currentUserId}
-          ownerId={ownerId}
+          canManage={canManage}
           sessionId={currentSessionId}
         />
       )}
