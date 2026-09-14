@@ -119,9 +119,24 @@ Comprobaciones realizadas en la ronda:
 - El mensaje del usuario permaneció después de recargar.
 - Las rutas ya no confían en un `userId` libre del navegador.
 
-### 4.5 Builds y pruebas automatizadas
+### 4.5 Regresión N13 del listado de eventos
 
-- AppEventos: 6 suites, 69 pruebas, todas aprobadas.
+Con `jcc@bodasdehoy.com` se observó el listado durante 82,5 segundos antes del cambio. Todas las consultas GraphQL devolvían HTTP 200 y total 4, pero un evento tenía `compartido_array` y `detalles_compartidos_array` desalineados. El frontend intentaba leer `.permissions` de una posición inexistente y lanzaba reintentos a 1, 2, 4 y 8 segundos.
+
+Después del commit `0f2afd3e` y del build `.next-app-20260914c`, se repitió la misma prueba durante 82,5 segundos:
+
+- Usuario: `jcc@bodasdehoy.com`.
+- Eventos: 4.
+- Respuestas GraphQL: todas HTTP 200.
+- Excepciones de `EventsGroup`: 0.
+- Reintentos automáticos: 0.
+- Error visible: no.
+
+La normalización no muta el objeto original y, si faltan detalles legacy, aplica permisos vacíos en lugar de conceder acceso implícito o romper la lista.
+
+### 4.6 Builds y pruebas automatizadas
+
+- AppEventos: 6 suites y 69 pruebas aprobadas en la batería completa; 2 pruebas focalizadas nuevas de N13 aprobadas.
 - AppEventos: build de producción completado; 50/50 páginas generadas.
 - Chat: build de producción completado; 163/163 páginas generadas.
 - API-IA: 25 pruebas relacionadas con persistencia y chat aprobadas en la última ronda; la batería seleccionada acumulada llegó a 80 aprobadas.
@@ -129,7 +144,7 @@ Comprobaciones realizadas en la ronda:
 - API-MCP: 18/18 aserciones de seguridad aprobadas.
 - El proceso de las aserciones de API-MCP mantuvo handles de base de datos abiertos después de imprimir 18/18; se terminó el runner. Las aserciones habían finalizado y no hubo fallo funcional.
 
-### 4.6 Despliegue público multimarcas
+### 4.7 Despliegue público multimarcas
 
 | URL | Resultado |
 |---|---:|
@@ -160,7 +175,7 @@ Cobertura autenticada:
 | N19, agente por defecto sin mensajes | El síntoma no reapareció; el agente global respondió solicitando contexto y el agente de evento respondió correctamente |
 | N11, cookies de evento tras logout | Código corregido; falta prueba UI A→logout→B |
 | N12, Copilot local entre usuarios | Código corregido; clave por UID y limpieza al logout; falta prueba UI con dos cuentas |
-| N13, lecturas 0/4 y 502 intermitente | No reproducido de forma determinista; sigue siendo observación de operación |
+| N13, error periódico del listado | Corregido y reproducido antes/después: arrays de permisos compartidos desalineados provocaban excepciones y reintentos 1/2/4/8 s |
 | N14, error pegado en `/resumen-evento` | Fuera de esta ronda de mensajería; no se declara corregido |
 | N4, respuestas vacías Copilot | El flujo de chat probado ya devuelve contenido; Copilot embebido no recibió batería completa de todos sus dominios |
 | N5–N9, presupuesto/pagos/costes | Fuera del cambio de mensajería; deben mantenerse en el backlog de AppEventos |
@@ -183,7 +198,7 @@ Las rutas antiguas propias con el nombre retirado responden 404 y la UI activa u
 
 Artefactos desplegados:
 
-- AppEventos: `.next-app-20260914b`, puerto 3220, PM2 `app-dev`.
+- AppEventos: `.next-app-20260914c`, puerto 3220, PM2 `app-dev`.
 - Chat: `.next-chat-20260914e`, puerto 3210, PM2 `chat-dev`.
 - Ambos procesos están `online` y la configuración de PM2 quedó guardada.
 
@@ -210,7 +225,6 @@ Recompilación segura: crear un directorio de build nuevo, validarlo en un puert
 | Media | E2E de enlace público y minimización de campos | URL pública de prueba y criterio funcional |
 | Media | Resolver handles abiertos del runner de API-MCP | Equipo API-MCP |
 | Media | Añadir timeout de apagado de WebSockets en API-IA | Equipo API-IA/operación |
-| Media | Investigar N13 con correlación de proxy, API y trace ID si reaparece | Observabilidad |
 | Separada | N14 y N5–N9 de AppEventos | Equipo de frontend de AppEventos |
 
 ## 9. Criterio de cierre

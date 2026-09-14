@@ -1,111 +1,103 @@
-# Informe para el equipo SuitePro / web-dev
+# Informe corregido para el equipo del portal público / web-dev
 
 **Fecha:** 2026-09-14  
-**Propósito:** entregar el estado observado sin modificar el frontend de SuitePro.
+**Estado operativo:** restaurado en el Mac Mini.
 
-## 1. Alcance
+## 1. Corrección de topología
 
-Durante esta auditoría no se cambió código de SuitePro. Se separó su trabajo para no bloquear el cierre de AppEventos y chat.
+web-dev se sirve desde el Mac Mini, igual que app-dev, chat-dev, editor-dev y memories-dev.
 
-Se comprobó la infraestructura que sirve SuitePro y los subdominios `web-dev` de las marcas Bodas de Hoy y Eventos Organizador.
+El frontend correcto es el portal público Bodasdehoy.com. No es el shell de SuitePro que escucha en 3300.
 
-## 2. Equipos y enrutado real
+- Fuente histórica viva: /Volumes/Projects/Bodasdehoy.com.
+- Rama: fix/auditoria-front-20260904.
+- Commit desplegado: 7dd2459.
+- Aplicación: Next.js 12.2.5, React 17.
+- Puerto: 4000.
+- Servicio actual: PM2 web-dev.
+- Copia operativa en SSD interno: /Users/juancarlosparra/Services/Bodasdehoy.com.
 
-El equipo desde el que se realizó la auditoría es:
+El directorio /Volumes/Projects era un montaje SMB del MacBook Pro. Ejecutar Next.js directamente desde ese montaje bloqueaba la compilación por I/O. Se copió el mismo commit y configuración al SSD interno del Mac Mini.
 
-- Nombre: `MacBook Pro de juan`.
-- Hostname: `MacBook-Pro-de-juan.local`.
-- IP Tailscale configurada como origen de `web-dev`: `100.105.48.36`.
+## 2. Causa del 502
 
-El Mac Mini es otro equipo:
+Había dos problemas simultáneos:
 
-- Hostname: `Mac-mini-de-juan.local`.
-- Ejecuta Cloudflare Tunnel.
-- Ejecuta un proceso PM2 `suite-dev`.
-- Repositorio observado de SuitePro: `/Volumes/HD MAC BASE/Projects/CrmPro-1`.
-- Puerto observado para ese proceso: 3300.
+1. No existía un proceso local escuchando en el puerto 4000 del Mac Mini.
+2. Había dos conectores Cloudflare Tunnel activos para el mismo túnel: un LaunchAgent antiguo y PM2 cloudflared.
 
-El túnel del Mac Mini contiene esta configuración:
+La configuración también enviaba web-dev a 100.105.48.36:4000, el MacBook Pro. Tras cambiarla, el conector antiguo seguía usando en memoria la ruta anterior. Cloudflare distribuía tráfico entre ambos conectores, produciendo resultados incoherentes y 502.
 
-```text
-web-dev.bodasdehoy.com            -> http://100.105.48.36:4000
-web-dev.eventosorganizador.com    -> http://100.105.48.36:4000
-```
+Se desactivó el LaunchAgent duplicado y quedó una única instancia de cloudflared gestionada por PM2.
 
-Por tanto, `web-dev` no apunta al proceso `suite-dev` del Mac Mini en 3300. Apunta por Tailscale al MacBook Pro en 4000.
+## 3. Configuración actual
 
-## 3. Evidencia actual
+~~~text
+web-dev.bodasdehoy.com         -> http://127.0.0.1:4000
+web-dev.eventosorganizador.com -> http://127.0.0.1:4000
+web-dev.vivetuboda.com         -> http://127.0.0.1:4000
+~~~
 
-| Comprobación | Resultado |
-|---|---|
-| PM2 `suite-dev` en Mac Mini | `online` |
-| Acceso local al proceso de SuitePro en Mac Mini | redirección 307 a login |
-| `https://web-dev.bodasdehoy.com` | 502 |
-| `https://web-dev.eventosorganizador.com` | 502 |
-| Listener en puerto 4000 del MacBook Pro | no existe en la comprobación final |
+| Servicio | Puerto | Supervisor |
+|---|---:|---|
+| chat-dev | 3210 | PM2 |
+| app-dev | 3220 | PM2 |
+| editor-dev | 3230 | PM2 |
+| memories-dev | 3240 | PM2 |
+| suite-dev | 3300 | PM2 |
+| web-dev | 4000 | PM2 |
+| cloudflared | túnel | PM2 |
 
-La causa directa del 502 es operativa: Cloudflare llega al Mac Mini, pero el origen configurado `100.105.48.36:4000` no acepta conexiones.
+La configuración PM2 quedó guardada para el siguiente reinicio.
 
-Esto no demuestra un error de compilación de SuitePro. Demuestra que el proceso que el túnel espera en el MacBook Pro no está iniciado o que el túnel apunta al origen equivocado.
+## 4. Evidencia posterior a la reparación
 
-## 4. Decisión necesaria del equipo SuitePro
+| URL | Resultado |
+|---|---:|
+| http://127.0.0.1:4000/ | 200 |
+| https://web-dev.bodasdehoy.com/ | 200 |
+| https://web-dev.bodasdehoy.com/empresa/el-varadero-2cb2e9 | 200 |
+| https://web-dev.eventosorganizador.com/ | 200 |
 
-El equipo debe elegir y documentar una sola topología DEV:
+Prueba de estabilidad:
 
-### Opción A — SuitePro se ejecuta en el MacBook Pro
+- Bodas de Hoy: 12/12 peticiones HTTP 200.
+- Eventos Organizador: 12/12 peticiones HTTP 200.
+- Fallos observados después de retirar el conector duplicado: 0.
 
-1. Confirmar el repositorio que debe arrancar en este MacBook Pro.
-2. Compilarlo o ejecutarlo en el puerto 4000.
-3. Escuchar en `0.0.0.0:4000`, no solo en localhost, para que Tailscale pueda acceder.
-4. Verificar desde el Mac Mini: `curl http://100.105.48.36:4000`.
-5. Mantener la configuración actual del túnel.
+## 5. Limitación del build del portal
 
-### Opción B — SuitePro se ejecuta en el Mac Mini
+El modo DEV compila y sirve correctamente desde el SSD interno. El build de producción del portal no se puede declarar limpio porque el repositorio arrastra deuda previa:
 
-1. Confirmar que PM2 `suite-dev` en 3300 es el proceso canónico.
-2. Cambiar ambos hostnames `web-dev` del túnel a `http://127.0.0.1:3300`.
-3. Reiniciar Cloudflare Tunnel.
-4. Verificar las dos marcas.
+- Tres errores ESLint por enlaces internos con etiqueta HTML a en lugar de next/link.
+- package.json y package-lock.json no están sincronizados.
+- El árbol instalado contiene tipos modernos de Node incompatibles con TypeScript 4.3.
+- Una instalación limpia falla por dependencias peer antiguas de React 17 y react-quill.
 
-No se recomienda mantener dos procesos supuestamente canónicos en equipos diferentes sin indicar cuál atiende el túnel.
+No se cambió código del portal durante esta reparación. Para recuperar el servicio se reutilizó el árbol de dependencias que ya ejecutaba el portal y se dejó next dev bajo PM2.
 
-## 5. Pruebas de aceptación para su equipo
+## 6. Trabajo para el equipo del portal
 
-El trabajo se considera resuelto cuando el equipo aporte evidencia de:
+1. Elegir como fuente canónica la rama protegida del repositorio o la copia importada en CrmPro-1/apps/bodasdehoy-portal.
+2. Eliminar la duplicidad documentada en ORIGEN.md.
+3. Sincronizar package.json y el lockfile con una versión de Node documentada.
+4. Corregir los tres errores de enlaces internos.
+5. Conseguir un build de producción reproducible.
+6. Desplegar un directorio de build separado, validarlo en otro puerto y sustituir el modo DEV de PM2.
+7. Mantener un solo supervisor para Cloudflare Tunnel.
+8. Añadir health check de web-dev y alerta cuando el origen 4000 no responda.
+9. Ejecutar las mejoras funcionales ya entregadas al equipo: enlaces a fichas, rutas 404, buscador, mapa, analítica y SEO.
 
-1. `web-dev.bodasdehoy.com` devuelve 200 o una redirección funcional de login, sin 502.
-2. `web-dev.eventosorganizador.com` devuelve 200 o una redirección funcional de login, sin 502.
-3. Login autenticado válido en ambas marcas.
-4. Logout y cambio de cuenta sin identidad, evento ni datos de la cuenta anterior.
-5. Bandeja/mensajería de SuitePro usa JWT canónico y no acepta `userId` libre para leer datos.
-6. Las llamadas a API-IA/API-MCP incluyen el tenant correcto de cada marca.
-7. La compilación usada queda identificada por commit y artefacto.
-8. El servicio vuelve después de reiniciar el equipo y PM2 o el supervisor guarda su configuración.
-9. Los logs de proxy y aplicación permiten correlacionar un fallo mediante trace ID.
-10. Se elimina o documenta el worktree antiguo `.trae` para evitar que otro agente edite una copia no desplegada.
+## 7. Operación
 
-## 6. Mensaje operativo para el equipo
+~~~bash
+ssh mac-mini
+pm2 status
+pm2 restart web-dev
+pm2 restart cloudflared
+pm2 save
+curl -I http://127.0.0.1:4000/
+curl -I https://web-dev.bodasdehoy.com/
+~~~
 
-```text
-Objetivo:
-Restaurar web-dev de Bodas de Hoy y Eventos Organizador y dejar una única topología DEV documentada para SuitePro.
-
-Situación comprobada:
-- Cloudflare Tunnel corre en el Mac Mini.
-- Ambos web-dev apuntan a 100.105.48.36:4000, el MacBook Pro por Tailscale.
-- En el MacBook Pro no hay proceso escuchando en 4000.
-- Por eso ambos dominios devuelven 502.
-- En el Mac Mini existe PM2 suite-dev online en el puerto 3300, repositorio /Volumes/HD MAC BASE/Projects/CrmPro-1.
-- No se modificó código de SuitePro durante la auditoría.
-
-Qué hacer:
-1. Decidir si el origen canónico es MacBook Pro:4000 o Mac Mini:3300.
-2. Arrancar el proceso correcto o corregir el origen de Cloudflare.
-3. Compilar desde el commit dev acordado.
-4. Probar ambos dominios con login real de cada marca.
-5. Ejecutar las pruebas de identidad, logout, JWT, tenant y mensajería descritas en este informe.
-6. Entregar commit, build, proceso, puerto, URLs y evidencias.
-
-Criterio de cierre:
-Los dos web-dev dejan de devolver 502, sobreviven a reinicio, permiten login de cada marca y no mezclan identidad ni datos entre usuarios o tenants.
-```
+El servicio se considera operativo mientras PM2 muestre web-dev y cloudflared online, exista un único conector del túnel y las dos marcas devuelvan HTTP 200.
