@@ -65,7 +65,46 @@ export function stripMiniMarkdown(text: string): string {
     .replace(/(?<![\w*])\*([^*]+)\*(?![\w*])/g, '$1');
 }
 
-export function MiniMarkdown({ text, className }: { text: string; className?: string }) {
+export function MiniMarkdown({
+  text,
+  className,
+  clampLines,
+}: {
+  className?: string;
+  /**
+   * Recorta a N líneas. Auditoría 15-09: el banner del borrador usaba
+   * `line-clamp-2` sobre este contenedor, pero -webkit-line-clamp no recorta
+   * hijos de bloque (<p>/<ul>), así que un borrador largo empujaba el input.
+   * Con clampLines el contenido se renderiza inline y el recorte sí aplica.
+   */
+  clampLines?: number;
+  text: string;
+}) {
+  if (clampLines) {
+    const inlineLines = text
+      .split('\n')
+      .map((l) => l.replace(/^\s*(?:[-*]|\d+[.)])\s+/, '• ').trim())
+      .filter(Boolean);
+    return (
+      <div
+        className={className ?? 'break-words text-sm'}
+        style={{
+          WebkitBoxOrient: 'vertical',
+          WebkitLineClamp: clampLines,
+          display: '-webkit-box',
+          overflow: 'hidden',
+        }}
+      >
+        {inlineLines.map((l, idx) => (
+          <Fragment key={idx}>
+            {idx > 0 && ' '}
+            {renderInline(l, `c${idx}`)}
+          </Fragment>
+        ))}
+      </div>
+    );
+  }
+
   const lines = text.split('\n');
   const blocks: ReactNode[] = [];
   let list: { ordered: boolean; items: string[] } | null = null;

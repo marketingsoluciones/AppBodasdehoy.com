@@ -528,7 +528,7 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
                   ⚠️ Borrador antiguo (más de 6 h) — revisa que siga siendo válido antes de enviar.
                 </p>
               )}
-            <MiniMarkdown text={iaDraft.text} className="mt-0.5 line-clamp-2 break-words text-xs text-violet-800" />
+            <MiniMarkdown clampLines={2} text={iaDraft.text} className="mt-0.5 break-words text-xs text-violet-800" />
           </div>
           <div className="flex shrink-0 gap-1">
             <button
