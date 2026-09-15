@@ -31,6 +31,18 @@ async function proxyRequest(request: NextRequest, path: string[]): Promise<NextR
   const reqUrl = new URL(request.url);
   const { search } = reqUrl;
 
+  // ── GATE DE AUTENTICACIÓN (auditoría QA 2026-09-14, hallazgo N32) ──────────
+  // api-ia/api-mcp aún no exigen JWT en todas las subrutas (p. ej.
+  // /conversations/{id}/draft* respondían 200 sin token). Hasta que el backend
+  // añada middleware de auth, el proxy no reenvía nada sin credenciales.
+  // El widget de invitados NO pasa por aquí: usa /api/widget-chat (ruta propia).
+  // EventSource no puede enviar headers custom → admitir token como query param.
+  const tokenFromQuery = reqUrl.searchParams.get('token');
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader && !tokenFromQuery) {
+    return NextResponse.json({ detail: 'No autenticado' }, { status: 401 });
+  }
+
   let targetUrl: string;
   if (subpath.startsWith('whatsapp/')) {
     const waPath = subpath.replace(/^whatsapp\//, '');
@@ -52,9 +64,7 @@ async function proxyRequest(request: NextRequest, path: string[]): Promise<NextR
   // Propagar headers de autenticación y contexto completos
   const headers: Record<string, string> = {};
 
-  // EventSource no puede enviar headers custom → admitir token como query param
-  const tokenFromQuery = reqUrl.searchParams.get('token');
-  const auth = request.headers.get('authorization') || (tokenFromQuery ? `Bearer ${tokenFromQuery}` : null);
+  const auth = authHeader || (tokenFromQuery ? `Bearer ${tokenFromQuery}` : null);
   if (auth) headers['Authorization'] = auth;
 
   const xDev = request.headers.get('x-development') || reqUrl.searchParams.get('development');

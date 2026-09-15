@@ -6,6 +6,7 @@ import { Virtuoso } from 'react-virtuoso';
 
 import type { FeedItem } from '../hooks/useUnifiedFeed';
 import { useBandejaBrand } from '../utils/brand';
+import { canManageMessaging } from '@/utils/jwtRole';
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -318,13 +319,16 @@ export function UnifiedFeedView({ items, loading, onItemClick, groupBy, groups }
               <p className="font-medium text-gray-700">Sin resultados</p>
               <p className="mt-1 text-sm text-gray-400">Prueba otro filtro o cambia la búsqueda</p>
             </div>
-            <button
-              className="mt-2 rounded-lg bg-pink-500 px-4 py-2 text-sm font-medium text-white hover:bg-pink-600 transition-colors"
-              onClick={() => router.push('/settings/integrations')}
-              type="button"
-            >
-              Conectar canal
-            </button>
+            {/* Gate N29 (QA 14-09) */}
+            {canManageMessaging() && (
+              <button
+                className="mt-2 rounded-lg bg-pink-500 px-4 py-2 text-sm font-medium text-white hover:bg-pink-600 transition-colors"
+                onClick={() => router.push('/settings/integrations')}
+                type="button"
+              >
+                Conectar canal
+              </button>
+            )}
             {/* QA 31-ago: el CTA no decía QUÉ se puede conectar → contexto en una línea. */}
             <p className="text-xs text-gray-400">
               WhatsApp, Instagram, Facebook, Telegram, correo o chat web

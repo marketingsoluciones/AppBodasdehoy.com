@@ -20,6 +20,7 @@ import {
 } from '@/services/mcpApi/whatsapp';
 import { useChatStore } from '@/store/chat';
 import { useWhatsAppSession } from '../../bandeja/hooks/useWhatsAppSession';
+import { canManageMessaging } from '@/utils/jwtRole';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -274,14 +275,19 @@ function ChannelCard({
             {channel.phoneNumber && <div><Text style={{ fontSize: 12 }} type="secondary">{withPlus(channel.phoneNumber)}</Text></div>}
           </div>
         </Space>
-        <Space>
-          {channel.type !== 'WAB' && (
-            <Button onClick={onConnect} size="small" style={{ borderColor: '#52c41a', color: '#52c41a' }}>
-              {channel.status === 'ACTIVE' ? 'Gestionar' : 'Conectar'}
-            </Button>
-          )}
-          <Button danger onClick={onDelete} size="small">Eliminar</Button>
-        </Space>
+        {/* Gate N27/N29 (QA 14-09): gestion de canales solo para roles que
+            gestionan mensajeria. Defensa en profundidad; la autorizacion
+            real es server-side. */}
+        {canManageMessaging() && (
+          <Space>
+            {channel.type !== 'WAB' && (
+              <Button onClick={onConnect} size="small" style={{ borderColor: '#52c41a', color: '#52c41a' }}>
+                {channel.status === 'ACTIVE' ? 'Gestionar' : 'Conectar'}
+              </Button>
+            )}
+            <Button danger onClick={onDelete} size="small">Eliminar</Button>
+          </Space>
+        )}
       </div>
     </Card>
   );
@@ -683,7 +689,7 @@ function IntegrationsPageInner() {
                   </div>
                 </div>
               </div>
-              {isAuthenticated && (
+              {isAuthenticated && canManageMessaging() && (
                 <Button
                   block
                   onClick={() => setShowCreateModal(true)}

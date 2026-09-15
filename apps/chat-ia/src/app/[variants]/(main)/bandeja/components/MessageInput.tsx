@@ -13,6 +13,7 @@ import {
   type WhatsAppTemplate,
 } from '../hooks/useWhatsAppTemplates';
 import { WhatsAppTemplatePicker } from './WhatsAppTemplatePicker';
+import { MiniMarkdown } from './MiniMarkdown';
 import { useBandejaBrand } from '../utils/brand';
 
 /**
@@ -497,7 +498,7 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
             <p className="font-semibold text-violet-900">
               Borrador del asistente {iaDraft.iaModel ? `(${iaDraft.iaModel})` : ''}
             </p>
-            <p className="mt-0.5 line-clamp-2 text-violet-800">{iaDraft.text}</p>
+            <MiniMarkdown text={iaDraft.text} className="mt-0.5 line-clamp-2 break-words text-xs text-violet-800" />
           </div>
           <div className="flex shrink-0 gap-1">
             <button
