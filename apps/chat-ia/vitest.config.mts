@@ -73,6 +73,10 @@ export default defineConfig({
       '**/apps/mobile/**',
       '**/packages/**',
       '**/e2e/**',
+      // Gemelos AppleDouble (`._algo.test.ts`) que macOS crea en volúmenes no-APFS: no son
+      // código, pero el runner intentaba parsearlos y salían 6 suites "fallidas" que no
+      // existen, tapando los fallos de verdad.
+      '**/._*',
     ],
     env: {
       // Skip integration tests that require a live backend in normal test runs

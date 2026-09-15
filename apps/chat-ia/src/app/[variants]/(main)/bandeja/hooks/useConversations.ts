@@ -5,6 +5,7 @@ import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { buildHeaders } from '../utils/auth';
 import { classifyOtherChannel, isWhatsAppView } from '../utils/channelClassify';
 import { dedupeFetch } from '../utils/dedupeFetch';
+import { readSharedWith, type SharedPrincipal } from '../utils/visibility';
 import { friendlyContactName, inferJidType, safePhoneOrEmpty } from '../utils/jid';
 import { useMessageStream } from './useMessageStream';
 
@@ -25,6 +26,10 @@ export interface Conversation {
    *  channelType: 'WAB' = Meta Business API · 'WEB_QR' = WhatsApp QR (vinculado). */
   channelId?: string | null;
   channelType?: 'WAB' | 'WEB_QR' | string | null;
+  /** Con quién está compartida (api-mcp `shared_with`). El payload ya lo traía; el
+   *  normalizador lo descartaba, así que la UI nunca supo si una conversación era
+   *  visible para más gente (auditoría 15-09, Problema 1). */
+  sharedWith?: SharedPrincipal[];
   contact: {
     avatar?: string;
     name: string;
@@ -126,6 +131,7 @@ export function useConversations(channel: string | null) {
             // Multicanal (api-ia b6d1823): qué línea/tipo recibió el mensaje (QR vs Meta API).
             channelId: c.channelId ?? c.channel_id ?? null,
             channelType: c.channelType ?? c.channel_type ?? null,
+            sharedWith: readSharedWith(c),
             contact: {
               name: friendlyContactName(rawName, rawPhone, jidType),
               phone: safePhoneOrEmpty(rawPhone, jidType),

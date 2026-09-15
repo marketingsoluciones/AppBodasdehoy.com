@@ -8,6 +8,7 @@ import { useTypingInConv } from '@/store/bandeja/selectors';
 import { useAgentAssignmentOverrides } from '../hooks/useAgentAssignmentOverrides';
 import { Conversation } from '../hooks/useConversations';
 import { useBandejaBrand } from '../utils/brand';
+import { describeVisibility } from '../utils/visibility';
 import { stripMiniMarkdown } from './MiniMarkdown';
 import { useConversationActions } from '../hooks/useConversationActions';
 import { ConversationStatus, useConversationMeta } from '../hooks/useConversationMeta';
@@ -165,6 +166,7 @@ export function ConversationItem({
   // propaga en algunos endpoints — si no viene, hasIa cae a false.
   const iaLevel = (conversation as unknown as { iaLevel?: string }).iaLevel;
   const hasIa = iaLevel === 'copilot' || iaLevel === 'autopilot';
+  const visibility = describeVisibility(conversation.sharedWith);
 
   return (
     <>
@@ -295,6 +297,16 @@ export function ConversationItem({
                   </span>
                 )}
               </span>
+              {/* Problema 1 (auditoría 15-09): saber de un vistazo si alguien más la ve. */}
+              {visibility && (
+                <span
+                  className="rounded-full px-1.5 py-0.5 font-medium"
+                  style={{ backgroundColor: '#EEF2FF', color: '#4F46E5' }}
+                  title={visibility.title}
+                >
+                  {visibility.label}
+                </span>
+              )}
               {status === 'pending' && (
                 <span
                   className="rounded-full px-1.5 py-0.5 font-medium"

@@ -1,6 +1,16 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 
+// La cabecera usa useRouter (botón "volver a la bandeja"). Sin App Router montado, Next
+// lanza "invariant expected app router to be mounted" y el test no llegaba ni a renderizar.
+// Este fallo estaba tapado por otro: faltaba enlazar `random-words` en el worktree, que
+// reventaba antes en la fase de imports.
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/bandeja',
+  useRouter: () => ({ back: vi.fn(), prefetch: vi.fn(), push: vi.fn(), replace: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 vi.mock('../hooks/useConversations', () => ({
   useConversations: () => ({
     conversations: [

@@ -16,6 +16,7 @@ import { generateSummary } from '../hooks/useDraftSync';
 import { ChannelBadge } from './ChannelBadge';
 import { buildHeaders } from '../utils/auth';
 import { useBandejaBrand } from '../utils/brand';
+import { describeVisibility } from '../utils/visibility';
 import { dedupeFetch } from '../utils/dedupeFetch';
 import { ChannelTypeChip } from './ChannelTypeChip';
 import { IaLevelPicker, type IaLevel } from './IaLevelPicker';
@@ -41,6 +42,7 @@ export function ConversationHeader({
   const router = useRouter();
   const { conversations, loading: convListLoading } = useConversations(channel ?? null);
   const conversation = conversations.find((c) => c.id === conversationId);
+  const conversationVisibility = describeVisibility(conversation?.sharedWith);
 
   // QA bug 25-jun: si la conversación no aparece en la lista (canal Web sin
   // resultado, o conv huérfana), el header se quedaba "Cargando..." eterno.
@@ -388,6 +390,17 @@ export function ConversationHeader({
               <span className="flex-none">
                 <ChannelTypeChip channelParam={channel} />
               </span>
+              {/* Problema 1 (auditoría 15-09): con quién está compartida, en el sitio donde
+                  se trabaja la conversación, no solo en la lista. */}
+              {conversationVisibility && (
+                <span
+                  className="flex-none rounded-full px-2 py-0.5 text-[11px] font-medium"
+                  style={{ backgroundColor: '#EEF2FF', color: '#4F46E5' }}
+                  title={conversationVisibility.title}
+                >
+                  {conversationVisibility.label}
+                </span>
+              )}
             </div>
             {/* FASE 2 Agentes (17-ago, FALLO 2 QA): responsable = AGENTE IA de esta
                 conversación, visible también en el detalle (no solo en la lista). Solo
