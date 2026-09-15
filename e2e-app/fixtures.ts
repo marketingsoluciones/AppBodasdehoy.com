@@ -220,7 +220,7 @@ export const TEST_INVITATION_RECIPIENT = {
 
 /**
  * Familia carlos.carrillo@* — aliases de dominio, todos van al mismo inbox.
- * Password compartida: madrid2012M*+
+ * Password compartida: [definida en el entorno]
  * Inbox principal: carlos.carrillo@recargaexpress.com
  *
  * Verificado 2026-04-08 vía api2 getAllUserRelatedEventsByEmail:

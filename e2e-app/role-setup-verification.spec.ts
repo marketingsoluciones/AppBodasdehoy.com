@@ -8,11 +8,11 @@
  *                  Firebase UID compartido con bodasdehoy.com@gmail.com
  *                  Ve "Email pruebas" y todos los eventos del owner principal
  *
- *   INVITED_GUEST → carlos.carrillo@marketingsoluciones.com  (password: madrid2012M*+)
+ *   INVITED_GUEST → carlos.carrillo@marketingsoluciones.com  (password: [definida en el entorno])
  *                   En lista de invitados de "Boda Isabel & Raúl"
  *                   DATA_FILTER: solo ve nombre/fecha/población, NO lista completa
  *
- *   COLLABORATOR  → jcc@marketingsoluciones.com  (password: madrid2012M*+)
+ *   COLLABORATOR  → jcc@marketingsoluciones.com  (password: [definida en el entorno])
  *                   Compartido en evento "Juan Carlos" (permisos VER + EDITAR)
  *                   ⚠️  PENDIENTE: debe aceptar la invitación desde el email
  *

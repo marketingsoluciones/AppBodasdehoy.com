@@ -48,7 +48,7 @@ NEXT_PUBLIC_DEVELOPMENT=bodasdehoy
 TEST_USER_EMAIL=bodasdehoy.com@gmail.com
 TEST_USER_PASSWORD=«definida en .env.e2e.dev.local — nunca en el repo»
 TEST_USER2_EMAIL=jcc@marketingsoluciones.com
-TEST_USER2_PASSWORD=madrid2012M*+
+TEST_USER2_PASSWORD=«definida en .env.e2e.dev.local»
 TEST_USER3_EMAIL=jcc@bodasdehoy.com
 TEST_USER3_PASSWORD=«definida en .env.e2e.dev.local — nunca en el repo»
 ```
@@ -168,7 +168,7 @@ Login form selectors (sin testid, accesibles):
 | Var | Email | Rol | Password |
 |---|---|---|---|
 | TEST_USER | bodasdehoy.com@gmail.com | **SUPER ADMIN** (43 eventos, "Boda Isabel & Raúl") | `«definida en .env.e2e.dev.local — nunca en el repo»` |
-| TEST_USER2 | jcc@marketingsoluciones.com | COLLABORATOR | `madrid2012M*+` |
+| TEST_USER2 | jcc@marketingsoluciones.com | COLLABORATOR | `«definida en .env.e2e.dev.local»` |
 | TEST_USER3 | jcc@bodasdehoy.com | CREATOR/INVITED | `«definida en .env.e2e.dev.local — nunca en el repo»` |
 
 **Regla**: super admin libre + cleanup obligatorio. NUNCA tocar evento "Boda Isabel & Raúl".

@@ -41,7 +41,7 @@ APPEVENTOS_URL=http://localhost:3220
 TEST_USER_EMAIL=bodasdehoy.com@gmail.com
 TEST_USER_PASSWORD=«definida en .env.e2e.dev.local — nunca en el repo»
 TEST_USER2_EMAIL=jcc@marketingsoluciones.com
-TEST_USER2_PASSWORD=madrid2012M*+
+TEST_USER2_PASSWORD=«definida en .env.e2e.dev.local»
 TEST_USER3_EMAIL=jcc@bodasdehoy.com
 TEST_USER3_PASSWORD=«definida en .env.e2e.dev.local — nunca en el repo»
 EOF
@@ -195,7 +195,7 @@ Login form (accesibles sin testid):
 | Var | Email | Rol Firebase | Password |
 |---|---|---|---|
 | TEST_USER | `bodasdehoy.com@gmail.com` | **SUPER ADMIN propietario** (43 eventos) | `«definida en .env.e2e.dev.local — nunca en el repo»` |
-| TEST_USER2 | `jcc@marketingsoluciones.com` | COLLABORATOR | `madrid2012M*+` |
+| TEST_USER2 | `jcc@marketingsoluciones.com` | COLLABORATOR | `«definida en .env.e2e.dev.local»` |
 | TEST_USER3 | `jcc@bodasdehoy.com` | CREATOR/INVITED | `«definida en .env.e2e.dev.local — nunca en el repo»` |
 
 **Reglas (memoria proyecto):**
@@ -211,7 +211,7 @@ Login form (accesibles sin testid):
 |---|---|---|
 | `Loading chunk N failed` | dev mode + webkit | usar prod build (`next start`) |
 | `auth/invalid-api-key` | `.env.local` falta | regenerar con secrets reales |
-| `INVALID_PASSWORD` collaborator | pwd era `lorca` | usar `madrid2012M*+` |
+| `INVALID_PASSWORD` collaborator | pwd era `lorca` | usar `«definida en .env.e2e.dev.local»` |
 | Cold compile timeout | dev mode | prod build resuelve (chunks pre-built) |
 | `Executable doesn't exist webkit-2227` | @playwright/test 1.57 needs webkit-2227 | `npx playwright install webkit` |
 | `Executable doesn't exist webkit-2248` | playwright 1.58 needs webkit-2248 | `node node_modules/playwright/cli.js install webkit` |

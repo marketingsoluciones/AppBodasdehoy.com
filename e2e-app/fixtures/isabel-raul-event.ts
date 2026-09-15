@@ -88,7 +88,7 @@ export const TEST_USERS = {
   // Verificado 2026-04-08: getAllUserRelatedEventsByEmail → 2 eventos propios:
   //   "Juan Carlos" (673bb4d879a9e6767609ea51) PENDIENTE
   //   "Jhj"         (65e1a4c6f9d4cf50e203bcb9) ARCHIVADO
-  // Password: madrid2012M*+  (distinta de la familia jcc@*)
+  // Password: [definida en el entorno]  (distinta de la familia jcc@*)
   // Usar para tests de CREATOR sin consumir cuota de la cuenta principal (44 eventos).
   carlosCarrillo: {
     email: 'carlos.carrillo@recargaexpress.com',
@@ -108,7 +108,7 @@ export const TEST_USERS = {
   // Setup completo 2026-04-08 (sin intervención manual):
   //   1. Añadido a invitados de "Boda Isabel & Raúl" vía agregarInvitado ✅
   //   2. Cuenta Firebase creada vía REST API ✅
-  //      UID: XVPdnN2mYhfX2fl86k7qFQ2Uj963  |  password: madrid2012M*+
+  //      UID: XVPdnN2mYhfX2fl86k7qFQ2Uj963  |  password: [definida en el entorno]
   carlosCarrilloInvitado: {
     email: 'carlos.carrillo@marketingsoluciones.com',
     password: '',
@@ -124,7 +124,7 @@ export const TEST_USERS = {
   // jcc@marketingsoluciones.com — COLLABORATOR en evento "Juan Carlos"
   // Setup completo 2026-04-08 (sin intervención manual):
   //   1. Cuenta Firebase creada vía REST API ✅
-  //      UID: BQaCmwIYxwgZRqPYzcbXkSRIWoT2  |  password: madrid2012M*+
+  //      UID: BQaCmwIYxwgZRqPYzcbXkSRIWoT2  |  password: [definida en el entorno]
   //   2. Compartido como COLLABORATOR en "Juan Carlos" (673bb4d8) ✅
   //      Propietario: carlos.carrillo@recargaexpress.com (UID: OMkxtxExEgZHvVJVW249uZHq5eR2)
   //   ⚠️  PENDIENTE: el colaborador debe ACEPTAR la invitación desde el email
