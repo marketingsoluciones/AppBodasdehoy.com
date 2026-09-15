@@ -26,6 +26,34 @@ const MCP_ORIGIN = resolveMcpOrigin();
  * TODO: Cuando api-ia implemente /api/messages/conversations con datos Baileys
  *       y /api/messages/whatsapp/session/:dev, eliminar el bloque whatsapp→MCP.
  */
+/**
+ * looksLikeSessionJwt — validación ESTRUCTURAL del token del gate (auditoría 15-09).
+ *
+ * NO verifica la firma (la clave vive en api-ia/api-mcp): eso sigue siendo
+ * responsabilidad del backend. Lo que sí corta es el bypass trivial que tenía
+ * el gate de N32: bastaba `?token=x` o cualquier header Authorization para que
+ * el proxy reenviara la petición igual que antes del fix. Ahora exige un JWT
+ * con 3 segmentos, payload decodificable y `exp` vigente.
+ */
+function looksLikeSessionJwt(token: string): boolean {
+  const parts = token.replace(/^Bearer\s+/i, '').split('.');
+  if (parts.length !== 3 || !parts[0] || !parts[1] || !parts[2]) return false;
+  try {
+    const seg = parts[1];
+    const padded = seg.padEnd(seg.length + ((4 - (seg.length % 4)) % 4), '=');
+    const payload = JSON.parse(
+      Buffer.from(padded.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf-8'),
+    );
+    if (!payload || typeof payload !== 'object') return false;
+    // exp en segundos (JWT estándar). Sin exp no podemos decidir: se deja pasar
+    // y el backend decide — pero un token caducado NO se reenvía.
+    if (typeof payload.exp === 'number' && payload.exp * 1000 <= Date.now()) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function proxyRequest(request: NextRequest, path: string[]): Promise<NextResponse> {
   const subpath = path.join('/');
   const reqUrl = new URL(request.url);
@@ -39,7 +67,8 @@ async function proxyRequest(request: NextRequest, path: string[]): Promise<NextR
   // EventSource no puede enviar headers custom → admitir token como query param.
   const tokenFromQuery = reqUrl.searchParams.get('token');
   const authHeader = request.headers.get('authorization');
-  if (!authHeader && !tokenFromQuery) {
+  const credential = authHeader || tokenFromQuery;
+  if (!credential || !looksLikeSessionJwt(credential)) {
     return NextResponse.json({ detail: 'No autenticado' }, { status: 401 });
   }
 

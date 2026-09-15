@@ -9,6 +9,14 @@ import { GET, POST, PUT } from './route';
  * Authorization ni ?token= debe responder 401 sin llamar al backend.
  */
 
+const jwt = (payload: Record<string, unknown>) => {
+  const b64 = (o: unknown) =>
+    Buffer.from(JSON.stringify(o)).toString('base64url');
+  return `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64(payload)}.firma-no-verificada`;
+};
+const VALID_JWT = jwt({ exp: Math.floor(Date.now() / 1000) + 3600, sub: 'uid-1' });
+const EXPIRED_JWT = jwt({ exp: Math.floor(Date.now() / 1000) - 60, sub: 'uid-1' });
+
 const params = (path: string[]) => ({ params: Promise.resolve({ path }) });
 
 describe('messages proxy - gate de autenticacion (N32)', () => {
@@ -47,13 +55,13 @@ describe('messages proxy - gate de autenticacion (N32)', () => {
       }),
     );
     const req = new Request('https://chat-dev.bodasdehoy.com/api/messages/conversations', {
-      headers: { authorization: 'Bearer test.jwt.here' },
+      headers: { authorization: `Bearer ${VALID_JWT}` },
     });
     const res = await GET(req as any, params(['conversations']));
     expect(res.status).toBe(200);
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     const [, init] = fetchSpy.mock.calls[0] as any[];
-    expect(init.headers['Authorization']).toBe('Bearer test.jwt.here');
+    expect(init.headers['Authorization']).toBe(`Bearer ${VALID_JWT}`);
     fetchSpy.mockRestore();
   });
 
@@ -64,11 +72,32 @@ describe('messages proxy - gate de autenticacion (N32)', () => {
         status: 200,
       }),
     );
-    const req = new Request('https://chat-dev.bodasdehoy.com/api/messages/stream?token=tok123');
+    const req = new Request(`https://chat-dev.bodasdehoy.com/api/messages/stream?token=${VALID_JWT}`);
     const res = await GET(req as any, params(['stream']));
     expect(res.status).toBe(200);
     const [, init] = fetchSpy.mock.calls[0] as any[];
-    expect(init.headers['Authorization']).toBe('Bearer tok123');
+    expect(init.headers['Authorization']).toBe(`Bearer ${VALID_JWT}`);
+    fetchSpy.mockRestore();
+  });
+  it('GET con ?token= basura responde 401 y no reenvia (bypass de la auditoria 15-09)', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    const req = new Request(
+      'https://chat-dev.bodasdehoy.com/api/messages/conversations/123/draft?token=x',
+    );
+    const res = await GET(req as any, params(['conversations', '123', 'draft']));
+    expect(res.status).toBe(401);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    fetchSpy.mockRestore();
+  });
+
+  it('GET con JWT caducado responde 401 y no reenvia', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    const req = new Request('https://chat-dev.bodasdehoy.com/api/messages/conversations', {
+      headers: { authorization: `Bearer ${EXPIRED_JWT}` },
+    });
+    const res = await GET(req as any, params(['conversations']));
+    expect(res.status).toBe(401);
+    expect(fetchSpy).not.toHaveBeenCalled();
     fetchSpy.mockRestore();
   });
 });
