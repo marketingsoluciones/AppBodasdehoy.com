@@ -684,12 +684,13 @@ export function ConversationHeader({
             </p>
             {/* QA 15-09 (N28 completo): el resumen también emitía markdown crudo.
                 Colapsado a 2 líneas por defecto; "Ver más" expande. */}
+            {/* clampLines en vez de line-clamp-2: la clase se aplicaba al contenedor,
+                y -webkit-line-clamp no recorta hijos de bloque → el resumen "colapsado"
+                seguía saliendo entero (auditoría 15-09). */}
             <MiniMarkdown
-              className={
-                summaryExpanded
-                  ? 'mt-0.5 break-words text-xs'
-                  : 'mt-0.5 line-clamp-2 break-words text-xs'
-              }
+              className="mt-0.5 break-words text-xs"
+              clampLines={summaryExpanded ? undefined : 2}
+              style={{ color: '#1C1C22' }}
               text={summary.summary}
             />
             <button

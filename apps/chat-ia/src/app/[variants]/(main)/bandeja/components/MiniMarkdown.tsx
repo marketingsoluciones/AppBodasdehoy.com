@@ -11,7 +11,7 @@
  * literales). Se renderiza como React elements, imposibilitando XSS.
  */
 
-import { Fragment, type ReactNode } from 'react';
+import { Fragment, type CSSProperties, type ReactNode } from 'react';
 
 function renderInline(text: string, keyPrefix: string): ReactNode[] {
   // Orden: código primero (no se toca su interior), luego negrita, luego cursiva
@@ -69,6 +69,7 @@ export function MiniMarkdown({
   text,
   className,
   clampLines,
+  style,
 }: {
   className?: string;
   /**
@@ -78,6 +79,7 @@ export function MiniMarkdown({
    * Con clampLines el contenido se renderiza inline y el recorte sí aplica.
    */
   clampLines?: number;
+  style?: CSSProperties;
   text: string;
 }) {
   if (clampLines) {
@@ -93,6 +95,7 @@ export function MiniMarkdown({
           WebkitLineClamp: clampLines,
           display: '-webkit-box',
           overflow: 'hidden',
+          ...style,
         }}
       >
         {inlineLines.map((l, idx) => (
@@ -177,7 +180,7 @@ export function MiniMarkdown({
   flushList();
 
   return (
-    <div className={className ?? 'whitespace-pre-wrap break-words text-sm'}>
+    <div className={className ?? 'whitespace-pre-wrap break-words text-sm'} style={style}>
       {blocks.map((b, idx) => (
         <Fragment key={idx}>{b}</Fragment>
       ))}
