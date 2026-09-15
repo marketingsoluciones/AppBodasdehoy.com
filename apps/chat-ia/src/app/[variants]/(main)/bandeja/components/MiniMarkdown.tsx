@@ -47,6 +47,24 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
   return out;
 }
 
+/**
+ * stripMiniMarkdown — el mismo subset que renderiza MiniMarkdown, en texto plano.
+ *
+ * Auditoria 15-09: el preview de la lista usaba `markdownToTxt` (parser Markdown
+ * completo) sobre TODOS los mensajes, incluidos los humanos, y mutilaba texto real:
+ * "2*3*4 = 24" salia "234 = 24" y "_hola_" perdia los guiones bajos. Estas reglas
+ * son las de renderInline (con los mismos lookarounds), asi que lo que el hilo
+ * renderiza como enfasis es exactamente lo que aqui se limpia. Nada mas.
+ */
+export function stripMiniMarkdown(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/^\s*(?:[-*]|\d+[.)])\s+/gm, '')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/(?<![\w*])\*([^*]+)\*(?![\w*])/g, '$1');
+}
+
 export function MiniMarkdown({ text, className }: { text: string; className?: string }) {
   const lines = text.split('\n');
   const blocks: ReactNode[] = [];
@@ -74,10 +92,17 @@ export function MiniMarkdown({ text, className }: { text: string; className?: st
   };
   const flushParagraph = () => {
     if (paragraph.length === 0) return;
-    const joined = paragraph.join(' ');
+    // Auditoria 15-09: unir las lineas con ' ' aplastaba los saltos simples, y la IA
+    // los usa para estructurar ("Nombre: X\nFecha: Y"). Se conserva cada linea con <br/>.
+    const pKey = key++;
     blocks.push(
-      <p key={key++} className="min-h-[1em]">
-        {renderInline(joined, `p${key}`)}
+      <p key={pKey} className="min-h-[1em]">
+        {paragraph.map((line, idx) => (
+          <Fragment key={idx}>
+            {idx > 0 && <br />}
+            {renderInline(line, `p${pKey}-${idx}`)}
+          </Fragment>
+        ))}
       </p>,
     );
     paragraph = [];

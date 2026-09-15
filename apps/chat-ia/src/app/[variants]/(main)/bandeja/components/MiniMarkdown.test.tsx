@@ -2,7 +2,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { MiniMarkdown } from './MiniMarkdown';
+import { MiniMarkdown, stripMiniMarkdown } from './MiniMarkdown';
 
 /**
  * Auditoria QA 14-09 (N28): los paneles de IA mostraban el markdown crudo.
@@ -45,5 +45,29 @@ describe('MiniMarkdown (N28)', () => {
   it('asteriscos sueltos sin par se quedan como texto literal', () => {
     render(<MiniMarkdown text="2*3*4 = 24" />);
     expect(screen.getByText(/2\*3\*4/)).toBeInTheDocument();
+  });
+  it('conserva los saltos de linea simples del mensaje IA (auditoria 15-09)', () => {
+    const { container } = render(<MiniMarkdown text={'Nombre: Ana\nFecha: 12 de junio'} />);
+    expect(container.querySelectorAll('br')).toHaveLength(1);
+    expect(container.textContent).toContain('Nombre: Ana');
+    expect(container.textContent).toContain('Fecha: 12 de junio');
+  });
+});
+
+describe('stripMiniMarkdown — preview de la lista (auditoria 15-09)', () => {
+  it('quita el enfasis que el hilo renderiza', () => {
+    expect(stripMiniMarkdown('**Hola** equipo')).toBe('Hola equipo');
+    expect(stripMiniMarkdown('mira `codigo` aqui')).toBe('mira codigo aqui');
+    expect(stripMiniMarkdown('- uno')).toBe('uno');
+  });
+
+  it('NO mutila el texto humano (regresion de markdown-to-txt)', () => {
+    expect(stripMiniMarkdown('2*3*4 = 24')).toBe('2*3*4 = 24');
+    expect(stripMiniMarkdown('_hola_ que tal')).toBe('_hola_ que tal');
+    expect(stripMiniMarkdown('#boda en la playa')).toBe('#boda en la playa');
+  });
+
+  it('tolera texto vacio', () => {
+    expect(stripMiniMarkdown('')).toBe('');
   });
 });

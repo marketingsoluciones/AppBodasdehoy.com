@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { MouseEvent as ReactMouseEvent } from 'react';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
-import { markdownToTxt } from 'markdown-to-txt';
 import { useTypingInConv } from '@/store/bandeja/selectors';
 import { useAgentAssignmentOverrides } from '../hooks/useAgentAssignmentOverrides';
 import { Conversation } from '../hooks/useConversations';
 import { useBandejaBrand } from '../utils/brand';
+import { stripMiniMarkdown } from './MiniMarkdown';
 import { useConversationActions } from '../hooks/useConversationActions';
 import { ConversationStatus, useConversationMeta } from '../hooks/useConversationMeta';
 
@@ -255,7 +255,7 @@ export function ConversationItem({
                     {!conversation.lastMessage.fromUser && (
                       <span style={{ color: '#9A9AA6' }}>Tú: </span>
                     )}
-                    {markdownToTxt(conversation.lastMessage.text)}
+                    {stripMiniMarkdown(conversation.lastMessage.text)}
                   </p>
                 )}
               </div>
