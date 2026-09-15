@@ -10,6 +10,8 @@ import { sendFeedback, type FeedbackRating } from '@/services/feedback';
 
 import { Message } from '../hooks/useMessages';
 
+import { MiniMarkdown } from './MiniMarkdown';
+
 interface MessageItemProps {
   compact?: boolean;
   message: Message;
@@ -140,8 +142,14 @@ export function MessageItem({ message, compact }: MessageItemProps) {
             </span>
           </div>
         )}
-        {/* Message Text */}
-        <p className="whitespace-pre-wrap break-words text-sm">{message.text}</p>
+        {/* Message Text — N28: la IA emite Markdown; los humanos lo ven en crudo.
+            Solo renderizamos Markdown en mensajes de IA (isIa) para no
+            reinterpretar texto plano de usuarios (p. ej. "2*3*4"). */}
+        {isIa ? (
+          <MiniMarkdown text={message.text} className="break-words text-sm" />
+        ) : (
+          <p className="whitespace-pre-wrap break-words text-sm">{message.text}</p>
+        )}
 
         {/* Timestamp & Status */}
         <div

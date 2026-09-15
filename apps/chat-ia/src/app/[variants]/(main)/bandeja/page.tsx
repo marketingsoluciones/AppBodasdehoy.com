@@ -10,6 +10,7 @@ import { NewMessageModal } from './components/NewMessageModal';
 import { ScopeSelector, type ScopeId } from './components/ScopeSelector';
 import { UnifiedFeedView } from './components/UnifiedFeedView';
 import { type FeedItem, useUnifiedFeed } from './hooks/useUnifiedFeed';
+import { canManageMessaging } from '@/utils/jwtRole';
 
 // RESTAURA la categorización de la antigua /pendientes (auditoría 20-ago: se perdió al
 // fusionarla en "Esperan respuesta" como lista plana). Replica exacta de su
@@ -401,32 +402,40 @@ export default function MessagesPage() {
                     Mensajes y notificaciones en un solo sitio. Selecciona una conversación
                     para ver el detalle.
                   </div>
-                  <div className="mt-4 flex items-center justify-center gap-2">
-                    <button
-                      className="rounded-lg bg-violet-600 px-3 py-2 text-xs font-semibold text-white hover:bg-violet-700"
-                      onClick={() => setShowNewMessage(true)}
-                      type="button"
-                    >
-                      ✍️ Nuevo mensaje
-                    </button>
-                    <button
-                      className="rounded-lg bg-pink-500 px-3 py-2 text-xs font-semibold text-white hover:bg-pink-600"
-                      onClick={() => router.push('/bandeja/whatsapp')}
-                      type="button"
-                    >
-                      Conectar WhatsApp
-                    </button>
-                    <button
-                      className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
-                      onClick={() => router.push('/settings/integrations')}
-                      // A4 (QA 6-ago): color inline evita texto invisible en tema oscuro.
-                      style={{ color: '#374151' }}
-                      title="Instagram, Facebook, Telegram, correo o chat web"
-                      type="button"
-                    >
-                      Conectar otro canal
-                    </button>
-                  </div>
+                  {/* Gate N29 (QA 14-09): conectar canales solo para roles que
+                      gestionan mensajeria; el resto ve copy de soporte. */}
+                  {canManageMessaging() ? (
+                    <div className="mt-4 flex items-center justify-center gap-2">
+                      <button
+                        className="rounded-lg bg-violet-600 px-3 py-2 text-xs font-semibold text-white hover:bg-violet-700"
+                        onClick={() => setShowNewMessage(true)}
+                        type="button"
+                      >
+                        ✍️ Nuevo mensaje
+                      </button>
+                      <button
+                        className="rounded-lg bg-pink-500 px-3 py-2 text-xs font-semibold text-white hover:bg-pink-600"
+                        onClick={() => router.push('/bandeja/whatsapp')}
+                        type="button"
+                      >
+                        Conectar WhatsApp
+                      </button>
+                      <button
+                        className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+                        onClick={() => router.push('/settings/integrations')}
+                        // A4 (QA 6-ago): color inline evita texto invisible en tema oscuro.
+                        style={{ color: '#374151' }}
+                        title="Instagram, Facebook, Telegram, correo o chat web"
+                        type="button"
+                      >
+                        Conectar otro canal
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="mt-4 text-xs text-gray-400">
+                      Contacta con soporte para activar la mensajería de tu evento.
+                    </div>
+                  )}
                 </>
               )}
             </div>
