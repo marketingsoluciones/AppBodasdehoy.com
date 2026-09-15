@@ -18,6 +18,7 @@ import { useBandejaBrand } from '../utils/brand';
 import { dedupeFetch } from '../utils/dedupeFetch';
 import { ChannelTypeChip } from './ChannelTypeChip';
 import { IaLevelPicker, type IaLevel } from './IaLevelPicker';
+import { MiniMarkdown } from './MiniMarkdown';
 
 interface ConversationHeaderProps {
   channel?: string;
@@ -107,6 +108,9 @@ export function ConversationHeader({
   // FASE 4 Copilot (20-ago): "Resumir conversación" — resumen IA read-only (endpoint api-ia
   // /summary LIVE). NO es un borrador de respuesta: solo para que el agente se ponga al día.
   const [summary, setSummary] = useState<{ model?: string; summary: string } | null>(null);
+  // QA 15-09: el resumen colapsado por defecto (2 líneas) — feedback owner:
+  // el panel completo comía todo el alto del hilo.
+  const [summaryExpanded, setSummaryExpanded] = useState(false);
   const [summarizing, setSummarizing] = useState(false);
   const handleSummarize = async () => {
     if (summarizing || !conversationId) return;
@@ -258,7 +262,7 @@ export function ConversationHeader({
         <div className="flex min-w-0 items-center gap-3">
           <button
             aria-label="Volver a la bandeja"
-            className="flex h-9 w-9 flex-none items-center justify-center rounded-md text-gray-700 transition-colors hover:bg-gray-100 md:hidden"
+            className="flex h-9 w-9 flex-none items-center justify-center rounded-md text-gray-700 transition-colors hover:bg-gray-100"
             onClick={() => router.push('/bandeja')}
             title="Volver a la bandeja"
             type="button"
@@ -300,11 +304,11 @@ export function ConversationHeader({
       <div className="flex items-center justify-between gap-3 px-4 py-3">
         {/* Left: Contact Info */}
         <div className="flex min-w-0 items-center gap-3">
-          {/* Volver a la bandeja (móvil): la conversación ocupa toda la pantalla y antes no
-              había salida. En desktop la lista está al lado → se oculta (md:hidden). */}
+          {/* Volver a la bandeja: feedback owner 15-09 — el botón solo en móvil dejaba
+              sin salida al panel de detalle en desktop (ventana estrecha, deep link). */}
           <button
             aria-label="Volver a la bandeja"
-            className="flex h-9 w-9 flex-none items-center justify-center rounded-md transition-colors md:hidden"
+            className="flex h-9 w-9 flex-none items-center justify-center rounded-md transition-colors"
             onClick={() => router.push('/bandeja')}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F2F1F6')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
@@ -667,14 +671,32 @@ export function ConversationHeader({
             <p className="text-[11px] font-semibold" style={{ color: '#6B4EFF' }}>
               Resumen del asistente {summary.model ? `(${summary.model})` : ''}
             </p>
-            <p className="mt-0.5 whitespace-pre-wrap text-xs" style={{ color: '#1C1C22' }}>
-              {summary.summary}
-            </p>
+            {/* QA 15-09 (N28 completo): el resumen también emitía markdown crudo.
+                Colapsado a 2 líneas por defecto; "Ver más" expande. */}
+            <MiniMarkdown
+              className={
+                summaryExpanded
+                  ? 'mt-0.5 break-words text-xs'
+                  : 'mt-0.5 line-clamp-2 break-words text-xs'
+              }
+              text={summary.summary}
+            />
+            <button
+              className="mt-0.5 text-[11px] font-semibold"
+              onClick={() => setSummaryExpanded((v) => !v)}
+              style={{ color: '#6B4EFF' }}
+              type="button"
+            >
+              {summaryExpanded ? 'Ver menos' : 'Ver más'}
+            </button>
           </div>
           <button
             aria-label="Cerrar resumen"
             className="shrink-0 rounded-md px-2 py-0.5 text-[11px] font-semibold"
-            onClick={() => setSummary(null)}
+            onClick={() => {
+              setSummary(null);
+              setSummaryExpanded(false);
+            }}
             style={{ color: '#84848F' }}
             type="button"
           >
