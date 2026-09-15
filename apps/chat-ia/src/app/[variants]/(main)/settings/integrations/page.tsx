@@ -735,7 +735,9 @@ function IntegrationsPageInner() {
       </section>
 
       {/* ── Gestión detallada de canales WhatsApp ── */}
-      {isAuthenticated && (
+      {/* Gate N27/N29 (QA 14-09): la gestión detallada solo para roles que
+          gestionan mensajería */}
+      {isAuthenticated && canManageMessaging() && (
         <section>
           <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
             <Text strong>Canales WhatsApp</Text>
