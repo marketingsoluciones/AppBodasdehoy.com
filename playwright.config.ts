@@ -12,7 +12,9 @@ import { TEST_URLS, E2E_ENV } from './e2e-app/fixtures';
  */
 function loadE2EEnv(): void {
   const env = process.env.E2E_ENV || 'dev';
-  for (const file of [`.env.e2e.${env}`, '.env.e2e.local']) {
+  // `.env.e2e.<env>.local` incluido (15-09): es el nombre al que apunta la documentación
+  // tras sacar las credenciales del repo; los tres están en .gitignore.
+  for (const file of [`.env.e2e.${env}`, `.env.e2e.${env}.local`, '.env.e2e.local']) {
     try {
       const content = readFileSync(resolve(process.cwd(), file), 'utf8');
       for (const rawLine of content.split('\n')) {
