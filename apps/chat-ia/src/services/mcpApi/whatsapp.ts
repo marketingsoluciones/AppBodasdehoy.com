@@ -1,3 +1,5 @@
+import { buildAuthHeaders } from '@/utils/authToken';
+
 import { mcpClient } from './client';
 
 // Matches real MCP schema: WhatsAppSession GraphQL type
@@ -113,8 +115,10 @@ export async function getWhatsAppChannels(development?: string): Promise<WhatsAp
       .then((data) => (Array.isArray(data.getWhatsAppChannels) ? data.getWhatsAppChannels : []))
       .catch(() => [] as WhatsAppChannel[]),
     // REST Baileys session — 3s timeout to avoid blocking UI when Baileys is reconnecting
+    // Auditoría 15-09: sin Authorization el gate del proxy (N32) responde 401 y la
+    // sesión Baileys (QR personal de la marca) desaparecía de Integraciones.
     fetch(`/api/messages/whatsapp/session/${dev}`, {
-      headers: { 'Content-Type': 'application/json' },
+      headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
       signal: AbortSignal.timeout(3_000),
     })
       .then(async (res) => {
@@ -319,7 +323,7 @@ export async function deleteWhatsAppChannel(channelId: string): Promise<boolean>
   } catch {
     try {
       const res = await fetch(`/api/messages/whatsapp/session/${channelId}`, {
-        headers: { 'Content-Type': 'application/json' },
+        headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
         method: 'DELETE',
       });
       const data = await res.json().catch(() => null);
