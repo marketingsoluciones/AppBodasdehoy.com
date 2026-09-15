@@ -26,6 +26,7 @@ import { userGeneralSettingsSelectors } from '@/store/user/selectors';
 import { GlobalStyle } from '@/styles';
 import { setCookie } from '@/utils/client/cookie';
 import { getCurrentDevelopmentConfig } from '@/utils/developmentDetector';
+import { nearestLobePalette } from '@/utils/brandTheme';
 
 const useStyles = createStyles(({ css, token }) => ({
   app: css`
@@ -119,10 +120,25 @@ const AppTheme = memo<AppThemeProps>(
       setCookie(LOBE_THEME_NEUTRAL_COLOR, neutralColor);
     }, [neutralColor]);
 
-    // FIX marca (6-sep, JCP): el tema por defecto salía en morado. Forzamos el color de marca
-    // del tenant (bodasdehoy = rosa #F7628C, misma fuente que las CSS vars) como colorPrimary,
-    // PERO solo cuando el usuario NO ha elegido un color propio en ajustes (primaryColor).
-    const brandPrimary = getCurrentDevelopmentConfig().colors.primary;
+    // Color de marca del tenant (paquete compartido). Solo se aplica cuando el usuario NO ha
+    // elegido un color propio en ajustes.
+    const brandColors = getCurrentDevelopmentConfig().colors;
+    const brandPrimary = brandColors.primary;
+
+    // Unificación 15-09: antd recibía el hex de marca pero lobe-ui se quedaba con el primario
+    // por defecto de LobeChat, así que media pantalla iba con el color del tenant y media no.
+    // `customTheme.primaryColor` de lobe-ui solo admite una de sus doce paletas con nombre,
+    // nunca un hex: mapeamos la marca a la más próxima por tono.
+    const brandPalette = nearestLobePalette(brandPrimary) as typeof defaultPrimaryColor;
+
+    // El hex exacto queda disponible en CSS para lo que no pasa por antd ni por lobe-ui.
+    useEffect(() => {
+      if (typeof document === 'undefined') return;
+      const root = document.documentElement;
+      root.style.setProperty('--brand-primary', brandColors.primary);
+      root.style.setProperty('--brand-secondary', brandColors.secondary);
+      root.style.setProperty('--brand-accent', brandColors.accent);
+    }, [brandColors.accent, brandColors.primary, brandColors.secondary]);
 
     return (
       <ThemeProvider
@@ -130,7 +146,7 @@ const AppTheme = memo<AppThemeProps>(
         className={cx(styles.app, styles.scrollbar, styles.scrollbarPolyfill)}
         customTheme={{
           neutralColor: neutralColor ?? defaultNeutralColor,
-          primaryColor: primaryColor ?? defaultPrimaryColor,
+          primaryColor: primaryColor ?? brandPalette ?? defaultPrimaryColor,
         }}
         defaultAppearance={defaultAppearance}
         onAppearanceChange={(appearance) => {

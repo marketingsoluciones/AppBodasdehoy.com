@@ -5,6 +5,7 @@ import { GoogleProvider, FacebookProvider } from "../../../firebase";
 import { getAuth, signOut, createUserWithEmailAndPassword, signInWithCustomToken, updateProfile, UserCredential } from "firebase/auth";
 import { fetchApiBodas, queries } from "../../../utils/Fetching";
 import { setCrossAppIdToken } from "@bodasdehoy/shared/auth";
+import { developments } from "@bodasdehoy/shared/types";
 import { useToast } from "../../../hooks/useToast";
 import { useActivity } from "../../../hooks/useActivity";
 import { useTranslation } from "react-i18next";
@@ -62,6 +63,11 @@ const ROLES: { key: string; label: string; icon: ReactNode }[] = [
   { key: "organizador", label: "Organizador de eventos", icon: <img src="/studio/role-organizador.png" alt="" style={{ width: 46, height: 46, objectFit: "contain" }} /> },
   { key: "novios", label: "Novios", icon: <img src="/studio/role-novios.png" alt="" style={{ width: 50, height: 50, objectFit: "contain" }} /> },
 ];
+
+/** Respaldo cuando aún no hay config de marca (SSR o dominio desconocido):
+ *  el primario de bodasdehoy del paquete compartido, no un literal duplicado. */
+const BRAND_PRIMARY_FALLBACK =
+  developments.find((d) => d.name === 'bodasdehoy')?.theme?.primaryColor ?? '#F7628C';
 
 const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, initialView }) => {
   const { SetWihtProvider, setIsStartingRegisterOrLogin, setUser, setVerificationDone, geoInfo, linkMedia, preregister } = AuthContextProvider() as any;
@@ -267,19 +273,22 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
   };
 
   // ── Color de marca ────────────────────────────────────────────────────────
-  // bodasdehoy conserva su rosa EXACTO (byte-idéntico al HTML original); las demás
-  // marcas usan su propio color de `config.theme` (eventosorganizador → azul, etc.).
-  // El acento oscuro sale de theme.secondaryColor, y si no existe se deriva del
-  // primario con color-mix (soportado en los navegadores que usamos).
-  const _brandPrimary = config?.theme?.primaryColor;
-  const isBodas = !_brandPrimary || config?.development === 'bodasdehoy';
-  const cLight = isBodas ? '#EF5B94' : _brandPrimary;
-  const cDark = isBodas ? '#D83E7C' : (config?.theme?.secondaryColor || _brandPrimary);
-  const cDisabled = isBodas ? '#f2c9d9' : `color-mix(in srgb, ${cLight} 38%, white)`;
-  const cShadow = isBodas ? 'rgba(239,91,148,.3)' : `color-mix(in srgb, ${cLight} 32%, transparent)`;
-  const cPanelGrad = isBodas
-    ? 'linear-gradient(200deg,rgba(216,62,124,.22) 0%,rgba(216,62,124,.5) 55%,rgba(122,20,60,.85) 100%)'
-    : `linear-gradient(200deg, color-mix(in srgb, ${cDark} 25%, transparent) 0%, color-mix(in srgb, ${cDark} 55%, transparent) 55%, color-mix(in srgb, ${cDark} 90%, black) 100%)`;
+  // Unificación de marca 15-09: TODAS las marcas, bodasdehoy incluida, salen del mismo sitio
+  // — `theme.primaryColor` del paquete compartido (packages/shared/src/types/developments.ts),
+  // que es también lo que consume chat-ia. Antes bodasdehoy tenía aquí sus rosas escritos a
+  // mano (#EF5B94/#D83E7C, byte-idénticos al HTML de referencia) y por eso app-dev y chat-dev
+  // enseñaban dos rosas distintos para la misma marca.
+  //
+  // El resto de tonos se DERIVA del primario en vez de leer `theme.secondaryColor`: ese campo
+  // no es una variante del primario (en bodasdehoy es un verde menta), así que usarlo como
+  // color de hover pintaba de otro color. Si hay que cambiar el rosa de la marca, se cambia
+  // en el paquete compartido y las dos apps lo siguen.
+  const _brandPrimary = config?.theme?.primaryColor || BRAND_PRIMARY_FALLBACK;
+  const cLight = _brandPrimary;
+  const cDark = `color-mix(in srgb, ${cLight} 82%, black)`;
+  const cDisabled = `color-mix(in srgb, ${cLight} 38%, white)`;
+  const cShadow = `color-mix(in srgb, ${cLight} 32%, transparent)`;
+  const cPanelGrad = `linear-gradient(200deg, color-mix(in srgb, ${cDark} 25%, transparent) 0%, color-mix(in srgb, ${cDark} 55%, transparent) 55%, color-mix(in srgb, ${cDark} 90%, black) 100%)`;
 
   return (
     <div style={{ height: "100vh", minHeight: 640, display: "flex", background: "#fff", overflow: "hidden", fontFamily: "'Poppins',sans-serif" }}>

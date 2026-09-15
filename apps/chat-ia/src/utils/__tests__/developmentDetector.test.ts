@@ -21,10 +21,15 @@ describe('developmentDetector — DEVELOPMENTS_CONFIG', () => {
     expect(ce.name).toBe('App Champagne Event Planner');
   });
 
-  it('bodasdehoy tiene color override', () => {
+  // Unificación 15-09: se retiró el mapa COLOR_OVERRIDES. El primario sale del paquete
+  // compartido y el resto se deriva, así que ninguna marca depende de un override manual.
+  // (Este test exigía el morado #667eea que el fix de marca del 6-sep ya había corregido:
+  //  llevaba fallando desde entonces.)
+  it('bodasdehoy toma el primario de la marca compartida, sin override', () => {
     const b = DEVELOPMENTS_CONFIG['bodasdehoy'];
-    expect(b.colors.primary).toBe('#667eea');
-    expect(b.colors.accent).toBe('#ff69b4');
+    expect(b.colors.primary).toBe('#F7628C');
+    expect(b.colors.secondary).not.toBe(b.colors.primary);
+    expect(b.colors.primary).not.toBe('#667eea');
   });
 
   it('vivetuboda tiene colores generados desde shared theme', () => {

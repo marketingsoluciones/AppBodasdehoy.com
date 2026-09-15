@@ -13,6 +13,8 @@ import React from 'react';
 
 import { developments as sharedDevelopments } from '@bodasdehoy/shared/types';
 
+import { deriveBrandColors } from './brandTheme';
+
 export interface DevelopmentConfig {
   api: {
     backendUrl: string;
@@ -33,13 +35,9 @@ export interface DevelopmentConfig {
 
 /**
  * Overrides de colores específicos por tenant (resto usa shared theme).
- * bodasdehoy tiene branding chat-ia distinto del theme general (web).
+ * El color de marca sale SIEMPRE del paquete compartido (theme.primaryColor);
+ * secundario y acento se derivan de él en brandTheme.ts.
  */
-const COLOR_OVERRIDES: Record<string, Partial<DevelopmentConfig['colors']>> = {
-  // FIX marca (6-sep, JCP): el chat-ia de bodasdehoy salía MORADO (#667eea/#764ba2), que NO es
-  // la marca. La marca es el rosa #F7628C (developments.ts theme.primaryColor). Alineado a rosa.
-  bodasdehoy: { accent: '#ff69b4', primary: '#F7628C', secondary: '#D6497A' },
-};
 
 const DEFAULT_API_BACKEND = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';
 const DEFAULT_GRAPHQL = 'https://api-mcp.eventosorganizador.com';
@@ -53,7 +51,9 @@ export const DEVELOPMENTS_CONFIG: Record<string, DevelopmentConfig> = Object.fro
   sharedDevelopments.map((dev) => {
     const root = dev.domain.replace(/^\./, ''); // ".bodasdehoy.com" → "bodasdehoy.com"
     const httpsRoot = `https://${root}`;
-    const override = COLOR_OVERRIDES[dev.development] ?? {};
+    // Unificación 15-09: una sola entrada (el primario compartido) y el resto derivado,
+    // para que todas las marcas queden coherentes y no solo la que tuviera override.
+    const brand = deriveBrandColors(dev.theme?.primaryColor ?? '#667eea');
     return [
       dev.development,
       {
@@ -62,11 +62,11 @@ export const DEVELOPMENTS_CONFIG: Record<string, DevelopmentConfig> = Object.fro
           graphqlEndpoint: DEFAULT_GRAPHQL,
         },
         colors: {
-          accent: override.accent ?? dev.theme?.tertiaryColor ?? '#06b6d4',
-          background: override.background ?? dev.theme?.baseColor ?? '#ffffff',
-          primary: override.primary ?? dev.theme?.primaryColor ?? '#667eea',
-          secondary: override.secondary ?? dev.theme?.secondaryColor ?? '#764ba2',
-          text: override.text ?? '#1a202c',
+          accent: brand.accent,
+          background: dev.theme?.baseColor ?? '#ffffff',
+          primary: brand.primary,
+          secondary: brand.secondary,
+          text: '#1a202c',
         },
         corsOrigin: [httpsRoot, `https://www.${root}`],
         development: dev.development,
