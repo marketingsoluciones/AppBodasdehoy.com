@@ -37,7 +37,7 @@ export interface SessionIdentity {
 
 function decodeJwtPayload(token: string): Record<string, any> | null {
   try {
-    const seg = token.replace(/^Bearer\s+/i, '').split('.')[1];
+    const seg = token.replace(/^bearer\s+/i, '').split('.')[1];
     if (!seg) return null;
     const padded = seg.padEnd(seg.length + ((4 - (seg.length % 4)) % 4), '=');
     const json = Buffer.from(
@@ -58,7 +58,7 @@ function decodeJwtPayload(token: string): Record<string, any> | null {
  * se deja pasar y decide el backend; uno caducado no se reenvía.
  */
 export function looksLikeSessionJwt(token: string): boolean {
-  const parts = token.replace(/^Bearer\s+/i, '').split('.');
+  const parts = token.replace(/^bearer\s+/i, '').split('.');
   if (parts.length !== 3 || !parts[0] || !parts[1] || !parts[2]) return false;
   const payload = decodeJwtPayload(token);
   if (!payload) return false;

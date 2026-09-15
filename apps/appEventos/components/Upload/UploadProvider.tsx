@@ -16,6 +16,8 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef } from 'react';
 import {
   UploadQueue,
+  compressImage,
+  convertHeicIfNeeded,
   type UploaderFn,
   type UploadResult,
 } from '@bodasdehoy/shared/upload';
@@ -32,11 +34,22 @@ const UploadQueueContext = createContext<UploadQueue | null>(null);
  * vs presign vs multipart por tamaño.
  */
 async function singleUploadFn(
-  file: File,
+  rawFile: File,
   ctx: { entityType: string; entityId: string; category?: string; development?: string },
   onProgress: (pct: number) => void,
   signal: AbortSignal,
 ): Promise<UploadResult> {
+  // Auditoría QA 15-09 (IMG-03 / IMG-04): esta app subía el fichero crudo,
+  // mientras chat-ia y memories-web pasaban por el módulo compartido. En la
+  // práctica: un invitado con iPhone mandaba un HEIC que el navegador no
+  // previsualiza, una foto de 8 MB viajaba entera, y el EXIF —con las
+  // coordenadas GPS dentro— llegaba intacto a un álbum que luego se comparte.
+  //
+  // `compressImage` es también el que sanea los metadatos: re-codificar en
+  // canvas es lo que los borra.
+  let file = await convertHeicIfNeeded(rawFile);
+  file = await compressImage(file);
+
   const development =
     ctx.development ??
     (typeof window !== 'undefined'

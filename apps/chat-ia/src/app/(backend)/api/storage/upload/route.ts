@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
 import { resolveSessionIdentity } from '@/utils/serverSessionAuth';
+
 const BACKEND_URL =
   resolveServerBackendOrigin();
 

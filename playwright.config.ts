@@ -73,6 +73,11 @@ const project = browserName === 'firefox'
 
 export default defineConfig({
   testDir: './e2e-app',
+  // macOS deja un gemelo AppleDouble (`._nombre.spec.ts`) por cada fichero al
+  // copiar entre volúmenes, y el glob por defecto los recoge: el runner muere
+  // con `SyntaxError: Unexpected character` antes de ejecutar un solo test, sin
+  // pista de la causa. Pasó el 15-09 al crear un spec nuevo (había 139 latentes).
+  testIgnore: ['**/._*'],
   globalSetup: './e2e-app/globalSetup.ts',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,

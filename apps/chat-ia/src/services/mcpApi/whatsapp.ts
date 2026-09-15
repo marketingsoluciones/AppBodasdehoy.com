@@ -39,20 +39,19 @@ const GET_WA_CHANNELS = `
   }
 `;
 
-// ⚠️ STUB confirmado en auditoría READ-ONLY api-mcp 15-jul:
-// `whatsappSendMessage(to, message, development): JSON` en
-// evento-mutations.resolver.ts:2575 SOLO LOGUEA. Devuelve `{success:true,
-// sent:true}` engañoso — NUNCA envía a WhatsApp. El resolver REAL es
-// `sendWhatsAppMessage(developerId, to, message: WhatsAppMessageInput!)` en
-// whatsapp.ts:841, con shape distinto. Este helper `sendWhatsAppMessage()`
-// del front NO tiene callers (grep confirmado). Mantenemos por compat pero
-// no cablear a callers hasta confirmar shape exacto del schema real y
-// migrar a la mutation correcta.
-const SEND_WA_MESSAGE = `
-  mutation SendWAMessage($args: SendWhatsAppMessageArgs) {
-    whatsappSendMessage(args: $args)
-  }
-`;
+// El envío de WhatsApp NO pasa por GraphQL. Va por REST, vía el proxy de
+// /api/messages/* (ver `bandeja/hooks/useSendMessage.ts`), que sí aplica el
+// gate de sesión de N32.
+//
+// Aquí vivía `whatsappSendMessage` + su helper `sendWhatsAppMessage()`. Se
+// borran (QA 15-09): la auditoría READ-ONLY de api-mcp del 15-jul confirmó que
+// ese resolver (evento-mutations.resolver.ts:2575) SOLO LOGUEA y devuelve un
+// `{success:true, sent:true}` engañoso — nunca envía nada. El helper no tenía
+// callers, así que era una trampa esperando a que alguien la cableara: un
+// backend que responde «enviado» sin enviar no deja rastro de error en ninguna
+// parte. El resolver real, si algún día se necesita por GraphQL, es
+// `sendWhatsAppMessage(developerId, to, message: WhatsAppMessageInput!)`
+// (whatsapp.ts:841), con otra forma.
 
 const DISCONNECT_WA_SESSION = `
   mutation DisconnectWASession($args: DisconnectWhatsAppSessionArgs) {
@@ -165,23 +164,6 @@ export async function getWhatsAppChannels(development?: string): Promise<WhatsAp
 /** Invalidate the channels cache (call after connect/disconnect) */
 export function invalidateChannelsCache() {
   _channelsCache = null;
-}
-
-/** Send a WhatsApp message */
-export async function sendWhatsAppMessage(
-  sessionId: string,
-  to: string,
-  message: string,
-  options?: { caption?: string; filename?: string; mediaType?: string; mediaUrl?: string; type?: string },
-): Promise<boolean> {
-  try {
-    const data = await mcpClient.query<{ whatsappSendMessage: string }>(SEND_WA_MESSAGE, {
-      args: { message, sessionId, to, type: options?.type || 'text', ...options },
-    });
-    return !!data.whatsappSendMessage;
-  } catch {
-    return false;
-  }
 }
 
 /** Disconnect a WhatsApp session */
