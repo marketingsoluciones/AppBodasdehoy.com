@@ -131,14 +131,19 @@ const AppTheme = memo<AppThemeProps>(
     // nunca un hex: mapeamos la marca a la más próxima por tono.
     const brandPalette = nearestLobePalette(brandPrimary) as typeof defaultPrimaryColor;
 
-    // El hex exacto queda disponible en CSS para lo que no pasa por antd ni por lobe-ui.
+    // Mismo contrato de variables que appEventos (_app.tsx publica estas cinco desde
+    // config.theme y su tailwind.config las consume). Usar los MISMOS nombres permite que
+    // un componente o un CSS de app-dev funcione aquí sin tocarlo, que es justo lo que
+    // faltaba para que las dos apps se vean iguales en una misma marca.
     useEffect(() => {
       if (typeof document === 'undefined') return;
       const root = document.documentElement;
-      root.style.setProperty('--brand-primary', brandColors.primary);
-      root.style.setProperty('--brand-secondary', brandColors.secondary);
-      root.style.setProperty('--brand-accent', brandColors.accent);
-    }, [brandColors.accent, brandColors.primary, brandColors.secondary]);
+      root.style.setProperty('--color-primary', brandColors.primary);
+      root.style.setProperty('--color-secondary', brandColors.secondary);
+      root.style.setProperty('--color-tertiary', brandColors.accent);
+      root.style.setProperty('--color-base', brandColors.background);
+      root.style.setProperty('--color-scroll', brandColors.secondary);
+    }, [brandColors]);
 
     return (
       <ThemeProvider

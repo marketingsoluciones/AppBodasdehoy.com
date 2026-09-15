@@ -7,9 +7,14 @@
    ════════════════════════════════════════════════════════════════════ */
 @theme {
   /* ── Colores brand / evento / IA ────────────────────────────────── */
-  --color-brand: #7C3AED;
-  --color-brand-light: #F4F1FE;
-  --color-brand-border: #C4B5FD;
+  /* Unificación whitelabel 15-09: el "brand" era un morado fijo del handoff de diseño,
+     así que la bandeja salía morada en TODAS las marcas mientras app-dev ya pintaba con
+     el color del tenant. Ahora deriva de --color-primary, la misma variable que publica
+     appEventos (_app.tsx) y que alimenta su tailwind.config. El morado queda solo como
+     respaldo si no hay tenant resuelto. */
+  --color-brand: var(--color-primary, #7C3AED);
+  --color-brand-light: color-mix(in srgb, var(--color-primary, #7C3AED) 8%, white);
+  --color-brand-border: color-mix(in srgb, var(--color-primary, #7C3AED) 35%, white);
   --color-event-rosa: #E11D48;
   --color-event-light: #FFF6F7;
   --color-event-border: #FBD0D7;
@@ -42,7 +47,7 @@
   --color-ch-fb: #1877F2;
 
   /* ── Superficies ────────────────────────────────────────────────── */
-  --color-surface-rail: #F6F4FB;
+  --color-surface-rail: color-mix(in srgb, var(--color-primary, #7C3AED) 6%, white);
   --color-surface-panel: #ffffff;
   --color-surface-chat: #FAFAFC;
   --color-border-light: #EFEFF3;
