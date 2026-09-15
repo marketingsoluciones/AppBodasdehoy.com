@@ -460,6 +460,92 @@ export async function setConversationAgent(
   return data.setConversationAgent === true;
 }
 
+// ── Compartir / bloquear conversación (auditoría 15-09) ───────────────────────────────
+// El esquema de api-mcp ya declaraba estas cuatro operaciones y el front no llamaba a
+// ninguna: no había forma de compartir una conversación, revocar el acceso ni bloquear un
+// contacto desde la interfaz. Firmas verificadas contra el servidor el 15-09
+// (typeDefs/whatsapp.ts:455-480; resolver de bloqueo en resolvers/whatsapp.ts:1680, que
+// exige acceso 'reply' sobre la conversación).
+
+const SHARE_CONVERSATION = `
+  mutation ShareConversation($conversationId: ID!, $principalType: String!, $principalId: ID!, $permission: String) {
+    shareConversation(conversationId: $conversationId, principalType: $principalType, principalId: $principalId, permission: $permission)
+  }
+`;
+
+const UNSHARE_CONVERSATION = `
+  mutation UnshareConversation($conversationId: ID!, $principalId: ID!) {
+    unshareConversation(conversationId: $conversationId, principalId: $principalId)
+  }
+`;
+
+const BLOCK_CONVERSATION = `
+  mutation BlockWhatsAppConversation($conversationId: String!, $developerId: String!) {
+    blockWhatsAppConversation(conversationId: $conversationId, developerId: $developerId) {
+      success
+      errors { message }
+    }
+  }
+`;
+
+const SET_CONVERSATION_STATUS = `
+  mutation SetConversationStatus($conversationId: ID!, $status: ConversationStatus!) {
+    setConversationStatus(conversationId: $conversationId, status: $status)
+  }
+`;
+
+export type SharePrincipalType = 'team' | 'user';
+/** `view` solo lectura · `reply` puede responder en nombre de la línea. */
+export type SharePermission = 'reply' | 'view';
+
+/** Comparte la conversación con una persona o un equipo. */
+export async function shareConversation(
+  conversationId: string,
+  principalType: SharePrincipalType,
+  principalId: string,
+  permission: SharePermission = 'view',
+): Promise<boolean> {
+  const data = await mcpClient.query<{ shareConversation: boolean }>(SHARE_CONVERSATION, {
+    conversationId,
+    permission,
+    principalId,
+    principalType,
+  });
+  return data.shareConversation === true;
+}
+
+/** Retira el acceso de esa persona o equipo. */
+export async function unshareConversation(
+  conversationId: string,
+  principalId: string,
+): Promise<boolean> {
+  const data = await mcpClient.query<{ unshareConversation: boolean }>(UNSHARE_CONVERSATION, {
+    conversationId,
+    principalId,
+  });
+  return data.unshareConversation === true;
+}
+
+/** Bloquea el contacto: deja la conversación en estado `blocked`. */
+export async function blockConversation(
+  conversationId: string,
+  development: string,
+): Promise<boolean> {
+  const data = await mcpClient.query<{
+    blockWhatsAppConversation: { errors?: Array<{ message: string }>; success: boolean };
+  }>(BLOCK_CONVERSATION, { conversationId, developerId: development });
+  return data.blockWhatsAppConversation?.success === true;
+}
+
+/** Desbloquea devolviendo la conversación a ACTIVE (no hay mutación inversa dedicada). */
+export async function unblockConversation(conversationId: string): Promise<boolean> {
+  const data = await mcpClient.query<{ setConversationStatus: boolean }>(SET_CONVERSATION_STATUS, {
+    conversationId,
+    status: 'ACTIVE',
+  });
+  return data.setConversationStatus === true;
+}
+
 /** Fetch messages for a conversation from MCP native store */
 export async function getWhatsAppMessagesGQL(
   conversationId: string,

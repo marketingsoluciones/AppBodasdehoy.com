@@ -3,7 +3,11 @@
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
-import { setConversationAgent } from '@/services/mcpApi/whatsapp';
+import {
+  blockConversation,
+  setConversationAgent,
+  unblockConversation,
+} from '@/services/mcpApi/whatsapp';
 import { useSessionStore } from '@/store/session';
 import { sessionSelectors } from '@/store/session/selectors';
 import { LobeSessionType, type LobeAgentSession } from '@/types/session';
@@ -43,6 +47,12 @@ export function ConversationHeader({
   const { conversations, loading: convListLoading } = useConversations(channel ?? null);
   const conversation = conversations.find((c) => c.id === conversationId);
   const conversationVisibility = describeVisibility(conversation?.sharedWith);
+  // Bloqueo (auditoría 15-09, Problema 4a): la mutación existía en api-mcp desde hace
+  // tiempo y el front no la llamaba. `blocked` ya está en el enum de estado.
+  const [blockOverride, setBlockOverride] = useState<boolean | null>(null);
+  const [blocking, setBlocking] = useState(false);
+  const isBlocked =
+    blockOverride ?? String((conversation as any)?.status ?? '').toLowerCase() === 'blocked';
 
   // QA bug 25-jun: si la conversación no aparece en la lista (canal Web sin
   // resultado, o conv huérfana), el header se quedaba "Cargando..." eterno.
@@ -249,6 +259,29 @@ export function ConversationHeader({
         clearChat(conversationId);
         break;
       }
+      case 'block': {
+        void toggleBlock();
+        break;
+      }
+    }
+  };
+
+  const toggleBlock = async () => {
+    if (blocking || !conversationId) return;
+    setBlocking(true);
+    const next = !isBlocked;
+    try {
+      const ok = next
+        ? await blockConversation(conversationId, development)
+        : await unblockConversation(conversationId);
+      // Solo movemos la UI si el backend confirma: un bloqueo "de mentira" es peor que
+      // ninguno, porque el usuario cree que ese contacto ya no puede escribirle.
+      if (ok) setBlockOverride(next);
+      else console.warn('[ConversationHeader] el backend no confirmó el cambio de bloqueo');
+    } catch (err) {
+      console.warn('[ConversationHeader] bloqueo falló:', err);
+    } finally {
+      setBlocking(false);
     }
   };
 
@@ -648,6 +681,21 @@ export function ConversationHeader({
               >
                 <button
                   className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors"
+                  disabled={blocking}
+                  onClick={() => handleMenuAction('block')}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F2F1F6')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  style={{ color: isBlocked ? '#1C1C22' : '#DC2626' }}
+                  type="button"
+                >
+                  {blocking
+                    ? 'Aplicando…'
+                    : isBlocked
+                      ? 'Desbloquear contacto'
+                      : 'Bloquear contacto'}
+                </button>
+                <button
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors"
                   onClick={() => handleMenuAction('archive')}
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F2F1F6')}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
@@ -685,6 +733,25 @@ export function ConversationHeader({
 
       {/* FASE 4 (20-ago): panel de RESUMEN IA (read-only). Aparece bajo la cabecera al pulsar
           "✦ Resumir". Es lectura para el agente (ponerse al día), NO un borrador de respuesta. */}
+      {/* Estado bloqueado bien visible: si no se ve, el operador sigue escribiendo a un
+          contacto que ya no debería recibir nada (auditoría 15-09, Problema 4a). */}
+      {isBlocked && (
+        <div
+          className="flex items-center justify-between gap-2 px-4 py-2 text-xs"
+          style={{ backgroundColor: '#FEF2F2', borderTop: '1px solid #FECACA', color: '#991B1B' }}
+        >
+          <span>Conversación bloqueada. No se enviarán mensajes a este contacto.</span>
+          <button
+            className="rounded-md px-2 py-0.5 font-semibold"
+            disabled={blocking}
+            onClick={() => void toggleBlock()}
+            style={{ border: '1px solid #FECACA', color: '#991B1B' }}
+            type="button"
+          >
+            {blocking ? 'Aplicando…' : 'Desbloquear'}
+          </button>
+        </div>
+      )}
       {summary && (
         <div
           className="flex items-start gap-2 px-4 py-2"
