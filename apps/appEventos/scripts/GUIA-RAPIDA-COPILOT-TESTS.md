@@ -19,7 +19,7 @@ node test-copilot-manual-login-save-cookies.js
 
 **Qué hacer cuando Firefox se abre:**
 1. ✅ Ingresar email: `bodasdehoy.com@gmail.com`
-2. ✅ Ingresar contraseña: `lorca2012M*+`
+2. ✅ Ingresar contraseña: `«definida en .env.e2e.dev.local — nunca en el repo»`
 3. ✅ Click en "Continuar"
 4. ✅ Esperar mensaje: "✅ Cookies guardadas"
 
@@ -132,7 +132,7 @@ Firefox está abierto esperando que hagas login manual
 **Qué hacer:**
 1. Ve a la ventana de Firefox que se abrió
 2. Ingresa email: `bodasdehoy.com@gmail.com`
-3. Ingresa contraseña: `lorca2012M*+`
+3. Ingresa contraseña: `«definida en .env.e2e.dev.local — nunca en el repo»`
 4. Click en "Continuar"
 5. Espera mensaje "✅ Cookies guardadas" en la terminal
 

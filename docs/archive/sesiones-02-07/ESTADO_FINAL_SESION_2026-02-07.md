@@ -219,7 +219,7 @@ ef4b02a docs: Estado final completo (10:15 AM)
 ## 🔑 Credenciales de Prueba
 
 **Email**: bodasdehoy.com@gmail.com
-**Password**: lorca2012M*+
+**Password**: «definida en .env.e2e.dev.local — nunca en el repo»
 
 ---
 
@@ -276,7 +276,7 @@ open -a "Google Chrome" http://localhost:8080/login
 
 ### Paso 3: Hacer Login
 1. Email: bodasdehoy.com@gmail.com
-2. Password: lorca2012M*+
+2. Password: «definida en .env.e2e.dev.local — nunca en el repo»
 3. Click en "Iniciar Sesión"
 4. Cerrar manualmente con botón X
 

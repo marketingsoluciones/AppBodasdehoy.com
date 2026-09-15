@@ -297,7 +297,7 @@ El sistema se considera **seguro para producción** en relación al rol INVITED_
 | Campo | Valor |
 |-------|-------|
 | Email | jcc@bodasdehoy.com |
-| Password | lorca2012M*+ |
+| Password | «definida en .env.e2e.dev.local — nunca en el repo» |
 | Rol en sistema | INVITED_GUEST |
 | Evento al que tiene acceso | "Email pruebas" |
 | ID del evento | 69838b14e3550784e116b682 |

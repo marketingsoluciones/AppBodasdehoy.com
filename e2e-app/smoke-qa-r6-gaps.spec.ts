@@ -176,7 +176,7 @@ test('Gap 1 — banner wrong-password detectable (role=alert + data-testid)', as
 test('Gap 2 — chat-dev login directo emite sessionBodas cross-domain', async ({ page }, testInfo) => {
   testInfo.setTimeout(60_000);
   const email = process.env.TEST_USER3_EMAIL || 'jcc@bodasdehoy.com';
-  const password = process.env.TEST_USER3_PASSWORD || 'lorca2012M*+';
+  const password = process.env.TEST_USER3_PASSWORD || (process.env.TEST_USER_PASSWORD || '');
 
   // Interceptar llamada a mutation Auth de api-mcp
   const mcpAuthCalls: Array<{ status: number; hasSessionCookie: boolean }> = [];

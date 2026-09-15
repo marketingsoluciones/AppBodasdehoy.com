@@ -46,11 +46,11 @@ NEXT_PUBLIC_API_IA_URL=https://api-ia.bodasdehoy.com
 NEXT_PUBLIC_DEVELOPMENT=bodasdehoy
 
 TEST_USER_EMAIL=bodasdehoy.com@gmail.com
-TEST_USER_PASSWORD=lorca2012M*+
+TEST_USER_PASSWORD=«definida en .env.e2e.dev.local — nunca en el repo»
 TEST_USER2_EMAIL=jcc@marketingsoluciones.com
 TEST_USER2_PASSWORD=madrid2012M*+
 TEST_USER3_EMAIL=jcc@bodasdehoy.com
-TEST_USER3_PASSWORD=lorca2012M*+
+TEST_USER3_PASSWORD=«definida en .env.e2e.dev.local — nunca en el repo»
 ```
 
 ### 3. Playwright webkit
@@ -167,9 +167,9 @@ Login form selectors (sin testid, accesibles):
 
 | Var | Email | Rol | Password |
 |---|---|---|---|
-| TEST_USER | bodasdehoy.com@gmail.com | **SUPER ADMIN** (43 eventos, "Boda Isabel & Raúl") | `lorca2012M*+` |
+| TEST_USER | bodasdehoy.com@gmail.com | **SUPER ADMIN** (43 eventos, "Boda Isabel & Raúl") | `«definida en .env.e2e.dev.local — nunca en el repo»` |
 | TEST_USER2 | jcc@marketingsoluciones.com | COLLABORATOR | `madrid2012M*+` |
-| TEST_USER3 | jcc@bodasdehoy.com | CREATOR/INVITED | `lorca2012M*+` |
+| TEST_USER3 | jcc@bodasdehoy.com | CREATOR/INVITED | `«definida en .env.e2e.dev.local — nunca en el repo»` |
 
 **Regla**: super admin libre + cleanup obligatorio. NUNCA tocar evento "Boda Isabel & Raúl".
 

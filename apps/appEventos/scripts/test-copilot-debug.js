@@ -9,7 +9,7 @@ const { firefox } = require('playwright');
 
 const URL = 'https://app-test.bodasdehoy.com';
 const EMAIL = 'bodasdehoy.com@gmail.com';
-const PASSWORD = 'lorca2012M*+';
+const PASSWORD = (process.env.TEST_USER_PASSWORD || '');
 
 async function main() {
   console.log('\n======================================================================');

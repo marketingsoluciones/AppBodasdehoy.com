@@ -15,10 +15,10 @@ app-test.eventosorganizador.com → chat-dev.eventosorganizador.com
 
 ## CREDENCIALES
 ```
-owner    → jcc@bodasdehoy.com / lorca2012M*+
-coorg    → jcc@bodasdehoy.com / lorca2012M*+
-invitado → jcc@marketingsoluciones.com / lorca2012M*+
-extra    → jcc@recargaexpres.com / lorca2012M*+
+owner    → jcc@bodasdehoy.com / «en .env.e2e.dev.local, nunca en el repo»
+coorg    → jcc@bodasdehoy.com / «en .env.e2e.dev.local, nunca en el repo»
+invitado → jcc@marketingsoluciones.com / «en .env.e2e.dev.local, nunca en el repo»
+extra    → jcc@recargaexpres.com / «en .env.e2e.dev.local, nunca en el repo»
 ```
 Evento: "Boda Isabel & Raúl" — Mayo 20, 2080
 Fixtures: `e2e-app/fixtures/champagne-events/eventos-sanitizados.json`

@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 const BASE_URL = process.env.BASE_URL || 'https://app-dev.bodasdehoy.com';
 const CHAT_URL = process.env.CHAT_URL || 'https://chat-dev.bodasdehoy.com';
 const EMAIL = process.env.TEST_USER_EMAIL || 'bodasdehoy.com@gmail.com';
-const PASSWORD = process.env.TEST_USER_PASSWORD || 'lorca2012M*+';
+const PASSWORD = process.env.TEST_USER_PASSWORD || (process.env.TEST_USER_PASSWORD || '');
 
 function decodeJwt(token: string): any {
   try {

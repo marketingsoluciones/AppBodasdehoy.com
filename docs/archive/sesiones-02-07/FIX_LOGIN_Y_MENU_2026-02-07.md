@@ -248,7 +248,7 @@ ef4b02a docs: Estado final completo del proyecto
 2. Ir a http://localhost:8080/login
 3. Verificar que la página NO se cierra
 4. Ingresar email: bodasdehoy.com@gmail.com
-5. Ingresar password: lorca2012M*+
+5. Ingresar password: «definida en .env.e2e.dev.local — nunca en el repo»
 6. Click en "Iniciar Sesión"
 7. Cerrar manualmente con botón X
 8. Ir a http://localhost:8080/

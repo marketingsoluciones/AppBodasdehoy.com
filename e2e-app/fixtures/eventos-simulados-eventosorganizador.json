@@ -9,25 +9,25 @@
   "usuarios_test": {
     "owner": {
       "email": "jcc@bodasdehoy.com",
-      "password": "lorca2012M*+",
+      "password": "«definida en .env.e2e.dev.local — nunca en el repo»",
       "rol": "CREATOR",
       "nombre": "Juan Organizador"
     },
     "coorg": {
       "email": "jcc@bodasdehoy.com",
-      "password": "lorca2012M*+",
+      "password": "«definida en .env.e2e.dev.local — nunca en el repo»",
       "rol": "COLLABORATOR",
       "nombre": "María Coordinadora"
     },
     "invitado": {
       "email": "jcc@marketingsoluciones.com",
-      "password": "lorca2012M*+",
+      "password": "«definida en .env.e2e.dev.local — nunca en el repo»",
       "rol": "INVITED_GUEST",
       "nombre": "Carlos Invitado"
     },
     "extra": {
       "email": "jcc@recargaexpress.com",
-      "password": "lorca2012M*+",
+      "password": "«definida en .env.e2e.dev.local — nunca en el repo»",
       "rol": "GUEST",
       "nombre": "Laura Extra"
     }

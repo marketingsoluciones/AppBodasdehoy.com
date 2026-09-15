@@ -20,8 +20,8 @@ const APP_URL =
     : E2E_ENV === 'dev' ? 'https://app-dev.bodasdehoy.com'
       : 'https://app-test.bodasdehoy.com';
 
-const U1 = { email: 'jcc@bodasdehoy.com', password: 'lorca2012M*+' };
-const U2 = { email: 'jcc@marketingsoluciones.com', password: 'madrid2012M*+' };
+const U1 = { email: 'jcc@bodasdehoy.com', password: (process.env.TEST_USER_PASSWORD || '') };
+const U2 = { email: 'jcc@marketingsoluciones.com', password: '' };
 
 async function newCtx(browser: Browser) {
   const ctx = await browser.newContext({ ignoreHTTPSErrors: true, viewport: { width: 1280, height: 800 } });

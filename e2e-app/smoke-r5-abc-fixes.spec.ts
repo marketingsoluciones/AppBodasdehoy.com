@@ -75,7 +75,7 @@ test('B) chat-dev muestra DebugFooter', async ({ page }, testInfo) => {
 test('A) fetchApiBodas reintenta cuando Mongo timeout', async ({ page }, testInfo) => {
   testInfo.setTimeout(90_000);
   const email = process.env.TEST_USER3_EMAIL || 'jcc@bodasdehoy.com';
-  const password = process.env.TEST_USER3_PASSWORD || 'lorca2012M*+';
+  const password = process.env.TEST_USER3_PASSWORD || (process.env.TEST_USER_PASSWORD || '');
 
   const retryLogs: string[] = [];
   const errorLogs: string[] = [];

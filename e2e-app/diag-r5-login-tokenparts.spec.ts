@@ -23,12 +23,12 @@ const CANDIDATES: Array<{ label: string; email: string; password: string }> = [
   {
     label: 'jcc@bodasdehoy.com',
     email: process.env.TEST_USER3_EMAIL || 'jcc@bodasdehoy.com',
-    password: process.env.TEST_USER3_PASSWORD || 'lorca2012M*+',
+    password: process.env.TEST_USER3_PASSWORD || (process.env.TEST_USER_PASSWORD || ''),
   },
   {
     label: 'bodasdehoy.com@gmail.com',
     email: process.env.TEST_USER_EMAIL || 'bodasdehoy.com@gmail.com',
-    password: process.env.TEST_USER_PASSWORD || 'lorca2012M*+',
+    password: process.env.TEST_USER_PASSWORD || (process.env.TEST_USER_PASSWORD || ''),
   },
 ];
 

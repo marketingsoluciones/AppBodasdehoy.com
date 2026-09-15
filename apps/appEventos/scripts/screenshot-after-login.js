@@ -11,7 +11,7 @@ const { chromium } = require("playwright");
 
   console.log("2. Ingresando credenciales...");
   await page.fill('input[type="email"], input[name="identifier"], input[placeholder*="correo" i], input[placeholder*="email" i]', 'bodasdehoy.com@gmail.com');
-  await page.fill('input[type="password"], input[name="password"]', 'lorca2012M*+');
+  await page.fill('input[type="password"], input[name="password"]', (process.env.TEST_USER_PASSWORD || ''));
 
   console.log("3. Haciendo click en login...");
   await page.click('button[type="submit"], button:has-text("Iniciar"), button:has-text("Login"), button:has-text("Entrar")');

@@ -20,7 +20,7 @@ seguir — sería falso positivo. Para verlo:
   DevTools → Network → primera petición a app-dev → Response Headers / Body → buscar "buildId"
   o ver en el <script> de _next/static/<BUILD_ID>/...
 
-USUARIOS (password lorca2012M*+):
+USUARIOS (password «definida en .env.e2e.dev.local — nunca en el repo»):
   · bodasdehoy.com@gmail.com   ADMIN (Google OAuth)
   · jcc@bodasdehoy.com         colaborador (email/password) ← úsalo si OAuth da problemas
   · jcc@marketingsoluciones.com colaborador (a veces "auth/network-request-failed", ignora)

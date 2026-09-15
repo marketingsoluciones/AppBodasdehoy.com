@@ -42,7 +42,7 @@ const screenshot = async (page, name) => {
       console.log("\nPASO 3: Escribiendo credenciales...");
       await inputs[0].fill('bodasdehoy.com@gmail.com');
       await page.waitForTimeout(500);
-      await inputs[1].fill('lorca2012M*+');
+      await inputs[1].fill((process.env.TEST_USER_PASSWORD || ''));
       await page.waitForTimeout(500);
       await screenshot(page, "02-credentials");
 

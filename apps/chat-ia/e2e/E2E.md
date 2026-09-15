@@ -39,11 +39,11 @@ NEXT_PUBLIC_DEVELOPMENT=bodasdehoy
 APPEVENTOS_URL=http://localhost:3220
 
 TEST_USER_EMAIL=bodasdehoy.com@gmail.com
-TEST_USER_PASSWORD=lorca2012M*+
+TEST_USER_PASSWORD=«definida en .env.e2e.dev.local — nunca en el repo»
 TEST_USER2_EMAIL=jcc@marketingsoluciones.com
 TEST_USER2_PASSWORD=madrid2012M*+
 TEST_USER3_EMAIL=jcc@bodasdehoy.com
-TEST_USER3_PASSWORD=lorca2012M*+
+TEST_USER3_PASSWORD=«definida en .env.e2e.dev.local — nunca en el repo»
 EOF
 ```
 
@@ -194,9 +194,9 @@ Login form (accesibles sin testid):
 
 | Var | Email | Rol Firebase | Password |
 |---|---|---|---|
-| TEST_USER | `bodasdehoy.com@gmail.com` | **SUPER ADMIN propietario** (43 eventos) | `lorca2012M*+` |
+| TEST_USER | `bodasdehoy.com@gmail.com` | **SUPER ADMIN propietario** (43 eventos) | `«definida en .env.e2e.dev.local — nunca en el repo»` |
 | TEST_USER2 | `jcc@marketingsoluciones.com` | COLLABORATOR | `madrid2012M*+` |
-| TEST_USER3 | `jcc@bodasdehoy.com` | CREATOR/INVITED | `lorca2012M*+` |
+| TEST_USER3 | `jcc@bodasdehoy.com` | CREATOR/INVITED | `«definida en .env.e2e.dev.local — nunca en el repo»` |
 
 **Reglas (memoria proyecto):**
 - Super admin libre + **cleanup obligatorio** en afterEach (delete created data)

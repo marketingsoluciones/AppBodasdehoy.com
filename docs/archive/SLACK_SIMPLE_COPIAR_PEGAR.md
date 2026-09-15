@@ -10,7 +10,7 @@ En la raíz del proyecto, en el archivo **`.env`** (crear si no existe), añade:
 
 ```env
 # Slack - canal Frontend / Copilot ↔ api-ia
-SLACK_BOT_OAUTH_TOKEN=xoxb-10503704691745-10486340430387-yPAG9HxrKTWyOg2tJmCATwZH
+SLACK_BOT_OAUTH_TOKEN=«token rotado — usar SLACK_BOT_TOKEN del entorno»
 SLACK_CHANNEL_COPILOT_API_IA=C0AEV0GCLM7
 ```
 
@@ -66,7 +66,7 @@ async function enviarMensajeSlack(texto) {
 import os
 import requests
 
-SLACK_TOKEN = os.getenv("SLACK_BOT_OAUTH_TOKEN", "xoxb-10503704691745-10486340430387-yPAG9HxrKTWyOg2tJmCATwZH")
+SLACK_TOKEN = os.getenv("SLACK_BOT_OAUTH_TOKEN", "«token rotado — usar SLACK_BOT_TOKEN del entorno»")
 CHANNEL = os.getenv("SLACK_CHANNEL_COPILOT_API_IA", "C0AEV0GCLM7")
 BASE = "https://slack.com/api"
 

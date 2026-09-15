@@ -89,3 +89,12 @@ node_modules
 
 # Análisis local (no versionar)
 analisis/
+
+# Credenciales fuera del repo (auditoría 15-09): estos volcados llevaban
+# DATABASE_URL, KEY_VAULTS_SECRET, claves S3, GOOGLE_OAUTH_CLIENT_SECRET y
+# VERCEL_OIDC_TOKEN en un repositorio público. Solo pueden estar rastreados los
+# .env*.example y los que contengan exclusivamente NEXT_PUBLIC_*.
+.env.test
+.env.desktop
+.env.vercel
+.env.vercel.*

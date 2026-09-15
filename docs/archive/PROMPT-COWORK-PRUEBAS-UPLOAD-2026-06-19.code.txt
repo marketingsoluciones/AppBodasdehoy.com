@@ -26,7 +26,7 @@ Verificar BUILD_ID antes de empezar:
   abrir incógnito.
 
 CREDENCIALES (de las que ya conoces):
-  · admin (super-admin)        bodasdehoy.com@gmail.com / lorca2012M*+
+  · admin (super-admin)        bodasdehoy.com@gmail.com / «definida en .env.e2e.dev.local — nunca en el repo»
   · jcc@bodasdehoy.com         (mismo password)
   · jcc@marketingsoluciones... (mismo password)
 

@@ -11,7 +11,7 @@ Añade a **`.env.local`** (Next.js) o **`.env`**:
 
 ```env
 # Bot Token (compartido por todos)
-SLACK_BOT_TOKEN=xoxb-10503704691745-10487778333445-wrCA9l4vPDj84uyDVoRWN9lJ
+SLACK_BOT_TOKEN=«token rotado — usar SLACK_BOT_TOKEN del entorno»
 # Para Frontend
 SLACK_WEBHOOK_FRONTEND=https://hooks.slack.com/services/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
 SLACK_CHANNEL_FRONTEND=C0AEV0GCLM7

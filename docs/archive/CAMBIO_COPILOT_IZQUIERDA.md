@@ -209,7 +209,7 @@ open http://127.0.0.1:8080
 
 # 2. Hacer login
 # Email: bodasdehoy.com@gmail.com
-# Password: lorca2012M*+
+# Password: «definida en .env.e2e.dev.local — nunca en el repo»
 
 # 3. Ir a cualquier página (ej: eventos, invitados)
 

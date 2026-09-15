@@ -31,7 +31,7 @@ const DEVICES = [
 // ─── Credenciales ─────────────────────────────────────────────────────────────
 
 const EMAIL    = process.env.TEST_USER_EMAIL    || 'bodasdehoy.com@gmail.com';
-const PASSWORD = process.env.TEST_USER_PASSWORD || 'lorca2012M*+';
+const PASSWORD = process.env.TEST_USER_PASSWORD || (process.env.TEST_USER_PASSWORD || '');
 
 // ─── Helper: screenshot con nombre descriptivo ────────────────────────────────
 

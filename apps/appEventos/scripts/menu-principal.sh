@@ -58,7 +58,7 @@ case $option in
         echo ""
         echo "Ve a la ventana de Firefox que se abrió y completa el login:"
         echo "  Email: bodasdehoy.com@gmail.com"
-        echo "  Password: lorca2012M*+"
+        echo "  Password: "$TEST_USER_PASSWORD""
         echo ""
         ;;
     3)

@@ -18,7 +18,7 @@ Estas son las variables que **sí funcionan** para enviar y recibir en el canal 
 
 ```env
 # Slack – canal #copilot-api-ia (enviar + recibir)
-SLACK_BOT_TOKEN=xoxb-tu-token-aqui
+SLACK_BOT_TOKEN=«token rotado — usar SLACK_BOT_TOKEN del entorno»
 SLACK_WEBHOOK_FRONTEND=https://hooks.slack.com/services/T0AETLQLBMX/XXXXX/YYYYY
 SLACK_CHANNEL_FRONTEND=C0AEV0GCLM7
 ```

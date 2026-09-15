@@ -19,7 +19,7 @@ const screenshot = async (page, name) => {
 // Credenciales de prueba
 const TEST_USER = {
   email: "bodasdehoy.com@gmail.com",
-  password: "lorca2012M*+."
+  password: "[definida en TEST_USER_PASSWORD]."
 };
 
 (async () => {

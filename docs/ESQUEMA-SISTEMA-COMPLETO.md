@@ -410,7 +410,7 @@ Tools que renderizan componentes ricos inline en el chat:
 | Colaborador 1 | jcc@bodasdehoy.com | Compartido por owner |
 | Colaborador 2 / Invitado | jcc@marketingsoluciones.com | Email pruebas (INVITED_GUEST) |
 | Extra | jcc@recargaexpress.com | — |
-| Password compartida | `lorca2012M*+` | Todas las cuentas |
+| Password compartida | `«definida en .env.e2e.dev.local — nunca en el repo»` | Todas las cuentas |
 
 Nota: Todos los `jcc@*` son aliases de `carlos.carrillo@recargaexpress.com` (misma cuenta Google).
 

@@ -82,7 +82,7 @@ Documento de referencia: **qué tests existen**, **qué datos necesitan**, **qu�
 |----------|-------------------------------|-----|
 | **BASE_URL** | `http://127.0.0.1:8080` (local) o `https://app-test.bodasdehoy.com` | URL de la app de eventos |
 | **TEST_USER_EMAIL** | `bodasdehoy.com@gmail.com` (en fixtures) | Usuario Firebase de prueba |
-| **TEST_USER_PASSWORD** | `lorca2012M*.` (en fixtures) | Contraseña del usuario de prueba |
+| **TEST_USER_PASSWORD** | `«definida en .env.e2e.dev.local — nunca en el repo»` (en fixtures) | Contraseña del usuario de prueba |
 
 #### Opcionales
 
@@ -102,7 +102,7 @@ Documento de referencia: **qué tests existen**, **qué datos necesitan**, **qu�
 
 #### Fixtures E2E (`e2e-app/fixtures.ts`)
 
-- **TEST_CREDENTIALS**: email y password (env o por defecto bodasdehoy.com@gmail.com / lorca2012M*.)
+- **TEST_CREDENTIALS**: email y password (env o por defecto bodasdehoy.com@gmail.com / «definida en .env.e2e.dev.local — nunca en el repo»)
 - **TEST_GUEST**: nombre `E2E Test YYYYMMDD`, email `e2e-test-YYYYMMDD@bodasdehoy-test.com`, teléfono
 - **TEST_BUDGET_ITEM**: descripción `E2E Partida YYYYMMDD`, importe `250`
 - **TEST_TASK**: descripción, prioridad alta

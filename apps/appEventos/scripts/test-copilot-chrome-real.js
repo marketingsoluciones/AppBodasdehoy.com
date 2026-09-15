@@ -176,7 +176,7 @@ async function askQuestion(page, question, questionNumber) {
     console.log('[PASO 2] Esperando que completes el login...\n');
     console.log('  👉 Por favor, haz login en el navegador con:');
     console.log('     Email: bodasdehoy.com@gmail.com');
-    console.log('     Password: lorca2012M*+\n');
+    console.log('     Password: [definida en TEST_USER_PASSWORD]\n');
 
     const loginSuccess = await waitForCookies(page, 60);
 

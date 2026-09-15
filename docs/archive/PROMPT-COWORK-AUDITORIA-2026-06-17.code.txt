@@ -13,7 +13,7 @@ ENTORNO:
 - app-dev.bodasdehoy.com  — BUILD_ID actual: RlC1Q67P (17-jun 09:36, con socket → api-ia)
 - Si el BUILD_ID que ves es distinto al servido, hard-refresh (Cmd+Shift+R) o incógnito.
 
-USUARIOS DE PRUEBA (todos password lorca2012M*+):
+USUARIOS DE PRUEBA (todos password «definida en .env.e2e.dev.local — nunca en el repo»):
   - bodasdehoy.com@gmail.com   (ADMIN, role:admin verificado por api-ia)
   - jcc@bodasdehoy.com         (colaborador) → QA reportó que VE 3 eventos
   - jcc@marketingsoluciones.com (colaborador) → login con error de red, ignorar

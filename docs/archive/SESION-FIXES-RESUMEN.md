@@ -238,7 +238,7 @@ Para resolver completamente los problemas restantes, necesitamos:
 ```
 1. Abrir http://app-test.bodasdehoy.com:8080/login
 2. Abrir consola del navegador (F12 → Console)
-3. Hacer login con bodasdehoy.com@gmail.com / lorca2012M*+
+3. Hacer login con bodasdehoy.com@gmail.com / «definida en .env.e2e.dev.local — nunca en el repo»
 4. Copiar todos los logs que comienzan con:
    - [EventsGroup]
    - [Auth]
@@ -338,7 +338,7 @@ Para resolver completamente los problemas restantes, necesitamos:
 ## 📞 Credenciales de Prueba
 
 - **Email**: bodasdehoy.com@gmail.com
-- **Password**: lorca2012M*+
+- **Password**: «definida en .env.e2e.dev.local — nunca en el repo»
 
 ---
 

@@ -131,7 +131,7 @@ BUG-CW-N13: Race condition $evento_id en /invitaciones
 BUG-CW-N10: sessionCookie inválida
   Investigación pendiente. Necesito de QA:
   1. Login completo en https://chat-dev.bodasdehoy.com con
-     bodasdehoy.com@gmail.com / lorca2012M*+
+     bodasdehoy.com@gmail.com / «definida en .env.e2e.dev.local — nunca en el repo»
   2. Esperar redirect a chat (o ir manualmente).
   3. Abrir https://app-dev.bodasdehoy.com EN LA MISMA PESTAÑA.
   4. DevTools → Application → Cookies → seleccionar app-dev.bodasdehoy.com.
@@ -223,9 +223,9 @@ Para los que NO pasen:
 CREDENCIALES + ENTORNOS
 ═══════════════════════════════════════════════════════════════════════════════
 
-  Super admin:  bodasdehoy.com@gmail.com / lorca2012M*+
-  Secund 1:     jcc@bodasdehoy.com          / lorca2012M*+
-  Secund 2:     jcc@marketingsoluciones.com / lorca2012M*+
+  Super admin:  bodasdehoy.com@gmail.com / «definida en .env.e2e.dev.local — nunca en el repo»
+  Secund 1:     jcc@bodasdehoy.com          / «definida en .env.e2e.dev.local — nunca en el repo»
+  Secund 2:     jcc@marketingsoluciones.com / «definida en .env.e2e.dev.local — nunca en el repo»
 
   app-dev:      https://app-dev.bodasdehoy.com
   chat-dev:     https://chat-dev.bodasdehoy.com

@@ -158,7 +158,7 @@ Si quieres usar esto en CI/CD, usa variables de entorno:
 
 ```javascript
 const EMAIL = process.env.TEST_USER_EMAIL || 'bodasdehoy.com@gmail.com';
-const PASSWORD = process.env.TEST_USER_PASSWORD || 'lorca2012M*+';
+const PASSWORD = process.env.TEST_USER_PASSWORD || '«definida en .env.e2e.dev.local — nunca en el repo»';
 ```
 
 Y configura en GitHub Actions:

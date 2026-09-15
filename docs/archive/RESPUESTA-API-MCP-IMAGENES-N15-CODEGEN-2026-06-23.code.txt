@@ -26,17 +26,17 @@ Cuentas demo:
 ───────────────────────────────────────────────────────────────────────
   USUARIO OWNER (super-admin todos los tenants):
     email:    bodasdehoy.com@gmail.com
-    pass:     lorca2012M*+
+    pass:     «definida en .env.e2e.dev.local — nunca en el repo»
     role:     owner + admin
 
   USUARIO SECUNDARIO 1 (organizador, no owner):
     email:    jcc@bodasdehoy.com
-    pass:     lorca2012M*+
+    pass:     «definida en .env.e2e.dev.local — nunca en el repo»
     role:     organizador o invitado según el evento
 
   USUARIO SECUNDARIO 2 (rol distinto):
     email:    jcc@marketingsoluciones.com
-    pass:     lorca2012M*+
+    pass:     «definida en .env.e2e.dev.local — nunca en el repo»
     role:     compartido (no owner)
 
   USUARIO NO-OWNER / vista pública: pendiente de definir desde QA.

@@ -7,9 +7,9 @@
  *   Suite 3 — EMAIL: Verificación UI de envío de invitaciones
  *
  * Credenciales:
- *   Owner    → jcc@bodasdehoy.com / lorca2012M*+
- *   Coorg    → jcc@bodasdehoy.com / lorca2012M*+
- *   Invitado → jcc@marketingsoluciones.com / lorca2012M*+
+ *   Owner    → jcc@bodasdehoy.com / [definida en TEST_USER_PASSWORD]
+ *   Coorg    → jcc@bodasdehoy.com / [definida en TEST_USER_PASSWORD]
+ *   Invitado → jcc@marketingsoluciones.com / [definida en TEST_USER_PASSWORD]
  *
  * Ejecutar:
  *   E2E_ENV=dev npx playwright test e2e-app/comunicacion-entre-usuarios.spec.ts --project=webkit
@@ -33,9 +33,9 @@ const APP_URL =
       : 'https://app-test.bodasdehoy.com';
 
 // ─── Credentials ──────────────────────────────────────────────
-const OWNER = { email: 'jcc@bodasdehoy.com', password: 'lorca2012M*+' };
-const COORG = { email: 'jcc@bodasdehoy.com', password: 'lorca2012M*+' };
-const INVITADO = { email: 'jcc@marketingsoluciones.com', password: 'lorca2012M*+' };
+const OWNER = { email: 'jcc@bodasdehoy.com', password: (process.env.TEST_USER_PASSWORD || '') };
+const COORG = { email: 'jcc@bodasdehoy.com', password: (process.env.TEST_USER_PASSWORD || '') };
+const INVITADO = { email: 'jcc@marketingsoluciones.com', password: (process.env.TEST_USER_PASSWORD || '') };
 
 const MULT = E2E_ENV === 'local' ? 1 : 1.5;
 

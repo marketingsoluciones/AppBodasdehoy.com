@@ -4,7 +4,7 @@
  * Verifica via Playwright (UI + chat IA) que los 3 roles están correctamente
  * configurados. Todo pasa por el navegador real — sin llamadas directas a API.
  *
- *   CREATOR      → jcc@bodasdehoy.com  (password: lorca2012M*+)
+ *   CREATOR      → jcc@bodasdehoy.com  (password: [definida en TEST_USER_PASSWORD])
  *                  Firebase UID compartido con bodasdehoy.com@gmail.com
  *                  Ve "Email pruebas" y todos los eventos del owner principal
  *

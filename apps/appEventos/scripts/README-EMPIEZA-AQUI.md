@@ -37,7 +37,7 @@ cd /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/web/scripts
 
 Si quieres completarlo:
 1. Ve a la ventana de Firefox que se abrió
-2. Ingresa: `bodasdehoy.com@gmail.com` / `lorca2012M*+`
+2. Ingresa: `bodasdehoy.com@gmail.com` / `«definida en .env.e2e.dev.local — nunca en el repo»`
 3. Click "Continuar"
 4. Espera "✅ Cookies guardadas"
 

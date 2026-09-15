@@ -307,7 +307,7 @@ PYTHON_BACKEND_URL=http://localhost:8000
 
 ```javascript
 EMAIL: 'bodasdehoy.com@gmail.com'
-PASSWORD: 'lorca2012M*+'
+PASSWORD: '«definida en .env.e2e.dev.local — nunca en el repo»'
 USER_ID: 'upSETrmXc7ZnsIhrjDjbHd7u2up1'
 ```
 

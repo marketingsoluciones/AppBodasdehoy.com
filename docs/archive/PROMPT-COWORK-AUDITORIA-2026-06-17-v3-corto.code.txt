@@ -5,7 +5,7 @@
 REQUISITO: verifica el BUILD_ID en DevTools→Network ANTES de empezar.
 Si no coincide → hard-refresh (Cmd+Shift+R) o aborta.
 
-USERS (pwd lorca2012M*+):
+USERS (pwd «definida en .env.e2e.dev.local — nunca en el repo»):
   · bodasdehoy.com@gmail.com (ADMIN, Google OAuth)
   · jcc@bodasdehoy.com (email/password) ← usa este si OAuth falla
 

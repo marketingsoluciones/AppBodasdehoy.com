@@ -13,7 +13,7 @@ const path = require("node:path");
 const BASE_URL = process.env.BASE_URL || "https://app-dev.bodasdehoy.com";
 const LOGIN_URL = `${BASE_URL}/login`;
 const EMAIL = process.env.TEST_EMAIL || "bodasdehoy.com@gmail.com";
-const PASSWORD = process.env.TEST_PASSWORD || "lorca2012M*+";
+const PASSWORD = process.env.TEST_PASSWORD || (process.env.TEST_USER_PASSWORD || '');
 const EVENT_ID = process.env.TEST_EVENT_ID || "66a9042dec5c58aa734bca44";
 const DIRECT_INVITADOS = process.env.TEST_DIRECT_INVITADOS === "1";
 const LOCK_PATH = path.join("/tmp", "app-eventos-playwright-webkit.lock");

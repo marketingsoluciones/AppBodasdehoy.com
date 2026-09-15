@@ -11,7 +11,7 @@ const path = require('path');
 
 const BASE_URL = 'https://app-test.bodasdehoy.com';
 const USER_EMAIL = 'bodasdehoy.com@gmail.com';
-const USER_PASSWORD = 'lorca2012M*+';
+const USER_PASSWORD = (process.env.TEST_USER_PASSWORD || '');
 
 const SCREENSHOTS_DIR = path.join(__dirname, '..', 'test-screenshots');
 

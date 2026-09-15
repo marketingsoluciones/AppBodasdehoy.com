@@ -372,7 +372,7 @@ open /tmp/firefox-auto-error.png
 **Qué hacer:**
 1. Ve a la ventana de Firefox
 2. Ingresa email: `bodasdehoy.com@gmail.com`
-3. Ingresa contraseña: `lorca2012M*+`
+3. Ingresa contraseña: `«definida en .env.e2e.dev.local — nunca en el repo»`
 4. Haz clic en "Continuar"
 5. Espera mensaje en terminal: "✅ Cookies guardadas"
 

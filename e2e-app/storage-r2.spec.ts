@@ -23,7 +23,7 @@ const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const CHAT_URL = getChatUrl(BASE_URL);
 const API_IA_URL = process.env.API_IA_URL || 'https://api-ia.bodasdehoy.com';
 const TEST_EMAIL = process.env.TEST_USER_EMAIL || 'bodasdehoy.com@gmail.com';
-const TEST_PASSWORD = process.env.TEST_USER_PASSWORD || 'lorca2012M*.';
+const TEST_PASSWORD = process.env.TEST_USER_PASSWORD || '«definida en .env.e2e.dev.local — nunca en el repo»';
 
 const isRemote =
   BASE_URL.includes('app-test.bodasdehoy.com') ||

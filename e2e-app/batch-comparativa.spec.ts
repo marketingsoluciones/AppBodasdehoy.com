@@ -18,12 +18,12 @@
  *
  * Ejecutar registrado:
  *   E2E_ENV=local PLAYWRIGHT_BROWSER=webkit \
- *     TEST_USER_EMAIL=bodasdehoy.com@gmail.com TEST_USER_PASSWORD='lorca2012M*+' \
+ *     TEST_USER_EMAIL=bodasdehoy.com@gmail.com TEST_USER_PASSWORD=(process.env.TEST_USER_PASSWORD || '') \
  *     npx playwright test e2e-app/batch-comparativa.spec.ts --grep=registrado
  *
  * Ejecutar ambos:
  *   E2E_ENV=local PLAYWRIGHT_BROWSER=webkit \
- *     TEST_USER_EMAIL=bodasdehoy.com@gmail.com TEST_USER_PASSWORD='lorca2012M*+' \
+ *     TEST_USER_EMAIL=bodasdehoy.com@gmail.com TEST_USER_PASSWORD=(process.env.TEST_USER_PASSWORD || '') \
  *     npx playwright test e2e-app/batch-comparativa.spec.ts
  */
 import * as fs from 'node:fs';

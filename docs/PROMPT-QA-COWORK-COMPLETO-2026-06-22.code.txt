@@ -9,7 +9,7 @@
   - `https://chat-dev.bodasdehoy.com` — chat-ia (copilot IA)
   - `https://memories-dev.bodasdehoy.com` — álbumes de fotos
   - `https://creador-dev.bodasdehoy.com` — editor de web de boda
-- **Usuarios E2E** (credenciales en .env.e2e.dev, password `lorca2012M*+`):
+- **Usuarios E2E** (credenciales en .env.e2e.dev, password `«definida en .env.e2e.dev.local — nunca en el repo»`):
   - Principal: `bodasdehoy.com@gmail.com`
   - Secundarios: `jcc@bodasdehoy.com`, `jcc@marketingsoluciones.com`
 - **Evento de prueba intocable**: "Boda Isabel & Raúl" (`66a9042dec5c58aa734bca44`). NO borrar nunca.

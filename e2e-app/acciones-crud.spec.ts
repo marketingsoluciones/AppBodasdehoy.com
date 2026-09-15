@@ -12,7 +12,7 @@
  *
  * Requiere: BASE_URL=https://app-test.bodasdehoy.com
  *           TEST_USER_EMAIL=bodasdehoy.com@gmail.com
- *           TEST_USER_PASSWORD=lorca2012M*.
+ *           TEST_USER_PASSWORD=«definida en .env.e2e.dev.local — nunca en el repo»
  */
 import { test, expect, BrowserContext, Page } from '@playwright/test';
 import { clearSession, waitForAppReady, loginAndSelectEvent, navigateToModule } from './helpers';

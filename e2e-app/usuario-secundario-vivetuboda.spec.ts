@@ -44,7 +44,7 @@ const USER2_PASSWORD = process.env.TEST_USER2_PASSWORD || 'TestBodas2024!';
 
 // ── Primer usuario (admin, para comparar comportamiento) ───────────────────────
 const USER1_EMAIL = process.env.TEST_USER_EMAIL || 'bodasdehoy.com@gmail.com';
-const USER1_PASSWORD = process.env.TEST_USER_PASSWORD || 'lorca2012M*.';
+const USER1_PASSWORD = process.env.TEST_USER_PASSWORD || '«definida en .env.e2e.dev.local — nunca en el repo»';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 

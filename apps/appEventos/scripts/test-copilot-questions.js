@@ -7,7 +7,7 @@ const { chromium } = require('playwright');
 
 const BASE = 'https://app-test.bodasdehoy.com';
 const USER_EMAIL = 'bodasdehoy.com@gmail.com';
-const USER_PASSWORD = 'lorca2012M*+';
+const USER_PASSWORD = (process.env.TEST_USER_PASSWORD || '');
 
 async function screenshot(page, name) {
   const path = `/tmp/copilot-test-${name}.png`;

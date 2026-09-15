@@ -28,7 +28,7 @@ bash scripts/slack-read.sh --from api-ia 5
 ### 2. Si el backend confirmo el deploy de createNotifications
 ```bash
 # Probar E2E
-TOKEN=$(curl -sS -X POST "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyDVMoVLWWvolofYOcTYA0JZ0QHyng72LAM" -H 'Content-Type: application/json' -d '{"email":"bodasdehoy.com@gmail.com","password":"lorca2012M*+","returnSecureToken":true}' | python3 -c "import sys,json; print(json.load(sys.stdin)['idToken'])")
+TOKEN=$(curl -sS -X POST "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyDVMoVLWWvolofYOcTYA0JZ0QHyng72LAM" -H 'Content-Type: application/json' -d '{"email":"bodasdehoy.com@gmail.com","password":"«definida en .env.e2e.dev.local — nunca en el repo»","returnSecureToken":true}' | python3 -c "import sys,json; print(json.load(sys.stdin)['idToken'])")
 
 curl -sS -X POST "$API_MCP_GRAPHQL_URL" \
   -H 'Content-Type: application/json' \

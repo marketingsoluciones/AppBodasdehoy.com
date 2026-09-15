@@ -86,7 +86,7 @@ LISTA DE FIXES A VERIFICAR — 6ª RONDA
     · El template literal del query tenía 49 `{` y 48 `}` (faltaba 1 cierre).
     · Añadido `}` al final del query → ahora balanceado.
   PROBAR:
-    1. Login con usuario super-admin (bodasdehoy.com@gmail.com / lorca2012M*+).
+    1. Login con usuario super-admin (bodasdehoy.com@gmail.com / «definida en .env.e2e.dev.local — nunca en el repo»).
     2. Crear evento nuevo desde /?needsEvent=1.
     3. Rellenar formulario completo y submit.
     4. Verificar que NO sale el error "Syntax Error: Expected Name, found <EOF>".
@@ -271,9 +271,9 @@ BUGS PENDIENTES — NO TOCADOS EN ESTA RONDA
 CREDENCIALES DE TESTING
 ═══════════════════════════════════════════════════════════════════════════════
 
-  Super admin:    bodasdehoy.com@gmail.com / lorca2012M*+
-  Secundario 1:   jcc@bodasdehoy.com        / lorca2012M*+
-  Secundario 2:   jcc@marketingsoluciones.com / lorca2012M*+
+  Super admin:    bodasdehoy.com@gmail.com / «definida en .env.e2e.dev.local — nunca en el repo»
+  Secundario 1:   jcc@bodasdehoy.com        / «definida en .env.e2e.dev.local — nunca en el repo»
+  Secundario 2:   jcc@marketingsoluciones.com / «definida en .env.e2e.dev.local — nunca en el repo»
 
 ═══════════════════════════════════════════════════════════════════════════════
 ENTORNOS

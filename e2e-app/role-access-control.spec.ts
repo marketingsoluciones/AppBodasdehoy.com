@@ -14,7 +14,7 @@
  *     - Sin JWT / sin relación con evento       → GUEST (pitch comercial)
  *
  * ═══════════════════════════════════════════════════════════
- * USUARIOS DE PRUEBA (todos con password: lorca2012M*+)
+ * USUARIOS DE PRUEBA (todos con password: [definida en TEST_USER_PASSWORD])
  * ═══════════════════════════════════════════════════════════
  *
  *   organizador (bodasdehoy.com@gmail.com)

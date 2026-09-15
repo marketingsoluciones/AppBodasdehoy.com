@@ -15,7 +15,7 @@
  * Ejecutar:
  *   E2E_ENV=dev PLAYWRIGHT_BROWSER=webkit \
  *     TEST_USER_EMAIL=bodasdehoy.com@gmail.com \
- *     TEST_USER_PASSWORD='lorca2012M*+' \
+ *     TEST_USER_PASSWORD=(process.env.TEST_USER_PASSWORD || '') \
  *     npx playwright test e2e-app/auth-flow.spec.ts
  */
 import { test, expect, type Page } from '@playwright/test';
