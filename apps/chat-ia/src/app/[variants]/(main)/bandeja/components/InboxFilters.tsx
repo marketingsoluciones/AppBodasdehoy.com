@@ -145,10 +145,12 @@ export function InboxFilters({
   );
 
   return (
-    <div className="flex flex-col gap-1.5 border-b border-gray-100 px-3 py-2">
-      {!hideRsvp && <div className="flex flex-wrap gap-1">{rsvpRow}</div>}
-      <div className="flex flex-wrap items-center gap-1">
-        {channelRow}
+    // QA 15-09 (dieta cabecera bandeja): RSVP + canal + cola IA en UNA sola
+    // fila wrap. Antes eran 2-3 filas apiladas que comían ~90px de alto.
+    <div className="flex flex-wrap items-center gap-1 border-b border-gray-100 px-3 py-1.5">
+      {!hideRsvp && <span className="flex flex-wrap items-center gap-1">{rsvpRow}</span>}
+      <span className="flex flex-wrap items-center gap-1">{channelRow}</span>
+      <span className="flex flex-wrap items-center gap-1">
         {iaCopilotActive && (
           <button
             aria-pressed={pendingIaActive}
@@ -177,7 +179,7 @@ export function InboxFilters({
             )}
           </button>
         )}
-      </div>
+      </span>
     </div>
   );
 }

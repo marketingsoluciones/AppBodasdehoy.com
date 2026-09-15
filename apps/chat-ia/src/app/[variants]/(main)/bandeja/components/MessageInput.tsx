@@ -171,6 +171,23 @@ function addRecentEmoji(emoji: string): void {
   } catch { /* ignore */ }
 }
 
+// QA 15-09: contexto temporal para el banner "Borrador del asistente".
+// El draft vive 24h en api-ia; sin marca de tiempo el agente no sabe si el
+// texto propuesto sigue siendo válido para la conversación actual.
+const DRAFT_STALE_MS = 6 * 60 * 60 * 1000;
+
+function formatDraftAge(updatedAt?: string): string | null {
+  if (!updatedAt) return null;
+  const ms = Date.now() - new Date(updatedAt).getTime();
+  if (Number.isNaN(ms) || ms < 0) return null;
+  const min = Math.floor(ms / 60_000);
+  if (min < 1) return 'hace un momento';
+  if (min < 60) return `hace ${min} min`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `hace ${h} h`;
+  return `hace ${Math.floor(h / 24)} d`;
+}
+
 function getDraftKey(conversationId: string, mode: ComposerMode): string {
   return `${DRAFT_KEY_PREFIX[mode]}${conversationId}`;
 }
@@ -497,7 +514,20 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
           <div className="flex-1 text-xs">
             <p className="font-semibold text-violet-900">
               Borrador del asistente {iaDraft.iaModel ? `(${iaDraft.iaModel})` : ''}
+              {formatDraftAge(iaDraft.updatedAt) && (
+                <span className="ml-1 font-normal text-violet-500">
+                  · {formatDraftAge(iaDraft.updatedAt)}
+                </span>
+              )}
             </p>
+            {/* QA 15-09: aviso de borrador antiguo (>6h). El draft persiste 24h
+                y sin este aviso el agente podría aprobar texto descontextualizado. */}
+            {iaDraft.updatedAt &&
+              Date.now() - new Date(iaDraft.updatedAt).getTime() > DRAFT_STALE_MS && (
+                <p className="mt-0.5 text-[10px] font-medium text-amber-700">
+                  ⚠️ Borrador antiguo (más de 6 h) — revisa que siga siendo válido antes de enviar.
+                </p>
+              )}
             <MiniMarkdown text={iaDraft.text} className="mt-0.5 line-clamp-2 break-words text-xs text-violet-800" />
           </div>
           <div className="flex shrink-0 gap-1">
