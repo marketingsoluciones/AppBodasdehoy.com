@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { canManageMessaging, getJwtRole } from './jwtRole';
+import { canManageMessaging, canManageRole, getJwtRole } from './jwtRole';
 
 /**
  * Auditoria QA 14-09 (N27/N29): gates visuales por rol del JWT.
@@ -42,5 +42,20 @@ describe('jwtRole (N27/N29)', () => {
   it('lee tambien de mcp_jwt_token como fallback', () => {
     localStorage.setItem('mcp_jwt_token', makeJwt({ role: 'admin' }));
     expect(canManageMessaging()).toBe(true);
+  });
+});
+describe('canManageRole — regla de rol aislada (auditoria 15-09)', () => {
+  it('acepta los roles que gestionan mensajeria', () => {
+    for (const role of ['agent', 'admin', 'support', 'superadmin']) {
+      expect(canManageRole(role)).toBe(true);
+    }
+  });
+
+  it('rechaza rol desconocido, vacio o ausente (default restrictivo)', () => {
+    expect(canManageRole('user')).toBe(false);
+    expect(canManageRole('guest')).toBe(false);
+    expect(canManageRole('')).toBe(false);
+    expect(canManageRole(undefined)).toBe(false);
+    expect(canManageRole(null)).toBe(false);
   });
 });

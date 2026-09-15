@@ -10,7 +10,7 @@ import { NewMessageModal } from './components/NewMessageModal';
 import { ScopeSelector, type ScopeId } from './components/ScopeSelector';
 import { UnifiedFeedView } from './components/UnifiedFeedView';
 import { type FeedItem, useUnifiedFeed } from './hooks/useUnifiedFeed';
-import { canManageMessaging } from '@/utils/jwtRole';
+import { useCanManageMessaging } from '@/hooks/useCanManageMessaging';
 
 // RESTAURA la categorización de la antigua /pendientes (auditoría 20-ago: se perdió al
 // fusionarla en "Esperan respuesta" como lista plana). Replica exacta de su
@@ -38,6 +38,7 @@ function classifyPendingItem(item: FeedItem): string {
 // Cualquier código que llegue a este page.tsx ya pasó ese filtro, por eso
 // aquí no hace falta un segundo gate — sería inalcanzable.
 export default function MessagesPage() {
+  const canManage = useCanManageMessaging();
   const router = useRouter();
   const activeTab = useActiveBandejaTab();
   const searchParams = useSearchParams();
@@ -404,7 +405,7 @@ export default function MessagesPage() {
                   </div>
                   {/* Gate N29 (QA 14-09): conectar canales solo para roles que
                       gestionan mensajeria; el resto ve copy de soporte. */}
-                  {canManageMessaging() ? (
+                  {canManage ? (
                     <div className="mt-4 flex items-center justify-center gap-2">
                       <button
                         className="rounded-lg bg-violet-600 px-3 py-2 text-xs font-semibold text-white hover:bg-violet-700"

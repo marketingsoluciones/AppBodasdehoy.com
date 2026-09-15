@@ -6,7 +6,7 @@ import { Virtuoso } from 'react-virtuoso';
 
 import type { FeedItem } from '../hooks/useUnifiedFeed';
 import { useBandejaBrand } from '../utils/brand';
-import { canManageMessaging } from '@/utils/jwtRole';
+import { useCanManageMessaging } from '@/hooks/useCanManageMessaging';
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -232,6 +232,7 @@ interface UnifiedFeedViewProps {
 
 export function UnifiedFeedView({ items, loading, onItemClick, groupBy, groups }: UnifiedFeedViewProps) {
   const brand = useBandejaBrand();
+  const canManage = useCanManageMessaging();
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<
@@ -320,7 +321,7 @@ export function UnifiedFeedView({ items, loading, onItemClick, groupBy, groups }
               <p className="mt-1 text-sm text-gray-400">Prueba otro filtro o cambia la búsqueda</p>
             </div>
             {/* Gate N29 (QA 14-09) */}
-            {canManageMessaging() && (
+            {canManage && (
               <button
                 className="mt-2 rounded-lg bg-pink-500 px-4 py-2 text-sm font-medium text-white hover:bg-pink-600 transition-colors"
                 onClick={() => router.push('/settings/integrations')}

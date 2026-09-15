@@ -20,7 +20,7 @@ import {
 } from '@/services/mcpApi/whatsapp';
 import { useChatStore } from '@/store/chat';
 import { useWhatsAppSession } from '../../bandeja/hooks/useWhatsAppSession';
-import { canManageMessaging } from '@/utils/jwtRole';
+import { useCanManageMessaging } from '@/hooks/useCanManageMessaging';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -257,6 +257,7 @@ function ChannelCard({
   onConnect: () => void;
   onDelete: () => void;
 }) {
+  const canManage = useCanManageMessaging();
   const cfg = STATUS_CONFIG[channel.status] ?? STATUS_CONFIG.DISCONNECTED;
 
   return (
@@ -278,7 +279,7 @@ function ChannelCard({
         {/* Gate N27/N29 (QA 14-09): gestion de canales solo para roles que
             gestionan mensajeria. Defensa en profundidad; la autorizacion
             real es server-side. */}
-        {canManageMessaging() && (
+        {canManage && (
           <Space>
             {channel.type !== 'WAB' && (
               <Button onClick={onConnect} size="small" style={{ borderColor: '#52c41a', color: '#52c41a' }}>
@@ -480,6 +481,7 @@ function WhatsAppDirectSession({ development }: { development: string }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 function IntegrationsPageInner() {
+  const canManage = useCanManageMessaging();
   const development = useChatStore((s) => s.development) || 'bodasdehoy';
   // P0 "verdad doble" (informe unificado 14-ago): antes isAuthenticated era SOLO por
   // currentUserId → /integraciones mostraba "Sin conectar / Iniciar sesión" aunque hubiera
@@ -689,7 +691,7 @@ function IntegrationsPageInner() {
                   </div>
                 </div>
               </div>
-              {isAuthenticated && canManageMessaging() && (
+              {isAuthenticated && canManage && (
                 <Button
                   block
                   onClick={() => setShowCreateModal(true)}
@@ -737,7 +739,7 @@ function IntegrationsPageInner() {
       {/* ── Gestión detallada de canales WhatsApp ── */}
       {/* Gate N27/N29 (QA 14-09): la gestión detallada solo para roles que
           gestionan mensajería */}
-      {isAuthenticated && canManageMessaging() && (
+      {isAuthenticated && canManage && (
         <section>
           <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
             <Text strong>Canales WhatsApp</Text>

@@ -32,8 +32,20 @@ export function getJwtRole(): JwtRole {
   return payload?.role || 'user';
 }
 
-/** true solo para roles que gestionan canales/mensajería de la marca. */
+/** Roles que pueden gestionar canales/mensajería de la marca. */
+export const MESSAGING_MANAGER_ROLES = ['agent', 'admin', 'support', 'superadmin'];
+
+/** Regla de rol, aislada para poder aplicarla a cualquier fuente (store o JWT). */
+export function canManageRole(role?: string | null): boolean {
+  return !!role && MESSAGING_MANAGER_ROLES.includes(role);
+}
+
+/**
+ * true solo para roles que gestionan canales/mensajería de la marca.
+ *
+ * Preferir el hook `useCanManageMessaging()`: esta versión lee localStorage en
+ * render (no reactiva, y en SSR siempre 'user') y solo mira el claim del JWT.
+ */
 export function canManageMessaging(): boolean {
-  const role = getJwtRole();
-  return role === 'agent' || role === 'admin' || role === 'support' || role === 'superadmin';
+  return canManageRole(getJwtRole());
 }
