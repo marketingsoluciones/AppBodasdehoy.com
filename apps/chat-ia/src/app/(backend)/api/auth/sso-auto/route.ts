@@ -151,6 +151,7 @@ export async function GET(request: NextRequest) {
     // nunca de valores cacheados del cliente ni de data.email sin validar.
     const email = fbPayload?.email || data.email || '';
     const displayName = fbPayload?.name || '';
+    const photoUrl = fbPayload?.picture || '';
     const cookieDomain = getCrossAppCookieDomain(request);
     const cookieDomainAttribute = cookieDomain ? `; domain=${cookieDomain}` : '';
 
@@ -187,7 +188,10 @@ export async function GET(request: NextRequest) {
       user_id: userId,
       user_type: 'registered',
     };
-    const configJson = JSON.stringify(config);
+    // JSON dentro de <script>: JSON.stringify NO escapa "</script>", y `name` viene
+    // del claim editable por el propio usuario → escapamos '<' (auditoría 15-09).
+    const js = (value: unknown) => JSON.stringify(value ?? '').replaceAll('<', '\\u003c');
+    const configJson = js(config);
     // Cookie sessionBodas cross-subdomain de la marca actual — 30 días.
     // Si la mutación falló, queda vacío y NO seteamos cookie inválida.
     const sessionBodasCookieScript = sessionBodas
@@ -205,25 +209,29 @@ export async function GET(request: NextRequest) {
 <script>
 try {
   var cfg = ${configJson};
-  // Purgar identidad anterior (N15)
+  // Purgar identidad anterior (N15) — incluida la marca activa, que si no
+  // sobrevive al cambio de cuenta y la sesión nueva arranca en el tenant del anterior.
   localStorage.removeItem('user_email');
   localStorage.removeItem('user_display_name');
   localStorage.removeItem('user_uid');
   localStorage.removeItem('user_photo_url');
-  // Escribir identidad de ESTA sesión, derivada del JWT Firebase server-side
-  localStorage.setItem('user_email', ${JSON.stringify(email)});
-  localStorage.setItem('user_uid', ${JSON.stringify(userId)});
-  if (${JSON.stringify(displayName)}) localStorage.setItem('user_display_name', ${JSON.stringify(displayName)});
+  localStorage.removeItem('current_development');
+  // Escribir identidad de ESTA sesión, derivada del JWT Firebase server-side.
+  // (Auditoría 15-09: el merge dejó un bloque duplicado que reescribía uid/email y
+  //  hacía removeItem de user_display_name JUSTO DESPUÉS de escribirlo → el nombre
+  //  del JWT nunca sobrevivía. Un solo bloque, en orden.)
+  localStorage.setItem('user_uid', ${js(userId)});
+  localStorage.setItem('user_email', ${js(email)});
+  if (${js(displayName)}) localStorage.setItem('user_display_name', ${js(displayName)});
+  if (${js(photoUrl)}) localStorage.setItem('user_photo_url', ${js(photoUrl)});
+  localStorage.setItem('current_development', ${js(development)});
   localStorage.setItem('dev-user-config', JSON.stringify(cfg));
-  localStorage.setItem('jwt_token', ${JSON.stringify(token)});
-  localStorage.setItem('mcp_jwt_token', ${JSON.stringify(token)});
-  localStorage.setItem('user_uid', ${JSON.stringify(userId)});
-  localStorage.setItem('user_email', ${JSON.stringify(email)});
-  localStorage.removeItem('user_display_name');
+  localStorage.setItem('jwt_token', ${js(token)});
+  localStorage.setItem('mcp_jwt_token', ${js(token)});
   document.cookie = 'dev-user-config=' + encodeURIComponent(JSON.stringify(cfg)) + '; path=/; max-age=' + (30 * 24 * 60 * 60) + '; SameSite=Lax';
   ${sessionBodasCookieScript}
 } catch(e) {}
-window.location.replace(${JSON.stringify(safeRedirect)});
+window.location.replace(${js(safeRedirect)});
 </script>
 <p>Iniciando sesión...</p>
 </body>
