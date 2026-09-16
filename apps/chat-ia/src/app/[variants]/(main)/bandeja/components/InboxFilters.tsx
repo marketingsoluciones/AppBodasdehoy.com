@@ -18,55 +18,59 @@ export type RsvpFilter = 'all' | 'pending' | 'confirmed' | 'declined';
 export type ChannelFilter = 'all' | 'wa' | 'sms' | 'ig' | 'web' | 'tg' | 'fb';
 
 interface InboxFiltersProps {
-  /** Si true, oculta los filtros RSVP (modo Soporte sin RSVP). */
-  hideRsvp?: boolean;
-  rsvp: RsvpFilter;
   channel: ChannelFilter;
-  onRsvpChange: (v: RsvpFilter) => void;
-  onChannelChange: (v: ChannelFilter) => void;
   /** Contadores para badge en cada filtro (opcional). */
   counts?: {
-    rsvp?: Partial<Record<RsvpFilter, number>>;
     channel?: Partial<Record<ChannelFilter, number>>;
+    rsvp?: Partial<Record<RsvpFilter, number>>;
   };
+  /** Si true, oculta los filtros RSVP (modo Soporte sin RSVP). */
+  hideRsvp?: boolean;
   /** FASE B v2.0 — Cola "Pendientes IA" (Diseño 25-jun). Solo visible cuando
    *  iaLevel='copilot'. Muestra chip "✦ Pendientes N" a la derecha de los
    *  filtros de canal. Al activarse, filtra lista a draftState='pending'. */
   iaCopilotActive?: boolean;
-  pendingIaCount?: number;
-  pendingIaActive?: boolean;
+  onChannelChange: (v: ChannelFilter) => void;
   onPendingIaToggle?: () => void;
+  onRsvpChange: (v: RsvpFilter) => void;
+  pendingIaActive?: boolean;
+  pendingIaCount?: number;
+  rsvp: RsvpFilter;
 }
 
 const RSVP_OPTIONS: Array<{
-  value: RsvpFilter;
-  label: string;
-  icon?: string;
   activeBg: string;
   activeColor: string;
+  icon?: string;
+  label: string;
+  value: RsvpFilter;
 }> = [
-  { value: 'all', label: 'Todos', activeBg: '#EDE9FE', activeColor: '#5B21B6' },
-  { value: 'pending', label: 'Pend.', icon: '⏳', activeBg: '#FEF3C7', activeColor: '#B45309' },
-  { value: 'confirmed', label: 'Conf.', icon: '✓', activeBg: '#DCFCE7', activeColor: '#15803D' },
-  { value: 'declined', label: 'Decl.', icon: '✕', activeBg: '#FFE4E6', activeColor: '#9F1239' },
+  { activeBg: '#EDE9FE', activeColor: '#5B21B6', label: 'Todos', value: 'all' },
+  { activeBg: '#FEF3C7', activeColor: '#B45309', icon: '⏳', label: 'Pend.', value: 'pending' },
+  { activeBg: '#DCFCE7', activeColor: '#15803D', icon: '✓', label: 'Conf.', value: 'confirmed' },
+  { activeBg: '#FFE4E6', activeColor: '#9F1239', icon: '✕', label: 'Decl.', value: 'declined' },
 ];
 
+// Prototipo aprobado (16-09): nombre completo y punto de color, no abreviaturas. "WA", "IG"
+// y "TG" obligaban a descifrar el filtro; el punto da el canal de un vistazo y el nombre
+// quita la duda. `dot` es el color propio del canal, que NO es marca: es igual en todas.
 const CHANNEL_OPTIONS: Array<{
-  value: ChannelFilter;
-  label: string;
   activeBg: string;
   activeColor: string;
+  dot?: string;
+  label: string;
+  value: ChannelFilter;
 }> = [
-  { value: 'all', label: 'Todo', activeBg: '#EDE9FE', activeColor: '#5B21B6' },
-  { value: 'wa', label: 'WA', activeBg: '#DCFCE7', activeColor: '#166534' },
+  { activeBg: '#EDE9FE', activeColor: '#5B21B6', label: 'Todo', value: 'all' },
+  { activeBg: '#DCFCE7', activeColor: '#166534', dot: '#22C55E', label: 'WhatsApp', value: 'wa' },
   // BUG-INBOX-08 QA #34 (29-jun): SMS visible en filtros pero sin canal SMS
   // configurable (no hay /messages/sms con setup propio ni backend provider
   // tipo Twilio/Vonage). Ocultar hasta que se implemente. El type
   // ChannelFilter mantiene 'sms' para no romper consumidores existentes.
   // { value: 'sms', label: 'SMS', activeBg: '#E2E8F0', activeColor: '#1F2937' },
-  { value: 'ig', label: 'IG', activeBg: '#FCE7F3', activeColor: '#9D174D' },
-  { value: 'web', label: 'Web', activeBg: '#EDE9FE', activeColor: '#5B21B6' },
-  { value: 'tg', label: 'TG', activeBg: '#DBEAFE', activeColor: '#1E40AF' },
+  { activeBg: '#FCE7F3', activeColor: '#9D174D', dot: '#E1306C', label: 'Instagram', value: 'ig' },
+  { activeBg: '#EDE9FE', activeColor: '#5B21B6', dot: '#6B4EFF', label: 'Chat web', value: 'web' },
+  { activeBg: '#DBEAFE', activeColor: '#1E40AF', dot: '#38BDF8', label: 'Telegram', value: 'tg' },
 ];
 
 const INACTIVE_STYLE = { backgroundColor: '#F1F0F5', color: '#6B6678' };
@@ -99,7 +103,7 @@ export function InboxFilters({
         return (
           <button
             aria-pressed={isActive}
-            className="inline-flex items-center gap-1 rounded-[9px] px-2 py-1 text-[11px] font-semibold transition-colors"
+            className="inline-flex flex-none items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors"
             key={opt.value}
             onClick={() => onRsvpChange(opt.value)}
             style={isActive ? activeStyle(opt) : INACTIVE_STYLE}
@@ -126,12 +130,19 @@ export function InboxFilters({
         return (
           <button
             aria-pressed={isActive}
-            className="inline-flex items-center gap-1 rounded-[9px] px-2 py-1 text-[11px] font-semibold transition-colors"
+            className="inline-flex flex-none items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors"
             key={opt.value}
             onClick={() => onChannelChange(opt.value)}
             style={isActive ? activeStyle(opt) : INACTIVE_STYLE}
             type="button"
           >
+            {opt.dot && (
+              <span
+                aria-hidden
+                className="inline-block h-1.5 w-1.5 flex-none rounded-full"
+                style={{ backgroundColor: opt.dot }}
+              />
+            )}
             <span>{opt.label}</span>
             {count != null && count > 0 && (
               <span className="ml-0.5 rounded-full bg-white/70 px-1 text-[9px] font-bold">
@@ -147,10 +158,12 @@ export function InboxFilters({
   return (
     // QA 15-09 (dieta cabecera bandeja): RSVP + canal + cola IA en UNA sola
     // fila wrap. Antes eran 2-3 filas apiladas que comían ~90px de alto.
-    <div className="flex flex-wrap items-center gap-1 border-b border-gray-100 px-3 py-1.5">
-      {!hideRsvp && <span className="flex flex-wrap items-center gap-1">{rsvpRow}</span>}
-      <span className="flex flex-wrap items-center gap-1">{channelRow}</span>
-      <span className="flex flex-wrap items-center gap-1">
+    // Una sola fila que se desplaza en horizontal (prototipo 16-09). Con `flex-wrap` los
+    // filtros se apilaban en dos o tres líneas y se comían ~90px de alto de la lista.
+    <div className="no-scrollbar flex items-center gap-1 overflow-x-auto border-b border-gray-100 px-3 py-1.5">
+      {!hideRsvp && <span className="flex flex-none items-center gap-1">{rsvpRow}</span>}
+      <span className="flex flex-none items-center gap-1">{channelRow}</span>
+      <span className="flex flex-none items-center gap-1">
         {iaCopilotActive && (
           <button
             aria-pressed={pendingIaActive}
@@ -158,11 +171,11 @@ export function InboxFilters({
             onClick={onPendingIaToggle}
             style={{
               backgroundColor: '#CCFBF1',
-              color: '#0F766E',
               border: pendingIaActive ? '1.5px solid #0D9488' : '1.5px solid transparent',
+              color: '#0F766E',
             }}
-            type="button"
             title="Borradores IA esperando aprobación"
+            type="button"
           >
             <span aria-hidden>✦</span>
             {/* Etiqueta "Borradores IA" (no "Pendientes"): "Pendientes" en el rail = "Esperan

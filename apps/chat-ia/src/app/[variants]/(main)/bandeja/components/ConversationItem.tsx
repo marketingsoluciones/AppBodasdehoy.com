@@ -49,25 +49,25 @@ function TypingIndicator() {
 
 // Colores canal (rediseño 18-jul). Solo puntos indicadores, no fondos.
 const CHANNEL_DOT: Record<string, string> = {
-  whatsapp: '#25D366',
-  instagram: '#E1306C',
+  email: '#84848F',
   facebook: '#1877F2',
+  instagram: '#E1306C',
+  sms: '#84848F',
   telegram: '#2AABEE',
   web: '#6B4EFF',
-  email: '#84848F',
-  sms: '#84848F',
+  whatsapp: '#25D366',
 };
 
 // Nombre legible del canal para el chip de la fila (antes solo había un punto de 12px,
 // indistinguible de un vistazo — sobre todo WhatsApp vs el punto verde de "en línea").
 const CHANNEL_NAME: Record<string, string> = {
-  whatsapp: 'WhatsApp',
-  instagram: 'Instagram',
+  email: 'Email',
   facebook: 'Facebook',
+  instagram: 'Instagram',
+  sms: 'SMS',
   telegram: 'Telegram',
   web: 'Web',
-  email: 'Email',
-  sms: 'SMS',
+  whatsapp: 'WhatsApp',
 };
 
 // Tipo de línea WhatsApp (api-ia channelType): distinguir de un vistazo QR vs Meta API,
@@ -174,23 +174,25 @@ export function ConversationItem({
         className="w-full text-left transition-colors"
         onClick={handleClick}
         onContextMenu={handleContextMenu}
-        style={{
-          backgroundColor: isSelected ? '#F2F1F6' : 'transparent',
-        }}
         onMouseEnter={(e) => {
           if (!isSelected) e.currentTarget.style.backgroundColor = '#FCFCFD';
         }}
         onMouseLeave={(e) => {
           if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent';
         }}
+        style={{
+          backgroundColor: isSelected ? '#F2F1F6' : 'transparent',
+        }}
         type="button"
       >
-        {/* Fase 2 hifi: padding 10px 12px (spec Bandeja - Prototipo). */}
-        <div className="flex items-start gap-3 px-3 py-2.5">
-          {/* Avatar 40x40 con punto de canal 12px bottom-right */}
+        {/* Fila compacta (16-09, prototipo aprobado): 9px de alto interior y avatar de 36px,
+            centrado en vertical. Antes eran 10px + avatar de 40 alineado arriba y cabían
+            cuatro conversaciones en una pantalla de portátil. */}
+        <div className="flex items-center gap-2.5 px-3 py-2">
+          {/* Avatar 36x36 con punto de canal */}
           <div className="relative flex-shrink-0">
             <div
-              className="flex h-10 w-10 items-center justify-center rounded-full text-base font-semibold"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold"
               style={{
                 backgroundColor: '#F2F1F6',
                 color: '#1C1C22',
@@ -274,7 +276,7 @@ export function ConversationItem({
             </div>
 
             {/* Fila 3: chips secundarios (canal + status + asignada + phone) */}
-            <div className="mt-1 flex items-center gap-1.5 text-[11px]" style={{ color: '#9A9AA6' }}>
+            <div className="mt-0.5 flex items-center gap-1 text-[10px]" style={{ color: '#9A9AA6' }}>
               {/* Chip de canal con color + nombre → distinguir WhatsApp de otros de un vistazo.
                   En WhatsApp añade el tipo de línea (QR / Meta API) — nº1 de la auditoría 1-sep. */}
               <span
