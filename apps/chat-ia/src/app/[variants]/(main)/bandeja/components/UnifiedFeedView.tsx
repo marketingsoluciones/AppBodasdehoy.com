@@ -8,6 +8,8 @@ import type { FeedItem } from '../hooks/useUnifiedFeed';
 import { useBandejaBrand } from '../utils/brand';
 import { useCanManageMessaging } from '@/hooks/useCanManageMessaging';
 
+import { describeVisibility } from '../utils/visibility';
+
 // ─── Config ──────────────────────────────────────────────────────────────────
 
 const FEED_CHANNEL_CONFIG: Record<string, { bg: string; icon: string; label: string }> = {
@@ -58,6 +60,7 @@ function initials(name: string): string {
 // ─── FeedItemRow ─────────────────────────────────────────────────────────────
 
 function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void }) {
+  const visibility = describeVisibility(item.sharedWith);
   const channelKey = item.channelKind as string;
   const cfg = FEED_CHANNEL_CONFIG[channelKey] ?? FEED_CHANNEL_CONFIG.web;
   const hasUnread = item.unreadCount > 0 || !item.isRead;
@@ -75,7 +78,7 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
   // #8: últimos dígitos de la LÍNEA receptora (distinguir 910 vs Meta por hilo).
   const waLine =
     item.channelKind === 'whatsapp' && item.lineLabel
-      ? String(item.lineLabel).replace(/\D/g, '').slice(-4) || String(item.lineLabel)
+      ? String(item.lineLabel).replaceAll(/\D/g, '').slice(-4) || String(item.lineLabel)
       : '';
 
   let rowBg = 'bg-white hover:bg-gray-50';
@@ -87,7 +90,7 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
 
   return (
     <button
-      className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors ${rowBg} border-b border-gray-100 last:border-0`}
+      className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors ${rowBg} border-b border-gray-100 last:border-0`}
       onClick={onClick}
       type="button"
     >
@@ -95,7 +98,7 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
           según FASE B v2.0 P-handoff Bandeja Diseño 24-jun. */}
       <div className="relative shrink-0">
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-full ${avatarBg} text-sm font-medium text-gray-600`}
+          className={`flex h-9 w-9 items-center justify-center rounded-full ${avatarBg} text-sm font-medium text-gray-600`}
         >
           {item.kind === 'notification' ? (
             <span className="text-base">{cfg.icon}</span>
@@ -173,6 +176,17 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
             <span className="truncate">{item.assignedAgentName}</span>
           </span>
         )}
+        {/* Con quién está compartida. Va aquí y no solo en la lista por canal porque la
+            bandeja principal es esta, y el chip no servía de nada donde nadie lo veía. */}
+        {visibility && (
+          <span
+            className="ml-1 mt-1 inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+            style={{ backgroundColor: '#EEF2FF', color: '#4F46E5' }}
+            title={visibility.title}
+          >
+            {visibility.label}
+          </span>
+        )}
       </div>
 
       {/* Unread indicator */}
@@ -218,14 +232,14 @@ interface FeedGroup {
   label: string;
 }
 interface UnifiedFeedViewProps {
-  items: FeedItem[];
-  loading: boolean;
-  onItemClick: (item: FeedItem) => void;
   /** Vista "Esperan respuesta" (restaura la categorización de la antigua /pendientes,
    *  auditoría 20-ago): si se pasan groupBy+groups, renderiza secciones con cabecera por
    *  dominio (Mensajería/Servicios/Itinerario/Asistente/Otras) en vez de lista plana. */
   groupBy?: (item: FeedItem) => string;
   groups?: FeedGroup[];
+  items: FeedItem[];
+  loading: boolean;
+  onItemClick: (item: FeedItem) => void;
 }
 
 // ─── Main component ──────────────────────────────────────────────────────────

@@ -24,15 +24,14 @@ import { describeVisibility } from '../utils/visibility';
 import { ChannelTypeChip } from './ChannelTypeChip';
 import { ConversationSummary } from './ConversationSummary';
 import { SharePanel } from './SharePanel';
-import { IaLevelPicker, type IaLevel } from './IaLevelPicker';
-import { MiniMarkdown } from './MiniMarkdown';
+import { IaLevelPicker } from './IaLevelPicker';
 
 interface ConversationHeaderProps {
   channel?: string;
   conversationId: string;
-  onSearchFilter?: (term: string) => void;
   /** Rediseño A.4 (18-jul): controla el sidebar desplegable de detalles. */
   detailsOpen?: boolean;
+  onSearchFilter?: (term: string) => void;
   onToggleDetails?: () => void;
 }
 
@@ -506,15 +505,15 @@ export function ConversationHeader({
             aria-label="Buscar en conversación"
             className="flex h-8 w-8 items-center justify-center rounded-md transition-colors"
             onClick={() => (searchOpen ? closeSearch() : setSearchOpen(true))}
-            style={{
-              backgroundColor: searchOpen ? brand.brandBg : 'transparent',
-              color: searchOpen ? brand.brand : '#84848F',
-            }}
             onMouseEnter={(e) => {
               if (!searchOpen) e.currentTarget.style.backgroundColor = '#F2F1F6';
             }}
             onMouseLeave={(e) => {
               if (!searchOpen) e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+            style={{
+              backgroundColor: searchOpen ? brand.brandBg : 'transparent',
+              color: searchOpen ? brand.brand : '#84848F',
             }}
             title="Buscar en conversación (⌘K)"
             type="button"
@@ -563,15 +562,15 @@ export function ConversationHeader({
               aria-pressed={!!detailsOpen}
               className="flex h-8 w-8 items-center justify-center rounded-md transition-colors"
               onClick={onToggleDetails}
-              style={{
-                backgroundColor: detailsOpen ? brand.brandBg : 'transparent',
-                color: detailsOpen ? brand.brand : '#84848F',
-              }}
               onMouseEnter={(e) => {
                 if (!detailsOpen) e.currentTarget.style.backgroundColor = '#F2F1F6';
               }}
               onMouseLeave={(e) => {
                 if (!detailsOpen) e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+              style={{
+                backgroundColor: detailsOpen ? brand.brandBg : 'transparent',
+                color: detailsOpen ? brand.brand : '#84848F',
               }}
               title={detailsOpen ? 'Ocultar detalles del contacto' : 'Mostrar detalles del contacto'}
               type="button"
@@ -587,7 +586,7 @@ export function ConversationHeader({
                 viewBox="0 0 24 24"
                 width="16"
               >
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <rect height="18" rx="2" ry="2" width="18" x="3" y="3" />
                 <line x1="15" x2="15" y1="3" y2="21" />
               </svg>
             </button>
@@ -596,15 +595,36 @@ export function ConversationHeader({
           {/* M5 (16-09): compartir la conversación con personas o equipos. Las mutaciones
               existían en api-mcp desde hace tiempo y el front no llamaba a ninguna. */}
           <div className="relative">
+            {/* Pastilla con el color de marca: como texto gris entre iconos pasaba
+                desapercibido y la gente no encontraba la función (feedback 16-09). */}
             <button
               aria-expanded={shareOpen}
               aria-label="Compartir conversación"
-              className="rounded-md px-2 py-1 text-xs font-medium transition-colors"
+              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition-colors"
               onClick={() => setShareOpen((v) => !v)}
-              style={{ color: shareOpen ? '#4F46E5' : '#84848F' }}
-              title="Compartir conversación"
+              style={{
+                backgroundColor: shareOpen ? brand.brand : brand.brandBg,
+                color: shareOpen ? brand.onBrand : brand.brandText,
+              }}
+              title="Compartir conversación con alguien del equipo"
               type="button"
             >
+              <svg
+                fill="none"
+                height="13"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                width="13"
+              >
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <line x1="8.6" x2="15.4" y1="13.5" y2="17.5" />
+                <line x1="15.4" x2="8.6" y1="6.5" y2="10.5" />
+              </svg>
               Compartir
             </button>
             {shareOpen && conversationId && (
@@ -623,15 +643,15 @@ export function ConversationHeader({
               aria-label="Más opciones"
               className="flex h-8 w-8 items-center justify-center rounded-md transition-colors"
               onClick={() => setMenuOpen(!menuOpen)}
-              style={{
-                backgroundColor: menuOpen ? '#F2F1F6' : 'transparent',
-                color: menuOpen ? '#1C1C22' : '#84848F',
-              }}
               onMouseEnter={(e) => {
                 if (!menuOpen) e.currentTarget.style.backgroundColor = '#F2F1F6';
               }}
               onMouseLeave={(e) => {
                 if (!menuOpen) e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+              style={{
+                backgroundColor: menuOpen ? '#F2F1F6' : 'transparent',
+                color: menuOpen ? '#1C1C22' : '#84848F',
               }}
               title="Más opciones"
               type="button"

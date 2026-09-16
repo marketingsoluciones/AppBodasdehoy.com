@@ -15,23 +15,28 @@ import { useChatStore } from '@/store/chat';
 
 import { useAgentAssignmentOverrides } from './useAgentAssignmentOverrides';
 import { type ChannelKind, useRecentConversations } from './useRecentConversations';
+import type { SharedPrincipal } from '../utils/visibility';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export type FeedItemKind = 'conversation' | 'notification';
 
 export interface FeedItem {
+  /** FASE 2 Agentes (17-ago): AGENTE IA responsable de la conversación. Null-safe:
+   *  undefined hasta que backend exponga assignedAgentId (mismo patrón que rsvpStatus).
+   *  El badge de responsable y el filtro ?agent= de la Bandeja se auto-activan cuando
+   *  hay valor; hasta entonces quedan dormidos. */
+  assignedAgentId?: string | null;
+  assignedAgentName?: string | null;
   channelKind: ChannelKind | 'notification';
   /** Short label for multi-channel disambiguation (e.g. "Sv", "IG") */
   channelLabel?: string;
+  /** First URL segment: /messages/{channelParam}/... (null for notifications) */
+  channelParam: string | null;
   /** Tipo de línea WhatsApp (WAB=Meta API · WEB_QR=QR). Unifica la estética WhatsApp
    *  (Meta+QR bajo un mismo verde) y a la vez muestra por qué línea entró. undefined
    *  para canales no-WhatsApp. */
   channelType?: 'WAB' | 'WEB_QR' | string | null;
-  /** #8: línea/número receptor (para distinguir de qué WhatsApp viene el hilo). */
-  lineLabel?: string | null;
-  /** First URL segment: /messages/{channelParam}/... (null for notifications) */
-  channelParam: string | null;
   /** Second URL segment: /messages/{channelParam}/{conversationId} (null for notifications) */
   conversationId: string | null;
   /** 'conv-{channelParam}-{conversationId}' or 'notif-{notificationId}' */
@@ -41,15 +46,14 @@ export interface FeedItem {
    *  newsletter/broadcast → la lista pinta un tag "Informativo" (ISSUE-002 dogfood 20-ago). */
   jidType?: string | null;
   kind: FeedItemKind;
+  /** #8: línea/número receptor (para distinguir de qué WhatsApp viene el hilo). */
+  lineLabel?: string | null;
+  /** ID del contacto CRM vinculado. */
+  linkedContactId?: string | null;
+  /** ID de evento vinculado (linkedEventId) — para filtrar por scope evento. */
+  linkedEventId?: string | null;
   /** Contact name or notification type label */
   name: string;
-  /** Pre-computed navigation URL (for notifications) */
-  navigationUrl?: string;
-  /** null for conversations */
-  notificationId: string | null;
-  /** Tipo crudo de la notificación (service_comment, itinerary_*, whatsapp_message…)
-   *  para clasificar por dominio en la vista "Esperan respuesta". undefined en conversaciones. */
-  notifType?: string;
   /** Last message preview or notification message */
   preview: string;
   /** ISO string for sorting and display */
@@ -59,31 +63,45 @@ export interface FeedItem {
    *  badge cuando hay valor. Vendrá de ConversationExtended.guestStatus
    *  (api-mcp) — hoy se queda undefined hasta que api-mcp lo exponga. */
   rsvpStatus?: 'confirmed' | 'pending' | 'declined';
-  /** ID de evento vinculado (linkedEventId) — para filtrar por scope evento. */
-  linkedEventId?: string | null;
-  /** ID del contacto CRM vinculado. */
-  linkedContactId?: string | null;
-  /** FASE 2 Agentes (17-ago): AGENTE IA responsable de la conversación. Null-safe:
-   *  undefined hasta que backend exponga assignedAgentId (mismo patrón que rsvpStatus).
-   *  El badge de responsable y el filtro ?agent= de la Bandeja se auto-activan cuando
-   *  hay valor; hasta entonces quedan dormidos. */
-  assignedAgentId?: string | null;
-  assignedAgentName?: string | null;
+  /** null for conversations */
+  notificationId: string | null;
+  /** Pre-computed navigation URL (for notifications) */
+  navigationUrl?: string;
+  /** Con quién está compartida, para el chip de visibilidad en la bandeja principal. */
+  sharedWith?: SharedPrincipal[];
+  /** Tipo crudo de la notificación (service_comment, itinerary_*, whatsapp_message…)
+   *  para clasificar por dominio en la vista "Esperan respuesta". undefined en conversaciones. */
+  notifType?: string;
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const TYPE_LABEL: Record<string, { icon: string; label: string }> = {
   access_revoked: { icon: '🔒', label: 'Acceso revocado' },
-  permission_updated: { icon: '🔑', label: 'Permiso actualizado' },
-  resource_access_revoked: { icon: '🚫', label: 'Acceso eliminado' },
-  resource_shared: { icon: '📤', label: 'Recurso compartido' },
-  task_reminder: { icon: '📋', label: 'Tarea pendiente' },
-  whatsapp_message: { icon: '💬', label: 'Mensaje WhatsApp' },
   // 2-jul: shape acordado con BACKEND-api-mcp para notifs de comentarios en
-  // /servicios y /itinerario. Payload esperado: { entity_type, entity_id,
-  // comment_id, author_id, author_name, excerpt, created_at, url }.
-  comment_added: { icon: '💭', label: 'Nuevo comentario' },
+// /servicios y /itinerario. Payload esperado: { entity_type, entity_id,
+// comment_id, author_id, author_name, excerpt, created_at, url }.
+comment_added: { icon: '💭', label: 'Nuevo comentario' },
+  
+
+
+permission_updated: { icon: '🔑', label: 'Permiso actualizado' },
+  
+
+
+resource_access_revoked: { icon: '🚫', label: 'Acceso eliminado' },
+  
+
+
+resource_shared: { icon: '📤', label: 'Recurso compartido' },
+  
+
+
+task_reminder: { icon: '📋', label: 'Tarea pendiente' },
+  
+  
+  
+  whatsapp_message: { icon: '💬', label: 'Mensaje WhatsApp' },
 };
 
 function computeNotificationUrl(
@@ -272,16 +290,17 @@ export function useUnifiedFeed(maxItems = 200): {
       channelLabel: conv.channelLabel,
       channelParam: conv.channelParam,
       channelType: conv.channelType ?? null,
-      lineLabel: conv.lineLabel ?? null,
       conversationId: conv.conversationId,
       id: `conv-${conv.channelParam}-${conv.conversationId}`,
       isRead: conv.unreadCount === 0,
       jidType: (conv as any).jidType ?? null,
       kind: 'conversation' as const,
+      lineLabel: conv.lineLabel ?? null,
       linkedContactId: conv.linkedContactId,
       linkedEventId: conv.linkedEventId,
       name: conv.name,
       notificationId: null,
+      sharedWith: conv.sharedWith,
       preview: conv.lastMessage,
       // FASE B v2.0 — api-mcp commit 7d52fec (25-jun) expone guestStatus.
       rsvpStatus: conv.guestStatus ?? undefined,

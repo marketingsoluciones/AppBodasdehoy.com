@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { readSharedWith, type SharedPrincipal } from '../utils/visibility';
+
 import { useChatStore } from '@/store/chat';
 import { getWhatsAppChannels, getWhatsAppConversationsGQL } from '@/services/mcpApi/whatsapp';
 
@@ -15,12 +17,6 @@ import { useMessageStream } from './useMessageStream';
 export type ChannelKind = 'whatsapp' | 'instagram' | 'telegram' | 'email' | 'web' | 'facebook';
 
 export interface RecentConversation {
-  /** Short label identifying the specific channel (e.g. "Boda", "Sv", "2") */
-  channelLabel?: string;
-  /** URL segment used for navigation: wa-{channelId}, instagram, telegram, etc. */
-  channelParam: string;
-  /** Conversation id used as the second URL segment */
-  conversationId: string;
   /** FASE 2 Agentes (17-ago): id/nombre del AGENTE IA (sesión LobeChat) responsable
    *  de la conversación. DISTINTO de assignedToUserId (humano). Null-safe: undefined
    *  hasta que backend exponga el campo (ticket assignedAgentId). Mismo patrón que
@@ -29,29 +25,38 @@ export interface RecentConversation {
   assignedAgentId?: string | null;
   assignedAgentName?: string | null;
   assignedToUserId?: string | null;
-  kind: ChannelKind;
+  channelId?: string | null;
+  /** Short label identifying the specific channel (e.g. "Boda", "Sv", "2") */
+  channelLabel?: string;
+  /** URL segment used for navigation: wa-{channelId}, instagram, telegram, etc. */
+  channelParam: string;
   /** Multicanal (api-ia b6d1823): tipo de línea WhatsApp — 'WAB' (Meta Business API) o
    *  'WEB_QR' (número personal vinculado por QR). Permite unificar la estética WhatsApp
    *  (Meta+QR bajo un mismo verde) y a la vez decir de un vistazo por qué línea entró. */
   channelType?: 'WAB' | 'WEB_QR' | string | null;
-  channelId?: string | null;
-  /** #8: teléfono/nombre de la LÍNEA receptora (para distinguir 910 vs Meta por hilo). */
-  lineLabel?: string | null;
-  lastMessage: string;
-  lastMessageAt: string;
-  lastInboundAt?: string;
-  lastOutboundAt?: string;
-  labels?: any[];
-  linkedContactId?: string | null;
-  linkedEventId?: string | null;
+  /** Conversation id used as the second URL segment */
+  conversationId: string;
   /** FASE B v2.0 — api-mcp commit 7d52fec (25-jun): RSVP visible en lista. */
   guestStatus?: 'confirmed' | 'pending' | 'declined' | null;
-  jidType?: string | null;
   jidRaw?: string | null;
+  jidType?: string | null;
+  kind: ChannelKind;
+  labels?: any[];
+  lastInboundAt?: string;
+  lastMessage: string;
+  lastMessageAt: string;
+  lastOutboundAt?: string;
+  linkedEventId?: string | null;
+  linkedContactId?: string | null;
+  /** #8: teléfono/nombre de la LÍNEA receptora (para distinguir 910 vs Meta por hilo). */
+  lineLabel?: string | null;
   name: string;
+  /** Con quién está compartida (api-mcp `shared_with`). Sin esto, el chip de visibilidad
+   *  solo salía en la lista por canal y no en la bandeja principal, que es la que se usa. */
+  sharedWith?: SharedPrincipal[];
+  status?: string;
   unreadCount: number;
   unreadCountForAgent?: number;
-  status?: string;
 }
 
 const CHANNEL_BADGE: Record<ChannelKind, { bg: string; label: string; text: string }> = {
@@ -140,25 +145,26 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
                 channelParam,
                 conversationId: c.conversationId || c.id || '',
                 kind: 'whatsapp' as const,
-                lineLabel: matchedChannel?.phoneNumber ?? matchedChannel?.name ?? undefined,
-                lastMessage: c.lastMessage || '',
-                lastMessageAt: c.lastMessageAt || c.updatedAt || '',
-                lastInboundAt: c.lastInboundAt ?? c.last_inbound_at ?? undefined,
-                lastOutboundAt: c.lastOutboundAt ?? c.last_outbound_at ?? undefined,
                 labels: c.labels ?? c.labelIds ?? c.label_ids ?? undefined,
-                linkedContactId: c.linkedContactId ?? c.linked_contact_id ?? null,
-                linkedEventId: c.linkedEventId ?? c.linked_event_id ?? null,
                 guestStatus: (c.guestStatus ?? c.guest_status ?? null) as
                   | 'confirmed'
                   | 'pending'
                   | 'declined'
                   | null,
-                jidType: c.jidType ?? c.jid_type ?? null,
+                lastInboundAt: c.lastInboundAt ?? c.last_inbound_at ?? undefined,
                 jidRaw: c.jidRaw ?? c.jid_raw ?? null,
+                lastMessage: c.lastMessage || '',
+                jidType: c.jidType ?? c.jid_type ?? null,
+                sharedWith: readSharedWith(c),
+                lastMessageAt: c.lastMessageAt || c.updatedAt || '',
+                lastOutboundAt: c.lastOutboundAt ?? c.last_outbound_at ?? undefined,
+                lineLabel: matchedChannel?.phoneNumber ?? matchedChannel?.name ?? undefined,
+                linkedContactId: c.linkedContactId ?? c.linked_contact_id ?? null,
+                linkedEventId: c.linkedEventId ?? c.linked_event_id ?? null,
                 name: friendlyContactName(c.displayName, c.phoneNumber, c.jidType ?? c.jid_type),
+                status: c.status ?? c.conversationStatus ?? undefined,
                 unreadCount: c.unreadCount || 0,
                 unreadCountForAgent: c.unreadCountForAgent ?? c.unread_count_for_agent ?? undefined,
-                status: c.status ?? c.conversationStatus ?? undefined,
               };
             });
           })
@@ -167,14 +173,14 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
             // Fallback: MCP GraphQL native store (doesn't require external WA service)
             const gqlConvs = await getWhatsAppConversationsGQL(dev).catch(() => []);
             return gqlConvs.map((c) => ({
+              assignedAgentId: c.assignedAgentId ?? null,
               channelLabel: undefined,
               channelParam: defaultWaParam,
               conversationId: `gql:${c.id}`,
+              jidType: c.jidType ?? null,
               kind: 'whatsapp' as const,
               lastMessage: '',
               lastMessageAt: c.lastMessageAt || '',
-              assignedAgentId: c.assignedAgentId ?? null,
-              jidType: c.jidType ?? null,
               name: friendlyContactName(c.contactName, c.phoneNumber, c.jidType),
               unreadCount: c.unreadCountForAgent ?? 0,
             }));
@@ -205,29 +211,34 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
                 assignedAgentId: c.assignedAgentId ?? c.assigned_agent_id ?? null,
                 assignedAgentName: c.assignedAgentName ?? c.assigned_agent_name ?? null,
                 assignedToUserId: c.assignedUserId ?? c.assigned_to ?? c.assignedTo ?? null,
+                
+channelId: c.channelId ?? c.channel_id ?? null,
+                
                 // navegación: WhatsApp usa `wa-{channelId}`; el resto, el propio kind.
-                channelParam:
+channelParam:
                   ch === 'whatsapp' && (c.channelId ?? c.channel_id)
                     ? `wa-${c.channelId ?? c.channel_id}`
                     : ch,
+                
                 // Tipo/linea de WhatsApp (api-ia ya lo manda en este endpoint: WEB_QR/WAB).
-                channelType: c.channelType ?? c.channel_type ?? null,
-                channelId: c.channelId ?? c.channel_id ?? null,
-                lineLabel: channelPhoneMap.get(String(c.channelId ?? c.channel_id ?? '')) ?? null,
-                conversationId: c.conversationId || c.id || '',
+channelType: c.channelType ?? c.channel_type ?? null,
+                
+conversationId: c.conversationId || c.id || '',
                 kind: ch,
+                jidType,
+                labels: c.labels ?? c.labelIds ?? c.label_ids ?? undefined,
+                lastInboundAt: c.lastInboundAt ?? c.last_inbound_at ?? undefined,
                 lastMessage: c.lastMessage || '',
                 lastMessageAt: c.lastMessageAt || c.updatedAt || '',
-                lastInboundAt: c.lastInboundAt ?? c.last_inbound_at ?? undefined,
+                sharedWith: readSharedWith(c),
                 lastOutboundAt: c.lastOutboundAt ?? c.last_outbound_at ?? undefined,
-                labels: c.labels ?? c.labelIds ?? c.label_ids ?? undefined,
+                lineLabel: channelPhoneMap.get(String(c.channelId ?? c.channel_id ?? '')) ?? null,
                 linkedContactId: c.linkedContactId ?? c.linked_contact_id ?? null,
                 linkedEventId: c.linkedEventId ?? c.linked_event_id ?? null,
-                jidType,
                 name: friendlyContactName(rawName, rawPhone, jidType),
+                status: c.status ?? c.conversationStatus ?? undefined,
                 unreadCount: c.unreadCount || 0,
                 unreadCountForAgent: c.unreadCountForAgent ?? c.unread_count_for_agent ?? undefined,
-                status: c.status ?? c.conversationStatus ?? undefined,
               };
             });
           })
@@ -257,10 +268,11 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
           byId.set(c.conversationId, {
             ...loser,
             ...winner,
-            channelType: winner.channelType ?? loser.channelType ?? null,
             channelId: winner.channelId ?? loser.channelId ?? null,
-            lineLabel: winner.lineLabel ?? loser.lineLabel ?? null,
+            channelType: winner.channelType ?? loser.channelType ?? null,
             jidType: winner.jidType ?? loser.jidType ?? null,
+            lineLabel: winner.lineLabel ?? loser.lineLabel ?? null,
+            sharedWith: winner.sharedWith?.length ? winner.sharedWith : loser.sharedWith,
           });
         }
 
