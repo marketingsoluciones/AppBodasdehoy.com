@@ -18,10 +18,9 @@ import { useConversationActions } from '../hooks/useConversationActions';
 import { ConversationStatus, useConversationMeta } from '../hooks/useConversationMeta';
 import { generateSummary } from '../hooks/useDraftSync';
 import { ChannelBadge } from './ChannelBadge';
-import { buildHeaders } from '../utils/auth';
+import { getIaLevel, saveIaLevel } from '../data/iaConfig';
 import { useBandejaBrand } from '../utils/brand';
 import { describeVisibility } from '../utils/visibility';
-import { dedupeFetch } from '../utils/dedupeFetch';
 import { ChannelTypeChip } from './ChannelTypeChip';
 import { IaLevelPicker, type IaLevel } from './IaLevelPicker';
 import { MiniMarkdown } from './MiniMarkdown';
@@ -155,19 +154,9 @@ export function ConversationHeader({
     let cancelled = false;
     (async () => {
       try {
-        // H2 (QA 6-ago): dedup del GET de ia-config (el header se monta 2x al abrir).
-        // Auditoría 15-09: sin Authorization el gate del proxy (N32) devolvía 401 y el
-        // nivel real del workspace se perdía en silencio → siempre 'copilot'.
-        const res = await dedupeFetch(
-          `/api/messages/workspace/${encodeURIComponent(development)}/ia-config`,
-          { headers: buildHeaders() },
-        );
-        if (!res.ok) return;
-        const json = await res.json();
-        const lvl = json?.config?.ia_level;
-        if (!cancelled && (lvl === 'manual' || lvl === 'copilot' || lvl === 'autopilot')) {
-          setIaLevel(lvl);
-        }
+        // M1: la llamada vive en data/iaConfig (credenciales incluidas).
+        const lvl = await getIaLevel(development);
+        if (!cancelled && lvl) setIaLevel(lvl);
       } catch {
         /* silencio — mantiene default 'copilot' */
       }
@@ -179,15 +168,10 @@ export function ConversationHeader({
 
   const persistIaLevel = async (next: IaLevel) => {
     try {
-      const res = await fetch(`/api/messages/workspace/${encodeURIComponent(development)}/ia-config`, {
-        body: JSON.stringify({ ia_level: next }),
-        headers: buildHeaders(),
-        method: 'POST',
-      });
-      // Un 401/403 no lanza: sin esto el cambio de nivel se perdía sin rastro.
-      if (!res.ok) {
+      const saved = await saveIaLevel(development, next);
+      if (!saved) {
         // eslint-disable-next-line no-console
-        console.warn('[ConversationHeader] persistIaLevel no guardado:', res.status);
+        console.warn('[ConversationHeader] el backend no guardó el nivel de IA');
       }
     } catch (err) {
       // eslint-disable-next-line no-console
