@@ -546,6 +546,45 @@ export async function unblockConversation(conversationId: string): Promise<boole
   return data.setConversationStatus === true;
 }
 
+const ASSIGN_CONVERSATION_TO_USER = `
+  mutation AssignConversationToUser($conversationId: ID!, $userId: ID) {
+    assignConversationToUser(conversationId: $conversationId, userId: $userId)
+  }
+`;
+
+/** Estado de la conversación, tal y como lo entiende api-mcp. */
+export type ConversationServerStatus =
+  | 'ACTIVE'
+  | 'ARCHIVED'
+  | 'BLOCKED'
+  | 'CLOSED'
+  | 'OPEN'
+  | 'PENDING';
+
+/** Cambia el estado en el servidor (visible para todo el equipo, no solo para este navegador). */
+export async function setConversationStatus(
+  conversationId: string,
+  status: ConversationServerStatus,
+): Promise<boolean> {
+  const data = await mcpClient.query<{ setConversationStatus: boolean }>(SET_CONVERSATION_STATUS, {
+    conversationId,
+    status,
+  });
+  return data.setConversationStatus === true;
+}
+
+/** Asigna el responsable HUMANO (userId null = desasignar). Distinto del agente IA. */
+export async function assignConversationToUser(
+  conversationId: string,
+  userId: string | null,
+): Promise<boolean> {
+  const data = await mcpClient.query<{ assignConversationToUser: boolean }>(
+    ASSIGN_CONVERSATION_TO_USER,
+    { conversationId, userId },
+  );
+  return data.assignConversationToUser === true;
+}
+
 /** Fetch messages for a conversation from MCP native store */
 export async function getWhatsAppMessagesGQL(
   conversationId: string,

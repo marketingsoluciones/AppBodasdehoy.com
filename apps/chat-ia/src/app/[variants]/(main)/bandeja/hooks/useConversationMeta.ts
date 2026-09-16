@@ -2,6 +2,8 @@
 
 import { useCallback, useMemo, useSyncExternalStore } from 'react';
 
+import { persistAssignee, persistStatus } from '../data/conversationMeta';
+
 export type ConversationStatus = 'open' | 'pending' | 'closed';
 
 export interface ConversationMeta {
@@ -65,13 +67,24 @@ export function useConversationMeta(conversationId: string | null | undefined) {
     return state[conversationId] ?? {};
   }, [conversationId, state]);
 
+  // M2: se escribe primero en local para que la interfaz responda al instante, y acto
+  // seguido en el servidor. Si el servidor lo rechaza se revierte: antes esto solo vivía en
+  // este navegador, así que el resto del equipo veía otro estado y nadie se enteraba.
   const setStatus = useCallback(
     (status: ConversationStatus) => {
       if (!conversationId) return;
       const map = { ...readFromStorage() };
-      const current = map[conversationId] ?? {};
-      map[conversationId] = { ...current, status };
+      const previous = map[conversationId] ?? {};
+      map[conversationId] = { ...previous, status };
       saveMap(map);
+      void persistStatus(conversationId, status).then((ok) => {
+        if (ok) return;
+        const revert = { ...readFromStorage() };
+        revert[conversationId] = previous;
+        saveMap(revert);
+        // eslint-disable-next-line no-console
+        console.warn('[bandeja] el servidor no guardó el estado de la conversación');
+      });
     },
     [conversationId],
   );
@@ -80,9 +93,17 @@ export function useConversationMeta(conversationId: string | null | undefined) {
     (assignedUserId: string | null) => {
       if (!conversationId) return;
       const map = { ...readFromStorage() };
-      const current = map[conversationId] ?? {};
-      map[conversationId] = { ...current, assignedUserId };
+      const previous = map[conversationId] ?? {};
+      map[conversationId] = { ...previous, assignedUserId };
       saveMap(map);
+      void persistAssignee(conversationId, assignedUserId).then((ok) => {
+        if (ok) return;
+        const revert = { ...readFromStorage() };
+        revert[conversationId] = previous;
+        saveMap(revert);
+        // eslint-disable-next-line no-console
+        console.warn('[bandeja] el servidor no guardó el responsable de la conversación');
+      });
     },
     [conversationId],
   );
