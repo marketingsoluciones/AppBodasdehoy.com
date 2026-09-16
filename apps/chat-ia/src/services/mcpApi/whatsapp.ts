@@ -284,8 +284,11 @@ const GET_WA_MEMBERS = `
     getWhatsAppChannelMembers(channelId: $channelId) { channelId grantedAt grantedBy id isActive role userId }
   }
 `;
+// Tipos corregidos el 16-09 contra el esquema real: el servidor declara userId String! y
+// role WhatsAppChannelRole! (no ID!/String), así que tal y como estaba la mutación la
+// rechazaba GraphQL por variables incompatibles antes de llegar al resolver.
 const ADD_WA_MEMBER = `
-  mutation AddWhatsAppChannelMember($channelId: ID!, $userId: ID!, $role: String) {
+  mutation AddWhatsAppChannelMember($channelId: ID!, $userId: String!, $role: WhatsAppChannelRole!) {
     addWhatsAppChannelMember(channelId: $channelId, userId: $userId, role: $role) {
       member { userId role }
       success
@@ -350,6 +353,58 @@ export async function addWhatsAppChannelMember(channelId: string, userId: string
     );
     return !!data.addWhatsAppChannelMember?.success;
   } catch { return false; }
+}
+
+const UPDATE_WA_MEMBER_ROLE = `
+  mutation UpdateWhatsAppChannelMemberRole($channelId: ID!, $userId: String!, $role: WhatsAppChannelRole!) {
+    updateWhatsAppChannelMemberRole(channelId: $channelId, userId: $userId, role: $role) {
+      error
+      success
+    }
+  }
+`;
+
+const REMOVE_WA_MEMBER = `
+  mutation RemoveWhatsAppChannelMember($channelId: ID!, $userId: String!) {
+    removeWhatsAppChannelMember(channelId: $channelId, userId: $userId) {
+      error
+      success
+    }
+  }
+`;
+
+/** Roles de un miembro de canal, tal y como los define api-mcp. */
+export type WhatsAppChannelRole = 'ADMIN' | 'AGENT' | 'READONLY';
+
+/** Cambia el rol de alguien en el canal. false si el servidor lo rechaza. */
+export async function updateWhatsAppChannelMemberRole(
+  channelId: string,
+  userId: string,
+  role: WhatsAppChannelRole,
+): Promise<boolean> {
+  try {
+    const data = await mcpClient.query<{
+      updateWhatsAppChannelMemberRole: { error?: string; success: boolean };
+    }>(UPDATE_WA_MEMBER_ROLE, { channelId, role, userId });
+    return !!data.updateWhatsAppChannelMemberRole?.success;
+  } catch {
+    return false;
+  }
+}
+
+/** Quita el acceso de alguien al canal. */
+export async function removeWhatsAppChannelMember(
+  channelId: string,
+  userId: string,
+): Promise<boolean> {
+  try {
+    const data = await mcpClient.query<{
+      removeWhatsAppChannelMember: { error?: string; success: boolean };
+    }>(REMOVE_WA_MEMBER, { channelId, userId });
+    return !!data.removeWhatsAppChannelMember?.success;
+  } catch {
+    return false;
+  }
 }
 
 // ─── GraphQL conversations / messages (MCP native store) ─────────────────────

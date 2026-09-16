@@ -11,6 +11,7 @@
  */
 
 import { mcpClient } from '@/services/mcpApi/client';
+import { resolvePersonName, searchPeople as searchPeopleService } from '@/services/mcpApi/users';
 import {
   shareConversation as shareConversationMutation,
   unshareConversation as unshareConversationMutation,
@@ -27,17 +28,6 @@ export interface ShareCandidate {
   type: 'team' | 'user';
 }
 
-const SEARCH_USERS = `
-  query SearchUsers($query: String!, $development: String!, $limit: Int) {
-    searchUsers(query: $query, development: $development, limit: $limit) {
-      id
-      name
-      email
-      displayName
-    }
-  }
-`;
-
 const GET_TEAMS = `
   query GetTeams($development: String!) {
     getTeams(development: $development) {
@@ -47,31 +37,14 @@ const GET_TEAMS = `
   }
 `;
 
-const GET_USER = `
-  query GetUser($uid: ID) {
-    getUser(uid: $uid) {
-      displayName
-      email
-    }
-  }
-`;
-
-/** Busca personas de la marca por nombre o email. Devuelve [] si la búsqueda es muy corta. */
+/** Busca personas de la marca (servicio compartido con el panel de canales). */
 export async function searchPeople(
   query: string,
   development: string,
   limit = 8,
 ): Promise<ShareCandidate[]> {
-  if (query.trim().length < 2) return [];
-  const data = await mcpClient.query<{
-    searchUsers: Array<{ displayName?: string; email?: string; id: string; name?: string }>;
-  }>(SEARCH_USERS, { development, limit, query: query.trim() });
-  return (data.searchUsers ?? []).map((u) => ({
-    detail: u.email,
-    id: u.id,
-    name: u.displayName || u.name || u.email || u.id,
-    type: 'user' as const,
-  }));
+  const people = await searchPeopleService(query, development, limit);
+  return people.map((p) => ({ detail: p.email, id: p.id, name: p.name, type: 'user' as const }));
 }
 
 /** Equipos de la marca, para compartir con todo un grupo de una vez. */
@@ -88,21 +61,9 @@ export async function listTeams(development: string): Promise<ShareCandidate[]> 
   }));
 }
 
-/**
- * Resuelve el nombre de quien ya tiene acceso.
- *
- * `shared_with` guarda solo ids, así que sin esto el panel enseñaría identificadores en vez
- * de personas. Si el backend no responde, se devuelve el id: preferible a no enseñar nada.
- */
+/** Resuelve el nombre de quien ya tiene acceso: `shared_with` solo guarda ids. */
 export async function resolvePrincipalName(principalId: string): Promise<string> {
-  try {
-    const data = await mcpClient.query<{
-      getUser: { displayName?: string; email?: string } | null;
-    }>(GET_USER, { uid: principalId });
-    return data.getUser?.displayName || data.getUser?.email || principalId;
-  } catch {
-    return principalId;
-  }
+  return resolvePersonName(principalId);
 }
 
 export async function share(

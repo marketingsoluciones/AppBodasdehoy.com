@@ -22,6 +22,8 @@ import { useChatStore } from '@/store/chat';
 import { useWhatsAppSession } from '../../bandeja/hooks/useWhatsAppSession';
 import { useCanManageMessaging } from '@/hooks/useCanManageMessaging';
 
+import { ChannelMembersPanel } from './ChannelMembersPanel';
+
 const { Title, Text, Paragraph } = Typography;
 
 // Normaliza el prefijo "+" de un teléfono (QA 15-ago: algunos números ya venían con
@@ -290,6 +292,11 @@ function ChannelCard({
           </Space>
         )}
       </div>
+      {/* Reparto del número entre el equipo (16-09). Las cuatro operaciones existían en
+          api-mcp y el front solo llamaba a una, además con los tipos de variable mal, así
+          que ni funcionaba. Solo para quien gestiona: dar acceso a un número es una acción
+          de administración. */}
+      {canManage && <ChannelMembersPanel channelId={channel.id} development={_development} />}
     </Card>
   );
 }
