@@ -624,7 +624,7 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
             className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors disabled:opacity-60"
             disabled={generating}
             onClick={handleGenerateDraft}
-            style={{ backgroundColor: '#EDE9FE', color: '#6B4EFF' }}
+            style={{ backgroundColor: composerBrand.brandBg, color: composerBrand.brand }}
             title="Genera una respuesta sugerida por IA (usa el evento del cliente)"
             type="button"
           >

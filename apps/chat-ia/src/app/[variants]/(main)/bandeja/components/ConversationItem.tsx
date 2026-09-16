@@ -266,7 +266,7 @@ export function ConversationItem({
                 <span
                   aria-label={`${conversation.unreadCount} sin leer`}
                   className="flex-shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold text-white"
-                  style={{ backgroundColor: '#6B4EFF', minWidth: 20 }}
+                  style={{ backgroundColor: brand.brand, minWidth: 20 }}
                 >
                   {conversation.unreadCount}
                 </span>
@@ -326,7 +326,7 @@ export function ConversationItem({
               {assignedToMe && (
                 <span
                   className="rounded-full px-1.5 py-0.5 font-medium"
-                  style={{ backgroundColor: '#EDE9FE', color: '#6B4EFF' }}
+                  style={{ backgroundColor: brand.brandBg, color: brand.brand }}
                 >
                   Asignada a ti
                 </span>
@@ -335,7 +335,7 @@ export function ConversationItem({
                 <span
                   aria-label={`Responsable: ${agentName}`}
                   className="inline-flex max-w-[45%] items-center gap-1 truncate rounded-full px-1.5 py-0.5 font-medium"
-                  style={{ backgroundColor: '#EDE9FE', color: '#6B4EFF' }}
+                  style={{ backgroundColor: brand.brandBg, color: brand.brand }}
                   title={`Responsable: ${agentName}`}
                 >
                   <span aria-hidden>🤖</span>

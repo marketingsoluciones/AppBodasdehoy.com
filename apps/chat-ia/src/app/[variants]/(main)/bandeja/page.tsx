@@ -9,6 +9,7 @@ import { InboxFilters, type ChannelFilter, type RsvpFilter } from './components/
 import { NewMessageModal } from './components/NewMessageModal';
 import { ScopeSelector, type ScopeId } from './components/ScopeSelector';
 import { UnifiedFeedView } from './components/UnifiedFeedView';
+import { useBandejaBrand } from './utils/brand';
 import { type FeedItem, useUnifiedFeed } from './hooks/useUnifiedFeed';
 import { useCanManageMessaging } from '@/hooks/useCanManageMessaging';
 
@@ -38,6 +39,7 @@ function classifyPendingItem(item: FeedItem): string {
 // Cualquier código que llegue a este page.tsx ya pasó ese filtro, por eso
 // aquí no hace falta un segundo gate — sería inalcanzable.
 export default function MessagesPage() {
+  const brand = useBandejaBrand();
   const canManage = useCanManageMessaging();
   const router = useRouter();
   const activeTab = useActiveBandejaTab();
@@ -314,7 +316,7 @@ export default function MessagesPage() {
                 Hoy dormido: nada enlaza a ?agent= y no hay datos de agente. */}
             {agentFilter && agentDataAvailable && (
               <div className="flex items-center justify-between gap-2 border-b border-gray-100 bg-violet-50 px-3 py-2">
-                <span className="truncate text-[12px] font-semibold" style={{ color: '#6B4EFF' }}>
+                <span className="truncate text-[12px] font-semibold" style={{ color: brand.brand }}>
                   🤖 Conversaciones de {agentFilterName ?? 'este agente'}
                 </span>
                 <button

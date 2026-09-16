@@ -188,6 +188,7 @@ function ScopeRow({
   isActive: boolean;
   onClick: () => void;
 }) {
+  const brand = useBandejaBrand();
   const isEvent = option.kind === 'event';
   return (
     <button
@@ -203,7 +204,7 @@ function ScopeRow({
         <span
           aria-hidden
           className="inline-block h-1.5 w-1.5 rounded-full"
-          style={{ backgroundColor: isEvent ? '#E11D48' : '#7C3AED' }}
+          style={{ backgroundColor: isEvent ? '#E11D48' : brand.brand }}
         />
         <span className="truncate text-gray-800">{option.label}</span>
       </span>

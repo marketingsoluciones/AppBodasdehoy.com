@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
+import { useBandejaBrand } from '../utils/brand';
+
 import {
   listTeams,
   resolvePrincipalName,
@@ -46,6 +48,7 @@ export function SharePanel({
   onClose,
   sharedWith,
 }: SharePanelProps) {
+  const brand = useBandejaBrand();
   const [query, setQuery] = useState('');
   const [permission, setPermission] = useState<SharePermission>('view');
   const [candidates, setCandidates] = useState<ShareCandidate[]>([]);
@@ -203,9 +206,9 @@ export function SharePanel({
             key={p.value}
             onClick={() => setPermission(p.value)}
             style={{
-              backgroundColor: permission === p.value ? '#EEF2FF' : 'transparent',
+              backgroundColor: permission === p.value ? brand.brandBg : 'transparent',
               border: '1px solid #EDEDF0',
-              color: permission === p.value ? '#4F46E5' : '#84848F',
+              color: permission === p.value ? brand.brand : '#84848F',
             }}
             type="button"
           >
@@ -246,7 +249,7 @@ export function SharePanel({
                   <span style={{ color: '#84848F' }}> · {c.detail}</span>
                 ) : null}
               </span>
-              <span style={{ color: '#4F46E5' }}>
+              <span style={{ color: brand.brand }}>
                 {yaTiene ? 'ya tiene' : busy === c.id ? '…' : 'Compartir'}
               </span>
             </button>

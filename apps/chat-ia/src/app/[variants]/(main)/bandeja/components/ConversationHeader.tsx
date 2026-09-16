@@ -443,9 +443,9 @@ export function ConversationHeader({
                     disabled={assigningAgent}
                     onChange={(e) => void handleAssignAgent(e.target.value)}
                     style={{
-                      backgroundColor: agentId ? '#EDE9FE' : '#F2F1F6',
+                      backgroundColor: agentId ? brand.brandBg : '#F2F1F6',
                       border: 'none',
-                      color: agentId ? '#6B4EFF' : '#84848F',
+                      color: agentId ? brand.brand : '#84848F',
                       cursor: assigningAgent ? 'wait' : 'pointer',
                     }}
                     title={agentName ? `Responsable: ${agentName}` : 'Sin responsable asignado'}
@@ -464,7 +464,7 @@ export function ConversationHeader({
                 <span
                   aria-label={`Responsable: ${agentName}`}
                   className="mt-1 inline-flex max-w-full items-center gap-1 truncate rounded-full px-1.5 py-0.5 text-[10px] font-medium"
-                  style={{ backgroundColor: '#EDE9FE', color: '#6B4EFF' }}
+                  style={{ backgroundColor: brand.brandBg, color: brand.brand }}
                 >
                   <span aria-hidden="true">🤖</span>
                   <span className="truncate">Responsable: {agentName}</span>
@@ -525,7 +525,7 @@ export function ConversationHeader({
             className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold transition-colors disabled:opacity-60"
             disabled={summarizing}
             onClick={handleSummarize}
-            style={{ backgroundColor: '#EDE9FE', color: '#6B4EFF' }}
+            style={{ backgroundColor: brand.brandBg, color: brand.brand }}
             title="Resumen IA de la conversación (para ponerte al día)"
             type="button"
           >
@@ -773,7 +773,7 @@ export function ConversationHeader({
         >
           <span aria-hidden="true" className="mt-0.5 text-sm">✦</span>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold" style={{ color: '#6B4EFF' }}>
+            <p className="text-[11px] font-semibold" style={{ color: brand.brand }}>
               Resumen del asistente {summary.model ? `(${summary.model})` : ''}
             </p>
             {/* QA 15-09 (N28 completo): el resumen también emitía markdown crudo.
@@ -790,7 +790,7 @@ export function ConversationHeader({
             <button
               className="mt-0.5 text-[11px] font-semibold"
               onClick={() => setSummaryExpanded((v) => !v)}
-              style={{ color: '#6B4EFF' }}
+              style={{ color: brand.brand }}
               type="button"
             >
               {summaryExpanded ? 'Ver menos' : 'Ver más'}

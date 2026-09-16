@@ -1,5 +1,6 @@
 'use client';
 
+import { useBandejaBrand } from '../utils/brand';
 import { useEffect, useState } from 'react';
 
 import { buildHeaders, getUserContext } from '../utils/auth';
@@ -24,6 +25,7 @@ interface OwnerSummary {
 const num = (v: number | undefined) => (typeof v === 'number' ? v : null);
 
 export function GlobalSummaryCard({ convUnread }: { convUnread: number }) {
+  const brand = useBandejaBrand();
   const [summary, setSummary] = useState<OwnerSummary | null>(null);
 
   useEffect(() => {
@@ -55,7 +57,7 @@ export function GlobalSummaryCard({ convUnread }: { convUnread: number }) {
     <div className="border-b border-gray-100 px-3 py-2.5">
       <div
         className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide"
-        style={{ color: '#6B4EFF' }}
+        style={{ color: brand.brand }}
       >
         <span aria-hidden="true">🌐</span> Todas tus bodas
       </div>
