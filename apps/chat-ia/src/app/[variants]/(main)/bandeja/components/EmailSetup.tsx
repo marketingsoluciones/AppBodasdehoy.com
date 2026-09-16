@@ -3,7 +3,7 @@
 import { Alert, Button, Form, Input, Result, Space, Typography } from 'antd';
 import { useState } from 'react';
 
-import { buildHeaders } from '../utils/auth';
+import { connectEmail, disconnectEmail, getEmailOauthUrl } from '../data/channelSetup';
 
 const { Text, Paragraph } = Typography;
 
@@ -26,18 +26,10 @@ export function EmailSetup({ development, onConnected }: EmailSetupProps) {
     setStatus('connecting');
     setError(null);
     try {
-      const res = await fetch('/api/messages/email/oauth-url', {
-        body: JSON.stringify({ development, provider: prov }),
-        headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
-        method: 'POST',
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || data.detail || `Error ${res.status}`);
-      }
-      const data = await res.json();
-      if (data.oauthUrl) {
-        const popup = window.open(data.oauthUrl, 'email-oauth', 'width=600,height=700');
+      // El error 4xx/5xx lo lanza data/channelSetup con el mensaje que da api-ia.
+      const oauthUrl = await getEmailOauthUrl(development, prov);
+      if (oauthUrl) {
+        const popup = window.open(oauthUrl, 'email-oauth', 'width=600,height=700');
         if (!popup) throw new Error('Desactiva el bloqueador de popups');
         const handleMessage = (event: MessageEvent) => {
           if (event.data?.type === 'EMAIL_OAUTH_SUCCESS') {
@@ -68,23 +60,17 @@ export function EmailSetup({ development, onConnected }: EmailSetupProps) {
       // smtpHost/smtpPort/imapHost/imapPort/username/password. Antes se enviaban anidados
       // (smtp:{...}, imap:{...}) → 422 "Field required: smtpHost". api-ia valida el login SMTP
       // de verdad antes de guardar, así que un fallo aquí es de credenciales, no de forma.
-      const res = await fetch('/api/messages/email/connect', {
-        body: JSON.stringify({
-          development,
-          imapHost: values.imapHost || values.smtpHost.replace('smtp', 'imap'),
-          imapPort: Number(values.imapPort || 993),
-          password: values.smtpPass,
-          smtpHost: values.smtpHost,
-          smtpPort: Number(values.smtpPort || 587),
-          username: values.smtpUser,
-        }),
-        headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
-        method: 'POST',
+      const data = await connectEmail({
+        development,
+        imapHost: values.imapHost || values.smtpHost.replace('smtp', 'imap'),
+        imapPort: Number(values.imapPort || 993),
+        password: values.smtpPass,
+        smtpHost: values.smtpHost,
+        smtpPort: Number(values.smtpPort || 587),
+        username: values.smtpUser,
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || data.detail || `Error ${res.status}`);
-      }
+      // El control de 4xx/5xx vive en data/channelSetup, que lanza con el mensaje de api-ia.
+      void data;
       setConnectedEmail(values.smtpUser);
       setStatus('connected');
       onConnected?.();
@@ -98,17 +84,9 @@ export function EmailSetup({ development, onConnected }: EmailSetupProps) {
   const handleDisconnect = async () => {
     setError(null);
     try {
-      const res = await fetch('/api/messages/email/disconnect', {
-        body: JSON.stringify({ development }),
-        headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
-        method: 'POST',
-      });
-      // fetch NO lanza ante 4xx/5xx. Sin este control, un 404 dejaba la interfaz en
-      // "desconectado" mientras el backend seguía conectado (auditoría 27-ago).
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || data.detail || `Error ${res.status}`);
-      }
+      // Lanza si el backend responde 4xx/5xx: sin ese control, un 404 dejaba la interfaz
+      // en "desconectado" mientras el backend seguía conectado (auditoría 27-ago).
+      await disconnectEmail(development);
     } catch (err: any) {
       setError(err?.message ?? 'No se pudo desconectar');
       setStatus('error');

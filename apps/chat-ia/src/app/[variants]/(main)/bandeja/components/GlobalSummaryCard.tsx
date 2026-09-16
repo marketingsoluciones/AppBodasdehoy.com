@@ -3,7 +3,8 @@
 import { useBandejaBrand } from '../utils/brand';
 import { useEffect, useState } from 'react';
 
-import { buildHeaders, getUserContext } from '../utils/auth';
+import { getUserContext } from '../utils/auth';
+import { fetchOwnerSummary } from '../data/outbound';
 
 /**
  * GlobalSummaryCard — "modo Global": cuando NO hay evento seleccionado (scope = Soporte),
@@ -32,15 +33,10 @@ export function GlobalSummaryCard({ convUnread }: { convUnread: number }) {
     const { development, userId } = getUserContext();
     if (!development || !userId) return;
     let cancelled = false;
-    const qs = new URLSearchParams({ development, owner_email: userId });
-    fetch(`/api/backend/api/owner/summary?${qs.toString()}`, { headers: buildHeaders() })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (!cancelled && d && d.success !== false) setSummary(d as OwnerSummary);
-      })
-      .catch(() => {
-        /* backend caído → no mostramos números inventados (se queda en '…') */
-      });
+    // backend caído → null, y la tarjeta se queda en '…' en vez de inventar números.
+    void fetchOwnerSummary(development, userId).then((d) => {
+      if (!cancelled && d) setSummary(d as OwnerSummary);
+    });
     return () => {
       cancelled = true;
     };

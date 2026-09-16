@@ -3,7 +3,7 @@
 import { Alert, Button, Input, Result, Space, Typography } from 'antd';
 import { useState } from 'react';
 
-import { buildHeaders } from '../utils/auth';
+import { connectTelegram, disconnectTelegram } from '../data/channelSetup';
 
 const { Text, Paragraph } = Typography;
 
@@ -23,16 +23,8 @@ export function TelegramSetup({ development, onConnected }: TelegramSetupProps) 
     setStatus('connecting');
     setError(null);
     try {
-      const res = await fetch('/api/messages/telegram/connect', {
-        body: JSON.stringify({ botToken: botToken.trim(), development }),
-        headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
-        method: 'POST',
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || data.detail || `Error ${res.status}`);
-      }
-      const data = await res.json();
+      // data/channelSetup lanza con el mensaje de api-ia si responde 4xx/5xx.
+      const data = await connectTelegram({ botToken: botToken.trim(), development });
       setBotName(data.botName || data.username || 'Bot conectado');
       setStatus('connected');
       onConnected?.();
@@ -45,17 +37,7 @@ export function TelegramSetup({ development, onConnected }: TelegramSetupProps) 
   const handleDisconnect = async () => {
     setError(null);
     try {
-      const res = await fetch('/api/messages/telegram/disconnect', {
-        body: JSON.stringify({ development }),
-        headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
-        method: 'POST',
-      });
-      // fetch NO lanza ante 4xx/5xx. Sin este control, un 404 dejaba la interfaz en
-      // "desconectado" mientras el backend seguía conectado (auditoría 27-ago).
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || data.detail || `Error ${res.status}`);
-      }
+      await disconnectTelegram(development);
     } catch (err: any) {
       setError(err?.message ?? 'No se pudo desconectar');
       setStatus('error');

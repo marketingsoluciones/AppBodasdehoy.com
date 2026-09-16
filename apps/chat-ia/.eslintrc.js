@@ -62,11 +62,10 @@ config.overrides = config.overrides || [];
 config.overrides.push({
   files: ['src/app/**/bandeja/components/**/*.tsx', 'src/app/**/bandeja/components/**/*.ts'],
   rules: {
-    // Aviso, no error: quedan 11 llamadas por migrar (los conectores de canal y el modal de
-    // mensaje nuevo). Pasa a 'error' cuando estén en bandeja/data/ — si se pusiera ahora,
-    // rompería el lint del repo por deuda que aún no hemos saldado.
+    // En error desde el 16-09: las 11 llamadas que quedaban (conectores de canal, modal de
+    // mensaje nuevo, tarjeta de resumen) ya están en bandeja/data/, así que el listón sube.
     'no-restricted-globals': [
-      'warn',
+      'error',
       {
         message:
           'Los componentes de la bandeja no llaman al backend: usa (o amplía) bandeja/data/, que pone las credenciales y normaliza la respuesta.',

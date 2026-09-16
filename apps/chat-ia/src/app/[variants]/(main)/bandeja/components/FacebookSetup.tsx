@@ -3,7 +3,7 @@
 import { Alert, Button, Result, Space, Typography } from 'antd';
 import { useState } from 'react';
 
-import { buildHeaders } from '../utils/auth';
+import { disconnectSocial, getSocialOauthUrl } from '../data/channelSetup';
 
 const { Text, Paragraph } = Typography;
 
@@ -21,21 +21,9 @@ export function FacebookSetup({ development, onConnected }: FacebookSetupProps) 
     setStatus('connecting');
     setError(null);
     try {
-      const res = await fetch(
-        `/api/messages/facebook/oauth-url?development=${encodeURIComponent(development)}`,
-        {
-          body: JSON.stringify({ development }),
-          headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
-          method: 'POST',
-        },
-      );
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || data.detail || `Error ${res.status}`);
-      }
-      const data = await res.json();
+      const oauthUrlFromApi = await getSocialOauthUrl('facebook', development);
       // api-ia devuelve oauth_url (snake_case); toleramos oauthUrl por compatibilidad.
-      const oauthUrl = data.oauth_url || data.oauthUrl;
+      const oauthUrl = oauthUrlFromApi;
       if (oauthUrl) {
         const popup = window.open(oauthUrl, 'facebook-oauth', 'width=600,height=700');
         if (!popup) throw new Error('No se pudo abrir la ventana de autorización. Desactiva el bloqueador de popups.');
@@ -64,17 +52,10 @@ export function FacebookSetup({ development, onConnected }: FacebookSetupProps) 
   const handleDisconnect = async () => {
     setError(null);
     try {
-      const res = await fetch('/api/messages/facebook/disconnect', {
-        body: JSON.stringify({ development }),
-        headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
-        method: 'POST',
-      });
-      // fetch NO lanza ante 4xx/5xx. Sin este control, un 404 dejaba la interfaz en
-      // "desconectado" mientras el backend seguía conectado (auditoría 27-ago).
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || data.detail || `Error ${res.status}`);
-      }
+      await disconnectSocial('facebook', development);
+      // El control de 4xx/5xx vive ahora en data/channelSetup, que lanza con el mensaje
+      // que devuelve api-ia. Sin ese control, un 404 dejaba la interfaz en "desconectado"
+      // mientras el backend seguía conectado (auditoría 27-ago).
     } catch (err: any) {
       setError(err?.message ?? 'No se pudo desconectar');
       setStatus('error');
