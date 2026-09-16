@@ -22,6 +22,7 @@ import { getIaLevel, saveIaLevel } from '../data/iaConfig';
 import { useBandejaBrand } from '../utils/brand';
 import { describeVisibility } from '../utils/visibility';
 import { ChannelTypeChip } from './ChannelTypeChip';
+import { SharePanel } from './SharePanel';
 import { IaLevelPicker, type IaLevel } from './IaLevelPicker';
 import { MiniMarkdown } from './MiniMarkdown';
 
@@ -43,11 +44,16 @@ export function ConversationHeader({
 }: ConversationHeaderProps) {
   const brand = useBandejaBrand();
   const router = useRouter();
-  const { conversations, loading: convListLoading } = useConversations(channel ?? null);
+  const {
+    conversations,
+    loading: convListLoading,
+    refetch: refetchConversations,
+  } = useConversations(channel ?? null);
   const conversation = conversations.find((c) => c.id === conversationId);
   const conversationVisibility = describeVisibility(conversation?.sharedWith);
   // Bloqueo (auditoría 15-09, Problema 4a): la mutación existía en api-mcp desde hace
   // tiempo y el front no la llamaba. `blocked` ya está en el enum de estado.
+  const [shareOpen, setShareOpen] = useState(false);
   const [blockOverride, setBlockOverride] = useState<boolean | null>(null);
   const [blocking, setBlocking] = useState(false);
   const isBlocked =
@@ -619,6 +625,30 @@ export function ConversationHeader({
             </button>
           )}
           {/* Menú más opciones — Lucide MoreVertical (antes ⋮) */}
+          {/* M5 (16-09): compartir la conversación con personas o equipos. Las mutaciones
+              existían en api-mcp desde hace tiempo y el front no llamaba a ninguna. */}
+          <div className="relative">
+            <button
+              aria-expanded={shareOpen}
+              aria-label="Compartir conversación"
+              className="rounded-md px-2 py-1 text-xs font-medium transition-colors"
+              onClick={() => setShareOpen((v) => !v)}
+              style={{ color: shareOpen ? '#4F46E5' : '#84848F' }}
+              title="Compartir conversación"
+              type="button"
+            >
+              Compartir
+            </button>
+            {shareOpen && conversationId && (
+              <SharePanel
+                conversationId={conversationId}
+                development={development}
+                onChanged={() => void refetchConversations()}
+                onClose={() => setShareOpen(false)}
+                sharedWith={conversation?.sharedWith ?? []}
+              />
+            )}
+          </div>
           <div className="relative" ref={menuRef}>
             <button
               aria-expanded={menuOpen}
