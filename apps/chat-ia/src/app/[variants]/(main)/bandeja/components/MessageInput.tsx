@@ -13,6 +13,7 @@ import {
   type WhatsAppTemplate,
 } from '../hooks/useWhatsAppTemplates';
 import { WhatsAppTemplatePicker } from './WhatsAppTemplatePicker';
+import { EmojiPicker } from './EmojiPicker';
 import { MiniMarkdown } from './MiniMarkdown';
 import { useBandejaBrand } from '../utils/brand';
 
@@ -30,7 +31,7 @@ function extractHsmParamsFromFilledBody(filled: string, tpl: WhatsAppTemplate): 
   if (!raw) return [];
   // Detecta el nº máximo de placeholders en el raw
   let max = 0;
-  const re = /\{\{\s*(\d+)\s*\}\}/g;
+  const re = /{{\s*(\d+)\s*}}/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(raw)) !== null) {
     const n = Number(m[1]);
@@ -38,8 +39,8 @@ function extractHsmParamsFromFilledBody(filled: string, tpl: WhatsAppTemplate): 
   }
   if (max === 0) return [];
   // Reconstruye regex del raw como capturas
-  const escaped = raw.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const pattern = escaped.replaceAll(/\\\{\\\{\s*\d+\s*\\\}\\\}/g, '(.*?)');
+  const escaped = raw.replaceAll(/[$()*+.?[\\\]^{|}]/g, '\\$&');
+  const pattern = escaped.replaceAll(/\\{\\{\s*\d+\s*\\}\\}/g, '(.*?)');
   const captureRe = new RegExp('^' + pattern + '$', 's');
   const match = filled.match(captureRe);
   if (!match) return Array.from({ length: max }, (_, i) => `{{${i + 1}}}`);
@@ -47,7 +48,7 @@ function extractHsmParamsFromFilledBody(filled: string, tpl: WhatsAppTemplate): 
   // NO en el orden posicional 1..N. Necesitamos mapear.
   const raw2 = raw;
   const order: number[] = [];
-  const re2 = /\{\{\s*(\d+)\s*\}\}/g;
+  const re2 = /{{\s*(\d+)\s*}}/g;
   let m2: RegExpExecArray | null;
   while ((m2 = re2.exec(raw2)) !== null) order.push(Number(m2[1]));
   const out: string[] = Array.from({ length: max }, () => '');
@@ -124,52 +125,6 @@ const DRAFT_KEY_PREFIX: Record<ComposerMode, string> = {
 };
 
 const INTERNAL_NOTES_KEY_PREFIX = 'internal-notes-';
-
-const EMOJI_CATEGORIES: Record<string, string[]> = {
-  'Caras': [
-    '😊', '😂', '🥰', '😍', '🤔', '😅', '😢', '😎', '🙄', '😮', '🤗', '😏',
-    '😁', '🤣', '😘', '🥲', '😤', '😳', '🫣', '🤭', '😴', '🥳', '😬', '🫠',
-    '😇', '🤩', '😋', '😜', '🤪', '😷', '🤒', '🤑', '😈', '👻', '🤖', '👽',
-  ],
-  'Comida': [
-    '🍕', '🍔', '🍰', '🎂', '🍷', '🥂', '☕', '🍾', '🧁', '🍩', '🍫', '🍿',
-    '🥗', '🍝', '🍣', '🌮', '🥑', '🍓', '🍑', '🍒', '🫐', '🥝', '🍌', '🥐',
-  ],
-  'Gestos': [
-    '👍', '👎', '👋', '🤝', '🙏', '❤️', '💪', '👏', '🎉', '🔥', '✅', '⭐',
-    '🫶', '✌️', '🤞', '🫡', '🙌', '💕', '💔', '💯', '🎊', '✨', '❌', '💫',
-    '🤙', '👌', '🤟', '🫰', '👊', '💖', '💗', '💝', '🏆', '🌟', '🔔', '💥',
-  ],
-  'Naturaleza': [
-    '🌸', '🌺', '🌻', '🌷', '🌹', '🍀', '🌈', '☀️', '🌙', '⭐', '🦋', '🐶',
-    '🐱', '🐻', '🌊', '🍃', '🌿', '🍁', '🐾', '🦊', '🐰', '🐥', '🌎', '🪻',
-  ],
-  'Objetos': [
-    '📱', '💻', '📧', '📅', '💰', '🎁', '📷', '🔔', '💡', '📝', '🔑', '💎',
-    '👗', '👠', '💄', '💍', '👰', '🤵', '🎵', '🎬', '📸', '🎤', '🛒', '📌',
-  ],
-  'Viaje': [
-    '✈️', '🚗', '🏠', '🏨', '⛪', '💒', '🎪', '🗺️', '🧳', '🏖️', '🏔️', '🎡',
-    '🚀', '🛳️', '🚕', '🚌', '🏰', '🗼', '🌆', '🌅', '🏝️', '⛱️', '🎢', '🛫',
-  ],
-};
-
-const RECENT_EMOJIS_KEY = 'msg-recent-emojis';
-const MAX_RECENT = 12;
-
-function getRecentEmojis(): string[] {
-  try {
-    return JSON.parse(localStorage.getItem(RECENT_EMOJIS_KEY) || '[]');
-  } catch { return []; }
-}
-
-function addRecentEmoji(emoji: string): void {
-  try {
-    const recent = getRecentEmojis().filter((e) => e !== emoji);
-    recent.unshift(emoji);
-    localStorage.setItem(RECENT_EMOJIS_KEY, JSON.stringify(recent.slice(0, MAX_RECENT)));
-  } catch { /* ignore */ }
-}
 
 // QA 15-09: contexto temporal para el banner "Borrador del asistente".
 // El draft vive 24h en api-ia; sin marca de tiempo el agente no sabe si el
@@ -248,9 +203,6 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
     if (isOneWayChannel && mode === 'reply') setMode('internal');
   }, [isOneWayChannel, mode]);
   const [emojiOpen, setEmojiOpen] = useState(false);
-  const [emojiCategory, setEmojiCategory] = useState('Caras');
-  const [emojiSearch, setEmojiSearch] = useState('');
-  const [recentEmojis, setRecentEmojis] = useState<string[]>([]);
   const [iaDraft, setIaDraft] = useState<ServerDraft | null>(null);
   // FASE 4 Copilot (18-ago): estado del disparador manual "Sugerir respuesta".
   const [generating, setGenerating] = useState(false);
@@ -259,12 +211,11 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
   // vaya via /api/whatsapp/messages/template en vez de /messages/send (Meta
   // rechazaría text-only si ventana 24h cerrada).
   const [pendingTemplate, setPendingTemplate] = useState<{
-    templateName: string;
     languageCode: string;
     parameters: string[];
+    templateName: string;
   } | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const emojiRef = useRef<HTMLDivElement>(null);
   const { sendMessage, sending } = useSendMessage();
   // F1 estabilización (informe 13-ago): el envío no dejaba claro el resultado — en error
   // restauraba el texto SIN avisar y en 200-sin-message también lo restauraba (parecía que
@@ -332,22 +283,7 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
     }
   }, [text]);
 
-  // Load recent emojis when picker opens
-  useEffect(() => {
-    if (emojiOpen) setRecentEmojis(getRecentEmojis());
-  }, [emojiOpen]);
 
-  // Close emoji picker on outside click
-  useEffect(() => {
-    if (!emojiOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (emojiRef.current && !emojiRef.current.contains(e.target as Node)) {
-        setEmojiOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [emojiOpen]);
 
   const handleSend = async () => {
     if (!text.trim() || sending) return;
@@ -436,8 +372,6 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
   };
 
   const insertEmoji = (emoji: string) => {
-    addRecentEmoji(emoji);
-    setRecentEmojis(getRecentEmojis());
     const textarea = textareaRef.current;
     if (textarea) {
       const start = textarea.selectionStart;
@@ -471,6 +405,7 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
       {/* P5 Diseño — Picker plantillas HSM cuando ventana 24h WA expira */}
       {showTemplatePicker && (
         <WhatsAppTemplatePicker
+          onDismiss={() => setWaTemplateDismissed(true)}
           onSelect={(tpl, body) => {
             if (body) setText(body);
             // 15-jul: guardar template pendiente. El próximo send usará el
@@ -484,7 +419,6 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
               templateName: tpl.name,
             });
           }}
-          onDismiss={() => setWaTemplateDismissed(true)}
         />
       )}
       {pendingTemplate && (
@@ -528,14 +462,14 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
                   ⚠️ Borrador antiguo (más de 6 h) — revisa que siga siendo válido antes de enviar.
                 </p>
               )}
-            <MiniMarkdown clampLines={2} text={iaDraft.text} className="mt-0.5 break-words text-xs text-violet-800" />
+            <MiniMarkdown clampLines={2} className="mt-0.5 break-words text-xs text-violet-800" text={iaDraft.text} />
           </div>
           <div className="flex shrink-0 gap-1">
             <button
               className="rounded-md bg-violet-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-violet-700"
               onClick={handleUseIaDraft}
-              type="button"
               title="Editar antes de enviar"
+              type="button"
             >
               Usar
             </button>
@@ -556,8 +490,8 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
                   alert('No se pudo aprobar el borrador. Prueba con "Usar" y envíalo manualmente.');
                 }
               }}
-              type="button"
               title="Aprobar y enviar en un click"
+              type="button"
             >
               ✓ Aprobar
             </button>
@@ -645,7 +579,7 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
         </button>
 
         {/* Emoji picker */}
-        <div className="relative" ref={emojiRef}>
+        <div className="relative">
           <button
             className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-xl transition-colors ${
               emojiOpen ? 'bg-yellow-50 text-yellow-600' : 'text-gray-400 hover:text-gray-600'
@@ -658,97 +592,7 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
           </button>
 
           {emojiOpen && (
-            <div className="absolute bottom-12 left-0 z-10 w-80 rounded-lg border border-gray-200 bg-white shadow-lg">
-              {/* Search */}
-              <div className="border-b border-gray-100 px-3 pt-3 pb-2">
-                <input
-                  className="w-full rounded-md border border-gray-200 px-2.5 py-1.5 text-xs focus:border-blue-400 focus:outline-none"
-                  onChange={(e) => setEmojiSearch(e.target.value)}
-                  placeholder="Buscar emoji..."
-                  type="text"
-                  value={emojiSearch}
-                />
-              </div>
-
-              {/* Recent emojis */}
-              {!emojiSearch && recentEmojis.length > 0 && (
-                <div className="border-b border-gray-50 px-3 py-2">
-                  <p className="mb-1 text-[10px] font-medium uppercase text-gray-400">Recientes</p>
-                  <div className="flex flex-wrap gap-0.5">
-                    {recentEmojis.map((emoji, i) => (
-                      <button
-                        aria-label={`Emoji ${emoji}`}
-                        className="flex h-8 w-8 items-center justify-center rounded text-lg hover:bg-gray-100"
-                        key={`recent-${i}`}
-                        onClick={() => insertEmoji(emoji)}
-                        type="button"
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Category tabs */}
-              {!emojiSearch && (
-                <div className="flex gap-0.5 overflow-x-auto border-b border-gray-100 px-3 py-1.5">
-                  {Object.keys(EMOJI_CATEGORIES).map((cat) => (
-                    <button
-                      className={`shrink-0 rounded px-2 py-1 text-[11px] font-medium transition-colors ${
-                        emojiCategory === cat
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'text-gray-500 hover:bg-gray-100'
-                      }`}
-                      key={cat}
-                      onClick={() => setEmojiCategory(cat)}
-                      type="button"
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Emoji grid */}
-              <div className="max-h-48 overflow-auto px-3 py-2">
-                {emojiSearch ? (
-                  <div className="grid grid-cols-8 gap-0.5">
-                    {Object.values(EMOJI_CATEGORIES)
-                      .flat()
-                      .filter((e) => e.includes(emojiSearch))
-                      .map((emoji) => (
-                        <button
-                          aria-label={`Emoji ${emoji}`}
-                          className="flex h-8 w-8 items-center justify-center rounded text-lg hover:bg-gray-100"
-                          key={emoji}
-                          onClick={() => insertEmoji(emoji)}
-                          type="button"
-                        >
-                          {emoji}
-                        </button>
-                      ))}
-                    {Object.values(EMOJI_CATEGORIES).flat().filter((e) => e.includes(emojiSearch)).length === 0 && (
-                      <p className="col-span-8 py-4 text-center text-xs text-gray-400">Sin resultados</p>
-                    )}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-8 gap-0.5">
-                    {EMOJI_CATEGORIES[emojiCategory]?.map((emoji) => (
-                      <button
-                        aria-label={`Emoji ${emoji}`}
-                        className="flex h-8 w-8 items-center justify-center rounded text-lg hover:bg-gray-100"
-                        key={emoji}
-                        onClick={() => insertEmoji(emoji)}
-                        type="button"
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+            <EmojiPicker onClose={() => setEmojiOpen(false)} onPick={insertEmoji} />
           )}
         </div>
 
