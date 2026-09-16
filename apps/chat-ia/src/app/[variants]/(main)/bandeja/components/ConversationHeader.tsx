@@ -18,10 +18,11 @@ import { useConversationActions } from '../hooks/useConversationActions';
 import { ConversationStatus, useConversationMeta } from '../hooks/useConversationMeta';
 import { generateSummary } from '../hooks/useDraftSync';
 import { ChannelBadge } from './ChannelBadge';
-import { getIaLevel, saveIaLevel } from '../data/iaConfig';
+import { useIaLevel } from '../hooks/useIaLevel';
 import { useBandejaBrand } from '../utils/brand';
 import { describeVisibility } from '../utils/visibility';
 import { ChannelTypeChip } from './ChannelTypeChip';
+import { ConversationSummary } from './ConversationSummary';
 import { SharePanel } from './SharePanel';
 import { IaLevelPicker, type IaLevel } from './IaLevelPicker';
 import { MiniMarkdown } from './MiniMarkdown';
@@ -126,9 +127,6 @@ export function ConversationHeader({
   // FASE 4 Copilot (20-ago): "Resumir conversación" — resumen IA read-only (endpoint api-ia
   // /summary LIVE). NO es un borrador de respuesta: solo para que el agente se ponga al día.
   const [summary, setSummary] = useState<{ model?: string; summary: string } | null>(null);
-  // QA 15-09: el resumen colapsado por defecto (2 líneas) — feedback owner:
-  // el panel completo comía todo el alto del hilo.
-  const [summaryExpanded, setSummaryExpanded] = useState(false);
   const [summarizing, setSummarizing] = useState(false);
   const handleSummarize = async () => {
     if (summarizing || !conversationId) return;
@@ -155,35 +153,8 @@ export function ConversationHeader({
     if (fromStorage && fromStorage !== development) setDevelopment(fromStorage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const [iaLevel, setIaLevel] = useState<IaLevel>('copilot');
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        // M1: la llamada vive en data/iaConfig (credenciales incluidas).
-        const lvl = await getIaLevel(development);
-        if (!cancelled && lvl) setIaLevel(lvl);
-      } catch {
-        /* silencio — mantiene default 'copilot' */
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [development]);
-
-  const persistIaLevel = async (next: IaLevel) => {
-    try {
-      const saved = await saveIaLevel(development, next);
-      if (!saved) {
-        // eslint-disable-next-line no-console
-        console.warn('[ConversationHeader] el backend no guardó el nivel de IA');
-      }
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.warn('[ConversationHeader] persistIaLevel falló:', err);
-    }
-  };
+  // M4: el nivel de IA vive en useIaLevel (carga, guardado y reversión si el servidor rechaza).
+  const { change: persistIaLevel, level: iaLevel } = useIaLevel(development);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -393,11 +364,8 @@ export function ConversationHeader({
                   desde su propio componente en un bloque posterior si se decide. */}
               <IaLevelPicker
                 level={iaLevel}
-                onChange={(next) => {
-                  // Optimistic UI + persistir via api-ia.
-                  setIaLevel(next);
-                  void persistIaLevel(next);
-                }}
+                // El hook ya mueve la interfaz al instante y revierte si el servidor rechaza.
+                onChange={(next) => void persistIaLevel(next)}
               />
             </div>
             <div className="mt-0.5 flex items-center gap-1.5">
@@ -767,48 +735,12 @@ export function ConversationHeader({
         </div>
       )}
       {summary && (
-        <div
-          className="flex items-start gap-2 px-4 py-2"
-          style={{ borderTop: '1px solid #EDEDF0', backgroundColor: '#F6F4FB' }}
-        >
-          <span aria-hidden="true" className="mt-0.5 text-sm">✦</span>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold" style={{ color: brand.brand }}>
-              Resumen del asistente {summary.model ? `(${summary.model})` : ''}
-            </p>
-            {/* QA 15-09 (N28 completo): el resumen también emitía markdown crudo.
-                Colapsado a 2 líneas por defecto; "Ver más" expande. */}
-            {/* clampLines en vez de line-clamp-2: la clase se aplicaba al contenedor,
-                y -webkit-line-clamp no recorta hijos de bloque → el resumen "colapsado"
-                seguía saliendo entero (auditoría 15-09). */}
-            <MiniMarkdown
-              className="mt-0.5 break-words text-xs"
-              clampLines={summaryExpanded ? undefined : 2}
-              style={{ color: '#1C1C22' }}
-              text={summary.summary}
-            />
-            <button
-              className="mt-0.5 text-[11px] font-semibold"
-              onClick={() => setSummaryExpanded((v) => !v)}
-              style={{ color: brand.brand }}
-              type="button"
-            >
-              {summaryExpanded ? 'Ver menos' : 'Ver más'}
-            </button>
-          </div>
-          <button
-            aria-label="Cerrar resumen"
-            className="shrink-0 rounded-md px-2 py-0.5 text-[11px] font-semibold"
-            onClick={() => {
-              setSummary(null);
-              setSummaryExpanded(false);
-            }}
-            style={{ color: '#84848F' }}
-            type="button"
-          >
-            Cerrar
-          </button>
-        </div>
+        <ConversationSummary
+          brandColor={brand.brand}
+          model={summary.model}
+          onClose={() => setSummary(null)}
+          summary={summary.summary}
+        />
       )}
 
       {/* Inline search bar rediseñada con tokens del sistema */}

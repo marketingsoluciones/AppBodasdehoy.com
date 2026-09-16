@@ -17,7 +17,7 @@ import {
   type SharePermission,
 } from '@/services/mcpApi/whatsapp';
 
-export type { SharePermission };
+
 
 export interface ShareCandidate {
   /** Para pintar quién es sin tener que resolverlo dos veces. */
@@ -77,7 +77,7 @@ export async function searchPeople(
 /** Equipos de la marca, para compartir con todo un grupo de una vez. */
 export async function listTeams(development: string): Promise<ShareCandidate[]> {
   const data = await mcpClient.query<{
-    getTeams: { teams: Array<{ id: string; memberCount?: number; name: string }>; success: boolean };
+    getTeams: { success: boolean, teams: Array<{ id: string; memberCount?: number; name: string }>; };
   }>(GET_TEAMS, { development });
   if (!data.getTeams?.success) return [];
   return (data.getTeams.teams ?? []).map((t) => ({
@@ -116,3 +116,5 @@ export async function share(
 export async function unshare(conversationId: string, principalId: string): Promise<boolean> {
   return unshareConversationMutation(conversationId, principalId);
 }
+
+export {type SharePermission} from '@/services/mcpApi/whatsapp';

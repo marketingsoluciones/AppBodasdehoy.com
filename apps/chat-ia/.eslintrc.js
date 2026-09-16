@@ -51,4 +51,29 @@ config.overrides = [
 // ✅ AI-Friendly code (warn no-explicit-any para visibilidad sin romper build)
 config.rules['@typescript-eslint/no-explicit-any'] = 1;
 
+// M1 (16-09): los componentes de la bandeja no hablan con el backend.
+//
+// El motivo no es estético. Los tres fallos del 15-09 (el nivel de IA que no persistía, el
+// canal de WhatsApp desaparecido y `shared_with` perdido) fueron llamadas sueltas dentro de
+// componentes, cada una con sus propios headers y su propia forma de leer la respuesta. La
+// capa `bandeja/data/` centraliza credenciales y normalización; esta regla evita que la
+// siguiente prisa vuelva a saltársela.
+config.overrides = config.overrides || [];
+config.overrides.push({
+  files: ['src/app/**/bandeja/components/**/*.tsx', 'src/app/**/bandeja/components/**/*.ts'],
+  rules: {
+    // Aviso, no error: quedan 11 llamadas por migrar (los conectores de canal y el modal de
+    // mensaje nuevo). Pasa a 'error' cuando estén en bandeja/data/ — si se pusiera ahora,
+    // rompería el lint del repo por deuda que aún no hemos saldado.
+    'no-restricted-globals': [
+      'warn',
+      {
+        message:
+          'Los componentes de la bandeja no llaman al backend: usa (o amplía) bandeja/data/, que pone las credenciales y normaliza la respuesta.',
+        name: 'fetch',
+      },
+    ],
+  },
+});
+
 module.exports = config;

@@ -20,7 +20,7 @@ import { dedupeFetch } from '../utils/dedupeFetch';
 import { friendlyContactName, inferJidType, safePhoneOrEmpty } from '../utils/jid';
 import { readSharedWith, type SharedPrincipal } from '../utils/visibility';
 
-export type { SharedPrincipal };
+
 
 export interface Conversation {
   /** FASE 2 Agentes: agente IA responsable (distinto de assignedToUserId=humano).
@@ -29,44 +29,44 @@ export interface Conversation {
   assignedAgentName?: string | null;
   /** ISO de cuando se asigno el responsable. Lo manda api-ia y no se tipaba. */
   assignedAt?: string | null;
+  assignedToUserId?: string | null;
   /** Como llego a ser responsable: MANUAL | HANDOFF | AUTO
    *  (api-ia, messages_with_whitelabel_storage.py:78). Necesario para auditar que hace
    *  la IA en nombre del usuario. */
   assignmentSource?: string | null;
-  assignedToUserId?: string | null;
   channel: 'whatsapp' | 'instagram' | 'telegram' | 'email' | 'web' | 'facebook';
   /** Multicanal (api-ia b6d1823): id de la línea receptora + su tipo.
    *  channelType: 'WAB' = Meta Business API · 'WEB_QR' = WhatsApp QR (vinculado). */
   channelId?: string | null;
   channelType?: 'WAB' | 'WEB_QR' | string | null;
-  /** Con quién está compartida (api-mcp `shared_with`). El payload ya lo traía; el
-   *  normalizador lo descartaba, así que la UI nunca supo si una conversación era
-   *  visible para más gente (auditoría 15-09, Problema 1). */
-  sharedWith?: SharedPrincipal[];
   contact: {
     avatar?: string;
     name: string;
     phone?: string;
     username?: string;
   };
+  /** FASE B v2.0 — api-mcp commit 7d52fec (25-jun): RSVP del invitado
+   *  resuelto desde el evento vinculado por teléfono. null si no aplica. */
+  guestStatus?: 'confirmed' | 'pending' | 'declined' | null;
   id: string;
+  jidRaw?: string | null;
+  /** api-mcp jidType: user | group | newsletter | broadcast | lid | unknown.
+   *  Si != 'user', phoneNumber NO es un teléfono real. */
+  jidType?: string | null;
+  labels?: any[];
+  lastInboundAt?: string;
   lastMessage: {
     fromUser: boolean;
     text: string;
     timestamp: string;
   };
-  lastInboundAt?: string;
   lastOutboundAt?: string;
-  labels?: any[];
   linkedContactId?: string | null;
   linkedEventId?: string | null;
-  /** FASE B v2.0 — api-mcp commit 7d52fec (25-jun): RSVP del invitado
-   *  resuelto desde el evento vinculado por teléfono. null si no aplica. */
-  guestStatus?: 'confirmed' | 'pending' | 'declined' | null;
-  /** api-mcp jidType: user | group | newsletter | broadcast | lid | unknown.
-   *  Si != 'user', phoneNumber NO es un teléfono real. */
-  jidType?: string | null;
-  jidRaw?: string | null;
+  /** Con quién está compartida (api-mcp `shared_with`). El payload ya lo traía; el
+   *  normalizador lo descartaba, así que la UI nunca supo si una conversación era
+   *  visible para más gente (auditoría 15-09, Problema 1). */
+  sharedWith?: SharedPrincipal[];
   status?: string;
   unreadCount: number;
   unreadCountForAgent?: number;
@@ -82,56 +82,52 @@ export interface Conversation {
  *   'web' (mismo criterio que el feed: si no, la conversación se pierde al abrirla).
  */
 export function normalizeConversation(c: any, isWaView: boolean): Conversation {
+  // api-mcp manda displayName/contactInfo/phoneNumber; api-ia manda contact:{name,phone}.
+  const rawPhone = c.phoneNumber ?? c.contact?.phone ?? null;
+  const rawName = c.displayName || c.contactInfo?.name || c.contact?.name || rawPhone || '';
+  const jidType = inferJidType(c.jidType ?? c.jid_type, rawName, rawPhone);
+  // Misma clasificación que el feed: en vista WA todo es 'whatsapp'; en "otros", lo
+  // desconocido cae a 'web'. Si esto cambia, la conversación se pierde al abrirla.
+  const kind = isWaView ? 'whatsapp' : classifyOtherChannel(c.channel, c.platform);
 
-        // api-mcp manda displayName/contactInfo/phoneNumber; api-ia manda
-        // `contact:{name,phone}` (verificado 24-ago contra /api/messages/conversations).
-        // Sin leer su forma, TODA conversación de api-ia se pintaba "Desconocido".
-        const rawPhone = c.phoneNumber ?? c.contact?.phone ?? null;
-        const rawName = c.displayName || c.contactInfo?.name || c.contact?.name || rawPhone || '';
-        const jidType = inferJidType(c.jidType ?? c.jid_type, rawName, rawPhone);
-        // Clasificación IDÉNTICA al feed (useRecentConversations): en vista WA todo es
-        // 'whatsapp'; en vista "otros", desconocido/sin-channel → 'web' (cajón). Esto
-        // hace que la conv sobreviva al abrirla (el filtro de abajo ya cuadra).
-        const kind = isWaView ? 'whatsapp' : classifyOtherChannel(c.channel, c.platform);
-        return {
-          // FASE 2 Agentes: responsable = agente IA (null-safe). Ya LIVE en api-ia.
-          assignedAgentId: c.assignedAgentId ?? c.assigned_agent_id ?? null,
-          assignedAgentName: c.assignedAgentName ?? c.assigned_agent_name ?? null,
-          assignedAt: c.assignedAt ?? c.assigned_at ?? null,
-          assignmentSource: c.assignmentSource ?? c.assignment_source ?? null,
-          assignedToUserId: c.assignedUserId ?? c.assigned_to ?? c.assignedTo ?? null,
-          channel: kind as Conversation['channel'],
-          // Multicanal (api-ia b6d1823): qué línea/tipo recibió el mensaje (QR vs Meta API).
-          channelId: c.channelId ?? c.channel_id ?? null,
-          channelType: c.channelType ?? c.channel_type ?? null,
-          sharedWith: readSharedWith(c),
-          contact: {
-            name: friendlyContactName(rawName, rawPhone, jidType),
-            phone: safePhoneOrEmpty(rawPhone, jidType),
-          },
-          id: c.conversationId || c.id,
-          lastMessage: {
-            fromUser: c.lastMessageFromMe === false,
-            text: c.lastMessage || '',
-            timestamp: c.lastMessageAt || c.updatedAt || new Date().toISOString(),
-          },
-          lastInboundAt: c.lastInboundAt ?? c.last_inbound_at ?? undefined,
-          lastOutboundAt: c.lastOutboundAt ?? c.last_outbound_at ?? undefined,
-          labels: c.labels ?? c.labelIds ?? c.label_ids ?? undefined,
-          linkedContactId: c.linkedContactId ?? c.linked_contact_id ?? null,
-          linkedEventId: c.linkedEventId ?? c.linked_event_id ?? null,
-          // FASE B v2.0 — guestStatus desde api-mcp (commit 7d52fec).
-          guestStatus: (c.guestStatus ?? c.guest_status ?? null) as
-            | 'confirmed'
-            | 'pending'
-            | 'declined'
-            | null,
-          jidType,
-          jidRaw: c.jidRaw ?? c.jid_raw ?? null,
-          status: c.status ?? c.conversationStatus ?? undefined,
-          unreadCount: c.unreadCount || 0,
-          unreadCountForAgent: c.unreadCountForAgent ?? c.unread_count_for_agent ?? undefined,
-        };
+  return {
+    // Responsable = agente IA (null-safe), distinto del responsable humano.
+    assignedAgentId: c.assignedAgentId ?? c.assigned_agent_id ?? null,
+    assignedAgentName: c.assignedAgentName ?? c.assigned_agent_name ?? null,
+    assignedAt: c.assignedAt ?? c.assigned_at ?? null,
+    assignedToUserId: c.assignedUserId ?? c.assigned_to ?? c.assignedTo ?? null,
+    assignmentSource: c.assignmentSource ?? c.assignment_source ?? null,
+    channel: kind as Conversation['channel'],
+    // Multicanal: qué línea recibió el mensaje y de qué tipo es (QR vs Meta API).
+    channelId: c.channelId ?? c.channel_id ?? null,
+    channelType: c.channelType ?? c.channel_type ?? null,
+    contact: {
+      name: friendlyContactName(rawName, rawPhone, jidType),
+      phone: safePhoneOrEmpty(rawPhone, jidType),
+    },
+    guestStatus: (c.guestStatus ?? c.guest_status ?? null) as
+      | 'confirmed'
+      | 'pending'
+      | 'declined'
+      | null,
+    id: c.conversationId || c.id,
+    jidRaw: c.jidRaw ?? c.jid_raw ?? null,
+    jidType,
+    labels: c.labels ?? c.labelIds ?? c.label_ids ?? undefined,
+    lastInboundAt: c.lastInboundAt ?? c.last_inbound_at ?? undefined,
+    lastMessage: {
+      fromUser: c.lastMessageFromMe === false,
+      text: c.lastMessage || '',
+      timestamp: c.lastMessageAt || c.updatedAt || new Date().toISOString(),
+    },
+    lastOutboundAt: c.lastOutboundAt ?? c.last_outbound_at ?? undefined,
+    linkedContactId: c.linkedContactId ?? c.linked_contact_id ?? null,
+    linkedEventId: c.linkedEventId ?? c.linked_event_id ?? null,
+    sharedWith: readSharedWith(c),
+    status: c.status ?? c.conversationStatus ?? undefined,
+    unreadCount: c.unreadCount || 0,
+    unreadCountForAgent: c.unreadCountForAgent ?? c.unread_count_for_agent ?? undefined,
+  };
 }
 
 export interface FetchConversationsOptions {
@@ -169,3 +165,5 @@ export async function fetchConversations({
   if (isWaView) return normalized;
   return channel ? normalized.filter((x) => x.channel === channel) : normalized;
 }
+
+export {type SharedPrincipal} from '../utils/visibility';
