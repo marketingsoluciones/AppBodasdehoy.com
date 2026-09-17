@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
 import Head from 'next/head'
 import { AuthContextProvider, EventContextProvider } from '../../context'
-import { defaultImagenes } from '../Home/Card'
-import { ModalAddUserToEvent, UsuariosCompartidos } from './Compartir'
+import { getEventImage } from '../Home/Card';import { ModalAddUserToEvent, UsuariosCompartidos } from './Compartir'
 import { IoShareSocial } from 'react-icons/io5'
 import { Modal } from './Modal'
 import { useTranslation } from 'react-i18next'
@@ -67,10 +66,10 @@ export const BlockTitle = ({ title }) => {
           {/* imagen del evento — tamaño FIJO (no estira el header) */}
           <div className="shrink-0" style={{ width: 40, height: 40, borderRadius: 10, overflow: "hidden", background: "#f2f2f4" }}>
             <img
-              src={event?.imgEvento?.i320 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${event.imgEvento.i320}`)}` : defaultImagenes[event?.tipo?.toLowerCase()]}
+              src={event?.imgEvento?.i320 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${event.imgEvento.i320}`)}` : getEventImage(event?.tipo)}
               alt={event?.nombre}
               style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
-              onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[event?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
+              onError={(e) => { (e.target as HTMLImageElement).src = getEventImage(event?.tipo); }}
             />
           </div>
 

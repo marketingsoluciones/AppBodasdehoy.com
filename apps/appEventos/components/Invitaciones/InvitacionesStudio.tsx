@@ -6,6 +6,7 @@ import { EventContextProvider } from "../../context/EventContext";
 import { AuthContextProvider } from "../../context/AuthContext";
 import { useToast } from "../../hooks/useToast";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { descartarTextosHeredadosDeBoda, getInvitacionDefaults } from "../../utils/defaultInvitacionPorTipo";
 import { subir_archivo } from "./ModuloSubida";
 
 /**
@@ -48,20 +49,26 @@ const FONTS: Record<FontKey, { label: string; family: string }> = {
 // Paleta "Color de acento" (tonos suaves): rosa · crema · oliva · azul acero · oro
 const ACCENTS = ["#C99AA6", "#E8DEC5", "#8DA07A", "#6E8BAA", "#C9A24B"];
 
-const defaultDesign = (event: any): DesignData => ({
-  _studio: "v1",
-  template: "elegante",
-  font: "elegante",
-  accent: "#C99AA6",
-  cover: "",
-  title: "NOS CASAMOS",
-  names: event?.nombre || "Ana & Marcos",
-  date: event?.fecha ? new Date(event.fecha).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" }) : "12 de Junio, 2028",
-  message: "Nos encantaría compartir contigo este día tan especial.",
-  venue: "",
-  time: "",
-  rsvp: "Confirma tu asistencia",
-});
+// Los textos iniciales salen del TIPO del evento (boda, bautizo, graduación…).
+// Antes estaban fijos a boda: quien creaba un baby shower veía "NOS CASAMOS" de
+// encabezado y tenía que reescribirlo todo antes de enviar nada.
+const defaultDesign = (event: any): DesignData => {
+  const tipo = getInvitacionDefaults(event?.tipo);
+  return {
+    _studio: "v1",
+    template: "elegante",
+    font: "elegante",
+    accent: "#C99AA6",
+    cover: "",
+    title: tipo.title,
+    names: event?.nombre || tipo.names,
+    date: event?.fecha ? new Date(event.fecha).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" }) : "12 de Junio, 2028",
+    message: tipo.message,
+    venue: "",
+    time: "",
+    rsvp: tipo.rsvp,
+  };
+};
 
 const renderEmailHtml = (d: DesignData): string => {
   const p = PRESETS[d.template];
@@ -81,12 +88,14 @@ const renderEmailHtml = (d: DesignData): string => {
 
 // Asunto del correo derivado del diseño: nombres + fecha (mucho más claro que el título en
 // mayúsculas). Ej: "Ana & Marcos · ¡Nos casamos! 💍 12 de junio de 2028".
-const emailSubject = (d: DesignData): string => {
+// El reclamo depende del tipo de evento: un bautizo no anuncia una boda.
+const emailSubject = (d: DesignData, tipoEvento?: string): string => {
+  const { claim, fallbackSubject } = getInvitacionDefaults(tipoEvento);
   const names = (d.names || "").trim();
   const when = (d.date || "").trim();
-  if (names && when) return `${names} · ¡Nos casamos! 💍 ${when}`;
-  if (names) return `${names} · ¡Nos casamos! 💍`;
-  return (d.title || "").trim() || "Estáis invitados a nuestra boda 💍";
+  if (names && when) return `${names} · ${claim} ${when}`;
+  if (names) return `${names} · ${claim}`;
+  return (d.title || "").trim() || fallbackSubject;
 };
 
 // SVG de canales (como el HTML: iconos, no emoji)
@@ -128,6 +137,27 @@ export const InvitacionesStudio: FC = () => {
   const templateIdRef = useRef<string | undefined>(event?.templateEmailSelect); // id vivo → persist siempre ACTUALIZA (no duplica)
   const waTemplateIdRef = useRef<string | undefined>(event?.templateWhatsappSelect); // id de la plantilla WhatsApp
   const saveTimer = useRef<ReturnType<typeof setTimeout>>();
+  const tipoAplicadoRef = useRef<string | undefined>(event?.tipo);   // tipo con el que se calcularon los textos actuales
+  // Diseño corregido que hay que reescribir en la plantilla guardada (ver efecto de abajo).
+  const [pendienteMigrar, setPendienteMigrar] = useState<DesignData | null>(null);
+
+  // Los textos por defecto dependen del tipo de evento, pero `useState` se evalúa
+  // UNA vez: si al montar el contexto aún no tiene el evento cargado, `event.tipo`
+  // llega `undefined` y la tarjeta se queda con los textos genéricos para siempre.
+  // Este efecto los recalcula cuando el tipo aparece (o cambia al editar el evento).
+  //
+  // Solo actúa sobre una invitación que nadie ha tocado: si el usuario ya editó
+  // algo, o si hay una plantilla guardada que cargar, se respeta lo que haya.
+  useEffect(() => {
+    const tipo = event?.tipo;
+    if (!tipo || tipo === tipoAplicadoRef.current) return;
+    if (editedRef.current || event?.templateEmailSelect) {
+      tipoAplicadoRef.current = tipo;
+      return;
+    }
+    tipoAplicadoRef.current = tipo;
+    setDesign(defaultDesign(event));
+  }, [event?.tipo, event?._id, event?.nombre, event?.fecha, event?.templateEmailSelect]);
 
   useEffect(() => {
     const id = event?.templateEmailSelect;
@@ -139,7 +169,19 @@ export const InvitacionesStudio: FC = () => {
         const tpl = Array.isArray(res) ? res[0] : res;
         const dz = tpl?.design;
         // NO pisar lo que el usuario ya editó (carrera: el fetch puede resolver tras la 1ª edición).
-        if (dz && dz._studio === "v1" && !editedRef.current) setDesign({ ...defaultDesign(event), ...dz });
+        if (dz && dz._studio === "v1" && !editedRef.current) {
+          // Los eventos creados antes de los textos por tipo tienen guardado
+          // "NOS CASAMOS" aunque sean un bautizo. Si ese texto sigue siendo el
+          // viejo default sin tocar, se descarta para que gane el del tipo; lo
+          // que el usuario escribiera de verdad se respeta campo a campo.
+          const limpio = descartarTextosHeredadosDeBoda(dz, event?.tipo);
+          const merged = { ...defaultDesign(event), ...limpio };
+          setDesign(merged);
+          // Si se limpió algo, la plantilla guardada y su HTML siguen diciendo
+          // "NOS CASAMOS": hay que reescribirla o el correo que se envíe no
+          // coincidirá con lo que el usuario está viendo en pantalla.
+          if (limpio !== dz) setPendienteMigrar(merged);
+        }
       })
       .catch(() => {/* plantilla antigua → defaults */});
   }, [event?._id, event?.templateEmailSelect]);
@@ -158,7 +200,7 @@ export const InvitacionesStudio: FC = () => {
     // templateIdRef (no el closure) → una vez creada/enlazada, SIEMPRE actualiza la misma plantilla
     // (evita crear duplicados en cada edición, que era la causa de que los cambios "se perdieran").
     const tid = templateIdRef.current;
-    const configTemplate = { name: "Invitación", subject: emailSubject(d) };
+    const configTemplate = { name: "Invitación", subject: emailSubject(d, event?.tipo) };
     if (tid) {
       fetchApiEventos({ query: queries.updateEmailTemplate, variables: { evento_id: event._id, template_id: tid, design: d, html, configTemplate } })
         .then((res: any) => { const id = Array.isArray(res) ? res[0]?._id : res?._id; linkToEvent(id || tid); done(id || tid); }).catch(() => setSaveState("idle"));
@@ -167,6 +209,16 @@ export const InvitacionesStudio: FC = () => {
         .then((res: any) => { const id = res?._id; templateIdRef.current = id; linkToEvent(id); done(id); }).catch(() => setSaveState("idle"));
     }
   }, [event?._id, auth]);
+
+  // Reescribe la plantilla guardada cuando se han descartado textos heredados de
+  // boda. Va aquí abajo a propósito: necesita `persist`, que se define arriba.
+  // Se ejecuta una sola vez por carga (el flag se limpia al entrar) y solo si de
+  // verdad había algo que corregir, así que no escribe en cada visita.
+  useEffect(() => {
+    if (!pendienteMigrar) return;
+    setPendienteMigrar(null);
+    persist(pendienteMigrar);
+  }, [pendienteMigrar, persist]);
 
   const update = useCallback((patch: Partial<DesignData>) => {
     editedRef.current = true;
@@ -197,11 +249,11 @@ export const InvitacionesStudio: FC = () => {
 
   // Plantilla WhatsApp a partir del MISMO diseño (la previa ya se ajusta al canal).
   const whatsData = (d: DesignData) => ({
-    templateName: `invitacion-${(event?._id || "").slice(-6) || "boda"}`,
+    templateName: `invitacion-${(event?._id || "").slice(-6) || "evento"}`,
     category: { _id: "INVITATION", title: "INVITATION" },
     mediaType: d.cover ? { _id: "image", title: "image" } : { _id: "none", title: "none" },
     mediaUrl: d.cover || "",
-    bodyContent: `*${d.names}* · ¡Nos casamos! 💍\n\n${d.message}\n\n📅 ${d.date}${d.venue ? `\n📍 ${d.venue}` : ""}${d.time ? `\n🕐 ${d.time}` : ""}\n\n${d.rsvp || "Confirma tu asistencia"}`,
+    bodyContent: `*${d.names}* · ${getInvitacionDefaults(event?.tipo).claim}\n\n${d.message}\n\n📅 ${d.date}${d.venue ? `\n📍 ${d.venue}` : ""}${d.time ? `\n🕐 ${d.time}` : ""}\n\n${d.rsvp || "Confirma tu asistencia"}`,
     buttons: [],
   });
 
@@ -724,7 +776,7 @@ export const InvitacionesStudio: FC = () => {
                       <div style={{ font: "700 10px Poppins", color: "#a0a0a8", letterSpacing: ".5px", textTransform: "uppercase" }}>Vista previa · {sendChanLabel}</div>
                       {sendChan === "email" ? (
                         <div style={{ marginTop: 3 }}>
-                          <div style={{ font: "600 12px Poppins", color: "#3A3A42", lineHeight: 1.4 }}>Asunto: <span style={{ fontWeight: 500, color: "#4a4a52" }}>{emailSubject(design)}</span></div>
+                          <div style={{ font: "600 12px Poppins", color: "#3A3A42", lineHeight: 1.4 }}>Asunto: <span style={{ fontWeight: 500, color: "#4a4a52" }}>{emailSubject(design, event?.tipo)}</span></div>
                           <div onClick={() => setShowPreview(true)} style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 5, font: "600 11px Poppins", color: "#EF5B94", cursor: "pointer" }}>
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" /><circle cx="12" cy="12" r="3" /></svg>
                             Ver invitación completa

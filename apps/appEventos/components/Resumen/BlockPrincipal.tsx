@@ -5,7 +5,7 @@ import { AuthContextProvider, EventContextProvider } from "../../context";
 import ModalLeft from "../Utils/ModalLeft";
 import { useDelayUnmount } from "../../utils/Funciones";
 import FormCrearEvento from "../Forms/FormCrearEvento";
-import { defaultImagenes } from "../Home/Card";
+import { getEventImage } from "../Home/Card";
 import { ModalAddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir";
 import { IoShareSocial } from "react-icons/io5";
 import { useAllowed } from "../../hooks/useAllowed"
@@ -50,10 +50,10 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
       <div className="w-full bg-white shadow rounded-xl overflow-hidden relative flex flex-col-reverse md:flex-row md:h-72 gap-12  md:gap-0 pt-10 md:pt-0">
         {event?.tipo && (
           <img
-            src={event?.imgEvento?.i640 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${event.imgEvento.i640}`)}` : defaultImagenes[event?.tipo?.toLowerCase()]}
+            src={event?.imgEvento?.i640 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${event.imgEvento.i640}`)}` : getEventImage(event?.tipo)}
             className="md:w-1/2 md:h-full h-60 object-cover object-top rounded-xl"
             alt={event?.nombre}
-            onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[event?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
+            onError={(e) => { (e.target as HTMLImageElement).src = getEventImage(event?.tipo); }}
           />
         )}
         {children}

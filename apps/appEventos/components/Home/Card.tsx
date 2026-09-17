@@ -19,16 +19,11 @@ import { useAllowed } from "../../hooks/useAllowed"
 import { useDelayUnmount } from "../../utils/Funciones";
 import { useDateTime } from "../../hooks/useDateTime";
 
-export const defaultImagenes = {
-  boda: "/cards/boda.webp",
-  comunión: "/cards/comunion.webp",
-  cumpleaños: "/cards/cumpleanos.webp",
-  bautizo: "/cards/bautizo.webp",
-  babyshower: "/cards/baby.webp",
-  "despedida de soltero": "/cards/despedida.webp",
-  graduación: "/cards/graduacion.webp",
-  otro: "/cards/pexels-pixabay-50675.jpg"
-};
+// El mapa de imágenes por tipo vive en utils/imagenEvento.ts (dato puro, testeable
+// sin montar React). Se reexporta aquí porque los consumidores ya importan de Card.
+export { defaultImagenes, getEventImage } from "../../utils/imagenEvento";
+// El re-export no trae el nombre al ámbito de este módulo; Card también la usa.
+import { getEventImage } from "../../utils/imagenEvento";
 
 // Color estable por usuario para los avatares pequeños de la tarjeta studio
 const avatarColorFor = (s: string) => {
@@ -251,7 +246,7 @@ const Card = ({ data, grupoStatus, idx, onSelect, mobile }: any) => {
     const compartido = ev?.usuario_id !== user?.uid;
     const imgUrl = ev?.imgEvento?.i320
       ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${ev.imgEvento.i320}`)}`
-      : (defaultImagenes[ev?.tipo?.toLowerCase()] || defaultImagenes['otro']);
+      : (getEventImage(ev?.tipo));
     // Estado real: Archivado (manual) → Realizado (fecha pasada) → Activo (fecha futura/actual)
     const archivado = String(ev?.estatus ?? grupoStatus ?? '').toLowerCase().includes('archiv');
     const _fs = String(ev?.fecha ?? '');
@@ -284,7 +279,7 @@ const Card = ({ data, grupoStatus, idx, onSelect, mobile }: any) => {
           {openModal && <ModalCompartirEvento event={ev} onClose={() => setOpenModal(false)} />}
           <div onClick={abrirEvento} style={{ position: "relative", borderRadius: 16, background: "#fff", border: seleccionado ? "1.5px solid #EF5B94" : "1px solid #f0f0f2", boxShadow: "0 4px 14px rgba(0,0,0,.05)", cursor: "pointer", fontFamily: "'Poppins',sans-serif" }}>
             <div style={{ position: "relative", height: 120, borderRadius: "15px 15px 0 0", overflow: "hidden", background: "#f2f2f4" }}>
-              <img src={imgUrl} alt={ev?.nombre || "Evento"} onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[ev?.tipo?.toLowerCase()] || defaultImagenes["otro"]; }} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+              <img src={imgUrl} alt={ev?.nombre || "Evento"} onError={(e) => { (e.target as HTMLImageElement).src = getEventImage(ev?.tipo); }} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
               <span style={{ position: "absolute", top: 10, left: 10, background: "rgba(255,255,255,.92)", color: "#3A3A42", font: "700 9px Poppins", letterSpacing: ".8px", padding: "4px 10px", borderRadius: 12, textTransform: "uppercase" }}>{ev?.tipo === "otro" ? t("otro") : t(ev?.tipo)}</span>
               <span style={{ position: "absolute", top: 8, right: 8, width: 26, height: 26, borderRadius: "50%", background: "rgba(255,255,255,.94)", color: "#EF5B94", display: "flex", alignItems: "center", justifyContent: "center", font: "700 10.5px Poppins" }}>{avLabel}</span>
             </div>
@@ -337,7 +332,7 @@ const Card = ({ data, grupoStatus, idx, onSelect, mobile }: any) => {
           style={{ zIndex: openMenu ? 30 : undefined }}>
           <div className="evc-foto">
             <img src={imgUrl} alt={ev?.nombre || ev?.tipo || 'Evento'}
-              onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[ev?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
+              onError={(e) => { (e.target as HTMLImageElement).src = getEventImage(ev?.tipo); }}
               style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '15px 15px 0 0', display: 'block' }} />
             <span className="evc-tipo">{ev?.tipo === 'otro' ? t('otro') : t(ev?.tipo)}</span>
             {seleccionado && (
@@ -502,10 +497,10 @@ const Card = ({ data, grupoStatus, idx, onSelect, mobile }: any) => {
             })
         }} className={`w-72 max-w-full h-36 rounded-xl cardEvento z-[8] cursor-pointer shadow-lg relative overflow-hidden ${isNavigating ? 'opacity-70' : ''}`}>
           <img
-            src={data[idx]?.imgEvento?.i320 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${data[idx].imgEvento.i320}`)}` : defaultImagenes[data[idx]?.tipo?.toLowerCase()]}
+            src={data[idx]?.imgEvento?.i320 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${data[idx].imgEvento.i320}`)}` : getEventImage(data[idx]?.tipo)}
             alt={data[idx]?.nombre || data[idx]?.tipo || 'Evento'}
             className="object-cover w-full h-full absolute top-0 left-0 object-top"
-            onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[data[idx]?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
+            onError={(e) => { (e.target as HTMLImageElement).src = getEventImage(data[idx]?.tipo); }}
           />
           <div className="relative w-full h-full z-10 p-4 pb-2 flex flex-col justify-between">
             <div className="flex flex-col">

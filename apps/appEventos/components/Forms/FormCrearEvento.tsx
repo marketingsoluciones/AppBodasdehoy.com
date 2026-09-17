@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { normalizeInvitados, normalizeMenus } from '../../utils/mcpSchemaAdapter';
 import { Event, image } from "../../utils/Interfaces";
 import ModuloSubida, { subir_archivo } from "../Invitaciones/ModuloSubida";
-import { defaultImagenes } from "../Home/Card";
+import { getEventImage } from "../Home/Card";
 import SelectWithSearchField from "./SelectWithSearchField";
 import { useDateTime } from "../../hooks/useDateTime";
 import { useSearchParams } from "next/navigation";
@@ -449,7 +449,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
               <div>
                 <label className="ce-label">{t("Foto del evento")}</label>
                 <div className="w-full">
-                  <ModuloSubida studio setValueImage={setValueImage} event={EditEvent ? event : undefined} use={"imgEvento"} defaultImagen={defaultImagenes[values.tipo?.toLowerCase()]} />
+                  <ModuloSubida studio setValueImage={setValueImage} event={EditEvent ? event : undefined} use={"imgEvento"} defaultImagen={getEventImage(values.tipo)} />
                 </div>
               </div>
               <div><DropdownCountries studio name="pais" placeholder={t("Seleccionar país")} label={t("País")} /></div>
@@ -515,7 +515,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
               </div>
               <div className="w-full flex justify-center">
                 <div className="relative w-[304px] h-[140px] mb-4">
-                  <ModuloSubida setValueImage={setValueImage} event={EditEvent ? event : undefined} use={"imgEvento"} defaultImagen={defaultImagenes[values.tipo?.toLowerCase()]} />
+                  <ModuloSubida setValueImage={setValueImage} event={EditEvent ? event : undefined} use={"imgEvento"} defaultImagen={getEventImage(values.tipo)} />
                 </div>
               </div>
               {/* País: auto via /api/geo (CF/Vercel o fallback server) +

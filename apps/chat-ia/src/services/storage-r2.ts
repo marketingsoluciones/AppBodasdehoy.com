@@ -3,6 +3,8 @@
  * A través de los endpoints del backend Python
  */
 
+import { buildAuthHeaders } from '@/utils/authToken';
+
 export interface StorageFile {
   accessLevel: 'original' | 'shared' | 'public';
   fileId: string;
@@ -35,10 +37,15 @@ export interface GetFileResponse {
 
 /**
  * Obtener headers de autenticación desde localStorage
+ *
+ * 🔒 QA 15-09 (IMG-01/IMG-02): antes solo mandaba `X-User-ID` y `X-Development`,
+ * que es justamente lo que el servidor NO puede creerse. El Bearer es ahora lo
+ * que identifica la petición; las dos cabeceras se mantienen porque api-ia
+ * todavía las usa para enrutar, pero ya no deciden quién eres.
  */
 function getAuthHeaders(): Record<string, string> {
-  const headers: Record<string, string> = {};
-  
+  const headers: Record<string, string> = buildAuthHeaders();
+
   if (typeof window !== 'undefined') {
     try {
       const devConfig = localStorage.getItem('dev-user-config');

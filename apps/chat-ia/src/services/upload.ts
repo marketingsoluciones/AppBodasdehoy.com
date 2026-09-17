@@ -8,6 +8,7 @@ import { API_ENDPOINTS } from '@/services/_url';
 import { clientS3Storage } from '@/services/file/ClientS3';
 import { FileMetadata, UploadBase64ToS3Result } from '@/types/files';
 import { FileUploadState, FileUploadStatus } from '@/types/files/upload';
+import { buildAuthHeaders } from '@/utils/authToken';
 import { withRetry } from '@bodasdehoy/shared/upload';
 
 export const UPLOAD_NETWORK_ERROR = 'NetWorkError';
@@ -233,7 +234,10 @@ class UploadService {
     formData.append('access_level', 'shared');
 
     // Obtener headers de usuario: params > localStorage > fallback
-    const headers: Record<string, string> = {};
+    //
+    // 🔒 QA 15-09 (IMG-01): el Bearer va primero porque es lo único que el
+    // servidor puede creerse. Las X-* siguen yendo para el enrutado de api-ia.
+    const headers: Record<string, string> = buildAuthHeaders();
 
     if (typeof window !== 'undefined') {
       try {

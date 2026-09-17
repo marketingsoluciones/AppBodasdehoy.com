@@ -3,7 +3,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { EventContextProvider, AuthContextProvider } from "../../context";
 import ModalCompartirEventoStudio from "../Utils/ModalCompartirEventoStudio";
-import { defaultImagenes } from "../Home/Card";
+import { getEventImage } from "../Home/Card";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import StudioNotesSection from "../Presupuesto/StudioNotesSection";
@@ -143,7 +143,7 @@ export const ResumenStudio: FC = () => {
 
   const heroSrc = (event?.imgEvento?.i640 || event?.imgEvento?.i800 || event?.imgEvento?.i320)
     ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${event.imgEvento.i640 || event.imgEvento.i800 || event.imgEvento.i320}`)}`
-    : (defaultImagenes[event?.tipo?.toLowerCase()] || defaultImagenes["otro"]);
+    : (getEventImage(event?.tipo));
 
   // Invitados (3 stats)
   const invStats = [
@@ -233,7 +233,7 @@ export const ResumenStudio: FC = () => {
         {/* HERO EVENTO */}
         <div className="rs-hero" style={{ display: "grid", gridTemplateColumns: "44% 1fr", background: "#fff", border: "1px solid #f0f0f2", borderRadius: 18, overflow: "hidden", boxShadow: "0 6px 20px rgba(0,0,0,.06)", marginBottom: 16 }}>
           <div style={{ position: "relative", minHeight: 230, background: "#f2f2f4" }}>
-            <img src={heroSrc} alt={event?.nombre} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[event?.tipo?.toLowerCase()] || defaultImagenes["otro"]; }} />
+            <img src={heroSrc} alt={event?.nombre} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { (e.target as HTMLImageElement).src = getEventImage(event?.tipo); }} />
           </div>
           <div style={{ padding: "22px 26px", display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "flex-end", gap: 8 }}>

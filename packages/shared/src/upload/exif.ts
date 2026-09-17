@@ -127,3 +127,45 @@ export function rotateForOrientation(
 export function isOrientationSwapped(orientation: ExifOrientation): boolean {
   return orientation >= 5 && orientation <= 8;
 }
+
+/**
+ * ¿El fichero lleva un bloque EXIF?
+ *
+ * Auditoría QA 15-09 (IMG-03): la limpieza de metadatos en este paquete era un
+ * efecto colateral de re-codificar en canvas. `compressImage` se saltaba el
+ * canvas para ficheros pequeños, así que esas fotos llegaban al bucket con su
+ * EXIF entero — coordenadas GPS y hora incluidas. En un álbum compartido eso
+ * publica dónde y cuándo se hizo cada foto ante cualquiera que tenga el enlace.
+ *
+ * Esta función existe para poder decidir «esta foto hay que sanearla aunque sea
+ * pequeña» sin re-codificar a ciegas todo lo que se sube. Busca el marcador
+ * APP1/Exif, que es donde vive el bloque GPS.
+ *
+ * Devuelve false ante la duda (no es JPEG, no se puede leer): el llamante
+ * decide qué hacer con eso — ver `compressImage`, que en ese caso comprime igual.
+ */
+export async function hasExifMetadata(file: File): Promise<boolean> {
+  if (!file.type.includes('jpeg') && !/\.jpe?g$/i.test(file.name)) return false;
+  try {
+    const slice = await file.slice(0, 64 * 1024).arrayBuffer();
+    const view = new DataView(slice);
+    if (view.getUint16(0) !== 0xff_d8) return false;
+
+    let offset = 2;
+    while (offset + 4 <= view.byteLength) {
+      const marker = view.getUint16(offset);
+      // APP1 con firma 'Exif' → hay metadatos que sanear.
+      if (marker === 0xff_e1) {
+        return view.getUint32(offset + 4) === 0x45_78_69_66;
+      }
+      // SOS: a partir de aquí empiezan los datos de imagen, ya no hay cabeceras.
+      if (marker === 0xff_da) return false;
+      // Fuera del rango de marcadores → fichero raro, no arriesgar una lectura larga.
+      if ((marker & 0xff_00) !== 0xff_00) return false;
+      offset += 2 + view.getUint16(offset + 2);
+    }
+  } catch {
+    /* silencioso — ante la duda, false */
+  }
+  return false;
+}

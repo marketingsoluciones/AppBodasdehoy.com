@@ -4,7 +4,7 @@ import ClickAwayListener from "react-click-away-listener";
 import { motion } from "framer-motion";
 import { LineaHome } from "../components/icons";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, LoadingContextProvider, } from "../context";
-import Card, { handleClickCard, defaultImagenes } from "../components/Home/Card";
+import Card, { handleClickCard, getEventImage } from "../components/Home/Card";
 import MisEventosMovil from "../components/Home/MisEventosMovil";
 import CardEmpty from "../components/Home/CardEmpty";
 import FormCrearEvento from "../components/Forms/FormCrearEvento";
@@ -796,7 +796,7 @@ const GridCards: FC<propsGridCards> = ({
   };
   const bucketLbl: Record<string, string> = { activo: t("Activo"), realizado: t("Realizado"), archivado: t("Archivado") };
   const tevColor = (s: string) => { const c = ["#EF5B94", "#8e7cc3", "#c9a24b", "#5aa9e6", "#2FB37E", "#e07a5f", "#7b8794"]; let h = 0; for (const ch of String(s || "?")) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return c[h % c.length]; };
-  const eventoImg = (e: any) => e?.imgEvento?.i320 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${e.imgEvento.i320}`)}` : (defaultImagenes[e?.tipo?.toLowerCase()] || defaultImagenes["otro"]);
+  const eventoImg = (e: any) => e?.imgEvento?.i320 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${e.imgEvento.i320}`)}` : (getEventImage(e?.tipo));
   const invitadosCount = (e: any) => { const a = e?.invitados_array; if (Array.isArray(a)) return a.length; if (typeof a === "string") { try { const p = JSON.parse(a); return Array.isArray(p) ? p.length : 0; } catch { return 0; } } return 0; };
   const presupuestoFmt = (e: any) => { let po: any = e?.presupuesto_objeto; if (typeof po === "string") { try { po = JSON.parse(po); } catch { po = null; } } const val = Number(po?.coste_estimado ?? po?.presupuesto_total ?? po?.coste_final ?? 0) || 0; try { return new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(val); } catch { return `${val} €`; } };
   const abrirFila = (ev: any) => { if (!ev?._id) { toastGrid("error", t("Error: Evento no válido")); return; } toastGrid("success", t("Abriendo evento...")); handleClickCard({ t, final: true, config, data: ev, setEvent, user, setUser, router }).then((r: any) => { if (r) toastGrid("warning", r); }).catch(() => { try { setEvent(ev); setTimeout(() => router.push("/resumen-evento"), 100); } catch { } }); };

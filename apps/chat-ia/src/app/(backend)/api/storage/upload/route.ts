@@ -1,17 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
+import { resolveSessionIdentity } from '@/utils/serverSessionAuth';
+
 const BACKEND_URL =
   resolveServerBackendOrigin();
 
 const PROXY_TIMEOUT_MS = 30_000;
+
+const NO_AUTENTICADO = { error: 'No autenticado', success: false } as const;
 
 /**
  * POST /api/storage/upload
  *
  * Proxy al backend api-ia que escribe en Cloudflare R2.
  * Las credenciales R2 las gestiona api-ia vía whitelabel (MCP). El front no
- * necesita ninguna variable S3_* — solo pasar X-Development y X-User-ID.
+ * necesita ninguna variable S3_*.
+ *
+ * 🔒 Gate de sesión (auditoría QA 15-09, IMG-01 / MARCA-01): antes esta ruta
+ * identificaba al que sube con la cabecera `X-User-ID` y elegía la marca con
+ * `X-Development` — las dos las escribe el cliente, así que cualquiera podía
+ * subir al espacio de otro usuario o de otra marca. Ahora el uid sale del claim
+ * del JWT y la marca del hostname; las cabeceras ya no se leen.
  *
  * Routing según eventId:
  *   - Con eventId → api-ia /api/storage/events/{eventId}/upload
@@ -29,6 +39,13 @@ export async function POST(request: NextRequest) {
   const timer = setTimeout(() => controller.abort(), PROXY_TIMEOUT_MS);
 
   try {
+    // El gate va ANTES de leer el cuerpo: un anónimo no llega ni a la validación
+    // del fichero (antes recibía "file requerido", que ya era estar dentro).
+    const session = resolveSessionIdentity(request);
+    if (!session) {
+      return NextResponse.json(NO_AUTENTICADO, { status: 401 });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
 
@@ -39,15 +56,7 @@ export async function POST(request: NextRequest) {
     const eventId = (formData.get('event_id') as string | null) || '';
     const accessLevel = (formData.get('access_level') as string) || 'shared';
 
-    const userEmail = request.headers.get('X-User-Email') || '';
-    const userId = request.headers.get('X-User-ID') || '';
-    const development = request.headers.get('X-Development') || 'bodasdehoy';
-
-    if (!userId && !userEmail) {
-      return NextResponse.json({ error: 'X-User-ID requerido', success: false }, { status: 400 });
-    }
-
-    const finalUserId = userId || userEmail;
+    const { credential, development, email: userEmail, userId } = session;
 
     // Construir FormData para reenviar
     const backendFormData = new FormData();
@@ -57,14 +66,17 @@ export async function POST(request: NextRequest) {
     // Elegir endpoint según si hay eventId
     const backendUrl = eventId
       ? `${BACKEND_URL}/api/storage/events/${eventId}/upload?access_level=${accessLevel}`
-      : `${BACKEND_URL}/api/storage/r2/users/${finalUserId}/upload?access_level=${accessLevel}`;
+      : `${BACKEND_URL}/api/storage/r2/users/${userId}/upload?access_level=${accessLevel}`;
 
     const response = await fetch(backendUrl, {
       body: backendFormData,
       headers: {
+        // El JWT viaja al backend: cuando api-ia exija auth en /api/storage/*
+        // (tarea abierta de la auditoría de backend), esto ya lo cumple.
+        Authorization: credential,
         'X-Development': development,
         'X-User-Email': userEmail,
-        'X-User-ID': finalUserId,
+        'X-User-ID': userId,
       },
       method: 'POST',
       signal: controller.signal,
@@ -105,13 +117,18 @@ export async function GET(request: NextRequest) {
   const timer = setTimeout(() => controller.abort(), PROXY_TIMEOUT_MS);
 
   try {
+    // Listar los ficheros de un evento enumera las fotos de esa boda: mismo gate
+    // que la subida (IMG-01b).
+    const session = resolveSessionIdentity(request);
+    if (!session) {
+      return NextResponse.json(NO_AUTENTICADO, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const eventId = searchParams.get('event_id') || '';
     const fileType = searchParams.get('file_type');
 
-    const development = request.headers.get('X-Development') || 'bodasdehoy';
-    const userId =
-      request.headers.get('X-User-ID') || request.headers.get('X-User-Email') || '';
+    const { credential, development, userId } = session;
 
     if (!eventId) {
       return NextResponse.json({ error: 'event_id requerido', success: false }, { status: 400 });
@@ -123,7 +140,11 @@ export async function GET(request: NextRequest) {
     const url = `${BACKEND_URL}/api/storage/events/${eventId}/files${params.size ? `?${params}` : ''}`;
 
     const response = await fetch(url, {
-      headers: { 'X-Development': development, 'X-User-ID': userId },
+      headers: {
+        Authorization: credential,
+        'X-Development': development,
+        'X-User-ID': userId,
+      },
       method: 'GET',
       signal: controller.signal,
     });

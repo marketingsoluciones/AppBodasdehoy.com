@@ -62,5 +62,6 @@ export {
   readExifOrientation,
   rotateForOrientation,
   isOrientationSwapped,
+  hasExifMetadata,
   type ExifOrientation,
 } from './exif';

@@ -13,7 +13,11 @@ const nextConfig = {
       { protocol: 'https', hostname: '*.r2.cloudflarestorage.com' },
       { protocol: 'https', hostname: 'storage.googleapis.com' },
       { protocol: 'https', hostname: 'api.qrserver.com' },
-      { protocol: 'https', hostname: 'picsum.photos' },
+      // Host de imágenes de relleno: solo fuera de producción. Estaba autorizado
+      // en el mismo allowlist que R2 y GCS, ampliando la superficie sin motivo.
+      ...(process.env.NODE_ENV === 'production'
+        ? []
+        : [{ protocol: 'https', hostname: 'picsum.photos' }]),
     ],
     formats: ['image/avif', 'image/webp'],
   },
