@@ -59,7 +59,9 @@ describe('whitelabel multi-tenant', () => {
     const b = resolveTenantBrandingByKey('annloevents');
     expect(b.development).toBe('annloevents');
     expect(b.name).toBe('Annlo Events');
-    expect(b.primaryColor).toBe('#b8a9c9');
+    // Decisión JCP 17-09: manda appEventos. annloevents pasó de #b8a9c9 a #DB8686
+    // al unificar las dos tablas de color (ver appEventos/utils/__tests__/colorMarca.test.ts).
+    expect(b.primaryColor).toBe('#DB8686');
   });
 
   it('resolveTenantBrandingByKey con key inexistente fallback a bodasdehoy', () => {

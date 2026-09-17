@@ -65,7 +65,7 @@ export const developments: DevelopmentConfig[] = [
     pathDirectory: 'https://bodasdehoy.com',
     headTitle: 'Bodas de hoy - Organizador de Bodas',
     theme: {
-      primaryColor: '#F7628C',
+      primaryColor: '#EF5B94',
       secondaryColor: '#87F3B5',
       tertiaryColor: '#FBFF4E',
       baseColor: '#F2F2F2',
@@ -161,7 +161,7 @@ export const developments: DevelopmentConfig[] = [
     pathLogin: 'https://annloevents.com/login',
     headTitle: 'Annlo Events',
     theme: {
-      primaryColor: '#b8a9c9',
+      primaryColor: '#DB8686',
       secondaryColor: '#622569',
       baseColor: '#F2F2F2',
     },
@@ -177,7 +177,7 @@ export const developments: DevelopmentConfig[] = [
     pathLogin: 'https://miamorcitocorazon.mx/login',
     headTitle: 'Mi Amorcito Corazón',
     theme: {
-      primaryColor: '#e8a0bf',
+      primaryColor: '#DB8686',
       secondaryColor: '#ba90c6',
       tertiaryColor: '#c0dbdd',
       baseColor: '#F2F2F2',
@@ -194,7 +194,7 @@ export const developments: DevelopmentConfig[] = [
     pathLogin: 'https://eventosintegrados.com/login',
     headTitle: 'Eventos Integrados',
     theme: {
-      primaryColor: '#6771ae',
+      primaryColor: '#CC2149',
       secondaryColor: '#c589a9',
       tertiaryColor: '#b3dbb4',
       baseColor: '#F2F2F2',
@@ -212,7 +212,7 @@ export const developments: DevelopmentConfig[] = [
     pathLogin: 'https://ohmaratilano.com/login',
     headTitle: 'Oh Mara Tilano',
     theme: {
-      primaryColor: '#c9a96e',
+      primaryColor: '#C1BBA3',
       secondaryColor: '#7a5c3a',
       baseColor: '#F2F2F2',
     },
@@ -228,7 +228,7 @@ export const developments: DevelopmentConfig[] = [
     pathLogin: 'https://corporativozr.com/login',
     headTitle: 'Corporativo ZR',
     theme: {
-      primaryColor: '#2c3e50',
+      primaryColor: '#C1BBA3',
       secondaryColor: '#e74c3c',
       baseColor: '#F2F2F2',
     },
@@ -244,7 +244,7 @@ export const developments: DevelopmentConfig[] = [
     pathLogin: 'https://theweddingplanner.mx/login',
     headTitle: 'The Wedding Planner',
     theme: {
-      primaryColor: '#d4a5a5',
+      primaryColor: '#EBA696',
       secondaryColor: '#9e7777',
       baseColor: '#F2F2F2',
     },

@@ -89,7 +89,10 @@ function configToTenantBranding(
     domain: root,
     favicon: config.favicon,
     name: config.headTitle || config.name,
-    primaryColor: config.theme?.primaryColor || '#ec4899',
+    // Fallback = primario de bodasdehoy. Antes era '#ec4899', que no es el color de
+    // NINGUNA marca: cualquier fallo de resolución pintaba un rosa fantasma
+    // imposible de rastrear hasta su origen (auditoría de marca 17-09).
+    primaryColor: config.theme?.primaryColor || '#EF5B94',
     secondaryColor: config.theme?.secondaryColor || '#f472b6',
     tertiaryColor: config.theme?.tertiaryColor,
     timeZone: config.timeZone,
