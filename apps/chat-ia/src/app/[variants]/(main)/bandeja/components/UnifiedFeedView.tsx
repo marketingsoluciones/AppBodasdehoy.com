@@ -15,6 +15,10 @@ import { previewText } from '../utils/preview';
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
+// Colores de CANAL AJENO, no de la marca: el rosa de Instagram es de Instagram, el verde de
+// WhatsApp es de WhatsApp. No entran en la campaña de whitelabel; cambiarlos por el color de
+// la marca haría que los canales dejaran de distinguirse de un vistazo. Todo lo demás en esta
+// carpeta sí debe salir de `useBandejaBrand`.
 const FEED_CHANNEL_CONFIG: Record<string, { bg: string; icon: string; label: string }> = {
   email: { bg: 'bg-gray-500', icon: '📧', label: '@' },
   facebook: { bg: 'bg-blue-600', icon: '📘', label: 'FB' },

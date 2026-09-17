@@ -15,6 +15,8 @@ export function ChannelBadge({ channel, size = 'md' }: ChannelBadgeProps) {
       icon: '📘',
       name: 'Facebook',
     },
+    // Color de Instagram, no de la marca (ver nota en UnifiedFeedView): identificar el canal
+    // es lo que hace útil este distintivo.
     instagram: {
       color: 'bg-pink-100 text-pink-700',
       icon: '📷',
