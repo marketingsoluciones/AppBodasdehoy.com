@@ -122,7 +122,10 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
             className={`absolute -bottom-0.5 -left-0.5 flex h-4 min-w-4 items-center justify-center rounded px-0.5 text-[9px] font-bold text-white ${cfg.bg}`}
             title={detalleCanal}
           >
-            {item.channelLabel ?? cfg.label}
+            {/* Siempre el canal ("W", "IG", "@"), nunca los dígitos de la línea: en las
+                capturas salía "349" en cada avatar y no significa nada para quien atiende.
+                La línea concreta sigue en el tooltip, que es donde se consulta. */}
+            {cfg.label}
           </span>
         )}
         {item.rsvpStatus && (

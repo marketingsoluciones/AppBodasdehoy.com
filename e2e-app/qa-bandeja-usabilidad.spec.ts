@@ -223,17 +223,30 @@ test('QA bandeja — usabilidad y navegación', async ({ page }) => {
     await page.goto(`${CHAT}/bandeja/wa-bodasdehoy`, { timeout: 90_000, waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(7000);
     const enCanal = await page.evaluate(() => document.body.innerText);
-    // No basta con que el texto esté en el DOM: el título llegó a quedarse con 0px de ancho
-    // (aplastado por los controles de al lado) y "WhatsApp" no se leía aunque estuviera.
+    // No basta con que el texto esté en el DOM, y tampoco vale con coger el primero: la lista
+    // se pinta DOS veces (una copia para móvil, de 0x0, y la de escritorio). Medir sin filtrar
+    // por lo que ocupa espacio da "0px" y hace cantar un fallo que no existe — ya ha pasado
+    // tres veces en esta auditoría. Se mide el título que de verdad se ve.
     const tituloCanal = await page.evaluate(() => {
-      const h = [...document.querySelectorAll('h2')].find((el) => /WhatsApp|Chat web|Instagram|Telegram|Messenger|Email/.test(el.textContent || ''));
+      const h = [...document.querySelectorAll('h2')]
+        .filter((el) => el.getBoundingClientRect().width > 0)
+        .find((el) => /WhatsApp|Chat web|Instagram|Telegram|Messenger|Email/.test(el.textContent || ''));
       return h ? { ancho: Math.round(h.getBoundingClientRect().width), texto: (h.textContent || '').trim() } : null;
     });
     anota('La cabecera dice en qué canal estás y se lee',
       !!tituloCanal && tituloCanal.ancho > 40,
       tituloCanal ? `"${tituloCanal.texto}" · ${tituloCanal.ancho}px` : 'no hay título de canal');
     anota('Hay salida a todos los canales', /Todos los canales/i.test(enCanal));
-    anota('Modo de IA por defecto visible', /IA por defecto/i.test(enCanal));
+    // El rótulo "IA por defecto" se quitó (se comía el ancho del título): ahora es el selector
+    // con su tooltip, igual que los indicadores de las filas.
+    const selectorIa = await page.evaluate(() => {
+      const d = [...document.querySelectorAll('div[title*="Modo de IA"]')].filter(
+        (el) => el.getBoundingClientRect().width > 0,
+      );
+      return d.length;
+    });
+    anota('Modo de IA por defecto de la bandeja, accesible', selectorIa > 0,
+      selectorIa > 0 ? 'selector con tooltip en la cabecera' : 'no se encontró el selector');
 
     // Densidad de la lista POR CANAL: es otro componente que la bandeja, y la auditoría la
     // midió en 95px cuando la bandeja iba a 64. Dos densidades para lo mismo.

@@ -204,10 +204,13 @@ export function IaModeBadge({
           else abrir();
         }}
         style={{
-          // Con modo propio va marcado; heredado, apagado, para no dar a entender que alguien
-          // lo configuró a mano en esta conversación.
+          // Con modo propio va marcado; heredado, en gris y a media tinta, para que destaque
+          // la fila que tiene algo distinto y no noventa iconos idénticos con el mismo peso.
+          // El `color` no basta: un emoji se pinta con sus propios colores, de ahí el filtro.
           backgroundColor: propio ? modo.fondo : 'transparent',
           color: propio ? modo.color : '#9A9AA6',
+          filter: propio ? undefined : 'grayscale(1)',
+          opacity: propio ? 1 : 0.55,
         }}
         title={
           propio
