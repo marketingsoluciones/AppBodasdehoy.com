@@ -214,14 +214,44 @@ for _ in $(seq 1 20); do
 done
 [ "$OK" = 1 ] || morir "no responde en :$PUERTO. Revierte: $VAR=\"$VIVO\" y pm2 restart $PM2"
 
-# Lo que importa no es que responda, sino que sirva EL build nuevo.
-SERVIDO=$(curl -s --max-time 30 "http://127.0.0.1:$PUERTO/" 2>/dev/null \
-          | grep -oE '"buildId":"[^"]+"' | head -1 | sed 's/.*://;s/"//g')
-if [ "$SERVIDO" = "$BID" ]; then
-  verde "✓ Sirviendo el build nuevo · buildId=$SERVIDO"
+# Que responda 200 no prueba nada: el proceso viejo sigue sirviendo desde memoria
+# aunque el puntero ya apunte a otro sitio (pasó el 17-09 con un build a medias).
+# Hay que comprobar qué build ha cargado DE VERDAD, y eso se hace de dos formas
+# según el router:
+#
+#   · El entorno del proceso — la fiable para las dos apps. OJO: `pm2 jlist`
+#     MIENTE aquí, porque la variable la exporta el script de arranque por dentro
+#     y pm2 solo guarda el entorno del `pm2 start` original; sigue mostrando el
+#     directorio del primer arranque para siempre. La fuente buena es `ps eww`
+#     del proceso padre (el `pnpm next start`), no del hijo que abre el puerto.
+#
+#   · El buildId del HTML — solo sirve en appEventos (Pages Router, emite
+#     __NEXT_DATA__). chat-ia es App Router y NO lo emite: comprobarlo ahí daba un
+#     aviso falso en cada despliegue.
+PID_APP=$(ps -eo pid,command 2>/dev/null | grep "[n]ext start -p $PUERTO" | awk '{print $1}' | head -1)
+CARGADO=""
+if [ -n "$PID_APP" ]; then
+  CARGADO=$(ps eww "$PID_APP" 2>/dev/null | tr ' ' '\n' | grep -E "^${VAR}=" | head -1 | cut -d= -f2)
+fi
+
+if [ "$CARGADO" = "$NUEVO" ]; then
+  verde "✓ El proceso (pid $PID_APP) ha cargado $NUEVO"
+elif [ -n "$CARGADO" ]; then
+  rojo "⚠ El proceso sirve $CARGADO, no $NUEVO. ¿Reinició de verdad?"
+  rojo "  Reintenta: npx pm2 restart $PM2 --update-env"
 else
-  rojo "⚠ Responde 200 pero sirve buildId=$SERVIDO (esperado $BID)."
-  rojo "  Puede ser caché del proceso: revisa con pm2 logs $PM2."
+  rojo "⚠ No pude leer ${VAR} del proceso. Comprueba a mano: ps eww \$(lsof -ti:$PUERTO)"
+fi
+
+# Comprobación extra, solo donde el router la permite.
+if [ "$APP" = app ]; then
+  SERVIDO=$(curl -s --max-time 30 "http://127.0.0.1:$PUERTO/" 2>/dev/null \
+            | grep -oE '"buildId":"[^"]+"' | head -1 | sed 's/.*://;s/"//g')
+  if [ "$SERVIDO" = "$BID" ]; then
+    verde "✓ buildId servido coincide con el compilado ($BID)"
+  elif [ -n "$SERVIDO" ]; then
+    rojo "⚠ buildId servido $SERVIDO ≠ compilado $BID"
+  fi
 fi
 
 # ─── Rotación: conservar los N últimos ────────────────────────────────────────
