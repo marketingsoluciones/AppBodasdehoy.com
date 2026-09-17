@@ -33,7 +33,10 @@ set -Eeuo pipefail
 # Checkout que SIRVE dev (el que PM2 tiene como cwd). No es necesariamente el
 # árbol donde estás trabajando: cámbialo si mueves el despliegue.
 REPO="${DEPLOY_REPO:-/Users/juancarlosparra/Projects/AppBodasdehoy.com}"
-PM2_SCRIPTS="${PM2_SCRIPTS_DIR:-$HOME/.pm2-scripts}"
+# `$HOME` con `set -u` revienta con "unbound variable" si el script se lanza desde un
+# entorno limpio (cron, un PM2 sin env heredado, `env -i`). Comprobado. Mejor decir qué
+# falta que soltar el mensaje de bash.
+PM2_SCRIPTS="${PM2_SCRIPTS_DIR:-${HOME:?falta HOME en el entorno: pasa PM2_SCRIPTS_DIR o lanza con un shell de login}/.pm2-scripts}"
 LOCK="/tmp/appbodasdehoy-deploy.lock"
 # `npx pm2` puede resolver un pm2 DISTINTO del que tiene el demonio con los
 # procesos, y en el peor caso levanta un segundo demonio: dos mundos paralelos.
@@ -100,11 +103,21 @@ marcar_build_ok() {
 medir_recursos() {
   local patron="${1:-next build}"
   local ajenos libre carga swap
+  # Por RUTA ABSOLUTA con respaldo al PATH. `sysctl` vive en /usr/sbin, que no está en
+  # todos los entornos: en la ejecución del otro agente salió "swap usado ?" justo por
+  # eso. `memory_pressure` está en /usr/bin y sí resolvía, pero se trata igual para no
+  # depender de qué directorio falta en el PATH de quien lanza.
+  local SYSCTL=/usr/sbin/sysctl MEMP=/usr/bin/memory_pressure
+  [ -x "$SYSCTL" ] || SYSCTL=$(command -v sysctl || echo /nonexistent)
+  [ -x "$MEMP" ] || MEMP=$(command -v memory_pressure || echo /nonexistent)
+
   ajenos=$(pgrep -f "$patron" 2>/dev/null | wc -l | tr -d ' ') || ajenos=0
-  libre=$(memory_pressure 2>/dev/null | awk '/free percentage/{print $5+0}') || libre=""
+  libre=$("$MEMP" 2>/dev/null | awk '/free percentage/{print $5+0}') || libre=""
   carga=$(uptime | sed 's/.*averages*: *//' | awk '{print $1}' | tr -d ',') || carga=0
-  swap=$(sysctl -n vm.swapusage 2>/dev/null | awk '{print $6}') || swap="?"
-  echo "${ajenos:-0} ${libre:-100} ${carga:-0} ${swap:-?}"
+  swap=$("$SYSCTL" -n vm.swapusage 2>/dev/null | awk '{print $6}') || swap=""
+  # "no-medido" en vez de "?": un interrogante en una línea de diagnóstico se lee dentro
+  # de un mes como "no hay swap" en lugar de "no lo pude medir". Aviso del otro agente.
+  echo "${ajenos:-0} ${libre:-100} ${carga:-0} ${swap:-no-medido}"
 }
 
 # Decide si se puede compilar, a partir de datos ya medidos. Está separada de la

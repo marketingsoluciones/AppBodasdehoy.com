@@ -93,6 +93,31 @@ else
   falla "algún dato medido no es numérico" "ajenos='$A' libre='$L' load='$C'"
 fi
 
+# ── 7 · mide el swap aunque el PATH no traiga /usr/sbin ────────────────────
+# El fallo que encontró el otro agente en una ejecución real: su línea de diagnóstico
+# decía "swap usado ?" porque `sysctl` vive en /usr/sbin y su entorno no lo tenía en
+# el PATH. No era grave —el swap es informativo, no una puerta— pero un dato que no se
+# mide y se muestra como "?" se lee dentro de un mes como "no hay swap".
+SALIDA_MIN=$(env -i PATH=/usr/bin:/bin HOME="$HOME" bash -c \
+  ". '$AQUI/deploy-dev.sh'; medir_recursos 'patron-que-no-casa-jamas-xyz'" 2>/dev/null) || SALIDA_MIN=""
+SWAP_MIN=$(echo "$SALIDA_MIN" | awk '{print $4}')
+if echo "$SWAP_MIN" | grep -qE '^[0-9]+([.,][0-9]+)?M?$'; then
+  ok "mide el swap con un PATH sin /usr/sbin (leído: $SWAP_MIN)"
+elif [ -z "$SALIDA_MIN" ]; then
+  falla "con PATH mínimo la medición no devuelve nada" "salida vacía: ¿murió al arrancar?"
+else
+  falla "con PATH mínimo el swap sale sin medir ($SWAP_MIN)" \
+        "sysctl está en /usr/sbin: hay que llamarlo por ruta absoluta, no confiar en el PATH"
+fi
+
+# ── 8 · y lo no medido se dice con palabras, no con un interrogante ────────
+if grep -q 'no-medido' "$AQUI/deploy-dev.sh"; then
+  ok "el valor no medido se etiqueta 'no-medido', no '?'"
+else
+  falla "volvió el '?' como marca de no medido" \
+        "un interrogante en una línea de diagnóstico se lee como 'no hay', no como 'no se pudo medir'"
+fi
+
 echo
 if [ "$FALLIDOS" -eq 0 ]; then
   printf '\033[32m%s\033[0m\n' "✓ recursos: $PASADOS comprobaciones en verde"
