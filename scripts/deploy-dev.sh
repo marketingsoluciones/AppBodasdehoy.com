@@ -46,6 +46,42 @@ verde() { printf '\033[32m%s\033[0m\n' "$*"; }
 info()  { printf '\033[36m▸\033[0m %s\n' "$*"; }
 morir() { rojo "✗ $*"; exit 1; }
 
+# rotar_builds <dir> <prefijo> <conservar> <nuevo> <vivo>
+#
+# Borra los builds MÁS ANTIGUOS hasta dejar <conservar>, sin tocar nunca <nuevo>
+# ni <vivo>.
+#
+# El orden es por FECHA DE MODIFICACIÓN (`ls -1dt` + `tail`), no alfabético, y eso
+# no es un detalle: en ASCII el guion (0x2D) va ANTES que las letras, así que
+# `.next-chat-20260917-bandeja1` ordena por delante de `.next-chat-20260917a`.
+# Con la convención `<fecha>-<zona><n>` el build MÁS NUEVO se convertía en el
+# primer candidato a borrar. Lo impide `scripts/deploy-dev.rotacion_test.sh`.
+rotar_builds() {
+  local dir="$1" prefijo="$2" conservar="$3" nuevo="$4" vivo="$5"
+  local total a_borrar b
+  total=$(ls -1d "$dir/${prefijo}-"* 2>/dev/null | wc -l | tr -d ' ')
+  [ "${total:-0}" -gt "$conservar" ] || return 0
+  a_borrar=$(( total - conservar ))
+  info "Rotando: $total builds, conservo $conservar (vivo + rollback)"
+  # macOS trae bash 3.2, sin `mapfile`: se hace con `ls` y un bucle.
+  ls -1dt "$dir/${prefijo}-"* 2>/dev/null | tail -n "$a_borrar" | while read -r d; do
+    b=$(basename "$d")
+    if [ "$b" = "$nuevo" ] || [ "$b" = "$vivo" ]; then
+      echo "    conservo $b (vivo o recién desplegado)"
+      continue
+    fi
+    rm -rf "$d" && echo "    borrado $b"
+  done
+}
+
+# ─── Importable desde los tests ───────────────────────────────────────────────
+# Si este fichero se hace `source` desde otro script, se cargan las funciones y se
+# para aquí: nada de argumentos, cerrojo ni despliegue. Es lo que permite probar
+# `rotar_builds` de verdad en vez de confiar en un comentario.
+if [ "${BASH_SOURCE[0]}" != "$0" ]; then
+  return 0 2>/dev/null || true
+fi
+
 # ─── Argumentos ───────────────────────────────────────────────────────────────
 APP="${1:-}"; shift || true
 DRY=0
@@ -312,27 +348,10 @@ if [ "$APP" = app ]; then
   fi
 fi
 
-# ─── Rotación: conservar los N últimos ────────────────────────────────────────
-# macOS trae bash 3.2, que NO tiene `mapfile`/`readarray`: se hace con `ls` y un
-# bucle normal. (El shebang es `env bash`, así que aquí manda el bash del sistema.)
-TOTAL=$(ls -1d "$DIR/${PREFIJO}-"* 2>/dev/null | wc -l | tr -d ' ')
-if [ "${TOTAL:-0}" -gt "$CONSERVAR" ]; then
-  A_BORRAR=$(( TOTAL - CONSERVAR ))
-  info "Rotando: $TOTAL builds, conservo $CONSERVAR (vivo + rollback)"
-  # Los más antiguos primero; nunca el vivo ni el que acabamos de desplegar.
-  # Ordenar alfabéticamente era una bomba de relojería: en ASCII el guion (0x2D)
-  # va ANTES que las letras, así que `.next-chat-20260917-bandeja1` ordena por
-  # delante de `.next-chat-20260917a`. Con la convención `<fecha>-<zona><n>`, el
-  # build MÁS NUEVO se convertía en el primer candidato a borrar. `ls -t` ordena
-  # por modificación, así que `tail` da los más antiguos de verdad.
-  ls -1dt "$DIR/${PREFIJO}-"* 2>/dev/null | tail -n "$A_BORRAR" | while read -r d; do
-    b=$(basename "$d")
-    if [ "$b" = "$NUEVO" ] || [ "$b" = "$VIVO" ]; then
-      echo "    conservo $b (vivo o recién desplegado)"
-      continue
-    fi
-    rm -rf "$d" && echo "    borrado $b"
-  done
-fi
+# ─── Rotación ─────────────────────────────────────────────────────────────────
+# Si tocas el orden de borrado, ejecuta scripts/deploy-dev.rotacion_test.sh.
+# El comentario avisa; el test impide. Comprobado que la versión alfabética lo
+# hace fallar, así que no es decorativo.
+rotar_builds "$DIR" "$PREFIJO" "$CONSERVAR" "$NUEVO" "$VIVO"
 
 verde "✓ $APP desplegado. Rollback: $VAR=\"$VIVO\" en $PM2_SCRIPTS/$SCRIPT + $PM2BIN restart $PM2"
