@@ -28,6 +28,15 @@ const SRC = join(BANDEJA, '..', '..', '..', '..');
 /** Puntos de entrada de Next: los llama el framework, no un import. */
 const ENTRADAS = new Set(['page', 'layout', 'template', 'error', 'loading', 'not-found', 'route']);
 
+/**
+ * Un `index.ts` se importa por el nombre de su CARPETA, no por "index", así que buscarlo por
+ * nombre lo daría siempre por huérfano. Hoy la bandeja no tiene ninguno —comprobado—, pero la
+ * exclusión va puesta para que el día que alguien añada un barril no se encuentre con una
+ * prueba roja que no entiende y acabe desactivándola. (Aviso del otro frente al llevarse esta
+ * prueba a appEventos, donde sí hay barriles.)
+ */
+const ES_BARRIL = (nombre: string) => nombre === 'index';
+
 function ficheros(dir: string, acc: string[] = []): string[] {
   for (const e of readdirSync(dir)) {
     const p = join(dir, e);
@@ -46,7 +55,7 @@ describe('ningún fichero de la bandeja se queda huérfano', () => {
 
     const huerfanos = propios.filter((f) => {
       const nombre = f.split('/').pop()!.replace(/\.tsx?$/, '');
-      if (ENTRADAS.has(nombre)) return false;
+      if (ENTRADAS.has(nombre) || ES_BARRIL(nombre)) return false;
       // `from '<lo que sea>/nombre'` en cualquier otro fichero del proyecto.
       const patron = new RegExp(`from\\s+['"][^'"]*/${nombre}['"]`);
       for (const [otro, texto] of contenido) {
