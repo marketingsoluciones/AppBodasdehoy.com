@@ -108,7 +108,7 @@ export const ResumenStudio: FC = () => {
   const over = gastado > estimado && estimado > 0;
   const fmt = (n: number) => `${Math.round(n).toLocaleString("es-ES")} ${cur}`;
   const presupPct = estimado > 0 ? Math.min((gastado / estimado) * 100, 100) : 0;
-  const presupColor = over ? "#E0A32B" : "#EF5B94";
+  const presupColor = over ? "#E0A32B" : "var(--color-primary,#EF5B94)";
 
   const isOwner = event?.usuario_id === user?.uid;
 
@@ -138,8 +138,8 @@ export const ResumenStudio: FC = () => {
   type Alert = { icon: ReactNode; wrap: string; color: string; title: string; desc: string; cta: string; ctaColor: string; to: string };
   const alerts: Alert[] = [];
   if (over) alerts.push({ icon: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" /><path d="M12 9v4M12 17h0" /></svg>, wrap: "#FBF0DA", color: "#B4801F", title: "Presupuesto excedido", desc: `Superas el estimado en ${fmt(gastado - estimado)}.`, cta: "Revisar", ctaColor: "#B4801F", to: "/presupuesto" });
-  if (sinEnviar > 0) alerts.push({ icon: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg>, wrap: "#FCE7F0", color: "#EF5B94", title: "Invitaciones sin enviar", desc: `${enviadas} de ${total} enviadas.`, cta: "Enviar", ctaColor: "#EF5B94", to: "/invitaciones" });
-  if (pendientes > 0) alerts.push({ icon: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M17 11l2 2 4-4" /></svg>, wrap: "#FCE7F0", color: "#EF5B94", title: "Invitados sin confirmar", desc: `${confirmados} de ${total} confirmados.`, cta: "Gestionar", ctaColor: "#EF5B94", to: "/invitados" });
+  if (sinEnviar > 0) alerts.push({ icon: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg>, wrap: "#FCE7F0", color: "var(--color-primary,#EF5B94)", title: "Invitaciones sin enviar", desc: `${enviadas} de ${total} enviadas.`, cta: "Enviar", ctaColor: "var(--color-primary,#EF5B94)", to: "/invitaciones" });
+  if (pendientes > 0) alerts.push({ icon: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M17 11l2 2 4-4" /></svg>, wrap: "#FCE7F0", color: "var(--color-primary,#EF5B94)", title: "Invitados sin confirmar", desc: `${confirmados} de ${total} confirmados.`, cta: "Gestionar", ctaColor: "var(--color-primary,#EF5B94)", to: "/invitados" });
 
   const heroSrc = (event?.imgEvento?.i640 || event?.imgEvento?.i800 || event?.imgEvento?.i320)
     ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${event.imgEvento.i640 || event.imgEvento.i800 || event.imgEvento.i320}`)}`
@@ -177,7 +177,7 @@ export const ResumenStudio: FC = () => {
   // Sobre mi evento (aspectos) — mismos campos/valores que BlockSobreMiEvento
   const colorVal = Array.isArray(event?.color) ? event.color[0] : event?.color;
   const colorOpts = [
-    { name: "Amarillo", hex: "#F2C230" }, { name: "Celeste", hex: "#29C2E0" }, { name: "Rosado", hex: "#EF5B94" },
+    { name: "Amarillo", hex: "#F2C230" }, { name: "Celeste", hex: "#29C2E0" }, { name: "Rosado", hex: "var(--color-primary,#EF5B94)" },
     { name: "Rojo", hex: "#E23B2E" }, { name: "Morado", hex: "#8B3FD6" }, { name: "Beige", hex: "#E4D3A6" },
     { name: "Dorado", hex: "#E0A32B" }, { name: "Plata", hex: "#A9B0BC" }, { name: "Naranja", hex: "#F07B29" }, { name: "verde", hex: "#4CA83D" },
   ];
@@ -212,7 +212,7 @@ export const ResumenStudio: FC = () => {
   const popover: React.CSSProperties = { background: "#fff", borderRadius: 14, boxShadow: "0 6px 22px rgba(0,0,0,.09)", padding: "24px 30px", marginBottom: 14, position: "relative", display: "flex", alignItems: "flex-start", flexWrap: "wrap", gap: "20px 30px", animation: "fadein .18s ease" };
   const closeX = <button onClick={() => setPicker(null)} style={{ position: "absolute", top: 12, right: 16, width: 26, height: 26, color: "#8a8a90", fontSize: 16, background: "none", border: "none", cursor: "pointer" }}>✕</button>;
 
-  const dashBtn: React.CSSProperties = { alignSelf: "center", marginTop: "auto", height: 42, width: 160, padding: "0 18px", borderRadius: 11, background: "transparent", border: "1.5px dashed #F4A9C8", color: "#EF5B94", font: "600 12.5px Poppins", cursor: "pointer" };
+  const dashBtn: React.CSSProperties = { alignSelf: "center", marginTop: "auto", height: 42, width: 160, padding: "0 18px", borderRadius: 11, background: "transparent", border: "1.5px dashed #F4A9C8", color: "var(--color-primary,#EF5B94)", font: "600 12.5px Poppins", cursor: "pointer" };
 
   return (
     <>
@@ -241,20 +241,20 @@ export const ResumenStudio: FC = () => {
                 {(user?.displayName || event?.nombre || "?").charAt(0).toUpperCase()}
                 <span style={{ position: "absolute", bottom: 0, right: 0, width: 9, height: 9, borderRadius: "50%", background: "#37c46b", border: "1.5px solid #fff" }} />
               </div>
-              <div onClick={() => isOwner && setOpenShare(true)} title="Compartir" style={{ width: 32, height: 32, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", cursor: isOwner ? "pointer" : "default" }}>
+              <div onClick={() => isOwner && setOpenShare(true)} title="Compartir" style={{ width: 32, height: 32, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary,#EF5B94)", cursor: isOwner ? "pointer" : "default" }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4" /></svg>
               </div>
-              <div onClick={() => isOwner && setIsMounted(true)} title="Editar evento" style={{ width: 32, height: 32, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", opacity: isOwner ? 1 : .5, cursor: isOwner ? "pointer" : "default" }}>
+              <div onClick={() => isOwner && setIsMounted(true)} title="Editar evento" style={{ width: 32, height: 32, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary,#EF5B94)", opacity: isOwner ? 1 : .5, cursor: isOwner ? "pointer" : "default" }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
               </div>
             </div>
             <div style={{ textAlign: "center", marginTop: 2 }}>
               <div style={{ font: "700 24px Poppins", color: "#4a4a52", letterSpacing: ".3px" }}>{event?.nombre}</div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 8, font: "600 13px Poppins", color: "#8a8a90" }}>
-                {fechaTxt}<span style={{ background: "#FCE7F0", color: "#EF5B94", font: "600 11.5px Poppins", padding: "3px 11px", borderRadius: 20 }}>{tipoTxt}</span>
+                {fechaTxt}<span style={{ background: "#FCE7F0", color: "var(--color-primary,#EF5B94)", font: "600 11.5px Poppins", padding: "3px 11px", borderRadius: 20 }}>{tipoTxt}</span>
               </div>
               {dias !== null && (
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 7, marginTop: 9, background: "linear-gradient(135deg,#EF5B94,#f588b3)", color: "#fff", font: "500 13px Poppins", padding: "6px 15px", borderRadius: 22, boxShadow: "0 6px 16px rgba(239,91,148,.28)" }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 7, marginTop: 9, background: "linear-gradient(135deg,var(--color-primary,#EF5B94),#f588b3)", color: "#fff", font: "500 13px Poppins", padding: "6px 15px", borderRadius: 22, boxShadow: "0 6px 16px rgba(239,91,148,.28)" }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M6 2h12M6 22h12M6 2c0 5 4 6 4 10s-4 5-4 10M18 2c0 5-4 6-4 10s4 5 4 10" /></svg>
                   {dias === 0 ? "¡Es hoy!" : `Faltan ${dias.toLocaleString("es-ES")} días`}
                 </div>
@@ -262,10 +262,10 @@ export const ResumenStudio: FC = () => {
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto", paddingTop: 18 }}>
               <div style={{ font: "600 11.5px Poppins", color: "#8a8a90" }}>Estado <span style={{ color: "#3A3A42" }}>· {pct}%</span></div>
-              <div style={{ font: "600 11.5px Poppins", color: "#EF5B94", whiteSpace: "nowrap" }}>{estadoMsg}</div>
+              <div style={{ font: "600 11.5px Poppins", color: "var(--color-primary,#EF5B94)", whiteSpace: "nowrap" }}>{estadoMsg}</div>
             </div>
             <div style={{ position: "relative", height: 8, borderRadius: 8, background: "#f0f0f2", marginTop: 8 }}>
-              <div style={{ position: "absolute", inset: 0, height: "100%", width: `${pct}%`, background: "linear-gradient(90deg,#EF5B94,#f588b3)", borderRadius: 8, transition: "width .9s cubic-bezier(.2,.7,.2,1)" }} />
+              <div style={{ position: "absolute", inset: 0, height: "100%", width: `${pct}%`, background: "linear-gradient(90deg,var(--color-primary,#EF5B94),#f588b3)", borderRadius: 8, transition: "width .9s cubic-bezier(.2,.7,.2,1)" }} />
               {ticks.map((t, i) => (<div key={i} style={{ position: "absolute", top: "50%", left: t.left, transform: "translate(-50%,-50%)", width: 5, height: 5, borderRadius: "50%", background: t.on ? "#fff" : "#d8d8de" }} />))}
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12, marginTop: 16 }}>
@@ -285,10 +285,10 @@ export const ResumenStudio: FC = () => {
           <div className="rs-check" style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 8, flex: 1 }}>
             {steps.map((s, i) => {
               const active = i === firstPending;
-              const dotBg = s.done ? "#EF5B94" : active ? "#EF5B94" : "#f0f0f2";
+              const dotBg = s.done ? "var(--color-primary,#EF5B94)" : active ? "var(--color-primary,#EF5B94)" : "#f0f0f2";
               const dotFg = s.done || active ? "#fff" : "#b3b3ba";
               const bg = s.done ? "#f4f4f6" : active ? "#FDEEF4" : "#faf9fb";
-              const border = s.done ? "#e4e4e8" : active ? "#EF5B94" : "#f0f0f2";
+              const border = s.done ? "#e4e4e8" : active ? "var(--color-primary,#EF5B94)" : "#f0f0f2";
               return (
                 <div key={i} onClick={() => setStepsDone((prev) => prev.map((v, idx) => (idx === i ? !v : v)))} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", borderRadius: 10, background: bg, border: `1.5px ${active ? "dashed" : "solid"} ${border}`, boxShadow: active ? "0 3px 12px rgba(239,91,148,.22)" : "none", cursor: "pointer" }}>
                   <div style={{ width: 20, height: 20, borderRadius: "50%", background: dotBg, display: "flex", alignItems: "center", justifyContent: "center", color: dotFg, font: "700 10px Poppins", flex: "none" }}>
@@ -328,7 +328,7 @@ export const ResumenStudio: FC = () => {
             <div style={{ font: "600 16px Poppins", color: "#6b6b72", marginBottom: 10 }}>Presupuesto</div>
             <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, padding: "20px 18px", display: "flex", flexDirection: "column", flex: 1, gap: 16, boxShadow: "0 4px 14px rgba(0,0,0,.06)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, flex: "none", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, flex: "none", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary,#EF5B94)" }}>
                   <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round"><path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2V5z" /><path d="M2 9v1c0 1.1.9 2 2 2h1" /><path d="M16 11h0" /></svg>
                 </div>
                 <div style={{ flex: 1 }}>
@@ -383,13 +383,13 @@ export const ResumenStudio: FC = () => {
         </div>
 
         {/* BANNER INVITACIONES */}
-        <div style={{ borderRadius: 16, padding: "18px 24px", background: "linear-gradient(135deg,#EF5B94,#f588b3)", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22, boxShadow: "0 10px 24px rgba(239,91,148,.28)", flexWrap: "wrap", gap: 12 }}>
+        <div style={{ borderRadius: 16, padding: "18px 24px", background: "linear-gradient(135deg,var(--color-primary,#EF5B94),#f588b3)", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22, boxShadow: "0 10px 24px rgba(239,91,148,.28)", flexWrap: "wrap", gap: 12 }}>
           <div style={{ font: "600 16px Poppins", color: "#fff" }}>Invitaciones</div>
           <div style={{ display: "flex", alignItems: "center", gap: 26, flexWrap: "wrap" }}>
             <div style={{ textAlign: "center" }}><span style={{ font: "600 13px Poppins", color: "#fff", opacity: .9 }}>enviadas </span><span style={{ font: "600 16px Poppins", color: "#fff" }}>{enviadas}</span></div>
             <div style={{ textAlign: "center" }}><span style={{ font: "600 13px Poppins", color: "#fff", opacity: .9 }}>por enviar </span><span style={{ font: "600 16px Poppins", color: "#fff" }}>{sinEnviar}</span></div>
             <div style={{ textAlign: "center" }}><span style={{ font: "600 13px Poppins", color: "#fff", opacity: .9 }}>confirmadas </span><span style={{ font: "600 16px Poppins", color: "#fff" }}>{confirmados}</span></div>
-            <button onClick={() => router.push("/invitaciones")} style={{ padding: "11px 18px", borderRadius: 10, background: "#fff", color: "#EF5B94", font: "600 12.5px Poppins", cursor: "pointer", border: "none" }}>Ver mis invitaciones</button>
+            <button onClick={() => router.push("/invitaciones")} style={{ padding: "11px 18px", borderRadius: 10, background: "#fff", color: "var(--color-primary,#EF5B94)", font: "600 12.5px Poppins", cursor: "pointer", border: "none" }}>Ver mis invitaciones</button>
           </div>
         </div>
 
@@ -404,12 +404,12 @@ export const ResumenStudio: FC = () => {
                 {mesasList.length === 0 && <div style={{ textAlign: "center", padding: "22px 0", font: "500 12px Poppins", color: "#a0a0a8" }}>Aún no has creado planos de mesas.</div>}
                 {mesasList.map((m, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 0", borderBottom: `1px solid ${i < mesasList.length - 1 ? "#f0f0f2" : "transparent"}` }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 12, flex: "none", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}><svg width="22" height="22" viewBox="-2 -2 28 28" fill="none" stroke="currentColor" strokeWidth={1.7}><ellipse cx="12" cy="9" rx="8" ry="3" /><path d="M6 10v8M18 10v8" /></svg></div>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, flex: "none", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary,#EF5B94)" }}><svg width="22" height="22" viewBox="-2 -2 28 28" fill="none" stroke="currentColor" strokeWidth={1.7}><ellipse cx="12" cy="9" rx="8" ry="3" /><path d="M6 10v8M18 10v8" /></svg></div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ font: "600 13px Poppins", color: "#3A3A42" }}>{m.name}</div>
                       <div style={{ font: "500 11px Poppins", color: "#a0a0a8", marginTop: 1 }}>{m.total} mesas</div>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#FCE7F0", padding: "5px 11px", borderRadius: 20 }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="3.2" /></svg><span style={{ font: "600 12px Poppins", color: "#EF5B94" }}>{m.seated} de {total} sentados</span></div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#FCE7F0", padding: "5px 11px", borderRadius: 20 }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,#EF5B94)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="3.2" /></svg><span style={{ font: "600 12px Poppins", color: "var(--color-primary,#EF5B94)" }}>{m.seated} de {total} sentados</span></div>
                   </div>
                 ))}
               </div>
@@ -425,7 +425,7 @@ export const ResumenStudio: FC = () => {
                 {itinerariosList.length === 0 && <div style={{ textAlign: "center", padding: "22px 0", font: "500 12px Poppins", color: "#a0a0a8" }}>Aún no has creado itinerarios.</div>}
                 {itinerariosList.map((it, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 0", borderBottom: `1px solid ${i < itinerariosList.length - 1 ? "#f0f0f2" : "transparent"}` }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 12, flex: "none", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M4 10h16M8 3v4M16 3v4" /></svg></div>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, flex: "none", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary,#EF5B94)" }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M4 10h16M8 3v4M16 3v4" /></svg></div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ font: "600 13px Poppins", color: "#3A3A42" }}>{it.name}</div>
                       <div style={{ font: "500 11px Poppins", color: "#a0a0a8", marginTop: 1 }}>{it.acts} actividades{it.desde ? ` · ${it.desde} – ${it.hasta}` : ""}</div>
@@ -441,12 +441,12 @@ export const ResumenStudio: FC = () => {
         {/* MOMENTOS */}
         <div className="rs-2col" style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, padding: "18px 22px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, alignItems: "center", marginBottom: 22, boxShadow: "0 6px 20px rgba(0,0,0,.06)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, flex: "none", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7}><rect x="4" y="5" width="16" height="14" rx="2" /><circle cx="9" cy="10" r="1.6" /><path d="M5.5 18l4-4 2.5 2.5L16 13l2.5 3" /></svg></div>
+            <div style={{ width: 44, height: 44, borderRadius: 12, flex: "none", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary,#EF5B94)" }}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7}><rect x="4" y="5" width="16" height="14" rx="2" /><circle cx="9" cy="10" r="1.6" /><path d="M5.5 18l4-4 2.5 2.5L16 13l2.5 3" /></svg></div>
             <div style={{ flex: 1 }}><div style={{ font: "600 16px Poppins", color: "#6b6b72" }}>Momentos</div><div style={{ font: "500 11.5px Poppins", color: "#8a8a90", marginTop: 2 }}>Álbumes de fotos compartidos con tus invitados.</div></div>
-            <div style={{ textAlign: "center" }}><div style={{ font: "600 16px Poppins", color: "#EF5B94" }}>{albumes}</div><div style={{ font: "500 10.5px Poppins", color: "#a0a0a8" }}>álbumes</div></div>
+            <div style={{ textAlign: "center" }}><div style={{ font: "600 16px Poppins", color: "var(--color-primary,#EF5B94)" }}>{albumes}</div><div style={{ font: "500 10.5px Poppins", color: "#a0a0a8" }}>álbumes</div></div>
           </div>
           <div style={{ display: "flex", justifyContent: "center", paddingLeft: 22 }}>
-            <button onClick={() => router.push("/momentos")} style={{ height: 42, width: 160, padding: "0 18px", borderRadius: 11, background: "transparent", border: "1.5px dashed #F4A9C8", color: "#EF5B94", font: "600 12.5px Poppins", cursor: "pointer" }}>{albumes > 0 ? "Ver álbumes" : "Crear álbum"}</button>
+            <button onClick={() => router.push("/momentos")} style={{ height: 42, width: 160, padding: "0 18px", borderRadius: 11, background: "transparent", border: "1.5px dashed #F4A9C8", color: "var(--color-primary,#EF5B94)", font: "600 12.5px Poppins", cursor: "pointer" }}>{albumes > 0 ? "Ver álbumes" : "Crear álbum"}</button>
           </div>
         </div>
 
@@ -499,10 +499,10 @@ export const ResumenStudio: FC = () => {
         )}
         {picker === "tematica" && (
           <div style={{ ...popover, display: "block", padding: "22px 30px 24px" }}>
-            <div style={{ font: "600 13px Poppins", color: "#EF5B94", marginBottom: 10 }}>Temática del evento</div>
+            <div style={{ font: "600 13px Poppins", color: "var(--color-primary,#EF5B94)", marginBottom: 10 }}>Temática del evento</div>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <input value={tematicaDraft} onChange={(e) => setTematicaDraft(e.target.value)} placeholder="Escribe la temática de tu evento…" style={{ flex: 1, border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "11px 15px", font: "500 13px Poppins", color: "#3A3A42", outline: "none" }} />
-              <button onClick={() => { saveField({ tematica: tematicaDraft.trim() }); setPicker(null); }} style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: "11px 20px", height: 44, background: "#EF5B94", borderRadius: 10, color: "#fff", font: "600 13px Poppins", border: "none", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l5 5L20 7" /></svg>Guardar</button>
+              <button onClick={() => { saveField({ tematica: tematicaDraft.trim() }); setPicker(null); }} style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: "11px 20px", height: 44, background: "var(--color-primary,#EF5B94)", borderRadius: 10, color: "#fff", font: "600 13px Poppins", border: "none", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l5 5L20 7" /></svg>Guardar</button>
             </div>
             {closeX}
           </div>

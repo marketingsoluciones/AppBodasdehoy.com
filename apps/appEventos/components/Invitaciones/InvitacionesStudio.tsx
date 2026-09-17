@@ -440,7 +440,7 @@ export const InvitacionesStudio: FC = () => {
   // helpers de estilo replicando el HTML
   const cardBox: React.CSSProperties = { background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, boxShadow: "0 4px 14px rgba(0,0,0,.05)", padding: "20px 22px" };
   const cardTitle: React.CSSProperties = { font: "600 13.5px Poppins", color: "#3A3A42", marginBottom: 14 };
-  const fieldLabel: React.CSSProperties = { font: "600 11px Poppins", color: "#EF5B94", marginBottom: 6 };
+  const fieldLabel: React.CSSProperties = { font: "600 11px Poppins", color: "var(--color-primary,#EF5B94)", marginBottom: 6 };
   const fieldInput: React.CSSProperties = { width: "100%", border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "10px 13px", font: "500 12.5px Poppins", color: "#3A3A42", outline: "none" };
 
   const TEXTS: { k: keyof DesignData; label: string }[] = [
@@ -500,7 +500,7 @@ export const InvitacionesStudio: FC = () => {
         <div className="inv-header-mob" style={{ display: "none", margin: "-14px -14px 14px", padding: "13px 16px 12px", background: "#fff", borderBottom: "1px solid #f0f0f2" }}>
           <div style={{ font: "700 19px Poppins", color: "#3A3A42" }}>Invitaciones</div>
           <div style={{ marginTop: 2 }}>
-            <span style={{ font: "700 10px Poppins", color: "#EF5B94", letterSpacing: ".5px", textTransform: "uppercase" }}>{event?.tipo || "Boda"}</span>
+            <span style={{ font: "700 10px Poppins", color: "var(--color-primary,#EF5B94)", letterSpacing: ".5px", textTransform: "uppercase" }}>{event?.tipo || "Boda"}</span>
             <span style={{ font: "500 11px Poppins", color: "#8a8a90", marginLeft: 5 }}>· {event?.nombre}</span>
           </div>
         </div>
@@ -511,7 +511,7 @@ export const InvitacionesStudio: FC = () => {
             const a = tab === key;
             return (
               <div key={key} className="inv-tab" onClick={() => setTab(key)} style={{ display: "flex", alignItems: "center", gap: 9, padding: "10px 22px", borderRadius: 10, background: a ? "#FCE7F0" : "transparent", color: a ? "#D83E7C" : "#6b6b72", font: `${a ? 700 : 600} 14px Poppins`, cursor: "pointer" }}>
-                <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 20, height: 20, borderRadius: "50%", background: a ? "#EF5B94" : "#EDEDF0", color: a ? "#fff" : "#9aa0a8", font: "700 11px Poppins", flex: "none" }}>{num}</span>
+                <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 20, height: 20, borderRadius: "50%", background: a ? "var(--color-primary,#EF5B94)" : "#EDEDF0", color: a ? "#fff" : "#9aa0a8", font: "700 11px Poppins", flex: "none" }}>{num}</span>
                 {txt}
               </div>
             );
@@ -534,7 +534,7 @@ export const InvitacionesStudio: FC = () => {
         {/* CTA fija SOLO móvil (fiel al HTML): pasar de Diseñar → Enviar */}
         {tab === "diseno" && (
           <div className="inv-mob-cta" style={{ position: "fixed", left: 10, right: 10, bottom: 16, zIndex: 40 }}>
-            <button onClick={() => setTab("envio")} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: 14, borderRadius: 12, background: "#EF5B94", color: "#fff", font: "600 14px Poppins", border: "none", boxShadow: "0 10px 26px rgba(239,91,148,.4)", cursor: "pointer" }}>Continuar a enviar<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></button>
+            <button onClick={() => setTab("envio")} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: 14, borderRadius: 12, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 14px Poppins", border: "none", boxShadow: "0 10px 26px rgba(239,91,148,.4)", cursor: "pointer" }}>Continuar a enviar<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></button>
           </div>
         )}
 
@@ -553,7 +553,7 @@ export const InvitacionesStudio: FC = () => {
                 <div className="inv-chan-icons" style={{ display: "flex", gap: 3, background: "#ececed", borderRadius: 9, padding: 3 }}>
                   {(["email", "whatsapp", "sms"] as ChannelKey[]).map((c) => {
                     const a = channel === c;
-                    return <div key={c} onClick={() => setChannel(c)} title={c} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 30, height: 26, borderRadius: 7, background: a ? "#fff" : "transparent", boxShadow: a ? "0 1px 3px rgba(0,0,0,.14)" : "none", cursor: "pointer" }}>{chanIcon(c, a ? "#EF5B94" : "#9aa0a8")}</div>;
+                    return <div key={c} onClick={() => setChannel(c)} title={c} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 30, height: 26, borderRadius: 7, background: a ? "#fff" : "transparent", boxShadow: a ? "0 1px 3px rgba(0,0,0,.14)" : "none", cursor: "pointer" }}>{chanIcon(c, a ? "var(--color-primary,#EF5B94)" : "#9aa0a8")}</div>;
                   })}
                 </div>
                 {/* MÓVIL: pastillas de texto (fiel al HTML) */}
@@ -561,7 +561,7 @@ export const InvitacionesStudio: FC = () => {
                   {(["email", "whatsapp", "sms"] as ChannelKey[]).map((c) => {
                     const a = channel === c;
                     const label = c === "email" ? "Email" : c === "whatsapp" ? "WhatsApp" : "SMS";
-                    return <div key={c} onClick={() => setChannel(c)} style={{ padding: "5px 11px", borderRadius: 7, background: a ? "#fff" : "transparent", color: a ? "#EF5B94" : "#8a8a90", font: "600 10.5px Poppins", cursor: "pointer", boxShadow: a ? "0 1px 3px rgba(0,0,0,.12)" : "none", whiteSpace: "nowrap" }}>{label}</div>;
+                    return <div key={c} onClick={() => setChannel(c)} style={{ padding: "5px 11px", borderRadius: 7, background: a ? "#fff" : "transparent", color: a ? "var(--color-primary,#EF5B94)" : "#8a8a90", font: "600 10.5px Poppins", cursor: "pointer", boxShadow: a ? "0 1px 3px rgba(0,0,0,.12)" : "none", whiteSpace: "nowrap" }}>{label}</div>;
                   })}
                 </div>
               </div>
@@ -573,7 +573,7 @@ export const InvitacionesStudio: FC = () => {
                       <div key={f} onClick={() => setFace(f)} style={{ padding: "6px 13px", borderRadius: 7, background: face === f ? "#fff" : "transparent", color: face === f ? "#D83E7C" : "#9aa0a8", font: "600 11px Poppins", cursor: "pointer" }}>{f === "front" ? "Portada" : "Detalles"}</div>
                     ))}
                   </div>
-                  <div className="inv-mobtoggle" onClick={() => setPreviewMobile((v) => !v)} style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto", padding: "6px 12px", borderRadius: 9, border: "1.5px solid #EF5B94", background: "#fff", color: "#D83E7C", font: "600 11px Poppins", cursor: "pointer" }}>
+                  <div className="inv-mobtoggle" onClick={() => setPreviewMobile((v) => !v)} style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto", padding: "6px 12px", borderRadius: 9, border: "1.5px solid var(--color-primary,#EF5B94)", background: "#fff", color: "#D83E7C", font: "600 11px Poppins", cursor: "pointer" }}>
                     {previewMobile ? (
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><rect x="2" y="4" width="20" height="13" rx="2" /><path d="M8 21h8M12 17v4" /></svg>
                     ) : (
@@ -628,7 +628,7 @@ export const InvitacionesStudio: FC = () => {
                       <div style={{ padding: "10px 12px 12px" }}>
                         <div style={{ font: "700 13px Poppins", color: "#3A3A42" }}>{design.names} · ¡Nos casamos!</div>
                         <div style={{ font: "400 12px Poppins", color: "#4a4a52", marginTop: 4, lineHeight: 1.5 }}>{design.message} 📅 {design.date}</div>
-                        <div style={{ font: "500 12px Poppins", color: "#EF5B94", marginTop: 8 }}>Ver invitación y confirmar →</div>
+                        <div style={{ font: "500 12px Poppins", color: "var(--color-primary,#EF5B94)", marginTop: 8 }}>Ver invitación y confirmar →</div>
                         <div style={{ textAlign: "right", font: "400 9px Poppins", color: "#9aa0a6", marginTop: 6 }}>12:30 ✓✓</div>
                       </div>
                     </div>
@@ -660,11 +660,11 @@ export const InvitacionesStudio: FC = () => {
                   {(Object.keys(PRESETS) as TemplateKey[]).map((k) => {
                     const sel = design.template === k;
                     return (
-                      <div key={k} onClick={() => update({ template: k })} style={{ border: `2px solid ${sel ? "#EF5B94" : "#f0f0f2"}`, borderRadius: 13, overflow: "hidden", cursor: "pointer" }}>
+                      <div key={k} onClick={() => update({ template: k })} style={{ border: `2px solid ${sel ? "var(--color-primary,#EF5B94)" : "#f0f0f2"}`, borderRadius: 13, overflow: "hidden", cursor: "pointer" }}>
                         <div style={{ height: 76, background: PRESETS[k].grad }} />
                         <div style={{ padding: "8px 10px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff" }}>
                           <span style={{ font: "600 11px Poppins", color: "#3A3A42" }}>{PRESETS[k].label}</span>
-                          <div style={{ width: 16, height: 16, borderRadius: "50%", background: "#EF5B94", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", font: "700 9px Poppins" }}>{sel ? "✓" : ""}</div>
+                          <div style={{ width: 16, height: 16, borderRadius: "50%", background: "var(--color-primary,#EF5B94)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", font: "700 9px Poppins" }}>{sel ? "✓" : ""}</div>
                         </div>
                       </div>
                     );
@@ -679,7 +679,7 @@ export const InvitacionesStudio: FC = () => {
                   {(Object.keys(FONTS) as FontKey[]).map((f) => {
                     const sel = design.font === f;
                     return (
-                      <div key={f} onClick={() => update({ font: f })} style={{ border: `1.5px solid ${sel ? "#EF5B94" : "#E7E7EA"}`, background: sel ? "#FCE7F0" : "#fff", borderRadius: 11, padding: "12px 8px", textAlign: "center", cursor: "pointer" }}>
+                      <div key={f} onClick={() => update({ font: f })} style={{ border: `1.5px solid ${sel ? "var(--color-primary,#EF5B94)" : "#E7E7EA"}`, background: sel ? "#FCE7F0" : "#fff", borderRadius: 11, padding: "12px 8px", textAlign: "center", cursor: "pointer" }}>
                         <div style={{ fontFamily: FONTS[f].family, fontSize: 22, color: "#3A3A42", lineHeight: 1 }}>Aa</div>
                         <div style={{ font: "600 10.5px Poppins", color: sel ? "#D83E7C" : "#9aa0a8", marginTop: 6 }}>{FONTS[f].label}</div>
                       </div>
@@ -732,7 +732,7 @@ export const InvitacionesStudio: FC = () => {
               {/* Botones */}
               <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
                 <button onClick={() => setShowPreview(true)} style={{ padding: "12px 20px", borderRadius: 10, border: "1.5px solid #E7E7EA", background: "#fff", color: "#6b6b72", font: "600 13px Poppins", cursor: "pointer" }}>Vista previa completa</button>
-                <button onClick={() => setTab("envio")} style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 24px", borderRadius: 10, background: "#EF5B94", color: "#fff", font: "600 13px Poppins", boxShadow: "0 6px 16px rgba(239,91,148,.3)", cursor: "pointer" }}>
+                <button onClick={() => setTab("envio")} style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 24px", borderRadius: 10, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 13px Poppins", boxShadow: "0 6px 16px rgba(239,91,148,.3)", cursor: "pointer" }}>
                   Continuar a enviar
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
                 </button>
@@ -752,14 +752,14 @@ export const InvitacionesStudio: FC = () => {
           const unsentN = total - sentN;
           const openN = 0; // el backend aún no rastrea aperturas
           const stMap: Record<string, [string, string]> = {
-            "Enviada": ["#2FB37E", "#E4F5EE"], "Abierta": ["#EF5B94", "#FCE7F0"],
+            "Enviada": ["#2FB37E", "#E4F5EE"], "Abierta": ["var(--color-primary,#EF5B94)", "#FCE7F0"],
             "Pendiente": ["#E0A32B", "#FBF0DA"], "Sin enviar": ["#b3b3ba", "#f2f2f4"], "Programada": ["#6E8BAA", "#EEF2F6"],
           };
-          const avPal = ["#EF5B94", "#f588b3", "#d86fa0", "#EF5B94", "#f588b3"];
+          const avPal = ["var(--color-primary,#EF5B94)", "#f588b3", "#d86fa0", "var(--color-primary,#EF5B94)", "#f588b3"];
           const stats = [
             { v: total, l: "Total", c: "#3A3A42" },
             { v: sentN, l: "Enviadas", c: "#2FB37E" },
-            { v: openN, l: "Abiertas", c: "#EF5B94" },
+            { v: openN, l: "Abiertas", c: "var(--color-primary,#EF5B94)" },
             { v: unsentN, l: "Sin enviar", c: "#E0A32B" },
           ];
           const q = searchB.trim().toLowerCase();
@@ -814,10 +814,10 @@ export const InvitacionesStudio: FC = () => {
               {/* Toolbar: invitación + buscador */}
               <div className="inv-toolbar" style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 14, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap", boxShadow: "0 4px 14px rgba(0,0,0,.05)", marginBottom: 14 }}>
                 <div className="inv-invsel" onClick={() => setTab("diseno")} title="Editar el diseño de la invitación" style={{ display: "flex", alignItems: "center", gap: 9, border: "1.5px solid #f0d9e4", background: "#fdf8fa", borderRadius: 11, padding: "9px 14px", cursor: "pointer" }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={1.8}><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M8 9h8M8 13h5" /></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,#EF5B94)" strokeWidth={1.8}><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M8 9h8M8 13h5" /></svg>
                   <span style={{ font: "500 11.5px Poppins", color: "#8a8a90" }}>Invitación:</span>
                   <span style={{ font: "600 11.5px Poppins", color: "#3A3A42" }}>{sumTpl}</span>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,#EF5B94)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
                 </div>
                 <div className="inv-search" style={{ display: "flex", alignItems: "center", gap: 9, background: "#faf9fb", border: "1.5px solid #E7E7EA", borderRadius: 11, padding: "8px 13px" }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b3b3ba" strokeWidth={2}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
@@ -831,13 +831,13 @@ export const InvitacionesStudio: FC = () => {
                   {fbDefs.map(([key, label, count]) => {
                     const a = filterB === key;
                     return (
-                      <div key={key} onClick={() => setFilterB(key)} style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 14px", borderRadius: 10, border: `1.5px solid ${a ? "#EF5B94" : "#E7E7EA"}`, background: a ? "#EF5B94" : "#fff", color: a ? "#fff" : "#6b6b72", font: "600 12px Poppins", cursor: "pointer", flex: "none", whiteSpace: "nowrap" }}>
+                      <div key={key} onClick={() => setFilterB(key)} style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 14px", borderRadius: 10, border: `1.5px solid ${a ? "var(--color-primary,#EF5B94)" : "#E7E7EA"}`, background: a ? "var(--color-primary,#EF5B94)" : "#fff", color: a ? "#fff" : "#6b6b72", font: "600 12px Poppins", cursor: "pointer", flex: "none", whiteSpace: "nowrap" }}>
                         {label}<span style={{ font: "600 10.5px Poppins", color: a ? "#fff" : "#a0a0a8" }}>{count}</span>
                       </div>
                     );
                   })}
                 </div>
-                <div className="inv-selall" onClick={toggleAll} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "8px 15px", borderRadius: 10, background: allOn ? "#EF5B94" : "#fff", border: `1.5px solid ${allOn ? "#EF5B94" : "#E7E7EA"}`, color: allOn ? "#fff" : "#6b6b72", font: "600 12px Poppins", cursor: "pointer", flex: "none" }}>
+                <div className="inv-selall" onClick={toggleAll} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "8px 15px", borderRadius: 10, background: allOn ? "var(--color-primary,#EF5B94)" : "#fff", border: `1.5px solid ${allOn ? "var(--color-primary,#EF5B94)" : "#E7E7EA"}`, color: allOn ? "#fff" : "#6b6b72", font: "600 12px Poppins", cursor: "pointer", flex: "none" }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>
                   {allOn ? "Quitar selección" : "Seleccionar todos"}
                 </div>
@@ -846,7 +846,7 @@ export const InvitacionesStudio: FC = () => {
               {/* Tabla */}
               <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, boxShadow: "0 6px 20px rgba(0,0,0,.05)", overflow: "hidden" }}>
                 <div style={{ display: "grid", gridTemplateColumns: "34px 1.6fr 1fr 1fr 1fr", gap: 12, alignItems: "center", padding: "10px 22px", background: "#faf9fb", borderBottom: "1px solid #f0f0f2", font: "700 10px Poppins", color: "#a0a0a8", letterSpacing: ".5px", textTransform: "uppercase" }}>
-                  <div><div onClick={toggleAll} style={{ width: 17, height: 17, borderRadius: 5, border: `1.8px solid ${allOn ? "#EF5B94" : "#d8d8de"}`, background: allOn ? "#EF5B94" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>{allOn ? checkMark : null}</div></div>
+                  <div><div onClick={toggleAll} style={{ width: 17, height: 17, borderRadius: 5, border: `1.8px solid ${allOn ? "var(--color-primary,#EF5B94)" : "#d8d8de"}`, background: allOn ? "var(--color-primary,#EF5B94)" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>{allOn ? checkMark : null}</div></div>
                   <div style={{ textAlign: "left" }}>Invitado</div><div style={{ textAlign: "left" }}>Canal</div><div style={{ textAlign: "left" }}>Estado</div><div style={{ textAlign: "left" }}>Acción</div>
                 </div>
                 {guests.length === 0 && (
@@ -857,7 +857,7 @@ export const InvitacionesStudio: FC = () => {
                   const st = stMap[g.status];
                   return (
                     <div key={g.id} style={{ display: "grid", gridTemplateColumns: "34px 1.6fr 1fr 1fr 1fr", gap: 12, alignItems: "center", padding: "13px 22px", borderBottom: "1px solid #f5f5f7" }}>
-                      <div><div onClick={() => setChecked((c) => ({ ...c, [g.id]: !c[g.id] }))} style={{ width: 17, height: 17, borderRadius: 5, border: `1.8px solid ${on ? "#EF5B94" : "#d8d8de"}`, background: on ? "#EF5B94" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>{on ? checkMark : null}</div></div>
+                      <div><div onClick={() => setChecked((c) => ({ ...c, [g.id]: !c[g.id] }))} style={{ width: 17, height: 17, borderRadius: 5, border: `1.8px solid ${on ? "var(--color-primary,#EF5B94)" : "#d8d8de"}`, background: on ? "var(--color-primary,#EF5B94)" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>{on ? checkMark : null}</div></div>
                       <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
                         <div style={{ width: 32, height: 32, borderRadius: "50%", flex: "none", background: g.avBg, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", font: "700 12px Poppins" }}>{g.initial}</div>
                         <div style={{ minWidth: 0 }}>
@@ -867,7 +867,7 @@ export const InvitacionesStudio: FC = () => {
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 6, font: "600 11.5px Poppins", color: g.missingContact ? "#E76F51" : "#8a8a90" }} title={g.missingContact ? (g.channelKey === "whatsapp" ? "Sin número de teléfono" : g.channelKey === "email" ? "Sin correo" : "SMS no disponible") : undefined}>{chanIcon(g.channelKey, g.missingContact ? "#E76F51" : "#8a8a90")}{g.channel}{g.missingContact && <span style={{ font: "600 9.5px Poppins", color: "#E76F51" }}>⚠</span>}</div>
                       <div><span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: st[1], color: st[0], font: "600 10.5px Poppins", padding: "5px 10px", borderRadius: 20 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: st[0] }} />{g.status}</span></div>
-                      <div style={{ justifySelf: "start" }}><button onClick={() => setChecked((c) => ({ ...c, [g.id]: true }))} style={{ padding: "7px 15px", borderRadius: 9, border: "1.5px solid #EF5B94", background: "#fff", color: "#EF5B94", font: "600 11px Poppins", cursor: "pointer" }}>{g.action}</button></div>
+                      <div style={{ justifySelf: "start" }}><button onClick={() => setChecked((c) => ({ ...c, [g.id]: true }))} style={{ padding: "7px 15px", borderRadius: 9, border: "1.5px solid var(--color-primary,#EF5B94)", background: "#fff", color: "var(--color-primary,#EF5B94)", font: "600 11px Poppins", cursor: "pointer" }}>{g.action}</button></div>
                     </div>
                   );
                 })}
@@ -877,13 +877,13 @@ export const InvitacionesStudio: FC = () => {
               {selN > 0 ? (
                 <div style={{ position: "sticky", bottom: 20, marginTop: 18, background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap", boxShadow: "0 14px 34px rgba(0,0,0,.16)", animation: "fadein .2s ease" }}>
                   <div style={{ flexBasis: "100%", display: "flex", alignItems: "flex-start", gap: 11, background: "#faf9fb", border: "1px solid #f0f0f2", borderRadius: 12, padding: "11px 14px" }}>
-                    <div style={{ width: 30, height: 30, borderRadius: 8, flex: "none", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}>{chanIcon(sendChan, "#EF5B94")}</div>
+                    <div style={{ width: 30, height: 30, borderRadius: 8, flex: "none", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary,#EF5B94)" }}>{chanIcon(sendChan, "var(--color-primary,#EF5B94)")}</div>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ font: "700 10px Poppins", color: "#a0a0a8", letterSpacing: ".5px", textTransform: "uppercase" }}>Vista previa · {sendChanLabel}</div>
                       {sendChan === "email" ? (
                         <div style={{ marginTop: 3 }}>
                           <div style={{ font: "600 12px Poppins", color: "#3A3A42", lineHeight: 1.4 }}>Asunto: <span style={{ fontWeight: 500, color: "#4a4a52" }}>{emailSubject(design, event?.tipo)}</span></div>
-                          <div onClick={() => setShowPreview(true)} style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 5, font: "600 11px Poppins", color: "#EF5B94", cursor: "pointer" }}>
+                          <div onClick={() => setShowPreview(true)} style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 5, font: "600 11px Poppins", color: "var(--color-primary,#EF5B94)", cursor: "pointer" }}>
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" /><circle cx="12" cy="12" r="3" /></svg>
                             Ver invitación completa
                           </div>
@@ -894,10 +894,10 @@ export const InvitacionesStudio: FC = () => {
                     </div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#EF5B94", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", font: "700 13px Poppins", flex: "none" }}>{selN}</div>
+                    <div style={{ width: 34, height: 34, borderRadius: "50%", background: "var(--color-primary,#EF5B94)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", font: "700 13px Poppins", flex: "none" }}>{selN}</div>
                     <div style={{ lineHeight: 1.3 }}>
                       <div style={{ font: "600 13px Poppins", color: "#3A3A42" }}>{selN} seleccionado{selN > 1 ? "s" : ""}</div>
-                      <div onClick={() => setChecked({})} style={{ font: "500 11px Poppins", color: "#EF5B94", cursor: "pointer" }}>Quitar selección</div>
+                      <div onClick={() => setChecked({})} style={{ font: "500 11px Poppins", color: "var(--color-primary,#EF5B94)", cursor: "pointer" }}>Quitar selección</div>
                     </div>
                     {noEmailN > 0 && <span style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "#FBF0DA", color: "#B8860B", font: "600 10.5px Poppins", padding: "5px 10px", borderRadius: 20 }}>⚠ {noEmailN} sin correo · se enviarán por WhatsApp</span>}
                   </div>
@@ -911,11 +911,11 @@ export const InvitacionesStudio: FC = () => {
                       <div style={{ display: "flex", gap: 4, background: "#f2f2f4", borderRadius: 11, padding: 4 }}>
                         {(["email", "whatsapp", "sms"] as ChannelKey[]).map((c) => {
                           const a = sendChan === c;
-                          return <div key={c} onClick={() => setSendChan(c)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 13px", borderRadius: 8, background: a ? "#fff" : "transparent", color: a ? "#3A3A42" : "#8a8a90", font: "600 11.5px Poppins", cursor: "pointer", boxShadow: a ? "0 1px 3px rgba(0,0,0,.12)" : "none" }}>{chanIcon(c, a ? "#EF5B94" : "#9aa0a8")}{c === "email" ? "Email" : c === "whatsapp" ? "WhatsApp" : "SMS"}</div>;
+                          return <div key={c} onClick={() => setSendChan(c)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 13px", borderRadius: 8, background: a ? "#fff" : "transparent", color: a ? "#3A3A42" : "#8a8a90", font: "600 11.5px Poppins", cursor: "pointer", boxShadow: a ? "0 1px 3px rgba(0,0,0,.12)" : "none" }}>{chanIcon(c, a ? "var(--color-primary,#EF5B94)" : "#9aa0a8")}{c === "email" ? "Email" : c === "whatsapp" ? "WhatsApp" : "SMS"}</div>;
                         })}
                       </div>
                     </div>
-                    <button onClick={doSend} disabled={sending} style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, background: "#EF5B94", color: "#fff", font: "600 13px Poppins", boxShadow: "0 6px 16px rgba(239,91,148,.35)", border: "none", cursor: sending ? "wait" : "pointer", opacity: sending ? .7 : 1 }}>
+                    <button onClick={doSend} disabled={sending} style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 13px Poppins", boxShadow: "0 6px 16px rgba(239,91,148,.35)", border: "none", cursor: sending ? "wait" : "pointer", opacity: sending ? .7 : 1 }}>
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" /></svg>
                       {sending ? "Enviando…" : `Enviar por ${sendChanLabel}`}
                     </button>
@@ -923,7 +923,7 @@ export const InvitacionesStudio: FC = () => {
                 </div>
               ) : (
                 <div style={{ marginTop: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 9, padding: 14, border: "1.5px dashed #e6d0da", borderRadius: 14, background: "#fdf8fa" }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={1.8}><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,#EF5B94)" strokeWidth={1.8}><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>
                   <span style={{ font: "500 12.5px Poppins", color: "#8a8a90" }}>Marca los invitados que quieras y elige cómo enviarles la invitación.</span>
                 </div>
               )}

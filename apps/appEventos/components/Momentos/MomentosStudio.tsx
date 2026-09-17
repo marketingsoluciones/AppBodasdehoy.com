@@ -93,7 +93,7 @@ export const AlbumMenu: FC<{ albumId: string; eventId?: string }> = ({ albumId, 
             {qr && eventId && (
               <div style={{ padding: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
                 <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(momentUrl)}`} alt="QR del momento" style={{ width: 128, height: 128 }} />
-                <div onClick={() => { navigator.clipboard.writeText(momentUrl); setOpen(false); }} style={{ font: "600 11px Poppins", color: "#EF5B94", cursor: "pointer" }}>Copiar enlace</div>
+                <div onClick={() => { navigator.clipboard.writeText(momentUrl); setOpen(false); }} style={{ font: "600 11px Poppins", color: "var(--color-primary,#EF5B94)", cursor: "pointer" }}>Copiar enlace</div>
               </div>
             )}
           </div>
@@ -160,7 +160,7 @@ export const MomentosStudio: FC<{ chatBase: string }> = ({ chatBase }) => {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </Head>
-      <style dangerouslySetInnerHTML={{ __html: "@keyframes mom-fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}.mom-card{transition:box-shadow .18s}.mom-card:hover{box-shadow:0 10px 26px rgba(0,0,0,.09)}.mom-ghost:hover{border-color:#EF5B94 !important;color:#EF5B94 !important}.mom-link:hover{color:#D83E7C !important}.mom-cta:hover{background:#D83E7C !important}" }} />
+      <style dangerouslySetInnerHTML={{ __html: "@keyframes mom-fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}.mom-card{transition:box-shadow .18s}.mom-card:hover{box-shadow:0 10px 26px rgba(0,0,0,.09)}.mom-ghost:hover{border-color:var(--color-primary,#EF5B94) !important;color:var(--color-primary,#EF5B94) !important}.mom-link:hover{color:#D83E7C !important}.mom-cta:hover{background:#D83E7C !important}" }} />
 
       {/* Contenedor del holder IDÉNTICO al de PresupuestoStudio (referencia): max-w-screen-lg
           mx-auto + padding "12px 16px" → mismo ancho, alto y distancia con el menú en TODOS
@@ -200,10 +200,10 @@ export const MomentosStudio: FC<{ chatBase: string }> = ({ chatBase }) => {
                 {resultado === "error" && <span style={{ font: "600 11.5px Poppins", color: "#D83E7C" }}>Error al generar los álbumes</span>}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                <span className="mom-link" onClick={generarDesdeItinerario} style={{ display: "flex", alignItems: "center", gap: 6, font: "600 12px Poppins", color: "#EF5B94", cursor: generando ? "default" : "pointer", whiteSpace: "nowrap", opacity: generando ? .6 : 1 }}>
+                <span className="mom-link" onClick={generarDesdeItinerario} style={{ display: "flex", alignItems: "center", gap: 6, font: "600 12px Poppins", color: "var(--color-primary,#EF5B94)", cursor: generando ? "default" : "pointer", whiteSpace: "nowrap", opacity: generando ? .6 : 1 }}>
                   {icoRayo}{generando ? "Generando…" : "Generar desde el itinerario"}
                 </span>
-                <button className="mom-cta" onClick={nuevoAlbum} disabled={creando} style={{ display: "flex", alignItems: "center", gap: 7, padding: "10px 18px", borderRadius: 12, background: "#EF5B94", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: creando ? "default" : "pointer", boxShadow: "0 5px 14px rgba(239,91,148,.28)", whiteSpace: "nowrap", opacity: creando ? .6 : 1 }}>
+                <button className="mom-cta" onClick={nuevoAlbum} disabled={creando} style={{ display: "flex", alignItems: "center", gap: 7, padding: "10px 18px", borderRadius: 12, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: creando ? "default" : "pointer", boxShadow: "0 5px 14px rgba(239,91,148,.28)", whiteSpace: "nowrap", opacity: creando ? .6 : 1 }}>
                   {icoPlus}{creando ? "Creando…" : "Nuevo álbum"}
                 </button>
               </div>
@@ -216,12 +216,12 @@ export const MomentosStudio: FC<{ chatBase: string }> = ({ chatBase }) => {
             {/* estado vacío */}
             {!albumsLoading && albums.length === 0 && (
               <div style={{ border: "1.5px dashed #E0D9CE", borderRadius: 16, padding: "46px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: 12, animation: "mom-fade .25s ease" }}>
-                <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}>{icoCamara}</div>
+                <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary,#EF5B94)" }}>{icoCamara}</div>
                 <div style={{ font: "700 16px Poppins", color: "#3A3A42" }}>Aún no hay álbumes</div>
                 <div style={{ font: "400 12.5px/1.65 Poppins", color: "#8a8a90", textAlign: "center", maxWidth: 420 }}>
                   Crea un álbum para cada momento del evento — o genéralos automáticamente desde el itinerario — y comparte el portal con los invitados para que suban sus fotos.
                 </div>
-                <button className="mom-cta" onClick={nuevoAlbum} disabled={creando} style={{ display: "flex", alignItems: "center", gap: 7, padding: "12px 26px", borderRadius: 12, background: "#EF5B94", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: creando ? "default" : "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)", marginTop: 6, opacity: creando ? .6 : 1 }}>
+                <button className="mom-cta" onClick={nuevoAlbum} disabled={creando} style={{ display: "flex", alignItems: "center", gap: 7, padding: "12px 26px", borderRadius: 12, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: creando ? "default" : "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)", marginTop: 6, opacity: creando ? .6 : 1 }}>
                   {icoPlus}Crear mi primer álbum
                 </button>
               </div>
@@ -264,7 +264,7 @@ export const MomentosStudio: FC<{ chatBase: string }> = ({ chatBase }) => {
 
             {/* Copilot — se conserva del diseño anterior; no está en el HTML pero es funcionalidad viva */}
             <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid #f2f2f4", display: "flex", justifyContent: "flex-end" }}>
-              <a className="mom-link" href={`${chatBase.replace(/\/$/, "")}/bodasdehoy/memories`} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, font: "600 12px Poppins", color: "#EF5B94", textDecoration: "none" }}>
+              <a className="mom-link" href={`${chatBase.replace(/\/$/, "")}/bodasdehoy/memories`} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, font: "600 12px Poppins", color: "var(--color-primary,#EF5B94)", textDecoration: "none" }}>
                 Abrir Momentos en Copilot{icoFlecha}
               </a>
             </div>

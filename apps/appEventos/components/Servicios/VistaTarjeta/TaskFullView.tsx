@@ -143,7 +143,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   if (isStudio && !isExpanded) {
     const st = TASK_STATUSES.find((x: any) => x.value === task.estado) || TASK_STATUSES[0];
     const DOT: Record<string, string> = {
-      pending: "#3A3A42", in_progress: "#EF5B94", completed: "#2FB37E", blocked: "#D83E7C",
+      pending: "#3A3A42", in_progress: "var(--color-primary,#EF5B94)", completed: "#2FB37E", blocked: "#D83E7C",
     };
     // El chip toma el color de SU estado; antes iba siempre en rosa, así que una tarea
     // completada mostraba un chip "Completado" rosa en vez de verde.
@@ -186,7 +186,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: "currentColor" }} />
               {t(st.label)}
             </span>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2} strokeLinecap="round"><path d="M6 9l6 6 6-6" /></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,#EF5B94)" strokeWidth={2} strokeLinecap="round"><path d="M6 9l6 6 6-6" /></svg>
           </div>
         </div>
       </div>

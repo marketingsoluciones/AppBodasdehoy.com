@@ -166,7 +166,7 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
     >
       <div onClick={(e) => e.stopPropagation()} className="w-[400px] max-w-full bg-white rounded-[18px] shadow-[0_24px_60px_rgba(0,0,0,.28)] p-6 text-[#3A3A42]">
         <div className="flex items-center gap-[11px] mb-[18px]">
-          <div className="w-10 h-10 rounded-[11px] flex-none bg-[#FCE7F0] text-[#EF5B94] flex items-center justify-center text-[20px] leading-none">＋</div>
+          <div className="w-10 h-10 rounded-[11px] flex-none bg-[#FCE7F0] text-[var(--color-primary,#EF5B94)] flex items-center justify-center text-[20px] leading-none">＋</div>
           <div>
             <div className="text-[16px] font-bold text-[#3A3A42]">Añadir SVG</div>
             <div className="text-[11.5px] font-medium text-[#a0a0a8]">Un elemento decorativo para tu plano</div>
@@ -184,7 +184,7 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
             accept=".svg"
             onChange={handleFileUpload}
             disabled={isLoading}
-            className="w-full p-3 rounded-[11px] border-[1.5px] border-[#E7E7EA] text-[12.5px] file:mr-3 file:py-1.5 file:px-3 file:rounded-[8px] file:border-0 file:bg-[#FCE7F0] file:text-[#EF5B94] file:font-semibold file:cursor-pointer disabled:opacity-60"
+            className="w-full p-3 rounded-[11px] border-[1.5px] border-[#E7E7EA] text-[12.5px] file:mr-3 file:py-1.5 file:px-3 file:rounded-[8px] file:border-0 file:bg-[#FCE7F0] file:text-[var(--color-primary,#EF5B94)] file:font-semibold file:cursor-pointer disabled:opacity-60"
           />
         </div>
         {/* Opción 2: Cargar desde URL */}
@@ -196,12 +196,12 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
             value={svgUrl}
             onChange={(e) => setSvgUrl(e.target.value)}
             disabled={isLoading}
-            className="w-full p-3 rounded-[11px] border-[1.5px] border-[#E7E7EA] focus:border-[#EF5B94] outline-none text-[12.5px] mb-2 disabled:opacity-60"
+            className="w-full p-3 rounded-[11px] border-[1.5px] border-[#E7E7EA] focus:border-[var(--color-primary,#EF5B94)] outline-none text-[12.5px] mb-2 disabled:opacity-60"
           />
           <button
             onClick={handleUrlSubmit}
             disabled={isLoading}
-            className="w-full py-[11px] rounded-[11px] bg-[#EF5B94] text-white text-[12.5px] font-semibold disabled:bg-[#f0aecb] disabled:cursor-not-allowed"
+            className="w-full py-[11px] rounded-[11px] bg-[var(--color-primary,#EF5B94)] text-white text-[12.5px] font-semibold disabled:bg-[#f0aecb] disabled:cursor-not-allowed"
           >
             {isLoading ? 'Cargando…' : 'Agregar desde URL'}
           </button>
@@ -256,8 +256,8 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
               onClick={() => { setShowModal(true) }}
               className="w-full flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-[12px] bg-white border-[1.5px] border-dashed border-[#f0aecb] cursor-pointer hover:bg-[#FCF2F6] transition-colors"
             >
-              <span className="text-[#EF5B94] text-[18px] leading-none">＋</span>
-              <span className="text-[10px] font-semibold text-[#EF5B94] text-center leading-tight">Añadir SVG</span>
+              <span className="text-[var(--color-primary,#EF5B94)] text-[18px] leading-none">＋</span>
+              <span className="text-[10px] font-semibold text-[var(--color-primary,#EF5B94)] text-center leading-tight">Añadir SVG</span>
             </div>
           </div>
         </div>

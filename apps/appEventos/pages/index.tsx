@@ -290,7 +290,7 @@ const Home: NextPage = () => {
             <div style={{ width: 440, maxWidth: '94vw', background: '#fff', borderRadius: 22, boxShadow: '0 30px 80px rgba(0,0,0,.35)', overflow: 'hidden', padding: '30px 30px 26px', display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* Cabecera */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 4 }}>
-                <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#FCE7F0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EF5B94', animation: 'gpop .45s ease', marginBottom: 10 }}>
+                <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#FCE7F0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary,#EF5B94)', animation: 'gpop .45s ease', marginBottom: 10 }}>
                   <svg width="26" height="26" viewBox="1.5 1.5 21 13.5" style={{ overflow: 'visible' }} fill="currentColor"><path d="M9 2C6.2 2 4 4.4 4 7.4c0 2.9 2 5.3 4.4 5.6l-.6 1.5h2.4L9.6 13C12 12.7 14 10.3 14 7.4 14 4.4 11.8 2 9 2z" /><path d="M16.5 5c-1.9 0-3.5 1.7-3.5 3.9 0 2 1.3 3.7 3 4l-.4 1.1h1.8L17 12.9c1.7-.3 3-2 3-4C20 6.7 18.4 5 16.5 5z" opacity=".55" /></svg>
                 </div>
                 <div style={{ font: '700 19px Poppins', color: '#3A3A42' }}>¡Tu evento está listo!</div>
@@ -308,9 +308,9 @@ const Home: NextPage = () => {
                 ))}
               </div>
               {/* CTA */}
-              <a href={config?.pathLogin ? `${config.pathLogin}?q=register` : '/login?q=register'} className="gcta" style={{ width: '100%', padding: 14, borderRadius: 12, background: '#EF5B94', color: '#fff', font: '600 14px Poppins', border: 'none', cursor: 'pointer', boxShadow: '0 6px 16px rgba(239,91,148,.3)', textAlign: 'center', textDecoration: 'none', display: 'block' }}>Crear cuenta gratis</a>
+              <a href={config?.pathLogin ? `${config.pathLogin}?q=register` : '/login?q=register'} className="gcta" style={{ width: '100%', padding: 14, borderRadius: 12, background: 'var(--color-primary,#EF5B94)', color: '#fff', font: '600 14px Poppins', border: 'none', cursor: 'pointer', boxShadow: '0 6px 16px rgba(239,91,148,.3)', textAlign: 'center', textDecoration: 'none', display: 'block' }}>Crear cuenta gratis</a>
               {/* Login (línea suelta, centrada) */}
-              <div style={{ font: '500 12.5px Poppins', color: '#6b6b72', textAlign: 'center' }}>¿Ya tienes cuenta? <a href={config?.pathLogin || '/login'} style={{ color: '#EF5B94', fontWeight: 600, textDecoration: 'none' }}>Inicia sesión</a></div>
+              <div style={{ font: '500 12.5px Poppins', color: '#6b6b72', textAlign: 'center' }}>¿Ya tienes cuenta? <a href={config?.pathLogin || '/login'} style={{ color: 'var(--color-primary,#EF5B94)', fontWeight: 600, textDecoration: 'none' }}>Inicia sesión</a></div>
               {/* Secundario: franja gris diferenciada (full-bleed a los bordes del card) */}
               <div style={{ background: '#FAF9FB', borderTop: '1px solid #f0f0f2', margin: '0 -30px -26px', padding: '14px 30px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                 <button onClick={() => setShowGuestRegisterModal(false)} className="ginv" style={{ font: '600 12.5px Poppins', color: '#6b6b72', cursor: 'pointer', padding: '2px 8px', background: 'none', border: 'none' }}>Seguir como invitado</button>
@@ -378,11 +378,11 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
   // Color de marca del hero desktop studio (.she-*): mismo gate isBodas — bodasdehoy exacto, resto config.theme.
   const _sheP = config?.theme?.primaryColor;
   const sheBodas = !_sheP || config?.development === 'bodasdehoy';
-  const sheLight = sheBodas ? '#EF5B94' : _sheP;
+  const sheLight = sheBodas ? 'var(--color-primary,#EF5B94)' : _sheP;
   const sheDark = sheBodas ? '#D83E7C' : (config?.theme?.secondaryColor || _sheP);
   const shePale = sheBodas ? '#FCE7F0' : `color-mix(in srgb, ${sheLight} 12%, white)`;
   const sheBorder = sheBodas ? '#F3B6CE' : `color-mix(in srgb, ${sheLight} 45%, white)`;
-  const sheGrad = sheBodas ? 'linear-gradient(100deg,#EF5B94,#D83E7C)' : `linear-gradient(100deg,${sheLight},${sheDark})`;
+  const sheGrad = sheBodas ? 'linear-gradient(100deg,var(--color-primary,#EF5B94),#D83E7C)' : `linear-gradient(100deg,${sheLight},${sheDark})`;
   const sheSh1 = sheBodas ? 'rgba(239,91,148,.1)' : `color-mix(in srgb, ${sheLight} 12%, transparent)`;
   const sheSh3 = sheBodas ? 'rgba(239,91,148,.3)' : `color-mix(in srgb, ${sheLight} 30%, transparent)`;
 
@@ -655,7 +655,7 @@ const GridCards: FC<propsGridCards> = ({
   // Color de marca del grid (tabs/empty/FAB): mismo gate isBodas — bodasdehoy exacto, resto config.theme.
   const _grdP = config?.theme?.primaryColor;
   const grdBodas = !_grdP || config?.development === 'bodasdehoy';
-  const grdLight = grdBodas ? '#EF5B94' : _grdP;
+  const grdLight = grdBodas ? 'var(--color-primary,#EF5B94)' : _grdP;
   const grdDark = grdBodas ? '#D83E7C' : (config?.theme?.secondaryColor || _grdP);
   const grdPale = grdBodas ? '#FCE7F0' : `color-mix(in srgb, ${grdLight} 12%, white)`;
   const grdSh3 = grdBodas ? '0 6px 16px rgba(239,91,148,.3)' : `0 6px 16px color-mix(in srgb, ${grdLight} 30%, transparent)`;
@@ -795,7 +795,7 @@ const GridCards: FC<propsGridCards> = ({
     return (!Number.isNaN(ms) && ms < new Date().setHours(0, 0, 0, 0)) ? "realizado" : "activo";
   };
   const bucketLbl: Record<string, string> = { activo: t("Activo"), realizado: t("Realizado"), archivado: t("Archivado") };
-  const tevColor = (s: string) => { const c = ["#EF5B94", "#8e7cc3", "#c9a24b", "#5aa9e6", "#2FB37E", "#e07a5f", "#7b8794"]; let h = 0; for (const ch of String(s || "?")) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return c[h % c.length]; };
+  const tevColor = (s: string) => { const c = ["var(--color-primary,#EF5B94)", "#8e7cc3", "#c9a24b", "#5aa9e6", "#2FB37E", "#e07a5f", "#7b8794"]; let h = 0; for (const ch of String(s || "?")) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return c[h % c.length]; };
   const eventoImg = (e: any) => e?.imgEvento?.i320 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${e.imgEvento.i320}`)}` : (getEventImage(e?.tipo));
   const invitadosCount = (e: any) => { const a = e?.invitados_array; if (Array.isArray(a)) return a.length; if (typeof a === "string") { try { const p = JSON.parse(a); return Array.isArray(p) ? p.length : 0; } catch { return 0; } } return 0; };
   const presupuestoFmt = (e: any) => { let po: any = e?.presupuesto_objeto; if (typeof po === "string") { try { po = JSON.parse(po); } catch { po = null; } } const val = Number(po?.coste_estimado ?? po?.presupuesto_total ?? po?.coste_final ?? 0) || 0; try { return new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(val); } catch { return `${val} €`; } };

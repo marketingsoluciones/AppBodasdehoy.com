@@ -44,7 +44,7 @@ const InformacionFacturacionStudio: FC = () => {
 
   return (
     <div style={{ display: "flex", justifyContent: "center", paddingTop: 16, width: "100%" }}>
-      <style dangerouslySetInnerHTML={{ __html: ".if-in:focus{border-color:#EF5B94!important;}" }} />
+      <style dangerouslySetInnerHTML={{ __html: ".if-in:focus{border-color:var(--color-primary,var(--color-primary,#EF5B94))!important;}" }} />
       <section style={{ background: "#fff", border: "1px solid #ececef", borderRadius: 16, padding: "32px 36px", maxWidth: 680, width: "100%", fontFamily: "'Poppins',sans-serif" }}>
         <div style={{ font: "700 16px Poppins", color: "#3A3A42", marginBottom: 6 }}>{t("Información de facturación")}</div>
         <div style={{ font: "500 12.5px Poppins", color: "#8a8a90", lineHeight: 1.6, marginBottom: 24 }}>{t("Tu información de facturación puede ser diferente de la información de perfil de tu cuenta. La información de facturación aparece en las facturas.")}</div>
@@ -63,7 +63,7 @@ const InformacionFacturacionStudio: FC = () => {
               </div>
               <div><div style={lblSt}>{t("Email del destinatario de la factura")}</div><input className="if-in" type="email" value={v.email} onChange={(e) => set("email", e.target.value)} style={inputSt} /></div>
             </div>
-            <button onClick={save} disabled={saving} style={{ marginTop: 24, padding: "12px 24px", borderRadius: 10, background: "#EF5B94", color: "#fff", font: "600 13px Poppins", boxShadow: "0 6px 16px rgba(239,91,148,.3)", border: "none", cursor: "pointer", opacity: saving ? 0.7 : 1 }}>{t("Confirmar información de facturación")}</button>
+            <button onClick={save} disabled={saving} style={{ marginTop: 24, padding: "12px 24px", borderRadius: 10, background: "var(--color-primary,var(--color-primary,#EF5B94))", color: "#fff", font: "600 13px Poppins", boxShadow: "0 6px 16px rgba(239,91,148,.3)", border: "none", cursor: "pointer", opacity: saving ? 0.7 : 1 }}>{t("Confirmar información de facturación")}</button>
           </>
         )}
       </section>

@@ -95,7 +95,7 @@ const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen 
           ) : (
             !lienzo ? (
               <div className="w-full h-full flex flex-col items-center justify-center gap-2.5 text-center px-6">
-                <div className="w-14 h-14 rounded-full bg-white border-2 border-dashed border-[#f0aecb] flex items-center justify-center text-[#EF5B94]">
+                <div className="w-14 h-14 rounded-full bg-white border-2 border-dashed border-[#f0aecb] flex items-center justify-center text-[var(--color-primary,#EF5B94)]">
                   <HiTemplate className="w-6 h-6" />
                 </div>
                 <div className="text-[15px] font-semibold text-[#3A3A42]">{t('noplanloaded') || 'No hay un plano cargado'}</div>

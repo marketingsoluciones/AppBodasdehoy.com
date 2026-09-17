@@ -162,7 +162,7 @@ const useStudioDrop = () => typeof window !== "undefined"
 // Estado = chip de color (fondo suave). Prioridad = solo texto de color. Fiel a
 // tareasvistatabla_1.html: sin caja de dropdown; la edición se hace abriendo la fila.
 const EST_CHIP: Record<string, [string, string, string]> = {
-  pending: ["#f0f0f2", "#3A3A42", "#3A3A42"], in_progress: ["#FCE7F0", "#D83E7C", "#EF5B94"],
+  pending: ["#f0f0f2", "#3A3A42", "#3A3A42"], in_progress: ["#FCE7F0", "#D83E7C", "var(--color-primary,#EF5B94)"],
   completed: ["#E4F5EE", "#2FB37E", "#2FB37E"], blocked: ["#FBE3ED", "#D83E7C", "#D83E7C"],
 };
 const PRIO_TXT: Record<string, string> = { alta: "#D83E7C", media: "#8F6E14", baja: "#2FB37E" };

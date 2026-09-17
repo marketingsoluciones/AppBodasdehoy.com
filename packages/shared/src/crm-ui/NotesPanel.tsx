@@ -166,7 +166,7 @@ function NoteItem({ note, readOnly, onUpdate, onDelete, onTogglePin, compact }: 
                   style={
                     busy || !draft.trim()
                       ? { backgroundColor: '#E5E7EB', color: '#6B7280', cursor: 'not-allowed' }
-                      : { backgroundColor: 'var(--color-primary, #ec4899)', color: '#FFFFFF' }
+                      : { backgroundColor: 'var(--color-primary, #EF5B94)', color: '#FFFFFF' }
                   }
                 >
                   {busy ? 'Guardando…' : 'Guardar'}
@@ -467,7 +467,7 @@ export function NotesPanel({
               style={
                 busy || !draft.trim()
                   ? { backgroundColor: '#E5E7EB', color: '#6B7280', cursor: 'not-allowed' }
-                  : { backgroundColor: 'var(--color-primary, #ec4899)', color: '#FFFFFF' }
+                  : { backgroundColor: 'var(--color-primary, #EF5B94)', color: '#FFFFFF' }
               }
             >
               {busy ? 'Guardando…' : 'Añadir nota'}

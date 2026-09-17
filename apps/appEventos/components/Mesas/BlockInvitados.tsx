@@ -51,7 +51,7 @@ const BlockInvitados: FC<propsBlockInvitados> = ({ set, setEditInv, editInv, set
                     <HiChevronDown className={`w-4 h-4 text-[#6b6b72] transition-transform ${open ? '' : '-rotate-90'}`} />
                     <span className="text-[12px] font-bold text-[#3A3A42]">{t('Invitados')}</span>
                 </div>
-                <span className="text-[10px] font-semibold text-[#a0a0a8]">{t('seated')} <span className="text-[#EF5B94]">{sentadosCount}</span></span>
+                <span className="text-[10px] font-semibold text-[#a0a0a8]">{t('seated')} <span className="text-[var(--color-primary,#EF5B94)]">{sentadosCount}</span></span>
             </div>
 
             {open && (

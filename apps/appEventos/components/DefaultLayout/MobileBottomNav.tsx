@@ -66,7 +66,7 @@ const MobileBottomNav: FC<Props> = ({ onNavigate, hideItinerario }) => {
           {NAV.map((it, i) => {
             const on = isActive(it.route);
             return (
-              <button key={i} onClick={() => go(it.route)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, flex: 1, minWidth: 0, cursor: "pointer", padding: "2px 4px", color: on ? "#EF5B94" : "#9aa0a6", background: "none", border: "none" }}>{ICONS[it.label]}<span style={{ font: "500 9px Poppins", whiteSpace: "nowrap" }}>{t(it.label)}</span></button>
+              <button key={i} onClick={() => go(it.route)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, flex: 1, minWidth: 0, cursor: "pointer", padding: "2px 4px", color: on ? "var(--color-primary,var(--color-primary,#EF5B94))" : "#9aa0a6", background: "none", border: "none" }}>{ICONS[it.label]}<span style={{ font: "500 9px Poppins", whiteSpace: "nowrap" }}>{t(it.label)}</span></button>
             );
           })}
           <button onClick={() => setMasOpen(true)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, flex: 1, color: "#9aa0a6", background: "none", border: "none", cursor: "pointer", padding: "2px 4px" }}><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" /></svg><span style={{ font: "500 9px Poppins" }}>{t("Más")}</span></button>

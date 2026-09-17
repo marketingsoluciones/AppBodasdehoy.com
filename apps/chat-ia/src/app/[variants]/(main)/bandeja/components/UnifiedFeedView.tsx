@@ -8,17 +8,8 @@ import type { FeedItem } from '../hooks/useUnifiedFeed';
 import { useBandejaBrand } from '../utils/brand';
 import { useCanManageMessaging } from '@/hooks/useCanManageMessaging';
 
-import { getUserContext } from '../utils/auth';
-import { formatPhone } from '../utils/jid';
-import { IaModeBadge, SharedBadge } from './RowIndicators';
-import { previewText } from '../utils/preview';
-
 // ─── Config ──────────────────────────────────────────────────────────────────
 
-// Colores de CANAL AJENO, no de la marca: el rosa de Instagram es de Instagram, el verde de
-// WhatsApp es de WhatsApp. No entran en la campaña de whitelabel; cambiarlos por el color de
-// la marca haría que los canales dejaran de distinguirse de un vistazo. Todo lo demás en esta
-// carpeta sí debe salir de `useBandejaBrand`.
 const FEED_CHANNEL_CONFIG: Record<string, { bg: string; icon: string; label: string }> = {
   email: { bg: 'bg-gray-500', icon: '📧', label: '@' },
   facebook: { bg: 'bg-blue-600', icon: '📘', label: 'FB' },
@@ -67,53 +58,44 @@ function initials(name: string): string {
 // ─── FeedItemRow ─────────────────────────────────────────────────────────────
 
 function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void }) {
-  const brand = useBandejaBrand();
-  const router = useRouter();
-  const { development } = getUserContext();
   const channelKey = item.channelKind as string;
   const cfg = FEED_CHANNEL_CONFIG[channelKey] ?? FEED_CHANNEL_CONFIG.web;
   const hasUnread = item.unreadCount > 0 || !item.isRead;
   // ISSUE-002 (dogfood 20-ago): items newsletter/broadcast (status de WhatsApp, canales
   // informativos) NO admiten respuesta — al abrirlos el composer solo deja "nota interna".
   // Antes parecían conversaciones WA normales en la lista → el operador abría a ciegas.
+  // Tag "Informativo" en la fila para saberlo ANTES de abrir. (Solo se ven si el usuario
+  // activa "Ver newsletters/estados"; por defecto están filtrados.)
   const isOneWay = item.jidType === 'newsletter' || item.jidType === 'broadcast';
-  // Tipo de línea y número: ya no ocupan un chip en la fila (el owner: "ocupa mucho espacio,
-  // aporta poco valor"). El canal lo dice el distintivo del avatar; el detalle, su tooltip.
+  // Etiqueta de línea WhatsApp (QR / Meta API) — solo en WhatsApp y solo si el dato llega.
   const waType =
     item.channelKind === 'whatsapp' && item.channelType
       ? (WA_TYPE_LABEL[item.channelType] ?? item.channelType)
       : null;
-  const detalleCanal = [
-    cfg.label,
-    waType ? (waType === 'QR' ? 'número vinculado por QR' : 'Meta Business API') : null,
-    item.lineLabel ? `línea ${formatPhone(String(item.lineLabel))}` : null,
-  ]
-    .filter(Boolean)
-    .join(' · ');
+  // #8: últimos dígitos de la LÍNEA receptora (distinguir 910 vs Meta por hilo).
+  const waLine =
+    item.channelKind === 'whatsapp' && item.lineLabel
+      ? String(item.lineLabel).replace(/\D/g, '').slice(-4) || String(item.lineLabel)
+      : '';
 
   let rowBg = 'bg-white hover:bg-gray-50';
-  if (!item.isRead && item.kind === 'notification') rowBg = 'bg-pink-50/60 hover:bg-pink-50';
+  if (!item.isRead && item.kind === 'notification') rowBg = 'bg-brand-light/60 hover:bg-brand-light';
   else if (item.unreadCount > 0) rowBg = 'bg-green-50/50 hover:bg-green-50';
 
-  const avatarBg = item.kind === 'notification' ? 'bg-gray-100' : 'bg-gray-200';
+  const avatarBg =
+    item.kind === 'notification' ? 'bg-gray-100' : 'bg-gray-200';
 
   return (
-    /* El botón ocupa toda la fila por debajo del contenido, en vez de envolverlo. Los
-       indicadores (acceso, modo de IA) son botones a su vez y anidarlos dentro habría dado
-       HTML inválido; posicionarlos en absoluto, como estaban, los montaba encima del mensaje
-       al estrechar la lista. Así el contenido fluye y solo los indicadores capturan el clic. */
-    <div className={`group relative border-b border-gray-100 last:border-0 ${rowBg}`}>
-      <button
-        aria-label={`Abrir ${item.name}`}
-        className="absolute inset-0 h-full w-full"
-        onClick={onClick}
-        type="button"
-      />
-      <div className="pointer-events-none relative flex items-center gap-2.5 px-3 py-2 text-left">
-      {/* Avatar con distintivo de canal (abajo-izquierda) + RSVP (abajo-derecha). */}
+    <button
+      className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors ${rowBg} border-b border-gray-100 last:border-0`}
+      onClick={onClick}
+      type="button"
+    >
+      {/* Avatar 38x38 con badge canal (bottom-LEFT) + RSVP (bottom-RIGHT)
+          según FASE B v2.0 P-handoff Bandeja Diseño 24-jun. */}
       <div className="relative shrink-0">
         <div
-          className={`flex h-9 w-9 items-center justify-center rounded-full ${avatarBg} text-sm font-medium text-gray-600`}
+          className={`flex h-10 w-10 items-center justify-center rounded-full ${avatarBg} text-sm font-medium text-gray-600`}
         >
           {item.kind === 'notification' ? (
             <span className="text-base">{cfg.icon}</span>
@@ -121,18 +103,17 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
             <span>{initials(item.name)}</span>
           )}
         </div>
+        {/* Badge canal — bottom-LEFT, cuadrado 16x16 radius 4px */}
         {item.kind !== 'notification' && (
           <span
-            aria-label={`Canal ${detalleCanal}`}
+            aria-label={`Canal ${cfg.label}`}
             className={`absolute -bottom-0.5 -left-0.5 flex h-4 min-w-4 items-center justify-center rounded px-0.5 text-[9px] font-bold text-white ${cfg.bg}`}
-            title={detalleCanal}
           >
-            {/* Siempre el canal ("W", "IG", "@"), nunca los dígitos de la línea: en las
-                capturas salía "349" en cada avatar y no significa nada para quien atiende.
-                La línea concreta sigue en el tooltip, que es donde se consulta. */}
-            {cfg.label}
+            {item.channelLabel ?? cfg.label}
           </span>
         )}
+        {/* Badge RSVP — bottom-RIGHT, círculo 15x15. Solo cuando hay valor
+            (rsvpStatus llega de api-mcp en modo Evento; undefined si no aplica). */}
         {item.rsvpStatus && (
           <span
             aria-label={`RSVP ${item.rsvpStatus}`}
@@ -153,7 +134,7 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
         )}
       </div>
 
-      {/* Contenido: dos líneas fijas. Nombre y hora arriba; mensaje e indicadores abajo. */}
+      {/* Content */}
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
           <span
@@ -161,6 +142,14 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
           >
             {item.name}
           </span>
+          {waType && (
+            <span
+              className="shrink-0 rounded-full bg-green-50 px-1.5 py-0.5 text-[9px] font-semibold text-green-700"
+              title={`WhatsApp · ${waType === 'QR' ? 'número vinculado por QR' : 'Meta Business API'}${item.lineLabel ? ` · línea ${item.lineLabel}` : ''}`}
+            >
+              {waType}{waLine ? ` ·${waLine}` : ''}
+            </span>
+          )}
           {isOneWay && (
             <span
               className="shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-gray-500"
@@ -171,37 +160,26 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
           )}
           <span className="shrink-0 text-xs text-gray-400">{timeAgo(item.timestamp)}</span>
         </div>
-        <div className="flex items-center gap-1">
-          <p className="min-w-0 flex-1 truncate text-xs text-gray-500">{previewText(item.preview)}</p>
-          {item.kind === 'conversation' && item.assignedAgentName && (
-            <span
-              aria-label={`Responsable: ${item.assignedAgentName}`}
-              className="inline-flex max-w-[80px] flex-none items-center gap-0.5 truncate rounded-full bg-violet-50 px-1 text-[10px] font-medium text-violet-600"
-              title={`Responsable: ${item.assignedAgentName}`}
-            >
-              <span aria-hidden="true">🤖</span>
-              <span className="truncate">{item.assignedAgentName}</span>
-            </span>
-          )}
-          {item.kind === 'conversation' && (
-            <>
-              <SharedBadge
-                onManage={() => router.push(`/bandeja/conversacion/${item.id}?compartir=1`)}
-                sharedWith={item.sharedWith}
-              />
-              {development && <IaModeBadge conversationId={item.id} development={development} />}
-            </>
-          )}
-        </div>
+        <p className="truncate text-xs text-gray-500">{item.preview}</p>
+        {/* FASE 2 Agentes (17-ago) — badge "responsable": qué AGENTE IA atiende esta
+            conversación. Solo se pinta cuando backend expone assignedAgentName (null-safe,
+            mismo patrón que el badge RSVP). Hoy queda dormido: 0 dead code, 0 fallback. */}
+        {item.kind === 'conversation' && item.assignedAgentName && (
+          <span
+            aria-label={`Responsable: ${item.assignedAgentName}`}
+            className="mt-1 inline-flex max-w-full items-center gap-1 truncate rounded-full bg-violet-50 px-1.5 py-0.5 text-[10px] font-medium text-violet-600"
+          >
+            <span aria-hidden="true">🤖</span>
+            <span className="truncate">{item.assignedAgentName}</span>
+          </span>
+        )}
       </div>
 
+      {/* Unread indicator */}
       {hasUnread && (
         <div className="shrink-0">
           {item.kind === 'notification' ? (
-            <span
-              className="block h-2 w-2 rounded-full"
-              style={{ backgroundColor: brand.brand }}
-            />
+            <span className="block h-2 w-2 rounded-full bg-brand" />
           ) : (
             <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-green-500 px-1 text-[10px] font-bold text-white">
               {item.unreadCount > 99 ? '99+' : item.unreadCount}
@@ -209,8 +187,7 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
           )}
         </div>
       )}
-      </div>
-    </div>
+    </button>
   );
 }
 
@@ -241,14 +218,14 @@ interface FeedGroup {
   label: string;
 }
 interface UnifiedFeedViewProps {
+  items: FeedItem[];
+  loading: boolean;
+  onItemClick: (item: FeedItem) => void;
   /** Vista "Esperan respuesta" (restaura la categorización de la antigua /pendientes,
    *  auditoría 20-ago): si se pasan groupBy+groups, renderiza secciones con cabecera por
    *  dominio (Mensajería/Servicios/Itinerario/Asistente/Otras) en vez de lista plana. */
   groupBy?: (item: FeedItem) => string;
   groups?: FeedGroup[];
-  items: FeedItem[];
-  loading: boolean;
-  onItemClick: (item: FeedItem) => void;
 }
 
 // ─── Main component ──────────────────────────────────────────────────────────
@@ -301,30 +278,35 @@ export function UnifiedFeedView({ items, loading, onItemClick, groupBy, groups }
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-white">
-      {/* Buscador y "Sin leer" en la MISMA fila (17-09). Eran dos, con el chip solo en la
-          segunda, y entre la pestaña y la primera conversación se apilaban seis bloques con
-          borde propio: 340px de cabecera para una lista de 64px por fila. */}
-      <div className="flex items-center gap-1.5 border-b border-gray-100 px-3 py-1.5">
-        <input
-          className="min-w-0 flex-1 rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs placeholder:text-gray-400 focus:border-blue-400 focus:bg-white focus:outline-none"
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar..."
-          type="text"
-          value={search}
-        />
-        {availableFilters.map((t) => (
-          <button
-            className={`flex-none rounded-full px-2 py-1 text-[10px] font-medium transition-colors ${
-              filter === t.key ? 'text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-            }`}
-            key={t.key}
-            onClick={() => setFilter(filter === t.key ? 'all' : t.key)}
-            style={filter === t.key ? { backgroundColor: brand.brand } : undefined}
-            type="button"
-          >
-            {t.label}
-          </button>
-        ))}
+      {/* Header — SIN título "Bandeja" (la pestaña de arriba ya lo dice; evita el
+          "dos bandejas" que reportó el owner 19-ago). Solo buscador + filtro sin-leer. */}
+      <div className="border-b border-gray-100 px-4 py-2">
+        <div className="flex items-center gap-2">
+          <input
+            className="flex-1 rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs placeholder:text-gray-400 focus:border-blue-400 focus:bg-white focus:outline-none"
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar..."
+            type="text"
+            value={search}
+          />
+        </div>
+        {availableFilters.length > 0 && (
+          <div className="mt-2 flex gap-1 overflow-x-auto pb-1">
+            {availableFilters.map((t) => (
+              <button
+                className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-medium transition-colors ${
+                  filter === t.key ? 'text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                }`}
+                key={t.key}
+                onClick={() => setFilter(filter === t.key ? 'all' : t.key)}
+                style={filter === t.key ? { backgroundColor: brand.brand } : undefined}
+                type="button"
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Body */}
@@ -341,8 +323,7 @@ export function UnifiedFeedView({ items, loading, onItemClick, groupBy, groups }
             {/* Gate N29 (QA 14-09) */}
             {canManage && (
               <button
-                className="mt-2 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors"
-                style={{ backgroundColor: brand.brand }}
+                className="mt-2 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark transition-colors"
                 onClick={() => router.push('/settings/integrations')}
                 type="button"
               >

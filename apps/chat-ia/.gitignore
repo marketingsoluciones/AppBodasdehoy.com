@@ -125,3 +125,8 @@ src/generated/
 
 # Side-by-side DEV builds selected by CHAT_BUILD_DIR
 .next-*/
+
+# Salida de `copy-locales` del postbuild: copia de locales/ (18 idiomas x 32 ficheros).
+# La FUENTE es locales/, que sí va en git. Sin esta línea, un `git add` por carpeta se
+# lleva 140.000 líneas de duplicado generado — me pasó el 17-09.
+public/locales/

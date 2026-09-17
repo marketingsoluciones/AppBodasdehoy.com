@@ -33,7 +33,10 @@ set -Eeuo pipefail
 # Checkout que SIRVE dev (el que PM2 tiene como cwd). No es necesariamente el
 # árbol donde estás trabajando: cámbialo si mueves el despliegue.
 REPO="${DEPLOY_REPO:-/Users/juancarlosparra/Projects/AppBodasdehoy.com}"
-PM2_SCRIPTS="${PM2_SCRIPTS_DIR:-$HOME/.pm2-scripts}"
+# `$HOME` con `set -u` revienta con "unbound variable" si el script se lanza desde un
+# entorno limpio (cron, un PM2 sin env heredado, `env -i`). Comprobado. Mejor decir qué
+# falta que soltar el mensaje de bash.
+PM2_SCRIPTS="${PM2_SCRIPTS_DIR:-${HOME:?falta HOME en el entorno: pasa PM2_SCRIPTS_DIR o lanza con un shell de login}/.pm2-scripts}"
 LOCK="/tmp/appbodasdehoy-deploy.lock"
 # `npx pm2` puede resolver un pm2 DISTINTO del que tiene el demonio con los
 # procesos, y en el peor caso levanta un segundo demonio: dos mundos paralelos.
@@ -78,6 +81,67 @@ marcar_build_ok() {
     echo "commit: $(git -C "$(dirname "$0")/.." rev-parse --short HEAD 2>/dev/null || echo desconocido)"
     echo "pipeline: build + postbuild + puntero + reinicio + verificacion"
   } > "$dir/$nombre/$MARCA_OK" 2>/dev/null || true
+}
+
+# Mide el estado de la máquina. Separada de la decisión, y en una función para que el
+# test pueda comprobar que NO revienta — porque su primera versión reventaba.
+#
+# `pgrep` devuelve 1 cuando no encuentra nada, y con `set -Eeuo pipefail` (línea 30)
+# eso mata el script. O sea que moría justo en el caso NORMAL: ningún otro build
+# corriendo. Es la tercera vez hoy que este script se rompe por el estado de salida de
+# una tubería, y las tres veces con la misma forma: un comando cuyo "no hay nada" se
+# codifica como error. El `|| true` no es adorno.
+#
+# Imprime: "<builds_ajenos> <memoria_libre_pct> <load_1min> <swap_usado>"
+#
+# El patrón de búsqueda es un argumento con valor por defecto para que el test pueda
+# pasar uno que NO case. Sin eso, el test dependía de que no hubiera ningún build
+# corriendo: cuando el otro agente arrancó el suyo, `pgrep` encontró algo, dejó de
+# devolver 1 y el caso que vigilaba el `|| true` pasó a ser vacuo sin avisar. Cuarta
+# vez hoy que un test verde no prueba nada, y la primera en que la causa era el estado
+# de la máquina y no el test.
+medir_recursos() {
+  local patron="${1:-next build}"
+  local ajenos libre carga swap
+  # Por RUTA ABSOLUTA con respaldo al PATH. `sysctl` vive en /usr/sbin, que no está en
+  # todos los entornos: en la ejecución del otro agente salió "swap usado ?" justo por
+  # eso. `memory_pressure` está en /usr/bin y sí resolvía, pero se trata igual para no
+  # depender de qué directorio falta en el PATH de quien lanza.
+  local SYSCTL=/usr/sbin/sysctl MEMP=/usr/bin/memory_pressure
+  [ -x "$SYSCTL" ] || SYSCTL=$(command -v sysctl || echo /nonexistent)
+  [ -x "$MEMP" ] || MEMP=$(command -v memory_pressure || echo /nonexistent)
+
+  ajenos=$(pgrep -f "$patron" 2>/dev/null | wc -l | tr -d ' ') || ajenos=0
+  libre=$("$MEMP" 2>/dev/null | awk '/free percentage/{print $5+0}') || libre=""
+  carga=$(uptime | sed 's/.*averages*: *//' | awk '{print $1}' | tr -d ',') || carga=0
+  swap=$("$SYSCTL" -n vm.swapusage 2>/dev/null | awk '{print $6}') || swap=""
+  # "no-medido" en vez de "?": un interrogante en una línea de diagnóstico se lee dentro
+  # de un mes como "no hay swap" en lugar de "no lo pude medir". Aviso del otro agente.
+  echo "${ajenos:-0} ${libre:-100} ${carga:-0} ${swap:-no-medido}"
+}
+
+# Decide si se puede compilar, a partir de datos ya medidos. Está separada de la
+# medición a propósito: así `deploy-dev.recursos_test.sh` puede probar la REGLA sin
+# depender del estado real de la máquina.
+#   recursos_veredicto <builds_ajenos> <memoria_libre_pct> <load_entero>
+# Imprime: "parar: <motivo>" | "avisar: <motivo>" | "seguir"
+recursos_veredicto() {
+  local ajenos="${1:-0}" libre="${2:-100}" carga="${3:-0}"
+  if [ "$ajenos" -gt 0 ]; then
+    echo "parar: ya hay $ajenos proceso(s) next build corriendo"
+    return 0
+  fi
+  if [ "$libre" -lt 20 ]; then
+    echo "parar: solo queda ${libre}% de memoria libre"
+    return 0
+  fi
+  # El load NO para: cuenta procesos ejecutables, no presión de memoria, y con un IDE
+  # y un navegador abiertos esta máquina no baja de 8 ni estando libre de builds.
+  if [ "$carga" -ge 8 ]; then
+    echo "avisar: load $carga, el build tardará más"
+    return 0
+  fi
+  echo "seguir"
 }
 
 rotar_builds() {
@@ -143,6 +207,30 @@ rotar_builds() {
 if [ "${BASH_SOURCE[0]}" != "$0" ]; then
   return 0 2>/dev/null || true
 fi
+
+# ─── Todo el trabajo va dentro de main() ──────────────────────────────────────
+# NO es cosmético. Bash lee un script por POSICIÓN DE BYTE, no por líneas: si el
+# fichero cambia de tamaño mientras se ejecuta, al volver de un comando largo retoma
+# en el offset viejo, que en el fichero nuevo cae a mitad de una línea. Pasó el 17-09:
+# yo copié una versión nueva de este script al checkout de despliegue —con `cp`, que
+# escribe sobre el MISMO inodo— mientras el otro agente estaba dentro de un `next build`
+# de doce minutos. Al terminar el build, su bash retomó en el byte equivocado y murió
+# con «line 421: 7: command not found», apuntando a un comentario. Perdió el despliegue
+# y tuvo que hacer los cuatro pasos finales a mano.
+#
+# Con el cuerpo dentro de una función, bash parsea la definición COMPLETA antes de
+# ejecutarla, así que una edición a mitad de camino ya no puede partirla. Medido:
+#   sin envoltorio      → «line 5: hacia: command not found», el trabajo NO termina
+#   con main()          → el trabajo termina, pero bash sigue leyendo tras la llamada
+#                          y saca un error espurio con salida ≠ 0
+#   con main() + exit   → termina bien, salida 0, sin ruido
+# De ahí el `exit $?` de la última línea: sin él la inmunidad está a medias.
+#
+# Aun así, la forma correcta de actualizar este fichero es atómica (`mv`, que crea un
+# inodo nuevo), no `cp`. Esto es la red por si alguien se olvida — y me olvidé yo, que
+# lo había hecho bien dos horas antes.
+main() {
+
 
 # ─── Argumentos ───────────────────────────────────────────────────────────────
 APP="${1:-}"; shift || true
@@ -239,15 +327,40 @@ if ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null; th
   sleep 4
 fi
 
-# ─── Carga de la máquina ──────────────────────────────────────────────────────
-# Petición del otro agente que despliega aquí: si el equipo ya va ahogado, no
-# empezar. Un build con la máquina saturada acaba en SIGKILL y hay que repetirlo.
-CARGA=$(uptime | sed 's/.*averages*: *//' | awk '{print $1}' | tr -d ',')
-CARGA_ENT=${CARGA%%.*}
-info "Carga (1 min): $CARGA"
-if [ "${CARGA_ENT:-0}" -ge 8 ]; then
-  morir "la máquina va cargada (load $CARGA ≥ 8). Espera y reintenta."
-fi
+# ─── Recursos de la máquina ───────────────────────────────────────────────────
+# ESTO MIRABA EL DATO EQUIVOCADO. La versión anterior moría si el load de 1 minuto
+# llegaba a 8. El fallo que se quería evitar era el del 17-09: dos `next build` a la
+# vez agotando la RAM y el sistema matando los dos. Pero el load de macOS cuenta
+# procesos EJECUTABLES, no presión de memoria.
+#
+# Medido en esta máquina con el guardián bloqueando un despliegue: load 8.49, CERO
+# builds corriendo, 79% de memoria libre, y la carga la hacían un renderer de Chrome
+# y cuatro helpers de Trae al 100% de CPU cada uno. O sea el estado NORMAL de un
+# equipo con IDE y navegador abiertos. Un umbral que nunca se cumple acaba
+# esquivándose de rutina, y un guardián que se esquiva ya no protege.
+#
+# Ahora se comprueba lo que de verdad importa, en orden de cuán directo es el dato:
+#   1. ¿hay OTRO `next build` corriendo? — detección directa del fallo real. El
+#      cerrojo de este script cubre dos ejecuciones SUYAS, pero no un build lanzado
+#      a mano o por otra herramienta, que es exactamente lo que pasó el 17-09.
+#   2. ¿queda poca memoria? — la magnitud que limita un heap de 8 GB.
+#   3. el load pasa a ser AVISO, no muerte: informa de que va a tardar más.
+#
+# Y se imprime el swap sin usarlo como puerta: aquí marca 8,7 GB de 10,2 usados
+# mientras `memory_pressure` dice 79% libre. Los dos datos se contradicen (macOS
+# acumula swap con la memoria comprimida y no lo libera), así que cambiar un umbral
+# equivocado por otro habría sido repetir el error con otra magnitud. Lo ve un humano
+# y decide.
+read -r AJENOS LIBRE CARGA SWAP <<EOF_REC
+$(medir_recursos)
+EOF_REC
+info "Recursos: ${LIBRE}% memoria libre · load $CARGA · swap usado ${SWAP} · otros builds: $AJENOS"
+
+VEREDICTO=$(recursos_veredicto "${AJENOS:-0}" "${LIBRE:-100}" "${CARGA%%.*}")
+case "$VEREDICTO" in
+  parar:*)  morir "${VEREDICTO#parar: }. Dos builds a la vez agotan la RAM y el sistema mata los dos." ;;
+  avisar:*) rojo "⚠ ${VEREDICTO#avisar: }. Sigo." ;;
+esac
 
 # ─── Nombre del build: se RESERVA dentro del cerrojo ──────────────────────────
 # El 17-09 dos agentes eligieron `.next-chat-20260917h` a la vez y el segundo
@@ -460,3 +573,8 @@ if [ -n "$VIVO" ] && [ -d "$DIR/$VIVO" ] && [ ! -f "$DIR/$VIVO/$MARCA_OK" ]; the
     && rojo "  Verificado más reciente: $ROLLBACK_ALT"
 fi
 verde "✓ $APP desplegado. Rollback: $VAR=\"$VIVO\" en $PM2_SCRIPTS/$SCRIPT + $PM2BIN restart $PM2"
+
+}
+
+main "$@"
+exit $?

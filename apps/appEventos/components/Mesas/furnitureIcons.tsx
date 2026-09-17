@@ -1,7 +1,7 @@
 import { FC, SVGProps } from 'react';
 
 // Iconos de mobiliario EXACTOS del prototipo MESAS.dc.html (func furnIcon, líneas 395-401).
-// stroke=currentColor → el color lo pone el contenedor (rosa #EF5B94 en el menú, gris #6b6b72
+// stroke=currentColor → el color lo pone el contenedor (rosa var(--color-primary,#EF5B94) en el menú, gris #6b6b72
 // en el plano). Aceptan props (className/style) para el cloneElement del canvas (ElementContent).
 const base: SVGProps<SVGSVGElement> = {
   viewBox: '0 0 24 24',

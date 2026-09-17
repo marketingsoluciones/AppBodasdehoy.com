@@ -167,7 +167,7 @@ const PresupuestoStudioMovil: FC = () => {
       <div style={{ background: "#fff", padding: "12px 18px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 4px 14px rgba(0,0,0,.05)" }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ font: "700 19px Poppins", color: "#3A3A42", whiteSpace: "nowrap" }}>Presupuesto</div>
-          <div style={{ marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}><span style={{ font: "700 10px Poppins", color: "#EF5B94", letterSpacing: ".5px", textTransform: "uppercase" }}>{event?.tipo || "Boda"}</span><span style={{ font: "500 11px Poppins", color: "#8a8a90", marginLeft: 5 }}>· {event?.nombre}</span></div>
+          <div style={{ marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}><span style={{ font: "700 10px Poppins", color: "var(--color-primary,#EF5B94)", letterSpacing: ".5px", textTransform: "uppercase" }}>{event?.tipo || "Boda"}</span><span style={{ font: "500 11px Poppins", color: "#8a8a90", marginLeft: 5 }}>· {event?.nombre}</span></div>
         </div>
       </div>
 
@@ -175,7 +175,7 @@ const PresupuestoStudioMovil: FC = () => {
       <div style={{ display: "flex", background: "#fff", borderRadius: 13, padding: 4, margin: "12px 14px 0", boxShadow: "0 3px 10px rgba(0,0,0,.04)" }}>
         {TABS.map(([k, label]) => {
           const on = tab === k;
-          return <div key={k} onClick={() => setTab(k)} style={{ flex: 1, textAlign: "center", padding: "9px 0", borderRadius: 10, font: "600 12px Poppins", cursor: "pointer", color: on ? "#fff" : "#8a8a90", background: on ? "#EF5B94" : "transparent", transition: "all .18s" }}>{label}</div>;
+          return <div key={k} onClick={() => setTab(k)} style={{ flex: 1, textAlign: "center", padding: "9px 0", borderRadius: 10, font: "600 12px Poppins", cursor: "pointer", color: on ? "#fff" : "#8a8a90", background: on ? "var(--color-primary,#EF5B94)" : "transparent", transition: "all .18s" }}>{label}</div>;
         })}
       </div>
 
@@ -186,7 +186,7 @@ const PresupuestoStudioMovil: FC = () => {
           <div style={{ background: "#fff", borderRadius: 16, margin: "12px 14px 0", padding: 16, boxShadow: "0 3px 10px rgba(0,0,0,.04)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ font: "600 13px Poppins", color: "#6b6b72" }}>Presupuesto total</div>
-              {isOwner && <div onClick={openEditBudget} style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#EF5B94", cursor: "pointer" }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg><span style={{ font: "600 11px Poppins" }}>Editar</span></div>}
+              {isOwner && <div onClick={openEditBudget} style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "var(--color-primary,#EF5B94)", cursor: "pointer" }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg><span style={{ font: "600 11px Poppins" }}>Editar</span></div>}
             </div>
             <div style={{ font: "700 26px Poppins", color: "#3A3A42", marginTop: 4 }}>{fmt(budget)}</div>
             <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
@@ -214,7 +214,7 @@ const PresupuestoStudioMovil: FC = () => {
           <div style={{ background: "#fff", borderRadius: 16, margin: "12px 14px 0", padding: 16, boxShadow: "0 3px 10px rgba(0,0,0,.04)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
               <div style={{ font: "700 14px Poppins", color: "#3A3A42" }}>¿Cómo va tu presupuesto?</div>
-              {isOwner && <div onClick={() => { setAddCatName(""); setAddCatOpen(true); }} style={{ font: "600 11px Poppins", color: "#EF5B94", cursor: "pointer", whiteSpace: "nowrap" }}>＋ Categoría</div>}
+              {isOwner && <div onClick={() => { setAddCatName(""); setAddCatOpen(true); }} style={{ font: "600 11px Poppins", color: "var(--color-primary,#EF5B94)", cursor: "pointer", whiteSpace: "nowrap" }}>＋ Categoría</div>}
             </div>
             <div style={{ font: "500 10.5px Poppins", color: "#a0a0a8", marginBottom: 10 }}>Toca una categoría para ver y añadir gastos</div>
             {cats.length === 0 && <div style={{ padding: "12px 2px", font: "500 12px Poppins", color: "#a0a0a8" }}>Aún no hay categorías.</div>}
@@ -223,7 +223,7 @@ const PresupuestoStudioMovil: FC = () => {
               const est = c.coste_estimado || 0;
               const nG = (c.gastos_array || []).filter((g: any) => g?.estatus !== false).length;
               const pct = est > 0 ? Math.min(100, (real / est) * 100) : (real > 0 ? 100 : 0);
-              const barCol = est > 0 && real > est ? "#EF5B94" : "#2FB37E";
+              const barCol = est > 0 && real > est ? "var(--color-primary,#EF5B94)" : "#2FB37E";
               const sub = est > 0 ? `${Math.round(pct)}% del estimado` : `${nG} gasto${nG === 1 ? "" : "s"}`;
               return (
                 <div key={c._id} onClick={() => openCategory(c)} style={{ padding: "11px 2px", borderBottom: "1px solid #f5f5f7", cursor: "pointer" }}>
@@ -238,7 +238,7 @@ const PresupuestoStudioMovil: FC = () => {
                     <div style={{ flex: 1, height: 6, borderRadius: 6, background: "#f0f0f2", overflow: "hidden" }}><div style={{ height: "100%", width: `${pct}%`, background: barCol, borderRadius: 6 }} /></div>
                     <span style={{ font: "500 10px Poppins", color: "#a0a0a8", whiteSpace: "nowrap" }}>{sub}</span>
                   </div>
-                  {nG === 0 && <div style={{ font: "500 10.5px Poppins", color: "#EF5B94", marginTop: 6 }}>Toca para añadir tu primer gasto</div>}
+                  {nG === 0 && <div style={{ font: "500 10.5px Poppins", color: "var(--color-primary,#EF5B94)", marginTop: 6 }}>Toca para añadir tu primer gasto</div>}
                 </div>
               );
             })}
@@ -256,7 +256,7 @@ const PresupuestoStudioMovil: FC = () => {
           <div style={{ display: "flex", gap: 7, marginBottom: 12 }}>
             {([["todos", "Todos"], ["pagado", "Pagados"], ["pendiente", "Pendientes"]] as const).map(([k, label]) => {
               const on = pill === k;
-              return <div key={k} onClick={() => setPill(k)} style={{ padding: "7px 15px", borderRadius: 999, font: "600 11px Poppins", cursor: "pointer", color: on ? "#fff" : "#8a8a90", background: on ? "#EF5B94" : "#fff", border: `1.5px solid ${on ? "#EF5B94" : "#E7E7EA"}` }}>{label}</div>;
+              return <div key={k} onClick={() => setPill(k)} style={{ padding: "7px 15px", borderRadius: 999, font: "600 11px Poppins", cursor: "pointer", color: on ? "#fff" : "#8a8a90", background: on ? "var(--color-primary,#EF5B94)" : "#fff", border: `1.5px solid ${on ? "var(--color-primary,#EF5B94)" : "#E7E7EA"}` }}>{label}</div>;
             })}
           </div>
           {cats.map((c) => {
@@ -294,7 +294,7 @@ const PresupuestoStudioMovil: FC = () => {
                         </div>
                       );
                     })}
-                    {isOwner && <div onClick={() => setGastoForm({ catId: c._id, nombre: "", coste: "" })} style={{ textAlign: "center", padding: 11, font: "600 11.5px Poppins", color: "#EF5B94", cursor: "pointer" }}>＋ Añadir gasto</div>}
+                    {isOwner && <div onClick={() => setGastoForm({ catId: c._id, nombre: "", coste: "" })} style={{ textAlign: "center", padding: 11, font: "600 11.5px Poppins", color: "var(--color-primary,#EF5B94)", cursor: "pointer" }}>＋ Añadir gasto</div>}
                   </div>
                 )}
               </div>
@@ -312,9 +312,9 @@ const PresupuestoStudioMovil: FC = () => {
             <div className="psm-hs" style={{ display: "flex", gap: 8, overflowX: "auto", marginTop: 12, paddingBottom: 2 }}>
               <div style={{ flex: "none", width: 150, background: "#faf9fb", borderRadius: 12, padding: "12px 13px" }}><span style={{ font: "600 8.5px Poppins", color: "#2FB37E", background: "#E4F5EE", padding: "3px 9px", borderRadius: 999, letterSpacing: ".4px" }}>TOTAL RECIBIDO</span><div style={{ font: "700 17px Poppins", color: "#3A3A42", marginTop: 8 }}>{fmt(fin.recibido)}</div><div style={{ font: "500 9.5px Poppins", color: "#a0a0a8" }}>Del presupuesto total</div></div>
               <div style={{ flex: "none", width: 150, background: "#faf9fb", borderRadius: 12, padding: "12px 13px" }}><span style={{ font: "600 8.5px Poppins", color: "#6b6b72", background: "#ececee", padding: "3px 9px", borderRadius: 999, letterSpacing: ".4px" }}>FONDOS DISPONIBLES</span><div style={{ font: "700 17px Poppins", color: "#3A3A42", marginTop: 8 }}>{fmt(fin.disponible)}</div><div style={{ font: "500 9.5px Poppins", color: "#a0a0a8" }}>{fin.recibido > 0 ? Math.round((fin.disponible / fin.recibido) * 100) : 0}% del total</div></div>
-              <div style={{ flex: "none", width: 150, background: "#faf9fb", borderRadius: 12, padding: "12px 13px" }}><span style={{ font: "600 8.5px Poppins", color: "#EF5B94", background: "#FCE7F0", padding: "3px 9px", borderRadius: 999, letterSpacing: ".4px" }}>TOTAL UTILIZADO</span><div style={{ font: "700 17px Poppins", color: "#3A3A42", marginTop: 8 }}>{fmt(fin.utilizado)}</div><div style={{ font: "500 9.5px Poppins", color: "#a0a0a8" }}>En {fin.wpUsos} pagos</div></div>
+              <div style={{ flex: "none", width: 150, background: "#faf9fb", borderRadius: 12, padding: "12px 13px" }}><span style={{ font: "600 8.5px Poppins", color: "var(--color-primary,#EF5B94)", background: "#FCE7F0", padding: "3px 9px", borderRadius: 999, letterSpacing: ".4px" }}>TOTAL UTILIZADO</span><div style={{ font: "700 17px Poppins", color: "#3A3A42", marginTop: 8 }}>{fmt(fin.utilizado)}</div><div style={{ font: "500 9.5px Poppins", color: "#a0a0a8" }}>En {fin.wpUsos} pagos</div></div>
             </div>
-            {isOwner && <button onClick={() => setDepOpen(true)} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, width: "100%", marginTop: 12, height: 42, border: "none", borderRadius: 12, background: "#EF5B94", color: "#fff", font: "600 12.5px Poppins", cursor: "pointer", boxShadow: "0 6px 14px rgba(239,91,148,.26)" }}>＋ Registrar nuevo depósito</button>}
+            {isOwner && <button onClick={() => setDepOpen(true)} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, width: "100%", marginTop: 12, height: 42, border: "none", borderRadius: 12, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 12.5px Poppins", cursor: "pointer", boxShadow: "0 6px 14px rgba(239,91,148,.26)" }}>＋ Registrar nuevo depósito</button>}
           </div>
           <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
             <div style={{ flex: 1, background: "#fff", borderRadius: 14, padding: 14, textAlign: "center", boxShadow: "0 3px 10px rgba(0,0,0,.04)" }}><div style={{ font: "600 16px Poppins", color: "#3A3A42" }}>{fin.nPagos}</div><div style={{ font: "500 10px Poppins", color: "#a0a0a8" }}>Pagos hechos</div></div>
@@ -331,7 +331,7 @@ const PresupuestoStudioMovil: FC = () => {
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, whiteSpace: "nowrap" }}>
                   <span style={{ font: "600 12.5px Poppins", color: "#3A3A42" }}>{fmt(montoOf(p))}</span>
-                  <div onClick={() => { const c = cats.find((x) => x._id === p.catId); if (c) openCategory(c); }} style={{ font: "600 10.5px Poppins", color: "#EF5B94", background: "#FCE7F0", padding: "6px 12px", borderRadius: 999, cursor: "pointer" }}>Ver</div>
+                  <div onClick={() => { const c = cats.find((x) => x._id === p.catId); if (c) openCategory(c); }} style={{ font: "600 10.5px Poppins", color: "var(--color-primary,#EF5B94)", background: "#FCE7F0", padding: "6px 12px", borderRadius: 999, cursor: "pointer" }}>Ver</div>
                 </div>
               </div>
             ))}
@@ -364,7 +364,7 @@ const PresupuestoStudioMovil: FC = () => {
               );
             })}
             {(catDetail.gastos_array || []).filter((g: any) => g?.estatus !== false).length === 0 && <div style={{ textAlign: "center", padding: "16px 0", font: "500 12px Poppins", color: "#a0a0a8" }}>Sin gastos todavía en esta categoría</div>}
-            {isOwner && <button onClick={() => { setGastoForm({ catId: catDetail._id, nombre: "", coste: "" }); }} style={{ display: "block", width: "100%", marginTop: 14, height: 44, border: "none", borderRadius: 12, background: "#EF5B94", color: "#fff", font: "600 13px Poppins", cursor: "pointer", boxShadow: "0 6px 14px rgba(239,91,148,.26)" }}>＋ Añadir gasto</button>}
+            {isOwner && <button onClick={() => { setGastoForm({ catId: catDetail._id, nombre: "", coste: "" }); }} style={{ display: "block", width: "100%", marginTop: 14, height: 44, border: "none", borderRadius: 12, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 13px Poppins", cursor: "pointer", boxShadow: "0 6px 14px rgba(239,91,148,.26)" }}>＋ Añadir gasto</button>}
           </div>
         </div>, document.body)}
 
@@ -377,7 +377,7 @@ const PresupuestoStudioMovil: FC = () => {
             <input type="number" inputMode="decimal" autoFocus value={budgetVal} onChange={(e) => setBudgetVal(e.target.value)} placeholder="0" style={inputStyle} />
             <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
               <button onClick={() => setEditBudgetOpen(false)} style={{ flex: 1, height: 44, borderRadius: 12, background: "#f4f4f6", color: "#6b6b72", font: "600 13px Poppins", border: "none", cursor: "pointer" }}>Cancelar</button>
-              <button onClick={saveBudget} disabled={busy} style={{ flex: 1, height: 44, borderRadius: 12, background: busy ? "#f4b8d1" : "#EF5B94", color: "#fff", font: "600 13px Poppins", border: "none", cursor: "pointer" }}>Guardar</button>
+              <button onClick={saveBudget} disabled={busy} style={{ flex: 1, height: 44, borderRadius: 12, background: busy ? "#f4b8d1" : "var(--color-primary,#EF5B94)", color: "#fff", font: "600 13px Poppins", border: "none", cursor: "pointer" }}>Guardar</button>
             </div>
           </div>
         </div>, document.body)}
@@ -391,7 +391,7 @@ const PresupuestoStudioMovil: FC = () => {
             <input autoFocus value={addCatName} onChange={(e) => setAddCatName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") addCategory(); }} placeholder="Ej. Catering, Flores, Música…" style={inputStyle} />
             <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
               <button onClick={() => setAddCatOpen(false)} style={{ flex: 1, height: 44, borderRadius: 12, background: "#f4f4f6", color: "#6b6b72", font: "600 13px Poppins", border: "none", cursor: "pointer" }}>Cancelar</button>
-              <button onClick={addCategory} disabled={busy || !addCatName.trim()} style={{ flex: 1, height: 44, borderRadius: 12, background: (busy || !addCatName.trim()) ? "#f4b8d1" : "#EF5B94", color: "#fff", font: "600 13px Poppins", border: "none", cursor: "pointer" }}>Crear</button>
+              <button onClick={addCategory} disabled={busy || !addCatName.trim()} style={{ flex: 1, height: 44, borderRadius: 12, background: (busy || !addCatName.trim()) ? "#f4b8d1" : "var(--color-primary,#EF5B94)", color: "#fff", font: "600 13px Poppins", border: "none", cursor: "pointer" }}>Crear</button>
             </div>
           </div>
         </div>, document.body)}
@@ -408,7 +408,7 @@ const PresupuestoStudioMovil: FC = () => {
             <input type="number" inputMode="decimal" value={gastoForm.coste} onChange={(e) => setGastoForm((f) => f && { ...f, coste: e.target.value })} placeholder="0" style={inputStyle} />
             <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
               <button onClick={() => setGastoForm(null)} style={{ flex: 1, height: 44, borderRadius: 12, background: "#f4f4f6", color: "#6b6b72", font: "600 13px Poppins", border: "none", cursor: "pointer" }}>Cancelar</button>
-              <button onClick={addGasto} disabled={busy || !gastoForm.nombre.trim()} style={{ flex: 1, height: 44, borderRadius: 12, background: (busy || !gastoForm.nombre.trim()) ? "#f4b8d1" : "#EF5B94", color: "#fff", font: "600 13px Poppins", border: "none", cursor: "pointer" }}>Añadir</button>
+              <button onClick={addGasto} disabled={busy || !gastoForm.nombre.trim()} style={{ flex: 1, height: 44, borderRadius: 12, background: (busy || !gastoForm.nombre.trim()) ? "#f4b8d1" : "var(--color-primary,#EF5B94)", color: "#fff", font: "600 13px Poppins", border: "none", cursor: "pointer" }}>Añadir</button>
             </div>
           </div>
         </div>, document.body)}
@@ -427,7 +427,7 @@ const PresupuestoStudioMovil: FC = () => {
             <input value={depRef} onChange={(e) => setDepRef(e.target.value)} placeholder="Nº de operación…" style={inputStyle} />
             <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
               <button onClick={() => setDepOpen(false)} style={{ flex: 1, height: 44, borderRadius: 12, background: "#f4f4f6", color: "#6b6b72", font: "600 13px Poppins", border: "none", cursor: "pointer" }}>Cancelar</button>
-              <button onClick={addDeposito} disabled={busy || !depMonto} style={{ flex: 1, height: 44, borderRadius: 12, background: (busy || !depMonto) ? "#f4b8d1" : "#EF5B94", color: "#fff", font: "600 13px Poppins", border: "none", cursor: "pointer" }}>Registrar</button>
+              <button onClick={addDeposito} disabled={busy || !depMonto} style={{ flex: 1, height: 44, borderRadius: 12, background: (busy || !depMonto) ? "#f4b8d1" : "var(--color-primary,#EF5B94)", color: "#fff", font: "600 13px Poppins", border: "none", cursor: "pointer" }}>Registrar</button>
             </div>
           </div>
         </div>, document.body)}

@@ -276,7 +276,7 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
   // Unificación de marca 15-09: TODAS las marcas, bodasdehoy incluida, salen del mismo sitio
   // — `theme.primaryColor` del paquete compartido (packages/shared/src/types/developments.ts),
   // que es también lo que consume chat-ia. Antes bodasdehoy tenía aquí sus rosas escritos a
-  // mano (#EF5B94/#D83E7C, byte-idénticos al HTML de referencia) y por eso app-dev y chat-dev
+  // mano (var(--color-primary,#EF5B94)/#D83E7C, byte-idénticos al HTML de referencia) y por eso app-dev y chat-dev
   // enseñaban dos rosas distintos para la misma marca.
   //
   // El resto de tonos se DERIVA del primario en vez de leer `theme.secondaryColor`: ese campo

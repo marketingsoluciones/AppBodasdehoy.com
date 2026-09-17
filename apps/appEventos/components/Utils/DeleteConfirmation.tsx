@@ -78,7 +78,7 @@ export const DeleteConfirmation = ({ modal, setModal }: props) => {
                         {t("Eliminar", { defaultValue: "Eliminar" })}
                     </button>
                 </div>
-                <style dangerouslySetInnerHTML={{ __html: ".msi-confirm:focus{border-color:#EF5B94 !important;}" }} />
+                <style dangerouslySetInnerHTML={{ __html: ".msi-confirm:focus{border-color:var(--color-primary,#EF5B94) !important;}" }} />
             </div>
         )
     }
@@ -86,7 +86,7 @@ export const DeleteConfirmation = ({ modal, setModal }: props) => {
     return (
         <div className="w-full h-auto min-h-[200px] p-6 flex flex-col">
             <div className="flex items-center gap-[11px] mb-[18px]">
-                <div className="w-10 h-10 rounded-[11px] flex-none bg-[#FCE7F0] text-[#EF5B94] flex items-center justify-center">
+                <div className="w-10 h-10 rounded-[11px] flex-none bg-[#FCE7F0] text-[var(--color-primary,#EF5B94)] flex items-center justify-center">
                     <IoTrashOutline className="w-5 h-5" />
                 </div>
                 <div>
@@ -119,7 +119,7 @@ export const DeleteConfirmation = ({ modal, setModal }: props) => {
                             if (e.key === 'Escape') setModal({ state: false })
                         }}
                         placeholder={confirmWord}
-                        className="w-full p-1.5 rounded-[11px] border-[1.5px] border-[#E7E7EA] focus:border-[#EF5B94] outline-none bg-white text-[13px] font-medium text-[#3A3A42] placeholder:text-[#b3b3ba] text-center"
+                        className="w-full p-1.5 rounded-[11px] border-[1.5px] border-[#E7E7EA] focus:border-[var(--color-primary,#EF5B94)] outline-none bg-white text-[13px] font-medium text-[#3A3A42] placeholder:text-[#b3b3ba] text-center"
                     />
                 </>
             )}

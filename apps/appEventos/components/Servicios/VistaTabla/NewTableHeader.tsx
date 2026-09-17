@@ -100,7 +100,7 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
                 style={{ border: "none", outline: "none", font: "400 12.5px Poppins", color: "#3A3A42", width: "100%", background: "transparent" }}
               />
             </div>
-            <button onClick={onFiltersToggle} title={t('Filtros', { defaultValue: 'Filtros' })} style={{ ...btnIco, borderColor: filtersActive ? "#EF5B94" : "#E7E7EA", color: filtersActive ? "#EF5B94" : "#8a8a90" }}>
+            <button onClick={onFiltersToggle} title={t('Filtros', { defaultValue: 'Filtros' })} style={{ ...btnIco, borderColor: filtersActive ? "var(--color-primary,#EF5B94)" : "#E7E7EA", color: filtersActive ? "var(--color-primary,#EF5B94)" : "#8a8a90" }}>
               <Filter className="w-[15px] h-[15px]" />
             </button>
             <button onClick={() => setShowColumnConfig(true)} title={t('Configurar columnas', { defaultValue: 'Configurar columnas' })} style={btnIco}>
@@ -111,7 +111,7 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
             </span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <button onClick={onAddTask} style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 18px", borderRadius: 12, background: "#EF5B94", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 5px 14px rgba(239,91,148,.28)", whiteSpace: "nowrap" }}>
+            <button onClick={onAddTask} style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 18px", borderRadius: 12, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 5px 14px rgba(239,91,148,.28)", whiteSpace: "nowrap" }}>
               <Plus className="w-[13px] h-[13px]" />
               {t('Añadir tarea', { defaultValue: 'Añadir tarea' })}
             </button>
@@ -125,7 +125,7 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
               <button
                 onClick={onExpandToggle}
                 title={expanded ? t('Contraer tabla', { defaultValue: 'Contraer tabla' }) : t('Expandir tabla', { defaultValue: 'Expandir tabla' })}
-                style={{ ...btnIco, borderColor: expanded ? "#EF5B94" : "#E7E7EA", color: expanded ? "#EF5B94" : "#8a8a90" }}
+                style={{ ...btnIco, borderColor: expanded ? "var(--color-primary,#EF5B94)" : "#E7E7EA", color: expanded ? "var(--color-primary,#EF5B94)" : "#8a8a90" }}
               >
                 {expanded
                   ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M3 8h5V3M21 8h-5V3M3 16h5v5M21 16h-5v5" /></svg>

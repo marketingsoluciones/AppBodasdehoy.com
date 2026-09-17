@@ -264,7 +264,7 @@ export const Notifications = ({ studio = false }: { studio?: boolean } = {}) => 
           aria-haspopup="dialog"
           title={studio ? "Notificaciones" : undefined}
           className={studio
-            ? "w-[42px] h-[42px] shrink-0 rounded-full flex items-center justify-center cursor-pointer border-0 p-0 relative bg-[#F7F6F8] hover:bg-[#FCE7F0] text-[#6b6b72] hover:text-[#EF5B94] transition"
+            ? "w-[42px] h-[42px] shrink-0 rounded-full flex items-center justify-center cursor-pointer border-0 p-0 relative bg-[#F7F6F8] hover:bg-[#FCE7F0] text-[#6b6b72] hover:text-[var(--color-primary,#EF5B94)] transition"
             : "bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer border-0 p-0 relative"}
         >
           {studio ? (
@@ -274,7 +274,7 @@ export const Notifications = ({ studio = false }: { studio?: boolean } = {}) => 
           )}
           {api2UnreadCount > 0 && (
             studio ? (
-              <span className="absolute flex items-center justify-center" style={{ top: -3, right: -3, minWidth: 18, height: 18, borderRadius: 10, background: "#EF5B94", color: "#fff", font: "700 9.5px Poppins", padding: "0 4px", border: "2px solid #fff" }}>
+              <span className="absolute flex items-center justify-center" style={{ top: -3, right: -3, minWidth: 18, height: 18, borderRadius: 10, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "700 9.5px Poppins", padding: "0 4px", border: "2px solid #fff" }}>
                 {api2UnreadCount > 9 ? '9+' : api2UnreadCount}
               </span>
             ) : (
@@ -477,7 +477,7 @@ export const Notifications = ({ studio = false }: { studio?: boolean } = {}) => 
 function TabBtn({ active, onClick, label, badge, studio }: { active: boolean; onClick: () => void; label: string; badge?: number; studio?: boolean }) {
   if (studio) {
     return (
-      <button onClick={onClick} className="flex items-center gap-1.5 rounded-[10px] cursor-pointer" style={{ padding: "8px 16px", font: "600 12px Poppins", background: active ? "#EF5B94" : "#f5f5f7", color: active ? "#fff" : "#6b6b72", border: "none" }}>
+      <button onClick={onClick} className="flex items-center gap-1.5 rounded-[10px] cursor-pointer" style={{ padding: "8px 16px", font: "600 12px Poppins", background: active ? "var(--color-primary,#EF5B94)" : "#f5f5f7", color: active ? "#fff" : "#6b6b72", border: "none" }}>
         {label}
         {!!badge && badge > 0 && (
           <span style={{ font: "700 9.5px Poppins", padding: "2px 7px", borderRadius: 10, background: active ? "rgba(255,255,255,.25)" : "#e7e7ea", color: active ? "#fff" : "#6b6b72" }}>{badge > 99 ? '99+' : badge}</span>
@@ -513,7 +513,7 @@ function NotifList({ notifications, loading, emptyText, totalPages, page, onPage
             return (
               <li key={n.id} className="flex items-start gap-3 p-3 rounded-xl cursor-pointer hover:bg-[#fdf7fa]"
                   onClick={() => { if (!n.read && onMarkRead) onMarkRead(n.id); }}>
-                <div className="flex items-center justify-center flex-none mt-0.5" style={{ width: 34, height: 34, borderRadius: 11, background: "#FCE7F0", color: "#EF5B94" }}>
+                <div className="flex items-center justify-center flex-none mt-0.5" style={{ width: 34, height: 34, borderRadius: 11, background: "#FCE7F0", color: "var(--color-primary,#EF5B94)" }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2-3a8 8 0 1 1 15-5z" /></svg>
                 </div>
                 <div className="flex-1 min-w-0">
@@ -551,9 +551,9 @@ function Pagination({ page, total, onPageChange, t, studio }: { page: number; to
   if (studio) {
     return (
       <div className="flex justify-between items-center px-[22px] py-3 border-t border-[#f4f4f6]">
-        <button onClick={() => onPageChange(Math.max(1, page - 1))} disabled={page <= 1} style={{ font: "600 12px Poppins", color: page <= 1 ? "#c4c4cc" : "#EF5B94", background: "none", border: "none", cursor: page <= 1 ? "default" : "pointer" }}>← {t("Anterior")}</button>
+        <button onClick={() => onPageChange(Math.max(1, page - 1))} disabled={page <= 1} style={{ font: "600 12px Poppins", color: page <= 1 ? "#c4c4cc" : "var(--color-primary,#EF5B94)", background: "none", border: "none", cursor: page <= 1 ? "default" : "pointer" }}>← {t("Anterior")}</button>
         <span style={{ font: "500 12px Poppins", color: "#8a8a90" }}>{page}/{total}</span>
-        <button onClick={() => onPageChange(Math.min(total, page + 1))} disabled={page >= total} style={{ font: "600 12px Poppins", color: page >= total ? "#c4c4cc" : "#EF5B94", background: "none", border: "none", cursor: page >= total ? "default" : "pointer" }}>{t("Siguiente")} →</button>
+        <button onClick={() => onPageChange(Math.min(total, page + 1))} disabled={page >= total} style={{ font: "600 12px Poppins", color: page >= total ? "#c4c4cc" : "var(--color-primary,#EF5B94)", background: "none", border: "none", cursor: page >= total ? "default" : "pointer" }}>{t("Siguiente")} →</button>
       </div>
     );
   }

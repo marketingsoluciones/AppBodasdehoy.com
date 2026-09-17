@@ -178,7 +178,7 @@ export function TableConfiguratorFloating() {
           bottom: 24,
           right: 24,
           zIndex: 200,
-          background: '#EF5B94',
+          background: 'var(--color-primary,#EF5B94)',
           color: '#fff',
           border: 'none',
           borderRadius: 10,
@@ -204,7 +204,7 @@ export function TableConfiguratorFloating() {
           right: 188,
           zIndex: 200,
           background: '#fff',
-          color: '#EF5B94',
+          color: 'var(--color-primary,#EF5B94)',
           border: '1.5px solid #f0aecb',
           borderRadius: 10,
           padding: '12px 16px',
@@ -371,7 +371,7 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
   return createPortal(
     <div style={s.overlay}>
       <div style={s.modal}>
-        <style>{`.tc-round-check{appearance:none;-webkit-appearance:none;width:17px;height:17px;border:1.6px solid #c4c4cc;border-radius:50%;cursor:pointer;position:relative;flex:none;vertical-align:middle}.tc-round-check:checked{background:#EF5B94;border-color:#EF5B94}.tc-round-check:checked::after{content:'';position:absolute;left:5px;top:2.5px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}.tc-slider{-webkit-appearance:none;appearance:none;height:6px;border-radius:6px;background:#E7E7EA;width:100%;outline:none}.tc-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#EF5B94;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.25)}.tc-slider::-moz-range-thumb{width:16px;height:16px;border:none;border-radius:50%;background:#EF5B94;cursor:pointer}.tc-scroll::-webkit-scrollbar{width:0;height:0;display:none}`}</style>
+        <style>{`.tc-round-check{appearance:none;-webkit-appearance:none;width:17px;height:17px;border:1.6px solid #c4c4cc;border-radius:50%;cursor:pointer;position:relative;flex:none;vertical-align:middle}.tc-round-check:checked{background:var(--color-primary,#EF5B94);border-color:var(--color-primary,#EF5B94)}.tc-round-check:checked::after{content:'';position:absolute;left:5px;top:2.5px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}.tc-slider{-webkit-appearance:none;appearance:none;height:6px;border-radius:6px;background:#E7E7EA;width:100%;outline:none}.tc-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--color-primary,#EF5B94);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.25)}.tc-slider::-moz-range-thumb{width:16px;height:16px;border:none;border-radius:50%;background:var(--color-primary,#EF5B94);cursor:pointer}.tc-scroll::-webkit-scrollbar{width:0;height:0;display:none}`}</style>
         <div style={s.header}>
           <h2 style={s.title}>{isBench ? (initialConfig ? 'Editar banco' : 'Diseñar banco') : (initialConfig ? 'Editar mesa' : 'Diseñar mesa')}</h2>
           <button style={s.closeBtn} type="button" onClick={onCancel}>✕</button>
@@ -531,10 +531,10 @@ const s: Record<string, CSSProperties> = {
   fieldRow: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 },
   label: { fontSize: 13, color: '#6b6b72', minWidth: 100, flexShrink: 0 },
   sliderWrap: { flex: 1, display: 'flex', alignItems: 'center', gap: 10 },
-  slider: { flex: 1, accentColor: '#EF5B94' } as CSSProperties,
+  slider: { flex: 1, accentColor: 'var(--color-primary,#EF5B94)' } as CSSProperties,
   sliderValue: { fontSize: 13, fontWeight: 700, color: '#3A3A42', minWidth: 50, textAlign: 'right' },
   stepper: { display: 'flex', alignItems: 'center', gap: 8 },
-  stepBtn: { width: 38, height: 38, border: 'none', borderRadius: 10, background: '#f7f7f9', fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EF5B94', fontWeight: 700 },
+  stepBtn: { width: 38, height: 38, border: 'none', borderRadius: 10, background: '#f7f7f9', fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary,#EF5B94)', fontWeight: 700 },
   stepValue: { fontSize: 16, fontWeight: 700, color: '#3A3A42', minWidth: 28, textAlign: 'center' },
   maxHint: { fontSize: 11, color: '#b3b3ba', marginTop: 2, marginBottom: 8 },
   sizeHint: { fontSize: 12, color: '#8a8a90', marginTop: 8, background: '#F0F0F2', padding: '8px 12px', borderRadius: 9 },
@@ -556,5 +556,5 @@ const s: Record<string, CSSProperties> = {
   previewInfo: { marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8, fontSize: 12, color: '#6b6b72' },
   footer: { display: 'flex', justifyContent: 'flex-end', gap: 12, padding: '14px 24px', borderTop: '1px solid #f0f0f2', background: '#fff' },
   cancelBtn: { padding: '11px 22px', border: 'none', borderRadius: 10, background: '#f7f7f9', fontSize: 13, cursor: 'pointer', color: '#6b6b72', fontWeight: 600 },
-  confirmBtn: { padding: '11px 26px', border: 'none', borderRadius: 10, background: '#EF5B94', fontSize: 13, cursor: 'pointer', color: '#fff', fontWeight: 600, boxShadow: '0 6px 16px rgba(239,91,148,0.32)' },
+  confirmBtn: { padding: '11px 26px', border: 'none', borderRadius: 10, background: 'var(--color-primary,#EF5B94)', fontSize: 13, cursor: 'pointer', color: '#fff', fontWeight: 600, boxShadow: '0 6px 16px rgba(239,91,148,0.32)' },
 };

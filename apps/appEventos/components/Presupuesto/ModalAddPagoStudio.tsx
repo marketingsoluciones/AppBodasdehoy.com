@@ -129,14 +129,14 @@ const ModalAddPagoStudio: FC<Props> = ({ categoriaId, gastoId, onClose, pago }) 
   ];
 
   const Toggle: FC<{ on: boolean }> = ({ on }) => (
-    <span style={{ width: 26, height: 14, borderRadius: 999, background: on ? "#EF5B94" : "#d8d8dd", position: "relative", display: "inline-block", transition: "background .15s", flex: "none" }}>
+    <span style={{ width: 26, height: 14, borderRadius: 999, background: on ? "var(--color-primary,#EF5B94)" : "#d8d8dd", position: "relative", display: "inline-block", transition: "background .15s", flex: "none" }}>
       <span style={{ position: "absolute", top: 2, left: on ? 14 : 2, width: 10, height: 10, borderRadius: "50%", background: "#fff", transition: "left .15s" }} />
     </span>
   );
 
   return createPortal(
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(30,30,40,.38)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, padding: 20, fontFamily: "'Poppins',sans-serif" }}>
-      <style dangerouslySetInnerHTML={{ __html: ".ap-in:focus{border-color:#EF5B94!important;}.ap-close:hover{background:#faf9fb!important;color:#3A3A42!important;}.ap-pill:hover{background:#FBE4EF!important;}.ap-link:hover{color:#D83E7C!important;}.ap-cta:hover{background:#D83E7C!important;}.ap-drop:hover{border-color:#EF5B94!important;color:#EF5B94!important;background:#FEF7FA!important;}" }} />
+      <style dangerouslySetInnerHTML={{ __html: ".ap-in:focus{border-color:var(--color-primary,#EF5B94)!important;}.ap-close:hover{background:#faf9fb!important;color:#3A3A42!important;}.ap-pill:hover{background:#FBE4EF!important;}.ap-link:hover{color:#D83E7C!important;}.ap-cta:hover{background:#D83E7C!important;}.ap-drop:hover{border-color:var(--color-primary,#EF5B94)!important;color:var(--color-primary,#EF5B94)!important;background:#FEF7FA!important;}" }} />
       <div onClick={(e) => e.stopPropagation()} style={{ background: "#fff", borderRadius: 16, boxShadow: "0 20px 50px rgba(0,0,0,.2)", width: "min(540px,92vw)", maxHeight: "86vh", overflow: "auto", padding: "24px 26px", animation: "grow .25s ease" }}>
         {/* Cabecera */}
         <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
@@ -177,7 +177,7 @@ const ModalAddPagoStudio: FC<Props> = ({ categoriaId, gastoId, onClose, pago }) 
         </div>
 
         {/* Detalles opcionales */}
-        <button className="ap-link" onClick={() => setDetOpen((v) => !v)} style={{ marginTop: 16, display: "inline-flex", alignItems: "center", gap: 7, background: "none", border: "none", cursor: "pointer", font: "600 12.5px Poppins", color: "#EF5B94", padding: 0, whiteSpace: "nowrap" }}>
+        <button className="ap-link" onClick={() => setDetOpen((v) => !v)} style={{ marginTop: 16, display: "inline-flex", alignItems: "center", gap: 7, background: "none", border: "none", cursor: "pointer", font: "600 12.5px Poppins", color: "var(--color-primary,#EF5B94)", padding: 0, whiteSpace: "nowrap" }}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" style={{ transform: detOpen ? "rotate(90deg)" : "none", transition: "transform .18s" }}><path d="M9 6l6 6-6 6" /></svg>
           {t("Añadir detalles (opcional)")}
         </button>
@@ -194,7 +194,7 @@ const ModalAddPagoStudio: FC<Props> = ({ categoriaId, gastoId, onClose, pago }) 
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
                   <span style={{ font: "600 12px Poppins", color: "#6b6b72" }}>{t("Pagado por")}</span>
                   <label onClick={() => setWp((v) => !v)} style={{ display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
-                    <span style={{ width: 18, height: 18, borderRadius: 6, display: "inline-flex", alignItems: "center", justifyContent: "center", background: wp ? "#EF5B94" : "#fff", border: `1.5px solid ${wp ? "#EF5B94" : "#d8d8dd"}`, color: "#fff", fontSize: 11 }}>{wp ? "✓" : ""}</span>
+                    <span style={{ width: 18, height: 18, borderRadius: 6, display: "inline-flex", alignItems: "center", justifyContent: "center", background: wp ? "var(--color-primary,#EF5B94)" : "#fff", border: `1.5px solid ${wp ? "var(--color-primary,#EF5B94)" : "#d8d8dd"}`, color: "#fff", fontSize: 11 }}>{wp ? "✓" : ""}</span>
                     <span style={{ font: "500 12px Poppins", color: "#6b6b72" }}>{t("Wedding Planner")}</span>
                   </label>
                 </div>
@@ -212,7 +212,7 @@ const ModalAddPagoStudio: FC<Props> = ({ categoriaId, gastoId, onClose, pago }) 
                   <span style={{ font: "600 10px Poppins", color: "#1E8F63", background: "#E4F5EE", borderRadius: 999, padding: "2px 8px" }}>PRO</span>
                 </div>
                 <input ref={fileRef} type="file" accept="image/*,application/pdf" style={{ display: "none" }} onChange={(e) => setFile(e.target.files?.[0] || null)} />
-                <div className="ap-drop" onClick={() => fileRef.current?.click()} style={{ border: "1.5px dashed #d8d8dd", borderRadius: 12, padding: 18, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, color: file ? "#EF5B94" : "#a0a0a8", font: "500 12px Poppins", cursor: "pointer", textAlign: "center" }}>
+                <div className="ap-drop" onClick={() => fileRef.current?.click()} style={{ border: "1.5px dashed #d8d8dd", borderRadius: 12, padding: 18, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, color: file ? "var(--color-primary,#EF5B94)" : "#a0a0a8", font: "500 12px Poppins", cursor: "pointer", textAlign: "center" }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 15V3M7 8l5-5 5 5M4 21h16" /></svg>
                   {file ? file.name : t("Arrastra o haz clic para subir el justificante")}
                 </div>
@@ -222,7 +222,7 @@ const ModalAddPagoStudio: FC<Props> = ({ categoriaId, gastoId, onClose, pago }) 
         )}
 
         {/* CTA */}
-        <button className="ap-cta" onClick={save} disabled={saving} style={{ width: "100%", marginTop: 20, padding: 13, borderRadius: 10, background: "#EF5B94", color: "#fff", border: "none", font: "600 13.5px Poppins", cursor: saving ? "default" : "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)", opacity: saving ? 0.7 : 1 }}>{editing ? t("Guardar cambios") : esPago ? t("Añadir pago") : t("Añadir próximo pago")}</button>
+        <button className="ap-cta" onClick={save} disabled={saving} style={{ width: "100%", marginTop: 20, padding: 13, borderRadius: 10, background: "var(--color-primary,#EF5B94)", color: "#fff", border: "none", font: "600 13.5px Poppins", cursor: saving ? "default" : "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)", opacity: saving ? 0.7 : 1 }}>{editing ? t("Guardar cambios") : esPago ? t("Añadir pago") : t("Añadir próximo pago")}</button>
       </div>
     </div>,
     document.body

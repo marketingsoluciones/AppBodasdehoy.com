@@ -87,7 +87,7 @@ const DragTable: FC<propsDragTable> = ({ item, label }) => {
         className="js-dragDefault w-full flex flex-col items-center gap-1.5 py-3 px-1 bg-[#faf9fb] border-[1.5px] border-[#f0f0f2] hover:border-[#e2e2e6] rounded-[12px] transition-colors cursor-grab"
       >
         {mirror}
-        <div className="w-7 h-7 flex justify-center items-center text-[#EF5B94]">
+        <div className="w-7 h-7 flex justify-center items-center text-[var(--color-primary,#EF5B94)]">
           <SvgWrapper width={"100%"} height={"100%"} autoScale={true}>{item.icon}</SvgWrapper>
         </div>
         <span className="text-[10px] font-semibold text-[#3A3A42] text-center leading-tight">{label}</span>

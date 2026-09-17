@@ -27,7 +27,7 @@ import { getEventImage } from "../../utils/imagenEvento";
 
 // Color estable por usuario para los avatares pequeños de la tarjeta studio
 const avatarColorFor = (s: string) => {
-  const colors = ["#EF5B94", "#8e7cc3", "#c9a24b", "#5aa9e6", "#2FB37E", "#e07a5f", "#7b8794"];
+  const colors = ["var(--color-primary,#EF5B94)", "#8e7cc3", "#c9a24b", "#5aa9e6", "#2FB37E", "#e07a5f", "#7b8794"];
   let h = 0;
   for (const c of String(s || "?")) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   return colors[h % colors.length];
@@ -277,15 +277,15 @@ const Card = ({ data, grupoStatus, idx, onSelect, mobile }: any) => {
           {confirmModal}
           {archiveModal}
           {openModal && <ModalCompartirEvento event={ev} onClose={() => setOpenModal(false)} />}
-          <div onClick={abrirEvento} style={{ position: "relative", borderRadius: 16, background: "#fff", border: seleccionado ? "1.5px solid #EF5B94" : "1px solid #f0f0f2", boxShadow: "0 4px 14px rgba(0,0,0,.05)", cursor: "pointer", fontFamily: "'Poppins',sans-serif" }}>
+          <div onClick={abrirEvento} style={{ position: "relative", borderRadius: 16, background: "#fff", border: seleccionado ? "1.5px solid var(--color-primary,#EF5B94)" : "1px solid #f0f0f2", boxShadow: "0 4px 14px rgba(0,0,0,.05)", cursor: "pointer", fontFamily: "'Poppins',sans-serif" }}>
             <div style={{ position: "relative", height: 120, borderRadius: "15px 15px 0 0", overflow: "hidden", background: "#f2f2f4" }}>
               <img src={imgUrl} alt={ev?.nombre || "Evento"} onError={(e) => { (e.target as HTMLImageElement).src = getEventImage(ev?.tipo); }} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
               <span style={{ position: "absolute", top: 10, left: 10, background: "rgba(255,255,255,.92)", color: "#3A3A42", font: "700 9px Poppins", letterSpacing: ".8px", padding: "4px 10px", borderRadius: 12, textTransform: "uppercase" }}>{ev?.tipo === "otro" ? t("otro") : t(ev?.tipo)}</span>
-              <span style={{ position: "absolute", top: 8, right: 8, width: 26, height: 26, borderRadius: "50%", background: "rgba(255,255,255,.94)", color: "#EF5B94", display: "flex", alignItems: "center", justifyContent: "center", font: "700 10.5px Poppins" }}>{avLabel}</span>
+              <span style={{ position: "absolute", top: 8, right: 8, width: 26, height: 26, borderRadius: "50%", background: "rgba(255,255,255,.94)", color: "var(--color-primary,#EF5B94)", display: "flex", alignItems: "center", justifyContent: "center", font: "700 10.5px Poppins" }}>{avLabel}</span>
             </div>
             {/* Etiqueta SELECCIONADO: fuera del contenedor de imagen (overflow:hidden la recortaba);
                 anclada a la tarjeta (position:relative) para que se vea completa, solapando el borde. */}
-            {seleccionado && <span style={{ position: "absolute", top: 107, left: 12, display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap", background: "#EF5B94", color: "#fff", font: "600 9.5px Poppins", letterSpacing: ".4px", padding: "4px 11px", borderRadius: 12, boxShadow: "0 4px 12px rgba(239,91,148,.4)", zIndex: 4 }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>{t("SELECCIONADO")}</span>}
+            {seleccionado && <span style={{ position: "absolute", top: 107, left: 12, display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap", background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 9.5px Poppins", letterSpacing: ".4px", padding: "4px 11px", borderRadius: 12, boxShadow: "0 4px 12px rgba(239,91,148,.4)", zIndex: 4 }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>{t("SELECCIONADO")}</span>}
             <div style={{ padding: "11px 13px 12px" }}>
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
                 <div style={{ minWidth: 0 }}>

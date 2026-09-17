@@ -313,7 +313,7 @@ const Profile = ({ user, state, set, studio = false, ...rest }) => {
           <div className="items-center hidden md:flex gap-1 relative cursor-default shrink-0">
             <div onClick={() => {
               !event ? toast("error", t("nohaveeventscreated")) : !isAllowedRouter("/servicios") ? ht() : router.push("/servicios")
-            }} title={t("Lista de tareas", { defaultValue: "Lista de tareas" })} style={studio ? { width: 42, height: 42, flexShrink: 0 } : undefined} className={`${!event ? "opacity-40" : ""} ${studio ? "bg-[#F7F6F8] hover:bg-[#FCE7F0] text-[#6b6b72] hover:text-[#EF5B94]" : "bg-slate-100 w-8 h-8 hover:bg-primary/10"} rounded-full flex items-center justify-center cursor-pointer transition`} >
+            }} title={t("Lista de tareas", { defaultValue: "Lista de tareas" })} style={studio ? { width: 42, height: 42, flexShrink: 0 } : undefined} className={`${!event ? "opacity-40" : ""} ${studio ? "bg-[#F7F6F8] hover:bg-[#FCE7F0] text-[#6b6b72] hover:text-[var(--color-primary,var(--color-primary,#EF5B94))]" : "bg-slate-100 w-8 h-8 hover:bg-primary/10"} rounded-full flex items-center justify-center cursor-pointer transition`} >
               {studio ? (
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" style={{ width: 19, height: 19, flexShrink: 0 }}><path d="M4.5 6.5l1 1 2-2M4.5 12l1 1 2-2M4.5 17.5l1 1 2-2" /><path d="M11 6.5h8.5M11 12h8.5M11 17.5h8.5" /></svg>
               ) : (
@@ -355,7 +355,7 @@ const Profile = ({ user, state, set, studio = false, ...rest }) => {
                 {/* Cabecera */}
                 <div className="px-6 pt-[22px] pb-[18px] text-center border-b border-[#f4f4f6]">
                   <div className="relative w-14 h-14 mx-auto mb-2.5">
-                    <div className="w-14 h-14 rounded-full overflow-hidden bg-[#EF5B94]">
+                    <div className="w-14 h-14 rounded-full overflow-hidden bg-[var(--color-primary,var(--color-primary,#EF5B94))]">
                       {isAuthenticatedUser ? <ImageAvatar user={user} disabledTooltip /> : <div className="w-full h-full flex items-center justify-center"><UserIcon className="w-7 h-7 text-white" /></div>}
                     </div>
                     {isAuthenticatedUser && primaryRole && (
@@ -416,7 +416,7 @@ const Profile = ({ user, state, set, studio = false, ...rest }) => {
                   {showFlags && (
                     <div className="mx-[13px] mb-1 rounded-[10px] border border-gray-100 overflow-hidden">
                       {idiomaArray.map((elem, idx) => (
-                        <div key={idx} onClick={(e) => { e.stopPropagation(); setOptionSelect(elem); setShowFlags(false); }} className="px-4 py-2 cursor-pointer hover:bg-gray-100" style={{ font: "500 12px Poppins", color: elem.value === optionSelect?.value ? "#EF5B94" : "#3A3A42" }}>
+                        <div key={idx} onClick={(e) => { e.stopPropagation(); setOptionSelect(elem); setShowFlags(false); }} className="px-4 py-2 cursor-pointer hover:bg-gray-100" style={{ font: "500 12px Poppins", color: elem.value === optionSelect?.value ? "var(--color-primary,var(--color-primary,#EF5B94))" : "#3A3A42" }}>
                           {elem.value === 'en' ? 'English' : 'Español'}
                         </div>
                       ))}
@@ -427,7 +427,7 @@ const Profile = ({ user, state, set, studio = false, ...rest }) => {
                 {/* Footer */}
                 <div className="px-3.5 pt-3 pb-3.5 border-t border-[#f4f4f6] flex flex-col gap-2">
                   {!!user?.uid && !["guest", "anonymous"].includes(user?.displayName) && (
-                    <button onClick={() => { setDropwdon(false); router.push("/facturacion"); }} className="py-[11px] rounded-[11px] text-white border-none cursor-pointer hover:bg-[#D83E7C]" style={{ background: "#EF5B94", font: "600 12.5px Poppins", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}>{t("Ver planes")}</button>
+                    <button onClick={() => { setDropwdon(false); router.push("/facturacion"); }} className="py-[11px] rounded-[11px] text-white border-none cursor-pointer hover:bg-[#D83E7C]" style={{ background: "var(--color-primary,var(--color-primary,#EF5B94))", font: "600 12.5px Poppins", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}>{t("Ver planes")}</button>
                   )}
                   <button onClick={(e) => { setDropwdon(false); const f = optionsEnd.find((o: Option) => o.title === "Cerrar Sesión")?.onClick; if (f) f(e); }} className="flex items-center justify-center gap-2 py-2 rounded-[10px] cursor-pointer border-none bg-transparent text-[#8a8a90] hover:bg-[#f5f5f7] hover:text-[#D83E7C]" style={{ font: "500 12.5px Poppins" }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg>
@@ -508,7 +508,7 @@ const Profile = ({ user, state, set, studio = false, ...rest }) => {
             {isAuthenticatedUser ? (
               studio ? (
                 <>
-                  <div className="w-[38px] h-[38px] rounded-full overflow-hidden bg-[#EF5B94] flex-none">
+                  <div className="w-[38px] h-[38px] rounded-full overflow-hidden bg-[var(--color-primary,var(--color-primary,#EF5B94))] flex-none">
                     <ImageAvatar user={user} disabledTooltip />
                   </div>
                   <div className="hidden md:block" style={{ lineHeight: 1.2 }}>

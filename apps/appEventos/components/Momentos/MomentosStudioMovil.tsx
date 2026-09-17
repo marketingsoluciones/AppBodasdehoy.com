@@ -112,12 +112,12 @@ export const MomentosStudioMovil: FC<{ chatBase: string }> = ({ chatBase }) => {
           <div style={{ minWidth: 0 }}>
             <div style={{ font: "700 19px Poppins", color: "#3A3A42" }}>Momentos</div>
             <div style={{ marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              <span style={{ font: "700 10px Poppins", color: "#EF5B94", letterSpacing: ".5px", textTransform: "uppercase" }}>{event?.tipo || "Boda"}</span>
+              <span style={{ font: "700 10px Poppins", color: "var(--color-primary,#EF5B94)", letterSpacing: ".5px", textTransform: "uppercase" }}>{event?.tipo || "Boda"}</span>
               <span style={{ font: "500 11px Poppins", color: "#8a8a90", marginLeft: 5 }}>· {event?.nombre}</span>
             </div>
           </div>
           {portalUrl && (
-            <span onClick={compartirPortal} style={{ width: 34, height: 34, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", flex: "none", cursor: "pointer", background: "#F7F6F8" }}>{icoCompartir}</span>
+            <span onClick={compartirPortal} style={{ width: 34, height: 34, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary,#EF5B94)", flex: "none", cursor: "pointer", background: "#F7F6F8" }}>{icoCompartir}</span>
           )}
         </div>
       </div>
@@ -149,7 +149,7 @@ export const MomentosStudioMovil: FC<{ chatBase: string }> = ({ chatBase }) => {
               <div style={{ font: "700 15px Poppins", color: "#3A3A42" }}>Álbumes</div>
               {hayAlbums && <span style={{ font: "400 11px Poppins", color: "#a0a0a8" }}>{albums.length} {albums.length === 1 ? "álbum" : "álbumes"}</span>}
             </div>
-            <span onClick={generarDesdeItinerario} style={{ display: "flex", alignItems: "center", gap: 5, font: "600 11px Poppins", color: "#EF5B94", cursor: generando ? "default" : "pointer", opacity: generando ? .6 : 1, whiteSpace: "nowrap" }}>
+            <span onClick={generarDesdeItinerario} style={{ display: "flex", alignItems: "center", gap: 5, font: "600 11px Poppins", color: "var(--color-primary,#EF5B94)", cursor: generando ? "default" : "pointer", opacity: generando ? .6 : 1, whiteSpace: "nowrap" }}>
               {icoRayo}{generando ? "Generando…" : "Generar del itinerario"}
             </span>
           </div>
@@ -164,7 +164,7 @@ export const MomentosStudioMovil: FC<{ chatBase: string }> = ({ chatBase }) => {
           {/* estado vacío */}
           {!albumsLoading && albums.length === 0 && (
             <div style={{ border: "1.5px dashed #E0D9CE", borderRadius: 14, padding: "38px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: 11, animation: "momm-fade .25s ease" }}>
-              <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}>{icoCamara}</div>
+              <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary,#EF5B94)" }}>{icoCamara}</div>
               <div style={{ font: "700 14.5px Poppins", color: "#3A3A42" }}>Aún no hay álbumes</div>
               <div style={{ font: "400 11.5px/1.6 Poppins", color: "#8a8a90", textAlign: "center", maxWidth: 260 }}>Crea un álbum por cada momento del evento y comparte el portal con los invitados.</div>
             </div>
@@ -205,7 +205,7 @@ export const MomentosStudioMovil: FC<{ chatBase: string }> = ({ chatBase }) => {
 
           {/* Copilot — no está en el HTML, pero es funcionalidad viva de la vista anterior */}
           <div style={{ paddingTop: 4, display: "flex", justifyContent: "center" }}>
-            <a href={`${chatBase.replace(/\/$/, "")}/bodasdehoy/memories`} target="_blank" rel="noopener noreferrer" style={{ font: "600 11px Poppins", color: "#EF5B94", textDecoration: "none" }}>
+            <a href={`${chatBase.replace(/\/$/, "")}/bodasdehoy/memories`} target="_blank" rel="noopener noreferrer" style={{ font: "600 11px Poppins", color: "var(--color-primary,#EF5B94)", textDecoration: "none" }}>
               Abrir Momentos en Copilot →
             </a>
           </div>
@@ -214,12 +214,12 @@ export const MomentosStudioMovil: FC<{ chatBase: string }> = ({ chatBase }) => {
 
       {/* FAB / botón inferior */}
       {hayAlbums ? (
-        <div onClick={nuevoAlbum} title="Nuevo álbum" style={{ position: "fixed", right: 18, bottom: 24, width: 54, height: 54, borderRadius: "50%", background: "#EF5B94", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", cursor: creando ? "default" : "pointer", boxShadow: "0 8px 20px rgba(239,91,148,.4)", opacity: creando ? .6 : 1, zIndex: 20 }}>
+        <div onClick={nuevoAlbum} title="Nuevo álbum" style={{ position: "fixed", right: 18, bottom: 24, width: 54, height: 54, borderRadius: "50%", background: "var(--color-primary,#EF5B94)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", cursor: creando ? "default" : "pointer", boxShadow: "0 8px 20px rgba(239,91,148,.4)", opacity: creando ? .6 : 1, zIndex: 20 }}>
           {icoPlus}
         </div>
       ) : (!albumsLoading && (
         <div style={{ position: "fixed", left: 18, right: 18, bottom: 24, zIndex: 20 }}>
-          <button onClick={nuevoAlbum} disabled={creando} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: 14, borderRadius: 14, background: "#EF5B94", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: creando ? "default" : "pointer", boxShadow: "0 8px 20px rgba(239,91,148,.35)", opacity: creando ? .6 : 1 }}>
+          <button onClick={nuevoAlbum} disabled={creando} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: 14, borderRadius: 14, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: creando ? "default" : "pointer", boxShadow: "0 8px 20px rgba(239,91,148,.35)", opacity: creando ? .6 : 1 }}>
             {icoPlusSm}{creando ? "Creando…" : "Crear mi primer álbum"}
           </button>
         </div>

@@ -183,21 +183,21 @@ export const InvitadosStudio: FC = () => {
 
         {/* STATS */}
         <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", marginBottom: 18 }}>
-          <div style={{ font: "800 22px Poppins", color: "#EF5B94" }}>{total} <span style={{ font: "600 14px Poppins", color: "#3A3A42" }}>Invitados</span></div>
+          <div style={{ font: "800 22px Poppins", color: "var(--color-primary,#EF5B94)" }}>{total} <span style={{ font: "600 14px Poppins", color: "#3A3A42" }}>Invitados</span></div>
           <span style={{ font: "500 12px Poppins", color: "#a0a0a8" }}>{adultos} adultos · {ninos} niños</span>
           <div style={{ flex: 1 }} />
           <div style={{ display: "flex", alignItems: "center", gap: 7, background: "#FBF0DA", color: "#E0A32B", font: "600 12px Poppins", padding: "8px 14px", borderRadius: 20 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "#E0A32B" }} />{pend} por confirmar</div>
           <div style={{ display: "flex", alignItems: "center", gap: 7, background: "#E4F5EE", color: "#2FB37E", font: "600 12px Poppins", padding: "8px 14px", borderRadius: 20 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "#2FB37E" }} />{conf} confirmados</div>
           <div style={{ display: "flex", alignItems: "center", gap: 7, background: "#FBE4EF", color: "#D83E7C", font: "600 12px Poppins", padding: "8px 14px", borderRadius: 20 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "#D83E7C" }} />{canc} cancelados</div>
-          <button onClick={() => router.push("/mesas")} style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 18px", borderRadius: 10, background: "#EF5B94", color: "#fff", font: "600 13px Poppins", border: "none", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="8" width="18" height="4" rx="1" /><path d="M6 12v6M18 12v6" /></svg>Sentar invitados</button>
+          <button onClick={() => router.push("/mesas")} style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 18px", borderRadius: 10, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 13px Poppins", border: "none", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="8" width="18" height="4" rx="1" /><path d="M6 12v6M18 12v6" /></svg>Sentar invitados</button>
         </div>
 
         {/* divisor rosa */}
-        <div style={{ height: 3, borderRadius: 3, background: "linear-gradient(90deg,#EF5B94,#f9b6d1)", marginBottom: 18 }} />
+        <div style={{ height: 3, borderRadius: 3, background: "linear-gradient(90deg,var(--color-primary,#EF5B94),#f9b6d1)", marginBottom: 18 }} />
 
         {/* ACTION BUTTONS */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18, flexWrap: "wrap" }}>
-          <button onClick={() => openForm("invitado")} style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 11, background: "#EF5B94", color: "#fff", font: "600 12.5px Poppins", boxShadow: "0 6px 16px rgba(239,91,148,.3)", border: "none", cursor: "pointer" }}>{plusW}Invitados</button>
+          <button onClick={() => openForm("invitado")} style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 11, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 12.5px Poppins", boxShadow: "0 6px 16px rgba(239,91,148,.3)", border: "none", cursor: "pointer" }}>{plusW}Invitados</button>
           <button onClick={() => openForm("grupo")} style={btnGhost}>{plusG}Grupo</button>
           <button onClick={() => openForm("menu")} style={btnGhost}>{plusG}Menú</button>
           <button onClick={genPDF} style={btnGhost}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b6b72" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>Exportar</button>
@@ -311,7 +311,7 @@ export const InvitadosStudio: FC = () => {
                           <div style={{ display: "flex", alignItems: "center", gap: 5, font: "600 12px Poppins", color: "#6b6b72" }}>{acomp}</div>
                           <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 9, color: "#c4c4cc" }}>
                             <div style={{ position: "relative", display: "flex" }}>
-                              <span onClick={() => { setRowMenu(null); setCopiedShare(false); setShareOpen(shareOpen === r._id ? null : r._id); }} title="Compartir invitación" style={{ width: 32, height: 32, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flex: "none", color: shareOpen === r._id ? "#EF5B94" : "#8a8a90", background: shareOpen === r._id ? "#FCE7F0" : "transparent" }}>
+                              <span onClick={() => { setRowMenu(null); setCopiedShare(false); setShareOpen(shareOpen === r._id ? null : r._id); }} title="Compartir invitación" style={{ width: 32, height: 32, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flex: "none", color: shareOpen === r._id ? "var(--color-primary,#EF5B94)" : "#8a8a90", background: shareOpen === r._id ? "#FCE7F0" : "transparent" }}>
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" /><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" /></svg>
                               </span>
                               {shareOpen === r._id && (
@@ -322,7 +322,7 @@ export const InvitadosStudio: FC = () => {
                                       <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
                                         <div style={{ minWidth: 0 }}>
                                           <div style={{ font: "600 13.5px Poppins", color: "#3A3A42" }}>Compartir invitación</div>
-                                          <div style={{ font: "400 11px Poppins", color: "#8a8a90", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Enlace personal de <span style={{ color: "#EF5B94", fontWeight: 600 }}>{r?.nombre}</span></div>
+                                          <div style={{ font: "400 11px Poppins", color: "#8a8a90", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Enlace personal de <span style={{ color: "var(--color-primary,#EF5B94)", fontWeight: 600 }}>{r?.nombre}</span></div>
                                         </div>
                                       </div>
                                       <span onClick={() => setShareOpen(null)} style={{ width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#8a8a90", cursor: "pointer", flex: "none" }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg></span>
@@ -332,7 +332,7 @@ export const InvitadosStudio: FC = () => {
                                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ flex: "none" }}><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" /><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" /></svg>
                                         <span style={{ font: "500 11.5px Poppins", color: "#6b6b72", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{guestLink(r._id)}</span>
                                       </div>
-                                      <button onClick={() => { try { navigator.clipboard.writeText(guestLink(r._id)); } catch { /* noop */ } setCopiedShare(true); setTimeout(() => setCopiedShare(false), 1800); }} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 16px", borderRadius: 11, background: copiedShare ? "#2FB37E" : "#EF5B94", color: "#fff", font: "600 12px Poppins", border: "none", cursor: "pointer", whiteSpace: "nowrap", flex: "none", boxShadow: "0 4px 12px rgba(239,91,148,.25)" }}>
+                                      <button onClick={() => { try { navigator.clipboard.writeText(guestLink(r._id)); } catch { /* noop */ } setCopiedShare(true); setTimeout(() => setCopiedShare(false), 1800); }} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 16px", borderRadius: 11, background: copiedShare ? "#2FB37E" : "var(--color-primary,#EF5B94)", color: "#fff", font: "600 12px Poppins", border: "none", cursor: "pointer", whiteSpace: "nowrap", flex: "none", boxShadow: "0 4px 12px rgba(239,91,148,.25)" }}>
                                         {copiedShare
                                           ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>
                                           : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></svg>}

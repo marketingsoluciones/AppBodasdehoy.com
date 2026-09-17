@@ -35,7 +35,7 @@ const HistorialFacturacionStudio: FC = () => {
   }, []);
 
   const docIcon = (size: number, stroke: number) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" /><path d="M14 2v6h6M9 13h6M9 17h4" /></svg>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,var(--color-primary,#EF5B94))" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" /><path d="M14 2v6h6M9 13h6M9 17h4" /></svg>
   );
 
   if (loading) return <div style={{ padding: 60, textAlign: "center", color: "#a0a0a8", font: "500 13px Poppins", fontFamily: "'Poppins',sans-serif" }}>Cargando…</div>;
@@ -73,7 +73,7 @@ const HistorialFacturacionStudio: FC = () => {
               <div style={{ font: "600 13px Poppins", color: "#3A3A42" }}>{getCurrency((r.amount || 0) / 100, r.currency)}</div>
               <div><span style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "6px 13px", borderRadius: 999, background: st.bg }}><span style={{ width: 7, height: 7, borderRadius: 999, background: st.dot }} /><span style={{ font: "600 12px Poppins", color: st.fg }}>{st.st}</span></span></div>
               <div>
-                <button onClick={() => { const url = r.invoicePdf || r.hostedInvoiceUrl; if (url) window.open(url, "_blank"); }} disabled={!r.invoicePdf && !r.hostedInvoiceUrl} style={{ padding: "9px 20px", borderRadius: 999, border: "1.5px solid #EF5B94", background: "#fff", font: "600 12.5px Poppins", color: "#EF5B94", cursor: (r.invoicePdf || r.hostedInvoiceUrl) ? "pointer" : "default", opacity: (r.invoicePdf || r.hostedInvoiceUrl) ? 1 : 0.5 }}>Descargar</button>
+                <button onClick={() => { const url = r.invoicePdf || r.hostedInvoiceUrl; if (url) window.open(url, "_blank"); }} disabled={!r.invoicePdf && !r.hostedInvoiceUrl} style={{ padding: "9px 20px", borderRadius: 999, border: "1.5px solid var(--color-primary,var(--color-primary,#EF5B94))", background: "#fff", font: "600 12.5px Poppins", color: "var(--color-primary,var(--color-primary,#EF5B94))", cursor: (r.invoicePdf || r.hostedInvoiceUrl) ? "pointer" : "default", opacity: (r.invoicePdf || r.hostedInvoiceUrl) ? 1 : 0.5 }}>Descargar</button>
               </div>
             </div>
           );

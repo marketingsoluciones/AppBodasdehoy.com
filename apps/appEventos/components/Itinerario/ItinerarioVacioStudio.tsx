@@ -138,14 +138,14 @@ const ItinerarioVacioStudio: FC<Props> = ({ event, setEvent, config, isOwner, pa
 
         {/* estado vacío */}
         <div style={{ padding: "80px 40px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-          <div style={{ width: 76, height: 76, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20, color: "#EF5B94" }}>
+          <div style={{ width: 76, height: 76, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20, color: "var(--color-primary,#EF5B94)" }}>
             <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
           </div>
           <div style={{ font: "700 19px Poppins", color: "#3A3A42", marginBottom: 8 }}>{t("noItineraryTitle", { defaultValue: "Aún no has creado ningún itinerario" })}</div>
           <div style={{ font: "400 13px/1.65 Poppins", color: "#8a8a90", maxWidth: 400, marginBottom: 26 }}>{t("noItineraryDesc", { defaultValue: "Organiza el día del evento hora a hora: crea tareas con horario, asígnalas a tu equipo y compártelas." })}</div>
           {isOwner ? (
             <button type="button" className="iv-cta" onClick={handleCreate} disabled={creating}
-              style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 24px", borderRadius: 11, background: "#EF5B94", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: creating ? "default" : "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)", opacity: creating ? 0.85 : 1 }}>
+              style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 24px", borderRadius: 11, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: creating ? "default" : "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)", opacity: creating ? 0.85 : 1 }}>
               {creating ? <span style={{ width: 15, height: 15, borderRadius: "50%", border: "2.5px solid rgba(255,255,255,.4)", borderTopColor: "#fff", animation: "iv-spin .8s linear infinite", display: "inline-block" }} /> : plus}
               {creating ? t("creating", { defaultValue: "Creando…" }) : t("createFirstItinerary", { defaultValue: "Crear mi primer itinerario" })}
             </button>

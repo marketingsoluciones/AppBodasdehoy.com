@@ -219,7 +219,7 @@ export const NewSelectIcon: React.FC<Props> = ({ value, onChange, onClose }) => 
                 const on = selectedCategory === category.id;
                 return (
                   <button key={category.id} onClick={() => setSelectedCategory(category.id)}
-                    style={{ padding: "6px 14px", borderRadius: 16, border: `1.5px solid ${on ? "#EF5B94" : "#E7E7EA"}`, cursor: "pointer", font: "600 11.5px Poppins", background: on ? "#EF5B94" : "#fff", color: on ? "#fff" : "#6b6b72" }}>
+                    style={{ padding: "6px 14px", borderRadius: 16, border: `1.5px solid ${on ? "var(--color-primary,#EF5B94)" : "#E7E7EA"}`, cursor: "pointer", font: "600 11.5px Poppins", background: on ? "var(--color-primary,#EF5B94)" : "#fff", color: on ? "#fff" : "#6b6b72" }}>
                     {category.name}
                   </button>
                 );
@@ -246,7 +246,7 @@ export const NewSelectIcon: React.FC<Props> = ({ value, onChange, onClose }) => 
             )}
           </div>
         </div>
-        <style dangerouslySetInnerHTML={{ __html: ".msi-close:hover{background:#f5f5f7;}.msi-buscador:focus-within{border-color:#EF5B94 !important;}.msi-gridwrap::-webkit-scrollbar{display:none;}.msi-icono:hover{background:#ececef !important;}" }} />
+        <style dangerouslySetInnerHTML={{ __html: ".msi-close:hover{background:#f5f5f7;}.msi-buscador:focus-within{border-color:var(--color-primary,#EF5B94) !important;}.msi-gridwrap::-webkit-scrollbar{display:none;}.msi-icono:hover{background:#ececef !important;}" }} />
       </div>
     );
     return typeof document !== "undefined" ? createPortal(modalContent, document.body) : modalContent;

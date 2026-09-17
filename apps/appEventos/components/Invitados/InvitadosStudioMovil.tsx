@@ -121,12 +121,12 @@ const InvitadosStudioMovil: FC = () => {
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ font: "700 19px Poppins", color: "#3A3A42" }}>Invitados</div>
           <div style={{ marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-            <span style={{ font: "700 10px Poppins", color: "#EF5B94", letterSpacing: ".5px", textTransform: "uppercase" }}>{tipoTxt}</span>
+            <span style={{ font: "700 10px Poppins", color: "var(--color-primary,#EF5B94)", letterSpacing: ".5px", textTransform: "uppercase" }}>{tipoTxt}</span>
             <span style={{ font: "500 11px Poppins", color: "#8a8a90", marginLeft: 5 }}>· {event?.nombre}</span>
           </div>
         </div>
         <button onClick={() => setSearchOpen((v) => !v)} title="Buscar" style={{ width: 34, height: 34, borderRadius: "50%", background: "#F7F6F8", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", cursor: "pointer", border: "none" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3A3A42" strokeWidth={2}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg></button>
-        <button onClick={() => isOwner && setShareOpen(true)} title="Compartir" style={{ width: 34, height: 34, borderRadius: "50%", background: "#F7F6F8", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", cursor: isOwner ? "pointer" : "default", border: "none", color: "#EF5B94" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="12" r="2.6" /><circle cx="17.5" cy="5.5" r="2.6" /><circle cx="17.5" cy="18.5" r="2.6" /><path d="M8.3 10.8l6.9-4M8.3 13.2l6.9 4" /></svg></button>
+        <button onClick={() => isOwner && setShareOpen(true)} title="Compartir" style={{ width: 34, height: 34, borderRadius: "50%", background: "#F7F6F8", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", cursor: isOwner ? "pointer" : "default", border: "none", color: "var(--color-primary,#EF5B94)" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="12" r="2.6" /><circle cx="17.5" cy="5.5" r="2.6" /><circle cx="17.5" cy="18.5" r="2.6" /><path d="M8.3 10.8l6.9-4M8.3 13.2l6.9 4" /></svg></button>
       </div>
 
       {/* Buscador (se despliega al tocar la lupa) */}
@@ -144,7 +144,7 @@ const InvitadosStudioMovil: FC = () => {
       <div style={{ background: "#F6F5F7", flex: 1, paddingBottom: 40 }}>
       {/* RESUMEN + CHIPS */}
       <div style={{ padding: "16px 16px 4px", display: "flex", alignItems: "baseline", gap: 8 }}>
-        <span style={{ font: "800 24px Poppins", color: "#EF5B94" }}>{total}</span>
+        <span style={{ font: "800 24px Poppins", color: "var(--color-primary,#EF5B94)" }}>{total}</span>
         <span style={{ font: "600 13.5px Poppins", color: "#3A3A42" }}>invitados</span>
         <span style={{ font: "500 11px Poppins", color: "#a0a0a8", whiteSpace: "nowrap" }}>{adultos} adultos · {ninos} niños</span>
       </div>
@@ -156,7 +156,7 @@ const InvitadosStudioMovil: FC = () => {
 
       {/* CTA */}
       <div style={{ padding: "0 16px 14px" }}>
-        <button onClick={() => router.push("/mesas")} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: 13, borderRadius: 11, background: "#EF5B94", color: "#fff", font: "600 13px Poppins", border: "none", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="8" width="18" height="4" rx="1" /><path d="M6 12v6M18 12v6" /></svg>Sentar invitados</button>
+        <button onClick={() => router.push("/mesas")} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: 13, borderRadius: 11, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 13px Poppins", border: "none", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="8" width="18" height="4" rx="1" /><path d="M6 12v6M18 12v6" /></svg>Sentar invitados</button>
       </div>
 
       {/* LISTA POR GRUPOS */}
@@ -195,7 +195,7 @@ const InvitadosStudioMovil: FC = () => {
       </div>{/* fin contenido gris */}
 
       {/* FAB "+" */}
-      <button onClick={() => setAddOpen((v) => !v)} style={{ position: "fixed", right: 16, bottom: 150, width: 54, height: 54, borderRadius: "50%", background: "#EF5B94", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 26px rgba(239,91,148,.45)", cursor: "pointer", zIndex: 55, border: "none" }}>
+      <button onClick={() => setAddOpen((v) => !v)} style={{ position: "fixed", right: 16, bottom: 150, width: 54, height: 54, borderRadius: "50%", background: "var(--color-primary,#EF5B94)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 26px rgba(239,91,148,.45)", cursor: "pointer", zIndex: 55, border: "none" }}>
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.4} strokeLinecap="round" style={{ transition: "transform .2s", transform: addOpen ? "rotate(45deg)" : "none" }}><path d="M12 5v14M5 12h14" /></svg>
       </button>
 
@@ -211,7 +211,7 @@ const InvitadosStudioMovil: FC = () => {
                 { t: "menu", tit: "Menú", sub: "Crear un menú del evento", ic: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M4 3v7c0 1.1.9 2 2 2s2-.9 2-2V3M6 12v9M17 3c-1.7 1-3 3.2-3 5.5 0 2 1.3 3.5 3 3.5v9M4 3h4" /></svg> },
               ].map((it, i) => (
                 <div key={it.t} onClick={() => openAdd(it.t as any)} style={{ display: "flex", alignItems: "center", gap: 13, padding: "13px 6px", cursor: "pointer", borderBottom: i < 2 ? "1px solid #f5f5f7" : "none" }}>
-                  <span style={{ width: 38, height: 38, borderRadius: 12, background: "#FCE7F0", color: "#EF5B94", display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>{it.ic}</span>
+                  <span style={{ width: 38, height: 38, borderRadius: 12, background: "#FCE7F0", color: "var(--color-primary,#EF5B94)", display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>{it.ic}</span>
                   <div><div style={{ font: "600 13.5px Poppins", color: "#3A3A42" }}>{it.tit}</div><div style={{ font: "400 11px Poppins", color: "#a0a0a8" }}>{it.sub}</div></div>
                 </div>
               ))}
@@ -249,7 +249,7 @@ const InvitadosStudioMovil: FC = () => {
               </div>
               <div style={{ display: "flex", gap: 10 }}>
                 <button onClick={copyLink} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: 12, borderRadius: 12, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 12.5px Poppins", cursor: "pointer" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1" /><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1" /></svg>Compartir</button>
-                <button onClick={openEdit} style={{ flex: 1, padding: 12, borderRadius: 12, background: "#EF5B94", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 5px 14px rgba(239,91,148,.28)" }}>Editar invitado</button>
+                <button onClick={openEdit} style={{ flex: 1, padding: 12, borderRadius: 12, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 5px 14px rgba(239,91,148,.28)" }}>Editar invitado</button>
               </div>
             </>
           ))}

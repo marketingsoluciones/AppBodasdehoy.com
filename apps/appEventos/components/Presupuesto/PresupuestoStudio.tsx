@@ -92,7 +92,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
 
   // Donut "¿Cuánto cuesta mi evento?" — distribución del gasto real (coste_final) por categoría.
   const donut = useMemo(() => {
-    const COLORS = ["#EF5B94", "#5FBE8E", "#F4A26B", "#5EC0C4", "#8E8CE0", "#C58BD8", "#E7C24B", "#7BC67E", "#F0885A", "#6AA9E0", "#E0728F", "#9BD07B"];
+    const COLORS = ["var(--color-primary,#EF5B94)", "#5FBE8E", "#F4A26B", "#5EC0C4", "#8E8CE0", "#C58BD8", "#E7C24B", "#7BC67E", "#F0885A", "#6AA9E0", "#E0728F", "#9BD07B"];
     const CIRC = 490.09; // 2·π·78
     const data = cats.map((c) => ({ nombre: c.nombre, val: costeRealCat(c) })).filter((d) => d.val > 0).sort((a, b) => b.val - a.val);
     const totalG = data.reduce((s, d) => s + d.val, 0);
@@ -237,8 +237,8 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
     .ps-row:hover{background:#faf9fb!important;}
     .ps-del:hover{background:#FBE4EF!important;color:#D83E7C!important;}
     .ps-btn2:hover{background:#faf9fb!important;color:#3A3A42!important;}
-    .ps-mod:hover{color:#EF5B94!important;}
-    .ps-ncinput:focus{border-color:#EF5B94!important;}
+    .ps-mod:hover{color:var(--color-primary,#EF5B94)!important;}
+    .ps-ncinput:focus{border-color:var(--color-primary,#EF5B94)!important;}
     .ps-close:hover{background:#faf9fb!important;color:#3A3A42!important;}
     .ps-scroll{scrollbar-width:none;-ms-overflow-style:none;}
     .ps-scroll::-webkit-scrollbar{display:none;}
@@ -256,7 +256,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
       <div key={c._id} className="ps-row" onClick={() => selectCat(c)} style={{ display: "grid", gridTemplateColumns: "minmax(60px,1fr) 106px 106px 14px", gap: 8, alignItems: "center", padding: faded ? "9px 18px" : "12px 18px", borderBottom: "1px solid #f6f6f8", cursor: "pointer", background: showCategoria._id === c._id ? "#FCE7F0" : "#fff" }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ font: faded ? "500 12.5px Poppins" : "600 13px Poppins", color: faded ? "#a0a0a8" : "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{cap1(c.nombre)}</div>
-          {!faded && <div style={{ height: 4, borderRadius: 4, background: "#f0f0f2", marginTop: 5, overflow: "hidden" }}><div style={{ height: "100%", width: `${barW}%`, background: fin > est ? "#D83E7C" : "#EF5B94", borderRadius: 4, transition: "width .8s cubic-bezier(.2,.7,.2,1)" }} /></div>}
+          {!faded && <div style={{ height: 4, borderRadius: 4, background: "#f0f0f2", marginTop: 5, overflow: "hidden" }}><div style={{ height: "100%", width: `${barW}%`, background: fin > est ? "#D83E7C" : "var(--color-primary,#EF5B94)", borderRadius: 4, transition: "width .8s cubic-bezier(.2,.7,.2,1)" }} /></div>}
         </div>
         <div style={{ textAlign: "right", font: faded ? "500 12px Poppins" : "600 12.5px Poppins", color: faded ? "#b3b3ba" : "#8a8a90" }}>{getCurrency(est, cur)}</div>
         <div style={{ textAlign: "right", font: faded ? "500 12px Poppins" : "700 12.5px Poppins", color: faded ? "#c0c0c8" : totCol }}>{getCurrency(fin, cur)}</div>
@@ -279,7 +279,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
       <>
         <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, boxShadow: "0 4px 14px rgba(0,0,0,.05)", overflow: "hidden", marginBottom: 18 }}>
           <div style={{ position: "relative", padding: "18px 20px 14px", borderBottom: "1px solid #f2f2f4" }}>
-            <div style={{ textAlign: "center", font: "700 16px Poppins", color: "#EF5B94" }}>{cap1(selCat.nombre)}</div>
+            <div style={{ textAlign: "center", font: "700 16px Poppins", color: "var(--color-primary,#EF5B94)" }}>{cap1(selCat.nombre)}</div>
             <button className="ps-close" onClick={() => setShowCategoria({ state: false, _id: "" })} title={t("Cerrar")} style={{ position: "absolute", top: 14, right: 14, width: 30, height: 30, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#a0a0a8", background: "none", border: "none", cursor: "pointer" }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: GRID, gap: 6, padding: "11px 16px", background: "#faf9fb", borderBottom: "1px solid #f2f2f4", font: "700 10.5px Poppins", color: "#5a5a62", letterSpacing: ".4px", textTransform: "uppercase" }}>
@@ -301,7 +301,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
             );
           })}
           <div style={{ display: "flex", justifyContent: "center", padding: "12px 20px", borderBottom: "1px solid #f2f2f4" }}>
-            <button onClick={() => { setFocusCat(selCat._id); setShowCategoria({ state: false, _id: "" }); setActive("excelView"); }} style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#EF5B94", color: "#fff", border: "none", borderRadius: 10, padding: "9px 20px", font: "600 12.5px Poppins", cursor: "pointer", whiteSpace: "nowrap" }}>{t("Editar en Gastos", { defaultValue: "Editar en Gastos" })}</button>
+            <button onClick={() => { setFocusCat(selCat._id); setShowCategoria({ state: false, _id: "" }); setActive("excelView"); }} style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "var(--color-primary,#EF5B94)", color: "#fff", border: "none", borderRadius: 10, padding: "9px 20px", font: "600 12.5px Poppins", cursor: "pointer", whiteSpace: "nowrap" }}>{t("Editar en Gastos", { defaultValue: "Editar en Gastos" })}</button>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: GRID, gap: 6, alignItems: "center", padding: "13px 16px", background: "#faf9fb", borderTop: "1px solid #ececef" }}>
             <div style={{ font: "700 13px Poppins", color: "#5a5a62" }}>{t("Total")}</div>
@@ -337,7 +337,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
               <button className="ps-btn2" onClick={closeCreateCat} style={{ padding: "10px 18px", borderRadius: 10, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 12.5px Poppins", cursor: "pointer" }}>{t("Cancelar")}</button>
-              <button onClick={createCategoria} disabled={!ncName.trim() || ncSaving} style={{ padding: "10px 20px", borderRadius: 10, background: ncName.trim() ? "#EF5B94" : "#c8c8ce", border: "none", color: "#fff", font: "600 12.5px Poppins", cursor: ncName.trim() ? "pointer" : "default", boxShadow: "0 6px 16px rgba(239,91,148,.25)", transition: "background .15s" }}>{t("createcategory")}</button>
+              <button onClick={createCategoria} disabled={!ncName.trim() || ncSaving} style={{ padding: "10px 20px", borderRadius: 10, background: ncName.trim() ? "var(--color-primary,#EF5B94)" : "#c8c8ce", border: "none", color: "#fff", font: "600 12.5px Poppins", cursor: ncName.trim() ? "pointer" : "default", boxShadow: "0 6px 16px rgba(239,91,148,.25)", transition: "background .15s" }}>{t("createcategory")}</button>
             </div>
           </div>
         </div>,
@@ -372,7 +372,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
           {tabs.map((tb) => {
             const on = active === tb.key;
             return (
-              <button key={tb.key} className="ps-seg" onClick={() => { setActive(tb.key); setShowCategoria({ state: false, _id: "" }); }} style={{ flex: 1, textAlign: "center", padding: "10px 8px", borderRadius: 10, font: "600 13px Poppins", cursor: "pointer", background: "transparent", color: on ? "#EF5B94" : "#6b6b72", border: "none", whiteSpace: "nowrap", transition: "all .15s" }}>
+              <button key={tb.key} className="ps-seg" onClick={() => { setActive(tb.key); setShowCategoria({ state: false, _id: "" }); }} style={{ flex: 1, textAlign: "center", padding: "10px 8px", borderRadius: 10, font: "600 13px Poppins", cursor: "pointer", background: "transparent", color: on ? "var(--color-primary,#EF5B94)" : "#6b6b72", border: "none", whiteSpace: "nowrap", transition: "all .15s" }}>
                 {tb.label}
               </button>
             );
@@ -385,7 +385,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
             {/* SUMMARY CARD */}
             <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, padding: "22px 24px", boxShadow: "0 4px 14px rgba(0,0,0,.05)", marginBottom: 18 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", flex: "none" }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary,#EF5B94)", flex: "none" }}>
                   <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round"><path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2V5z" /><path d="M2 9v1c0 1.1.9 2 2 2h1" /></svg>
                 </div>
                 <div style={{ flex: 1, minWidth: 180 }}>
@@ -400,7 +400,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
                           <input value={totDraft} onChange={(e) => setTotDraft(e.target.value)} placeholder="42000" style={{ width: "100%", boxSizing: "border-box", padding: "9px 11px", borderRadius: 10, border: "1.5px solid #E7E7EA", font: "600 13px Poppins", color: "#3A3A42", outline: "none" }} />
                           <div style={{ display: "flex", gap: 8, marginTop: 10, justifyContent: "flex-end" }}>
                             <button onClick={() => setTotOpen(false)} style={{ padding: "8px 12px", borderRadius: 10, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 12px Poppins", cursor: "pointer" }}>{t("Cancelar")}</button>
-                            <button onClick={saveTotal} style={{ padding: "8px 14px", borderRadius: 10, background: "#EF5B94", border: "none", color: "#fff", font: "600 12px Poppins", cursor: "pointer" }}>{t("Guardar")}</button>
+                            <button onClick={saveTotal} style={{ padding: "8px 14px", borderRadius: 10, background: "var(--color-primary,#EF5B94)", border: "none", color: "#fff", font: "600 12px Poppins", cursor: "pointer" }}>{t("Guardar")}</button>
                           </div>
                         </div>
                       )}
@@ -417,7 +417,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
                       <ClickAwayListener onClickAway={() => setCurOpen(false)}>
                         <div style={{ position: "absolute", top: 22, right: 0, zIndex: 40, background: "#fff", border: "1px solid #f0f0f2", borderRadius: 10, boxShadow: "0 12px 32px rgba(0,0,0,.14)", padding: 6, minWidth: 92 }}>
                           {CURRENCIES.map((c) => (
-                            <div key={c.v} className="ps-cur" onClick={() => changeCurrency(c.v)} style={{ padding: "7px 12px", borderRadius: 8, font: "600 12px Poppins", color: (cur || "eur") === c.v ? "#EF5B94" : "#6b6b72", cursor: "pointer" }}>{c.l}</div>
+                            <div key={c.v} className="ps-cur" onClick={() => changeCurrency(c.v)} style={{ padding: "7px 12px", borderRadius: 8, font: "600 12px Poppins", color: (cur || "eur") === c.v ? "var(--color-primary,#EF5B94)" : "#6b6b72", cursor: "pointer" }}>{c.l}</div>
                           ))}
                         </div>
                       </ClickAwayListener>
@@ -435,12 +435,12 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
                   <span>{fraseResumen}</span>
                 </div>
                 <div style={{ height: 14, borderRadius: 999, background: "#f0f0f2", overflow: "hidden", display: "flex" }}>
-                  <div style={{ width: `${paidW}%`, background: "#EF5B94", transition: "width .8s cubic-bezier(.2,.7,.2,1)" }} />
+                  <div style={{ width: `${paidW}%`, background: "var(--color-primary,#EF5B94)", transition: "width .8s cubic-bezier(.2,.7,.2,1)" }} />
                   <div style={{ width: `${dueW}%`, background: "#F8A9C6", transition: "width .8s cubic-bezier(.2,.7,.2,1)" }} />
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 22, marginTop: 12, flexWrap: "wrap" }}>
                   {[
-                    { c: "#EF5B94", l: t("Ya pagado"), v: getCurrency(pagado, cur), col: "#3A3A42" },
+                    { c: "var(--color-primary,#EF5B94)", l: t("Ya pagado"), v: getCurrency(pagado, cur), col: "#3A3A42" },
                     ...(pendiente > 0 ? [{ c: "#E0A32B", l: t("Pendiente (programado)"), v: getCurrency(pendiente, cur), col: "#3A3A42" }] : []),
                     { c: "#F8A9C6", l: t("Comprometido sin pagar"), v: getCurrency(porPagar, cur), col: "#3A3A42" },
                     { c: "#e4e4e8", l: t("Aún libre"), v: getCurrency(disponible, cur), col: excedido ? "#D83E7C" : "#2FB37E" },
@@ -495,7 +495,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
                 <div style={{ display: "grid", gridTemplateColumns: "minmax(60px,1fr) 106px 106px 14px", gap: 8, padding: "14px 18px", background: "#faf9fb" }}>
                   <div style={{ font: "700 13px Poppins", color: "#3A3A42" }}>{t("Total")}</div>
                   <div style={{ textAlign: "right", font: "700 13px Poppins", color: "#3A3A42" }}>{getCurrency(sumEst, cur)}</div>
-                  <div style={{ textAlign: "right", font: "700 13px Poppins", color: "#EF5B94" }}>{getCurrency(sumFinal, cur)}</div>
+                  <div style={{ textAlign: "right", font: "700 13px Poppins", color: "var(--color-primary,#EF5B94)" }}>{getCurrency(sumFinal, cur)}</div>
                   <div />
                 </div>
               </div>
@@ -512,7 +512,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
                         <div style={{ font: "700 15px Poppins", color: "#3A3A42" }}>{t("¿Cuánto cuesta mi evento?")}</div>
                         <div style={{ font: "500 11.5px Poppins", color: "#a0a0a8", marginTop: 2 }}>{t("Distribución del gasto real por categoría")}</div>
                       </div>
-                      <span style={{ font: "600 12px Poppins", color: "#EF5B94", whiteSpace: "nowrap", textDecoration: "underline", textUnderlineOffset: 3, flex: "none" }}>{donutOpen ? t("Ocultar") : t("Ver distribución")}</span>
+                      <span style={{ font: "600 12px Poppins", color: "var(--color-primary,#EF5B94)", whiteSpace: "nowrap", textDecoration: "underline", textUnderlineOffset: 3, flex: "none" }}>{donutOpen ? t("Ocultar") : t("Ver distribución")}</span>
                     </div>
 
                     {donutOpen && (donut.totalG > 0 ? (

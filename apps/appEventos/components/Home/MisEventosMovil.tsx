@@ -23,13 +23,13 @@ const MisEventosMovil: FC<{ onCreate: () => void }> = ({ onCreate }) => {
   // conserva su rosa EXACTO; otras marcas usan su config.theme.
   const _p = config?.theme?.primaryColor;
   const isBodas = !_p || config?.development === 'bodasdehoy';
-  const cLight = isBodas ? '#EF5B94' : _p;
+  const cLight = isBodas ? 'var(--color-primary,#EF5B94)' : _p;
   const cDark = isBodas ? '#D83E7C' : (config?.theme?.secondaryColor || _p);
   const cPale = isBodas ? '#FCE7F0' : `color-mix(in srgb, ${cLight} 12%, white)`;
   const cBorder = isBodas ? '#F3B6CE' : `color-mix(in srgb, ${cLight} 45%, white)`;
   const cSh1 = isBodas ? '0 3px 10px rgba(239,91,148,.1)' : `0 3px 10px color-mix(in srgb, ${cLight} 12%, transparent)`;
   const cSh3 = isBodas ? '0 6px 16px rgba(239,91,148,.3)' : `0 6px 16px color-mix(in srgb, ${cLight} 32%, transparent)`;
-  const cHeroGrad = isBodas ? 'linear-gradient(100deg,#EF5B94,#D83E7C)' : `linear-gradient(100deg, ${cLight}, ${cDark})`;
+  const cHeroGrad = isBodas ? 'linear-gradient(100deg,var(--color-primary,#EF5B94),#D83E7C)' : `linear-gradient(100deg, ${cLight}, ${cDark})`;
 
   const groups = useMemo(() => {
     const uid = user?.uid;

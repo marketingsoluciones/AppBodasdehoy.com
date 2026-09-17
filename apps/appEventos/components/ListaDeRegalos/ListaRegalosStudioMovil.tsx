@@ -45,7 +45,7 @@ const icoShareSmall = (
 );
 
 const icoCard = (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={1.8} strokeLinecap="round">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,#EF5B94)" strokeWidth={1.8} strokeLinecap="round">
     <rect x="3" y="7" width="18" height="12" rx="2" /><path d="M3 11h18" />
   </svg>
 );
@@ -140,12 +140,12 @@ export const ListaRegalosStudioMovil: FC = () => {
             <div style={{ minWidth: 0, flex: 1 }}>
               <div style={{ font: "700 19px Poppins", color: "#3A3A42" }}>Lista de regalos</div>
               <div style={{ marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                <span style={{ font: "700 10px Poppins", color: "#EF5B94", letterSpacing: ".5px", textTransform: "uppercase" }}>{event?.tipo || "Boda"}</span>
+                <span style={{ font: "700 10px Poppins", color: "var(--color-primary,#EF5B94)", letterSpacing: ".5px", textTransform: "uppercase" }}>{event?.tipo || "Boda"}</span>
                 <span style={{ font: "500 11px Poppins", color: "#8a8a90", marginLeft: 5 }}>· {event?.nombre}</span>
               </div>
             </div>
             {conectada && (
-              <div onClick={compartir} style={{ width: 34, height: 34, borderRadius: "50%", background: "#F7F6F8", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", color: "#EF5B94", cursor: "pointer" }}>
+              <div onClick={compartir} style={{ width: 34, height: 34, borderRadius: "50%", background: "#F7F6F8", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", color: "var(--color-primary,#EF5B94)", cursor: "pointer" }}>
                 {icoShare}
               </div>
             )}
@@ -164,7 +164,7 @@ export const ListaRegalosStudioMovil: FC = () => {
                 onClick={!isAllowed() ? (e) => { e.preventDefault(); ht(); } : undefined}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 9, padding: 14, borderRadius: 12, background: "#EF5B94", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)", textDecoration: "none" }}
+                style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 9, padding: 14, borderRadius: 12, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)", textDecoration: "none" }}
               >
                 {amazon("#fff", 17)}Crear la lista en Amazon
               </a>
@@ -193,7 +193,7 @@ export const ListaRegalosStudioMovil: FC = () => {
           <div style={{ animation: "lrm-fade .25s ease" }}>
             {/* resumen */}
             <div style={{ padding: "16px 16px 4px", display: "flex", alignItems: "baseline", gap: 8 }}>
-              <span style={{ font: "800 24px Poppins", color: "#EF5B94" }}>{fmt(valorTotal)}</span>
+              <span style={{ font: "800 24px Poppins", color: "var(--color-primary,#EF5B94)" }}>{fmt(valorTotal)}</span>
               <span style={{ font: "600 13.5px Poppins", color: "#3A3A42" }}>valor total</span>
               <span style={{ font: "500 11px Poppins", color: "#a0a0a8" }}>{nDone} de {regalos.length} conseguidos</span>
             </div>
@@ -207,7 +207,7 @@ export const ListaRegalosStudioMovil: FC = () => {
             {/* lista vinculada */}
             <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px 14px" }}>
               <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, background: "#fff", border: "1.5px solid #E7E7EA", borderRadius: 11, padding: "9px 13px", minWidth: 0 }}>
-                {amazon("#EF5B94", 16)}
+                {amazon("var(--color-primary,#EF5B94)", 16)}
                 <span style={{ font: "600 11.5px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Lista de Amazon vinculada</span>
                 <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#2FB37E", flex: "none" }} />
               </div>
@@ -222,10 +222,10 @@ export const ListaRegalosStudioMovil: FC = () => {
                   <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 7 }}>
                     <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
                       <div style={{ font: "600 12.5px/1.35 Poppins", color: "#3A3A42" }}>{rg.nombre}</div>
-                      <div style={{ font: "700 12.5px Poppins", color: "#EF5B94", whiteSpace: "nowrap" }}>{fmt(rg.total)}</div>
+                      <div style={{ font: "700 12.5px Poppins", color: "var(--color-primary,#EF5B94)", whiteSpace: "nowrap" }}>{fmt(rg.total)}</div>
                     </div>
                     <div style={{ height: 5, borderRadius: 5, background: "#f2f2f4", overflow: "hidden" }}>
-                      <div style={{ height: "100%", borderRadius: 5, background: rg.done ? "#2FB37E" : "#EF5B94", width: `${rg.pct}%` }} />
+                      <div style={{ height: "100%", borderRadius: 5, background: rg.done ? "#2FB37E" : "var(--color-primary,#EF5B94)", width: `${rg.pct}%` }} />
                     </div>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <span style={{ font: "500 10.5px Poppins", color: "#8a8a90" }}>{rg.conseguido > 0 ? `Aportado ${fmt(rg.conseguido)}` : "Sin aportaciones"}</span>
@@ -245,7 +245,7 @@ export const ListaRegalosStudioMovil: FC = () => {
                 onClick={!isAllowed() ? (e) => { e.preventDefault(); ht(); } : undefined}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ display: "flex", alignItems: "center", gap: 7, padding: "13px 18px", borderRadius: 26, background: "#EF5B94", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 10px 26px rgba(239,91,148,.45)", textDecoration: "none" }}
+                style={{ display: "flex", alignItems: "center", gap: 7, padding: "13px 18px", borderRadius: 26, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 10px 26px rgba(239,91,148,.45)", textDecoration: "none" }}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
                 Añadir regalos

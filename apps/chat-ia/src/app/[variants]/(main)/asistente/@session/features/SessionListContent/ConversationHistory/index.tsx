@@ -95,7 +95,7 @@ const ConversationHistory = memo(() => {
         )}
         <div>
           <a
-            className="inline-block px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs rounded-full hover:opacity-90 transition-opacity"
+            className="inline-block px-4 py-2 bg-gradient-to-r from-purple-500 to-brand text-white text-xs rounded-full hover:opacity-90 transition-opacity"
             href="/login"
           >
             Iniciar sesión con tu cuenta

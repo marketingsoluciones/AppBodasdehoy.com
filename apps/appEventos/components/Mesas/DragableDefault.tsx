@@ -151,7 +151,7 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
             title="Borrar"
             className="absolute -top-3 -left-3 w-[26px] h-[26px] rounded-full bg-white border border-[#f2c9d9] shadow-[0_3px_8px_rgba(0,0,0,.18)] flex items-center justify-center z-20"
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" /></svg>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,#EF5B94)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" /></svg>
           </button>
           <div
             onMouseDown={(e) => e.stopPropagation()}
@@ -159,7 +159,7 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
             className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex gap-0.5 bg-white border border-[#eee] rounded-[10px] shadow-[0_3px_8px_rgba(0,0,0,.15)] p-0.5 z-20"
           >
             <button onClick={(e) => { e.stopPropagation(); handleScaleEl(1 / 1.2) }} title="Achicar" className="w-[22px] h-[22px] rounded-[7px] text-[#6b6b72] text-[15px] leading-none flex items-center justify-center">−</button>
-            <button onClick={(e) => { e.stopPropagation(); handleScaleEl(1.2) }} title="Agrandar" className="w-[22px] h-[22px] rounded-[7px] text-[#EF5B94] text-[15px] leading-none flex items-center justify-center">＋</button>
+            <button onClick={(e) => { e.stopPropagation(); handleScaleEl(1.2) }} title="Agrandar" className="w-[22px] h-[22px] rounded-[7px] text-[var(--color-primary,#EF5B94)] text-[15px] leading-none flex items-center justify-center">＋</button>
           </div>
         </>
       )}
@@ -174,7 +174,7 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
             title="Borrar"
             className="absolute -top-3 -left-3 w-[26px] h-[26px] rounded-full bg-white border border-[#f2c9d9] shadow-[0_3px_8px_rgba(0,0,0,.18)] flex items-center justify-center z-20"
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" /></svg>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,#EF5B94)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" /></svg>
           </button>
           <button
             onMouseDown={(e) => e.stopPropagation()}
@@ -183,7 +183,7 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
             title="Editar texto"
             className="absolute -top-3 -right-3 w-[26px] h-[26px] rounded-full bg-white border border-[#f2c9d9] shadow-[0_3px_8px_rgba(0,0,0,.18)] flex items-center justify-center z-20"
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,#EF5B94)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
           </button>
           <div
             onMouseDown={(e) => e.stopPropagation()}
@@ -191,7 +191,7 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
             className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex gap-0.5 bg-white border border-[#eee] rounded-[10px] shadow-[0_3px_8px_rgba(0,0,0,.15)] p-0.5 z-20"
           >
             <button onClick={(e) => { e.stopPropagation(); handleFontSize(-2) }} title="Letra más pequeña" className="w-[22px] h-[22px] rounded-[7px] text-[#6b6b72] text-[15px] leading-none flex items-center justify-center">−</button>
-            <button onClick={(e) => { e.stopPropagation(); handleFontSize(+2) }} title="Letra más grande" className="w-[22px] h-[22px] rounded-[7px] text-[#EF5B94] text-[15px] leading-none flex items-center justify-center">＋</button>
+            <button onClick={(e) => { e.stopPropagation(); handleFontSize(+2) }} title="Letra más grande" className="w-[22px] h-[22px] rounded-[7px] text-[var(--color-primary,#EF5B94)] text-[15px] leading-none flex items-center justify-center">＋</button>
           </div>
         </>
       )}

@@ -96,7 +96,7 @@ const DetalleCategoriaStudio: FC<Props> = ({ categoriaId, onClose }) => {
       <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, boxShadow: "0 4px 14px rgba(0,0,0,.05)", overflow: "hidden", marginBottom: 18, fontFamily: "'Poppins',sans-serif" }}>
         {/* Cabecera */}
         <div style={{ position: "relative", padding: "18px 20px 14px", borderBottom: "1px solid #f2f2f4" }}>
-          <div style={{ textAlign: "center", font: "700 16px Poppins", color: "#EF5B94" }}>{cap1(categoria.nombre)}</div>
+          <div style={{ textAlign: "center", font: "700 16px Poppins", color: "var(--color-primary,#EF5B94)" }}>{cap1(categoria.nombre)}</div>
           <button className="dc-close" title={t("Cerrar")} onClick={onClose} style={{ position: "absolute", top: 14, right: 14, width: 30, height: 30, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#a0a0a8", background: "none", border: "none", cursor: "pointer" }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
         </div>
 
@@ -133,11 +133,11 @@ const DetalleCategoriaStudio: FC<Props> = ({ categoriaId, onClose }) => {
 
         {/* Añadir servicio */}
         <div style={{ padding: "12px 20px", borderBottom: "1px solid #f2f2f4" }}>
-          <button className="dc-link" onClick={addServicio} style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "none", border: "none", cursor: "pointer", font: "600 12.5px Poppins", color: "#EF5B94", padding: 0, whiteSpace: "nowrap" }}><span style={{ width: 18, height: 18, borderRadius: "50%", background: "#FCE7F0", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13, lineHeight: 1 }}>＋</span>{t("Añadir servicio")}</button>
+          <button className="dc-link" onClick={addServicio} style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "none", border: "none", cursor: "pointer", font: "600 12.5px Poppins", color: "var(--color-primary,#EF5B94)", padding: 0, whiteSpace: "nowrap" }}><span style={{ width: 18, height: 18, borderRadius: "50%", background: "#FCE7F0", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13, lineHeight: 1 }}>＋</span>{t("Añadir servicio")}</button>
         </div>
 
         {/* Total */}
-        <div style={{ display: "grid", gridTemplateColumns: COL, gap: 6, alignItems: "center", padding: "13px 16px", background: "#EF5B94" }}>
+        <div style={{ display: "grid", gridTemplateColumns: COL, gap: 6, alignItems: "center", padding: "13px 16px", background: "var(--color-primary,#EF5B94)" }}>
           <div style={{ font: "700 13px Poppins", color: "#fff" }}>{t("Total")}</div>
           <div style={{ textAlign: "right", font: "700 12px Poppins", color: "#fff" }}>{getCurrency(catTot, cur)}</div>
           <div style={{ textAlign: "right", font: "700 12px Poppins", color: "#fff" }}>{getCurrency(catPag, cur)}</div>

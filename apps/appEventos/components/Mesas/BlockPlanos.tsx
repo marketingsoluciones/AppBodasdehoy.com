@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 // Rediseño fiel al prototipo (MESAS.dc.html): lista vertical "Espacios del evento".
 // Fila = icono de PLANO (SVG rect+divisiones) + nombre + "N mesas · M sentados" +
 // check rosa en el espacio activo. Colores exactos del proto (B.planos, líneas 720-727):
-//   activo → fila #FCE7F0/#f7c2da · icono #FCE7F0/#EF5B94 · check #EF5B94.
+//   activo → fila #FCE7F0/#f7c2da · icono #FCE7F0/var(--color-primary,#EF5B94) · check var(--color-primary,#EF5B94).
 //   inactivo → fila #fff/#f0f0f2 · icono #F0F0F2/#a0a0a8.
 // NO cambia la lógica de selección (setPlanSpaceSelect + fetchApiEventos).
 
@@ -133,7 +133,7 @@ export const BlockPlanos: FC = () => {
     <div className="w-full h-full flex flex-col gap-2.5 p-1">
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-bold tracking-wider uppercase text-[#b3b3ba]">{t('eventspaces', 'Espacios del evento')}</span>
-        <span className="text-[11px] font-semibold text-[#EF5B94]">{event?.planSpace?.length || 0} {t('spaces', 'espacios')}</span>
+        <span className="text-[11px] font-semibold text-[var(--color-primary,#EF5B94)]">{event?.planSpace?.length || 0} {t('spaces', 'espacios')}</span>
       </div>
 
       <div className="flex flex-col gap-[7px] overflow-auto max-h-[340px]">
@@ -149,7 +149,7 @@ export const BlockPlanos: FC = () => {
               onClick={() => handleClick(item)}
               className={`flex items-center gap-[11px] px-3 py-2.5 rounded-[11px] cursor-pointer border-[1.5px] transition ${active ? 'bg-[#FCE7F0] border-[#f7c2da]' : 'bg-white border-[#f0f0f2] hover:border-[#e2e2e6]'}`}
             >
-              <div className={`w-[30px] h-[30px] rounded-[9px] flex-none flex items-center justify-center ${active ? 'bg-[#FCE7F0] text-[#EF5B94]' : 'bg-[#F0F0F2] text-[#a0a0a8]'}`}>
+              <div className={`w-[30px] h-[30px] rounded-[9px] flex-none flex items-center justify-center ${active ? 'bg-[#FCE7F0] text-[var(--color-primary,#EF5B94)]' : 'bg-[#F0F0F2] text-[#a0a0a8]'}`}>
                 <FloorPlanIcon className="w-[17px] h-[17px]" />
               </div>
               <div className="flex-1 min-w-0">
@@ -157,14 +157,14 @@ export const BlockPlanos: FC = () => {
                 <div className="text-[10.5px] font-medium text-[#a0a0a8]">{mesas} {mesasLabel} · {sentados} {seatedLabel}</div>
               </div>
               {active &&
-                <div className="w-[18px] h-[18px] rounded-full flex-none bg-[#EF5B94] flex items-center justify-center">
+                <div className="w-[18px] h-[18px] rounded-full flex-none bg-[var(--color-primary,#EF5B94)] flex items-center justify-center">
                   <svg className="w-[11px] h-[11px]" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
                 </div>
               }
               <button
                 onClick={(e) => askDeletePlano(e, item)}
                 title={t('deleteplano', 'Eliminar plano')}
-                className="flex-none w-[24px] h-[24px] rounded-md flex items-center justify-center text-[#c2c2ca] hover:text-[#EF5B94] hover:bg-[#FCE7F0] transition"
+                className="flex-none w-[24px] h-[24px] rounded-md flex items-center justify-center text-[#c2c2ca] hover:text-[var(--color-primary,#EF5B94)] hover:bg-[#FCE7F0] transition"
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" /></svg>
               </button>
@@ -177,7 +177,7 @@ export const BlockPlanos: FC = () => {
       <button
         type="button"
         onClick={openNewPlano}
-        className="flex-none flex items-center justify-center gap-[7px] p-[11px] rounded-[11px] bg-white border-[1.5px] border-dashed border-[#f0aecb] text-[#EF5B94] text-[12.5px] font-semibold cursor-pointer hover:bg-[#FCF2F6] transition-colors"
+        className="flex-none flex items-center justify-center gap-[7px] p-[11px] rounded-[11px] bg-white border-[1.5px] border-dashed border-[#f0aecb] text-[var(--color-primary,#EF5B94)] text-[12.5px] font-semibold cursor-pointer hover:bg-[#FCF2F6] transition-colors"
       >
         <span className="text-[15px] leading-none">＋</span>{t('addplano', 'Añadir plano')}
       </button>
@@ -193,7 +193,7 @@ export const BlockPlanos: FC = () => {
             className="w-[380px] max-w-full bg-white rounded-[18px] shadow-[0_24px_60px_rgba(0,0,0,.28)] p-6"
           >
             <div className="flex items-center gap-[11px] mb-[18px]">
-              <div className="w-10 h-10 rounded-[11px] flex-none bg-[#FCE7F0] text-[#EF5B94] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-[11px] flex-none bg-[#FCE7F0] text-[var(--color-primary,#EF5B94)] flex items-center justify-center">
                 <FloorPlanIcon className="w-5 h-5" />
               </div>
               <div>
@@ -209,7 +209,7 @@ export const BlockPlanos: FC = () => {
               onChange={(e) => setNewPlanoName(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleCreatePlano(); if (e.key === 'Escape') closeNewPlano() }}
               placeholder={t('planonameplaceholder', 'Ej. Jardín, Cóctel, Terraza…')}
-              className="w-full p-3 rounded-[11px] border-[1.5px] border-[#E7E7EA] focus:border-[#EF5B94] outline-none bg-white text-[13px] font-medium text-[#3A3A42]"
+              className="w-full p-3 rounded-[11px] border-[1.5px] border-[#E7E7EA] focus:border-[var(--color-primary,#EF5B94)] outline-none bg-white text-[13px] font-medium text-[#3A3A42]"
             />
             {createNotice &&
               <div className="mt-3 bg-[#FCF2F6] border border-[#f7c2da] rounded-[999px] px-4 py-2 text-[11px] font-medium text-[#c14a78]">{createNotice}</div>
@@ -219,7 +219,7 @@ export const BlockPlanos: FC = () => {
               <button
                 type="button"
                 onClick={handleCreatePlano}
-                className={`px-6 py-[11px] rounded-[11px] text-white text-[12.5px] font-semibold whitespace-nowrap shadow-[0_6px_16px_rgba(239,91,148,.28)] ${newPlanoName.trim() ? 'bg-[#EF5B94]' : 'bg-[#f0aecb]'}`}
+                className={`px-6 py-[11px] rounded-[11px] text-white text-[12.5px] font-semibold whitespace-nowrap shadow-[0_6px_16px_rgba(239,91,148,.28)] ${newPlanoName.trim() ? 'bg-[var(--color-primary,#EF5B94)]' : 'bg-[#f0aecb]'}`}
               >
                 {t('createplano', 'Crear plano')}
               </button>

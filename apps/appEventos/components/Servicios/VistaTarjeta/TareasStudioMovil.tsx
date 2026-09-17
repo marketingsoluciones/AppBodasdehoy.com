@@ -103,7 +103,7 @@ export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks,
           <div style={{ minWidth: 0, flex: 1 }}>
             <div style={{ font: "700 19px Poppins", color: "#3A3A42" }}>{t("Tareas", { defaultValue: "Tareas" })}</div>
             <div style={{ marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              <span style={{ font: "700 10px Poppins", color: "#EF5B94", letterSpacing: ".5px", textTransform: "uppercase" }}>{event?.tipo || "Boda"}</span>
+              <span style={{ font: "700 10px Poppins", color: "var(--color-primary,#EF5B94)", letterSpacing: ".5px", textTransform: "uppercase" }}>{event?.tipo || "Boda"}</span>
               <span style={{ font: "500 11px Poppins", color: "#8a8a90", marginLeft: 5 }}>· {event?.nombre}</span>
             </div>
           </div>
@@ -112,15 +112,15 @@ export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks,
             onClick={() => setSearchOpen((v) => { const nv = !v; if (!nv) setQ(""); return nv; })}
             style={{ width: 34, height: 34, borderRadius: "50%", background: searchOpen ? "#FCE7F0" : "#F7F6F8", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", cursor: "pointer", transition: "background .15s" }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={searchOpen ? "#EF5B94" : "#3A3A42"} strokeWidth={2}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={searchOpen ? "var(--color-primary,#EF5B94)" : "#3A3A42"} strokeWidth={2}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
           </span>
-          <span title={t("Compartir", { defaultValue: "Compartir" })} onClick={compartir} style={{ width: 34, height: 34, borderRadius: "50%", background: "#F7F6F8", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", cursor: "pointer", color: "#EF5B94" }}>
+          <span title={t("Compartir", { defaultValue: "Compartir" })} onClick={compartir} style={{ width: 34, height: 34, borderRadius: "50%", background: "#F7F6F8", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", cursor: "pointer", color: "var(--color-primary,#EF5B94)" }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="12" r="2.6" /><circle cx="17.5" cy="5.5" r="2.6" /><circle cx="17.5" cy="18.5" r="2.6" /><path d="M8.3 10.8l6.9-4M8.3 13.2l6.9 4" /></svg>
           </span>
         </div>
         {searchOpen && (
-          <div style={{ display: "flex", alignItems: "center", gap: 8, border: "1.5px solid #EF5B94", borderRadius: 12, padding: "0 12px", height: 40, marginTop: 12 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2} strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, border: "1.5px solid var(--color-primary,#EF5B94)", borderRadius: 12, padding: "0 12px", height: 40, marginTop: 12 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,#EF5B94)" strokeWidth={2} strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
             <input id="tm-q" autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Buscar tarea", { defaultValue: "Buscar tarea" })} style={{ border: "none", outline: "none", font: "400 12.5px Poppins", color: "#3A3A42", width: "100%", background: "transparent" }} />
             <span onClick={() => { setQ(""); setSearchOpen(false); }} style={{ flex: "none", cursor: "pointer", display: "flex", alignItems: "center" }}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={2.2} strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
@@ -134,10 +134,10 @@ export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks,
         <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 8, padding: "12px 16px 0", zIndex: 15 }}>
           <div onClick={() => setListMenu((v) => !v)} style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, background: "#fff", border: "1px solid #f0f0f2", boxShadow: "0 3px 10px rgba(0,0,0,.04)", borderRadius: 12, padding: "11px 14px", cursor: "pointer" }}>
             <span style={{ font: "600 13px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{itinerario?.title || t("Seleccionar lista", { defaultValue: "Seleccionar lista" })}</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2.2} strokeLinecap="round" style={{ flex: "none", transform: listMenu ? "rotate(180deg)" : "none", transition: "transform .18s" }}><path d="M6 9l6 6 6-6" /></svg>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,#EF5B94)" strokeWidth={2.2} strokeLinecap="round" style={{ flex: "none", transform: listMenu ? "rotate(180deg)" : "none", transition: "transform .18s" }}><path d="M6 9l6 6 6-6" /></svg>
           </div>
           {onCreateItinerario && (
-            <button onClick={() => { setListMenu(false); onCreateItinerario(); }} style={{ display: "flex", alignItems: "center", gap: 5, padding: "11px 14px", borderRadius: 12, border: "1px solid #f0f0f2", boxShadow: "0 3px 10px rgba(0,0,0,.04)", background: "#fff", color: "#EF5B94", cursor: "pointer", font: "600 12px Poppins", flex: "none" }}>
+            <button onClick={() => { setListMenu(false); onCreateItinerario(); }} style={{ display: "flex", alignItems: "center", gap: 5, padding: "11px 14px", borderRadius: 12, border: "1px solid #f0f0f2", boxShadow: "0 3px 10px rgba(0,0,0,.04)", background: "#fff", color: "var(--color-primary,#EF5B94)", cursor: "pointer", font: "600 12px Poppins", flex: "none" }}>
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Nueva", { defaultValue: "Nueva" })}
             </button>
           )}
@@ -160,7 +160,7 @@ export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks,
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{ font: "700 18px Poppins", color: "#3A3A42" }}>{title || itinerario?.title}</div>
         </div>
-        <div style={{ width: 44, height: 3, borderRadius: 3, background: "#EF5B94", marginTop: 8 }} />
+        <div style={{ width: 44, height: 3, borderRadius: 3, background: "var(--color-primary,#EF5B94)", marginTop: 8 }} />
         <div style={{ font: "500 11px Poppins", color: "#a0a0a8", marginTop: 10 }}>{completadas} {t("de")} {total} {t("completadas", { defaultValue: "completadas" })}</div>
         <div style={{ width: 170, height: 5, borderRadius: 5, background: "#e9e9ec", overflow: "hidden", marginTop: 6 }}>
           <div style={{ height: "100%", borderRadius: 5, background: "#2FB37E", width: `${pct}%`, transition: "width .4s ease" }} />
@@ -203,10 +203,10 @@ export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks,
                     <span style={{ width: 6, height: 6, borderRadius: "50%", background: "currentColor" }} />{t(st.label)}
                   </span>
                   {!!fecha && <span style={{ font: "500 10px Poppins", color: "#8a8a90" }}>{fecha}</span>}
-                  {!!resp && <span style={{ width: 20, height: 20, borderRadius: "50%", background: "#EF5B94", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", font: "700 9px Poppins" }}>{iniciales(resp)}</span>}
+                  {!!resp && <span style={{ width: 20, height: 20, borderRadius: "50%", background: "var(--color-primary,#EF5B94)", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", font: "700 9px Poppins" }}>{iniciales(resp)}</span>}
                 </div>
               </div>
-              <svg onClick={() => toggleTaskExpand?.(tk._id)} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2.2} strokeLinecap="round" style={{ flex: "none", cursor: "pointer", transform: abierta ? "rotate(180deg)" : "none" }}><path d="M6 9l6 6 6-6" /></svg>
+              <svg onClick={() => toggleTaskExpand?.(tk._id)} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,#EF5B94)" strokeWidth={2.2} strokeLinecap="round" style={{ flex: "none", cursor: "pointer", transform: abierta ? "rotate(180deg)" : "none" }}><path d="M6 9l6 6 6-6" /></svg>
             </div>
           );
 
@@ -253,7 +253,7 @@ export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks,
                       <span style={{ display: "flex", alignItems: "center", gap: 6, font: "600 11.5px Poppins", color: PRIO_MOV[String(pr.value)] ?? "#8F6E14" }}>
                         <span style={{ width: 7, height: 7, borderRadius: "50%", background: "currentColor" }} />{t(pr.label)}
                       </span>
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2.2} strokeLinecap="round" style={{ flex: "none", transform: prioEdit === tk._id ? "rotate(180deg)" : "none", transition: "transform .15s" }}><path d="M6 9l6 6 6-6" /></svg>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,#EF5B94)" strokeWidth={2.2} strokeLinecap="round" style={{ flex: "none", transform: prioEdit === tk._id ? "rotate(180deg)" : "none", transition: "transform .15s" }}><path d="M6 9l6 6 6-6" /></svg>
                     </div>
                     {prioEdit === tk._id && (
                       <>
@@ -279,7 +279,7 @@ export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks,
                   <span style={{ font: "600 10.5px Poppins", color: "#a0a0a8", letterSpacing: ".5px", textTransform: "uppercase" }}>{t("Responsables")}</span>
                   {cleanResponsables(tk.responsable).map((r, i) => (
                     <span key={i} style={{ display: "flex", alignItems: "center", gap: 6, background: "#f5f5f7", borderRadius: 14, padding: "3px 11px 3px 3px", font: "500 11px Poppins", color: "#3A3A42" }}>
-                      <span style={{ width: 20, height: 20, borderRadius: "50%", background: "#EF5B94", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", font: "700 9px Poppins" }}>{iniciales(r)}</span>{r}
+                      <span style={{ width: 20, height: 20, borderRadius: "50%", background: "var(--color-primary,#EF5B94)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", font: "700 9px Poppins" }}>{iniciales(r)}</span>{r}
                     </span>
                   ))}
                   <button
@@ -329,7 +329,7 @@ export const TareasStudioMovil: FC<Props> = ({ itinerario, tasks, expandedTasks,
 
       {/* FAB */}
       <div style={{ position: "fixed", right: 18, bottom: 24, zIndex: 20 }}>
-        <button onClick={nuevaTarea} style={{ display: "flex", alignItems: "center", gap: 7, padding: "13px 18px", borderRadius: 26, background: "#EF5B94", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 10px 26px rgba(239,91,148,.45)" }}>
+        <button onClick={nuevaTarea} style={{ display: "flex", alignItems: "center", gap: 7, padding: "13px 18px", borderRadius: 26, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 10px 26px rgba(239,91,148,.45)" }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
           {t("Añadir tarea", { defaultValue: "Añadir tarea" })}
         </button>

@@ -321,16 +321,16 @@ export const validateTaskPriority = (priority: string): boolean => {
 // Configuración de colores para diferentes temas
 export const THEME_COLORS = {
   primary: {
-    50: 'color-mix(in srgb, var(--color-primary, #ec4899) 10%, white)',
-    100: 'color-mix(in srgb, var(--color-primary, #ec4899) 15%, white)',
-    200: 'color-mix(in srgb, var(--color-primary, #ec4899) 25%, white)',
-    300: 'color-mix(in srgb, var(--color-primary, #ec4899) 35%, white)',
-    400: 'color-mix(in srgb, var(--color-primary, #ec4899) 55%, white)',
-    500: 'var(--color-primary, #ec4899)',
-    600: 'color-mix(in srgb, var(--color-primary, #ec4899) 85%, black)',
-    700: 'color-mix(in srgb, var(--color-primary, #ec4899) 75%, black)',
-    800: 'color-mix(in srgb, var(--color-primary, #ec4899) 65%, black)',
-    900: 'color-mix(in srgb, var(--color-primary, #ec4899) 55%, black)'
+    50: 'color-mix(in srgb, var(--color-primary, #EF5B94) 10%, white)',
+    100: 'color-mix(in srgb, var(--color-primary, #EF5B94) 15%, white)',
+    200: 'color-mix(in srgb, var(--color-primary, #EF5B94) 25%, white)',
+    300: 'color-mix(in srgb, var(--color-primary, #EF5B94) 35%, white)',
+    400: 'color-mix(in srgb, var(--color-primary, #EF5B94) 55%, white)',
+    500: 'var(--color-primary, #EF5B94)',
+    600: 'color-mix(in srgb, var(--color-primary, #EF5B94) 85%, black)',
+    700: 'color-mix(in srgb, var(--color-primary, #EF5B94) 75%, black)',
+    800: 'color-mix(in srgb, var(--color-primary, #EF5B94) 65%, black)',
+    900: 'color-mix(in srgb, var(--color-primary, #EF5B94) 55%, black)'
   },
   gray: {
     50: '#f9fafb',

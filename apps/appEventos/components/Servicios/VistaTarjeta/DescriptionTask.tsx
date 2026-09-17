@@ -106,14 +106,14 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
                     setEditing(false);
                   }}
                   className={`px-4 py-2 text-xs text-white rounded-md transition-colors ${isStudio ? "hover:opacity-90" : "bg-primary hover:bg-primary/90"}`}
-                  style={isStudio ? { backgroundColor: "#EF5B94" } : undefined}
+                  style={isStudio ? { backgroundColor: "var(--color-primary,#EF5B94)" } : undefined}
                 >
                   {t('Guardar')}
                 </button>
               </div>
             </div>
           )}
-          <div id="description-task" className={`w-full break-words ${isStudio && shouldShowEditor ? 'hidden' : ''} ${isStudio ? "min-h-[60px] border-[1.5px] border-[#E7E7EA] rounded-xl px-4 py-[13px] text-[12.5px] hover:border-[#EF5B94]" : "flex flex-1 basis-0 min-h-0 max-h-full overflow-y-auto border border-gray-200 rounded-lg p-4"} ${canEdit ? 'cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'} `}
+          <div id="description-task" className={`w-full break-words ${isStudio && shouldShowEditor ? 'hidden' : ''} ${isStudio ? "min-h-[60px] border-[1.5px] border-[#E7E7EA] rounded-xl px-4 py-[13px] text-[12.5px] hover:border-[var(--color-primary,#EF5B94)]" : "flex flex-1 basis-0 min-h-0 max-h-full overflow-y-auto border border-gray-200 rounded-lg p-4"} ${canEdit ? 'cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'} `}
             onClick={() => {
               if (isStudio && canShowEditButton) {
                 setCustomDescription(task.tips || '');

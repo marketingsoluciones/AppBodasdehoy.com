@@ -118,6 +118,112 @@ describe('color de marca: una sola verdad', () => {
     expect(atrasadas).toEqual([]);
   });
 
+  it('la variable de marca NO se define en términos de sí misma', () => {
+    // Me lo hice yo al barrer los literales. `_app.tsx` publica
+    // `--color-primary: ${themePrimary}`, y el barrido convirtió el respaldo de
+    // `themePrimary` en `var(--color-primary,#EF5B94)`. Eso es una definición cíclica:
+    // CSS la invalida, la variable se queda SIN valor, y entonces TODOS los var() de
+    // la app caen a su respaldo. Resultado: bodasdehoy perfecta y las otras diez marcas
+    // pintando rosa de bodasdehoy — exactamente lo contrario de para qué era el barrido.
+    // Y no lo habría visto mirando bodasdehoy, que es lo que se mira siempre.
+    const src = fs.readFileSync(path.join(RAIZ, 'apps/appEventos/pages/_app.tsx'), 'utf8');
+    const sinComentarios = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+    const asignaciones = sinComentarios
+      .split('\n')
+      .filter((l) => /const theme(Primary|Secondary|Tertiary|Base|Scroll)\s*=/.test(l))
+      .filter((l) => l.includes('var(--color-'));
+    expect(asignaciones).toEqual([]);
+  });
+
+  it('ningún respaldo de la variable de marca pinta un color ajeno', () => {
+    // Había TRES respaldos y cada uno de un color distinto: #ec4899 (de ninguna marca)
+    // en _app.tsx, #7C3AED (morado del prototipo) en el tailwind.css de chat y #F7628C
+    // (el rosa anterior) en su vía de auto-auth. Cuando la variable no está resuelta,
+    // el respaldo ES lo que se ve, así que tiene que ser un color de marca real.
+    //
+    // ESTE TEST MIRABA UNA LISTA FIJA DE TRES FICHEROS, y por eso se le escaparon 20
+    // respaldos más: 10 en NewTypes.tsx, 8 en table-animations.css y 2 en el NotesPanel
+    // de packages/shared, todos con el #ec4899 fantasma. Un guardián con lista curada
+    // envejece en silencio: protege de lo que ya sabías y no de lo siguiente. Ahora
+    // recorre el árbol entero, así que un fichero nuevo entra en el radar solo.
+    const raices = [
+      'apps/appEventos',
+      'apps/chat-ia/src',
+      'packages/shared/src',
+      'packages/auth-ui/src',
+      'packages/copilot-shared/src',
+    ];
+    const re = /var\(\s*--(?:color-primary|primary-color|color-brand[\w-]*)\s*,\s*(#[0-9A-Fa-f]{3,8})\s*\)/g;
+    const colores = new Set(Object.values(shared).map((c) => c.toUpperCase()));
+    const ajenos: string[] = [];
+
+    const recorrer = (dir: string) => {
+      let entradas: fs.Dirent[];
+      try {
+        entradas = fs.readdirSync(dir, { withFileTypes: true });
+      } catch {
+        return; // una raíz que no existe no es un fallo de color
+      }
+      for (const e of entradas) {
+        // `._*` son AppleDouble (binarios) y reventaban la lectura en UTF-8.
+        if (e.name.startsWith('._') || e.name === 'node_modules' || e.name.startsWith('.next')) continue;
+        const ruta = path.join(dir, e.name);
+        if (e.isDirectory()) {
+          recorrer(ruta);
+        } else if (/\.(tsx?|css)$/.test(e.name) && !e.name.includes('.test.')) {
+          let txt: string;
+          try {
+            txt = fs.readFileSync(ruta, 'utf8');
+          } catch {
+            continue;
+          }
+          let m: RegExpExecArray | null;
+          re.lastIndex = 0;
+          while ((m = re.exec(txt)) !== null) {
+            const hex = m[1].toUpperCase();
+            if (hex.length === 7 && !colores.has(hex)) {
+              ajenos.push(`${path.relative(RAIZ, ruta)}: ${hex}`);
+            }
+          }
+        }
+      }
+    };
+    for (const r of raices) recorrer(path.join(RAIZ, r));
+
+    expect(ajenos).toEqual([]);
+  });
+
+  it('los cinco respaldos de _app coinciden con la tabla de bodasdehoy', () => {
+    // Los cuatro de acompañamiento eran tonos de Tailwind (#f472b6, #f9a8d4, #ffffff,
+    // #e5e7eb), restos de la misma familia que el #ec4899 del primario. Los reales de
+    // bodasdehoy son verde menta (#87F3B5) y amarillo (#FBFF4E): al fallar la
+    // resolución, el gradiente del login salía rosa-rosa-rosa en vez de
+    // rosa-menta-amarillo. Y pages/login.tsx ya tenía los correctos, así que los dos
+    // ficheros del mismo repo se contradecían sobre los colores de la misma marca.
+    const campos: Array<[string, string]> = [
+      ['primaryColor', 'themePrimary'],
+      ['secondaryColor', 'themeSecondary'],
+      ['tertiaryColor', 'themeTertiary'],
+      ['baseColor', 'themeBase'],
+      ['colorScroll', 'themeScroll'],
+    ];
+    const tabla = fs.readFileSync(RUTA_SHARED, 'utf8');
+    const bloque = tabla.slice(tabla.indexOf("development: 'bodasdehoy'"));
+    const app = fs.readFileSync(path.join(RAIZ, 'apps/appEventos/pages/_app.tsx'), 'utf8');
+    const desalineados: string[] = [];
+    for (const [campo, variable] of campos) {
+      const esperado = bloque.match(new RegExp(`${campo}:\\s*['"](#[0-9A-Fa-f]{6})['"]`))?.[1];
+      const usado = app
+        .match(new RegExp(`const ${variable} = safeThemeValue\\([^)]*\\)\\s*\\|\\|\\s*'(#[0-9A-Fa-f]{6})'`))?.[1];
+      if (!esperado || !usado) {
+        desalineados.push(`${campo}: no se pudo leer (tabla=${esperado} app=${usado})`);
+      } else if (esperado.toUpperCase() !== usado.toUpperCase()) {
+        desalineados.push(`${campo}: _app usa ${usado} y la tabla dice ${esperado}`);
+      }
+    }
+    expect(desalineados).toEqual([]);
+  });
+
   it('todos los colores son hexadecimales de 6 dígitos', () => {
     const malos = Object.entries({ ...shared, ...app })
       .filter(([, c]) => !/^#[0-9A-F]{6}$/.test(c))

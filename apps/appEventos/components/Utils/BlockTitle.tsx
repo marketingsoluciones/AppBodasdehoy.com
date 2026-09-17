@@ -59,7 +59,7 @@ export const BlockTitle = ({ title }) => {
 
           {/* evento (tipo + nombre) */}
           <div className="text-right" style={{ lineHeight: 1.3 }}>
-            <div style={{ font: "600 10px Poppins", color: "#EF5B94", letterSpacing: ".6px" }} className="uppercase">{event?.tipo}</div>
+            <div style={{ font: "600 10px Poppins", color: "var(--color-primary,#EF5B94)", letterSpacing: ".6px" }} className="uppercase">{event?.tipo}</div>
             <div style={{ font: "500 14px Poppins", color: "#3A3A42" }} className="uppercase truncate max-w-[120px] lg:max-w-[180px]">{event?.nombre}</div>
           </div>
 
@@ -77,7 +77,7 @@ export const BlockTitle = ({ title }) => {
           <span
             onClick={() => { canShare && setOpenModal(!openModal) }}
             className={`flex items-center justify-center rounded-[10px] transition ${canShare ? "cursor-pointer hover:bg-[#FCE7F0]" : ""}`}
-            style={{ width: 38, height: 38, color: canShare ? "#EF5B94" : "#d1d5db" }}
+            style={{ width: 38, height: 38, color: canShare ? "var(--color-primary,#EF5B94)" : "#d1d5db" }}
           >
             <IoShareSocial style={{ width: 16, height: 16 }} />
           </span>
@@ -91,7 +91,7 @@ export const BlockTitle = ({ title }) => {
         <div className="md:hidden bt-mob" style={{ margin: "-12px -16px 14px", padding: "13px 16px 12px", background: "#fff", borderBottom: "1px solid #f0f0f2", fontFamily: "'Poppins',sans-serif" }}>
           <div style={{ font: "700 19px Poppins", color: "#3A3A42" }}>{t(title)}</div>
           <div style={{ marginTop: 2 }}>
-            <span style={{ font: "700 10px Poppins", color: "#EF5B94", letterSpacing: ".5px", textTransform: "uppercase" }}>{event?.tipo || "Boda"}</span>
+            <span style={{ font: "700 10px Poppins", color: "var(--color-primary,#EF5B94)", letterSpacing: ".5px", textTransform: "uppercase" }}>{event?.tipo || "Boda"}</span>
             <span style={{ font: "500 11px Poppins", color: "#8a8a90", marginLeft: 5 }}>· {event?.nombre}</span>
           </div>
         </div>

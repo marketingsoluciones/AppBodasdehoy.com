@@ -22,7 +22,7 @@ import { useTranslation } from "react-i18next";
 
 const inputStyle: React.CSSProperties = { width: "100%", border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "11px 14px", font: "500 13px Poppins", color: "#3A3A42", outline: "none", background: "#fff" };
 const selectStyle: React.CSSProperties = { ...inputStyle, appearance: "none", backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23c4c4cc' stroke-width='2.4'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 13px center", cursor: "pointer" };
-const labelStyle: React.CSSProperties = { font: "600 12.5px Poppins", color: "#EF5B94", marginBottom: 7, display: "block" };
+const labelStyle: React.CSSProperties = { font: "600 12.5px Poppins", color: "var(--color-primary,var(--color-primary,#EF5B94))", marginBottom: 7, display: "block" };
 const errStyle: React.CSSProperties = { font: "500 11px Poppins", color: "#D83E7C", marginTop: 5 };
 
 const COUNTRIES = [
@@ -66,7 +66,7 @@ const Segment: FC<{ name: string; label: string; options: { value: string; label
       <div style={{ display: "flex", border: "1.5px solid #E7E7EA", borderRadius: 11, overflow: "hidden" }}>
         {options.map((o) => {
           const on = field.value === o.value;
-          return <button type="button" key={o.value} onClick={() => helpers.setValue(o.value)} style={{ flex: 1, padding: "10px 4px", font: "600 12.5px Poppins", border: "none", cursor: "pointer", background: on ? "#EF5B94" : "#fff", color: on ? "#fff" : "#8a8a90" }}>{o.label}</button>;
+          return <button type="button" key={o.value} onClick={() => helpers.setValue(o.value)} style={{ flex: 1, padding: "10px 4px", font: "600 12.5px Poppins", border: "none", cursor: "pointer", background: on ? "var(--color-primary,var(--color-primary,#EF5B94))" : "#fff", color: on ? "#fff" : "#8a8a90" }}>{o.label}</button>;
         })}
       </div>
     </div>
@@ -252,7 +252,7 @@ const FormInvitadoStudio: FC<{ onClose: () => void; invitado?: any; father?: str
 
   const content = (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(40,40,46,.45)", display: "flex", alignItems: "stretch", fontFamily: "'Poppins',sans-serif" }}>
-      <style dangerouslySetInnerHTML={{ __html: "@keyframes fis-slidein{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:none}}.fis-in:focus{border-color:#EF5B94!important;}.fis-body::-webkit-scrollbar{width:0;height:0;}" }} />
+      <style dangerouslySetInnerHTML={{ __html: "@keyframes fis-slidein{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:none}}.fis-in:focus{border-color:var(--color-primary,var(--color-primary,#EF5B94))!important;}.fis-body::-webkit-scrollbar{width:0;height:0;}" }} />
       <div onClick={(e) => e.stopPropagation()} style={{ width: 420, maxWidth: "94vw", height: "100%", background: "#fff", display: "flex", flexDirection: "column", boxShadow: "8px 0 40px rgba(0,0,0,.14)", animation: "fis-slidein .22s ease" }}>
         <Formik {...formikValidateUx} initialValues={initialValues} onSubmit={handleSubmit} validationSchema={validationSchema}>
           {({ isSubmitting, values, setFieldValue, resetForm }) => (
@@ -273,7 +273,7 @@ const FormInvitadoStudio: FC<{ onClose: () => void; invitado?: any; father?: str
                   <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#EAF3F0", overflow: "hidden", flex: "none" }}>
                     <img src={ImageProfile[values.sexo]?.image ?? "/placeholder/user.png"} alt={ImageProfile[values.sexo]?.alt} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   </div>
-                  {!isEdit && !isCompanion && <button type="button" onClick={() => { (window as any)["ReactNativeWebView"] || (navigator as any)["contacts"] ? setShowMedioSelectImport(true) : contactsForApiGoogle().then((r: any) => setShowForApiGoogle(r)); }} style={{ display: "flex", alignItems: "center", gap: 7, padding: "10px 16px", borderRadius: 20, background: "#EF5B94", color: "#fff", font: "600 12px Poppins", border: "none", cursor: "pointer", boxShadow: "0 5px 14px rgba(239,91,148,.28)", whiteSpace: "nowrap" }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="8" r="3.4" /><path d="M3.5 19c.7-2.8 3-4.5 5.5-4.5s4.8 1.7 5.5 4.5" /><path d="M17 8h5M19.5 5.5v5" /></svg>{t("importcontacts")}</button>}
+                  {!isEdit && !isCompanion && <button type="button" onClick={() => { (window as any)["ReactNativeWebView"] || (navigator as any)["contacts"] ? setShowMedioSelectImport(true) : contactsForApiGoogle().then((r: any) => setShowForApiGoogle(r)); }} style={{ display: "flex", alignItems: "center", gap: 7, padding: "10px 16px", borderRadius: 20, background: "var(--color-primary,var(--color-primary,#EF5B94))", color: "#fff", font: "600 12px Poppins", border: "none", cursor: "pointer", boxShadow: "0 5px 14px rgba(239,91,148,.28)", whiteSpace: "nowrap" }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="8" r="3.4" /><path d="M3.5 19c.7-2.8 3-4.5 5.5-4.5s4.8 1.7 5.5 4.5" /><path d="M17 8h5M19.5 5.5v5" /></svg>{t("importcontacts")}</button>}
                 </div>
 
                 <PhoneField />
@@ -296,7 +296,7 @@ const FormInvitadoStudio: FC<{ onClose: () => void; invitado?: any; father?: str
               {/* Pie */}
               <div style={{ display: "flex", gap: 12, padding: "16px 30px 22px", borderTop: "1px solid #f0f0f2", background: "#fff" }}>
                 <button type="button" onClick={onClose} style={{ padding: "13px 22px", borderRadius: 12, background: "#f5f5f7", border: "none", color: "#6b6b72", font: "600 13px Poppins", cursor: "pointer" }}>{t("Cancelar")}</button>
-                <button type="submit" disabled={isSubmitting} style={{ flex: 1, padding: 13, borderRadius: 12, background: isSubmitting ? "#f19bbb" : "#EF5B94", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: isSubmitting ? "default" : "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}>{isEdit ? t("Guardar cambios") : isCompanion ? t("Añadir acompañante") : t("Crear invitado")}</button>
+                <button type="submit" disabled={isSubmitting} style={{ flex: 1, padding: 13, borderRadius: 12, background: isSubmitting ? "#f19bbb" : "var(--color-primary,var(--color-primary,#EF5B94))", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: isSubmitting ? "default" : "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}>{isEdit ? t("Guardar cambios") : isCompanion ? t("Añadir acompañante") : t("Crear invitado")}</button>
               </div>
             </Form>
           )}

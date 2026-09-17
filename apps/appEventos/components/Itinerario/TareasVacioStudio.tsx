@@ -110,7 +110,7 @@ const TareasVacioStudio: FC<Props> = ({ event, setEvent, config, isOwner, pathSl
         .tv-mob{display:flex;}
         @media(min-width:768px){.tv-desk{display:flex;}.tv-mob{display:none;}}
         .tv-nuevo:hover:not(:disabled){filter:brightness(.97);}
-        .tv-view:hover{border-color:#EF5B94 !important;}
+        .tv-view:hover{border-color:var(--color-primary,#EF5B94) !important;}
         .tv-cta:hover:not(:disabled){background:#D83E7C !important;}
       ` }} />
 
@@ -121,7 +121,7 @@ const TareasVacioStudio: FC<Props> = ({ event, setEvent, config, isOwner, pathSl
           <div style={{ display: "flex", alignItems: "center", gap: 8, borderBottom: "1px solid #f5f5f7", paddingBottom: 10 }}>
             {isOwner && (
               <button type="button" className="tv-nuevo" onClick={handleCreate} disabled={creating}
-                style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 16px", borderRadius: 10, border: "1.5px solid #F3B6CE", background: "#fff", color: "#EF5B94", font: "600 13px Poppins", cursor: creating ? "default" : "pointer", opacity: creating ? 0.7 : 1 }}>
+                style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 16px", borderRadius: 10, border: "1.5px solid #F3B6CE", background: "#fff", color: "var(--color-primary,#EF5B94)", font: "600 13px Poppins", cursor: creating ? "default" : "pointer", opacity: creating ? 0.7 : 1 }}>
                 {plus}{t("new", { defaultValue: "Nuevo" })}
               </button>
             )}
@@ -133,7 +133,7 @@ const TareasVacioStudio: FC<Props> = ({ event, setEvent, config, isOwner, pathSl
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9S14.5 18.4 12 21c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3z" /></svg>
                 {t("timezone", { defaultValue: "Zona horaria" })} · {tzCity}
               </div>
-              <div className="tv-view" style={{ display: "flex", alignItems: "center", gap: 7, padding: "10px 18px", borderRadius: 12, background: "#fff", border: "1.5px solid #E7E7EA", color: "#EF5B94", font: "600 13px Poppins" }}>
+              <div className="tv-view" style={{ display: "flex", alignItems: "center", gap: 7, padding: "10px 18px", borderRadius: 12, background: "#fff", border: "1.5px solid #E7E7EA", color: "var(--color-primary,#EF5B94)", font: "600 13px Poppins" }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round"><rect x="4" y="4" width="16" height="16" rx="3" /><path d="M4 9h16M9 9v11" /></svg>
                 {t("Tarjeta", { defaultValue: "Tarjeta" })}
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={2.2} strokeLinecap="round"><path d="M6 9l6 6 6-6" /></svg>
@@ -144,12 +144,12 @@ const TareasVacioStudio: FC<Props> = ({ event, setEvent, config, isOwner, pathSl
 
         {/* Tarjeta de estado vacío */}
         <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, padding: "52px 24px 46px", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}>{listIcon(28)}</div>
+          <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary,#EF5B94)" }}>{listIcon(28)}</div>
           <div style={{ font: "700 17px Poppins", color: "#3A3A42" }}>{t("noTaskListsTitle", { defaultValue: "Aún no tienes listas de tareas" })}</div>
           <div style={{ font: "400 12.5px/1.65 Poppins", color: "#8a8a90", textAlign: "center", maxWidth: 380 }}>{t("noTaskListsDesc", { defaultValue: "Crea una lista para organizar las tareas de tu evento: por día, por proveedor o como prefieras." })}</div>
           {isOwner ? (
             <button type="button" className="tv-cta" onClick={handleCreate} disabled={creating}
-              style={{ display: "flex", alignItems: "center", gap: 7, padding: "12px 26px", borderRadius: 12, background: "#EF5B94", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: creating ? "default" : "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)", marginTop: 6, opacity: creating ? 0.85 : 1 }}>
+              style={{ display: "flex", alignItems: "center", gap: 7, padding: "12px 26px", borderRadius: 12, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: creating ? "default" : "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)", marginTop: 6, opacity: creating ? 0.85 : 1 }}>
               {creating ? spinner : plus}{creating ? t("creating", { defaultValue: "Creando…" }) : t("createFirstTaskList", { defaultValue: "Crear mi primera lista" })}
             </button>
           ) : (
@@ -166,13 +166,13 @@ const TareasVacioStudio: FC<Props> = ({ event, setEvent, config, isOwner, pathSl
             <div style={{ minWidth: 0, flex: 1 }}>
               <div style={{ font: "700 17px Poppins", color: "#3A3A42" }}>{t("Lista de tareas", { defaultValue: "Lista de tareas" })}</div>
               <div style={{ font: "500 10px Poppins", color: "#a0a0a8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                <span style={{ color: "#EF5B94", fontWeight: 600 }}>{(event?.tipo || "BODA").toUpperCase()}</span> · {event?.nombre || ""}
+                <span style={{ color: "var(--color-primary,#EF5B94)", fontWeight: 600 }}>{(event?.tipo || "BODA").toUpperCase()}</span> · {event?.nombre || ""}
               </div>
             </div>
             <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#F7F6F8", display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3A3A42" strokeWidth={2}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
             </div>
-            <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#F7F6F8", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", color: "#EF5B94" }}>
+            <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#F7F6F8", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", color: "var(--color-primary,#EF5B94)" }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="12" r="2.6" /><circle cx="17.5" cy="5.5" r="2.6" /><circle cx="17.5" cy="18.5" r="2.6" /><path d="M8.3 10.8l6.9-4M8.3 13.2l6.9 4" /></svg>
             </div>
           </div>
@@ -182,7 +182,7 @@ const TareasVacioStudio: FC<Props> = ({ event, setEvent, config, isOwner, pathSl
         {isOwner && (
           <div style={{ margin: "12px 16px 0" }}>
             <button type="button" className="tv-nuevo" onClick={handleCreate} disabled={creating}
-              style={{ display: "flex", alignItems: "center", gap: 5, padding: "11px 16px", borderRadius: 12, border: "1.5px solid #F3B6CE", background: "#fff", color: "#EF5B94", cursor: creating ? "default" : "pointer", font: "600 12px Poppins", boxShadow: "0 3px 10px rgba(0,0,0,.04)", opacity: creating ? 0.7 : 1 }}>
+              style={{ display: "flex", alignItems: "center", gap: 5, padding: "11px 16px", borderRadius: 12, border: "1.5px solid #F3B6CE", background: "#fff", color: "var(--color-primary,#EF5B94)", cursor: creating ? "default" : "pointer", font: "600 12px Poppins", boxShadow: "0 3px 10px rgba(0,0,0,.04)", opacity: creating ? 0.7 : 1 }}>
               {plus}{t("newList", { defaultValue: "Nueva lista" })}
             </button>
           </div>
@@ -190,12 +190,12 @@ const TareasVacioStudio: FC<Props> = ({ event, setEvent, config, isOwner, pathSl
 
         {/* Estado vacío centrado */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 30px 60px", gap: 12 }}>
-          <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}>{listIcon(26)}</div>
+          <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary,#EF5B94)" }}>{listIcon(26)}</div>
           <div style={{ font: "700 15.5px Poppins", color: "#3A3A42", textAlign: "center" }}>{t("noTaskListsTitle", { defaultValue: "Aún no tienes listas de tareas" })}</div>
           <div style={{ font: "400 11.5px/1.65 Poppins", color: "#8a8a90", textAlign: "center", maxWidth: 260 }}>{t("noTaskListsDesc", { defaultValue: "Crea una lista para organizar las tareas de tu evento: por día, por proveedor o como prefieras." })}</div>
           {isOwner ? (
             <button type="button" className="tv-cta" onClick={handleCreate} disabled={creating}
-              style={{ display: "flex", alignItems: "center", gap: 7, padding: "13px 26px", borderRadius: 13, background: "#EF5B94", color: "#fff", font: "600 13px Poppins", border: "none", cursor: creating ? "default" : "pointer", boxShadow: "0 8px 20px rgba(239,91,148,.35)", marginTop: 6, opacity: creating ? 0.85 : 1 }}>
+              style={{ display: "flex", alignItems: "center", gap: 7, padding: "13px 26px", borderRadius: 13, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 13px Poppins", border: "none", cursor: creating ? "default" : "pointer", boxShadow: "0 8px 20px rgba(239,91,148,.35)", marginTop: 6, opacity: creating ? 0.85 : 1 }}>
               {creating ? spinner : plus}{creating ? t("creating", { defaultValue: "Creando…" }) : t("createFirstTaskList", { defaultValue: "Crear mi primera lista" })}
             </button>
           ) : (
