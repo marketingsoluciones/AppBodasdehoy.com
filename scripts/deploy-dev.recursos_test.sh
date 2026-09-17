@@ -156,6 +156,31 @@ else
   fi
 fi
 
+# ── 11 · el aviso de "sin commitear" ignora lo que genera el build ────────
+# Saltaba en el 100% de los despliegues, porque Next reescribe
+# apps/appEventos/next-env.d.ts en cada build para apuntar al distDir del momento. Un
+# aviso que salta siempre enseña a ignorarlo, y este es el que debe avisar de que
+# alguien va a compilar cambios que no sabía que tenía.
+type cambios_relevantes >/dev/null 2>&1 || {
+  falla "deploy-dev.sh no expone cambios_relevantes" "¿se quitó la función?"
+}
+SOLO_GEN=$(printf ' M apps/appEventos/next-env.d.ts\n' | cambios_relevantes) || SOLO_GEN="ERROR"
+if [ -z "$SOLO_GEN" ]; then
+  ok "no avisa cuando lo único sucio es un fichero que genera el build"
+else
+  falla "avisa por un fichero generado por el build" "devolvió: $SOLO_GEN"
+fi
+
+# ── 12 · pero un cambio DE VERDAD sigue avisando, y se nombra ─────────────
+# El riesgo del arreglo anterior es pasarse de ancho y tapar trabajo real.
+MEZCLA=$(printf ' M apps/appEventos/next-env.d.ts\n M apps/appEventos/pages/login.tsx\n' | cambios_relevantes) || MEZCLA=""
+if [ "$MEZCLA" = "apps/appEventos/pages/login.tsx" ]; then
+  ok "sí avisa de un cambio real, y solo de ese"
+else
+  falla "no aísla el cambio real" \
+        "esperaba 'apps/appEventos/pages/login.tsx' y devolvió: '$MEZCLA'"
+fi
+
 echo
 if [ "$FALLIDOS" -eq 0 ]; then
   printf '\033[32m%s\033[0m\n' "✓ recursos: $PASADOS comprobaciones en verde"
