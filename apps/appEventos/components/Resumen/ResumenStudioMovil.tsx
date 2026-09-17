@@ -3,7 +3,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { EventContextProvider, AuthContextProvider } from "../../context";
 import ModalCompartirEventoStudio from "../Utils/ModalCompartirEventoStudio";
-import { defaultImagenes } from "../Home/Card";
+import { getEventImage } from "../Home/Card";
 import StudioNotesSection from "../Presupuesto/StudioNotesSection";
 import FormCrearEvento from "../Forms/FormCrearEvento";
 import ModalLeft from "../Utils/ModalLeft";
@@ -114,7 +114,7 @@ const ResumenStudioMovil: FC = () => {
 
   const heroSrc = (event?.imgEvento?.i640 || event?.imgEvento?.i800 || event?.imgEvento?.i320)
     ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${event.imgEvento.i640 || event.imgEvento.i800 || event.imgEvento.i320}`)}`
-    : (defaultImagenes[event?.tipo?.toLowerCase()] || defaultImagenes["otro"]);
+    : (getEventImage(event?.tipo));
 
   // Checklist (mismo cálculo que ResumenStudio; toggle local mueve la barra)
   const [stepsDone, setStepsDone] = useState<boolean[]>(() => {
@@ -159,7 +159,7 @@ const ResumenStudioMovil: FC = () => {
         {/* HERO */}
         <div style={{ ...cardStyle, borderRadius: 18, overflow: "hidden", boxShadow: "0 6px 20px rgba(0,0,0,.06)", marginBottom: 14 }}>
           <div style={{ position: "relative", height: 170, background: "#f4f4f6" }}>
-            <img src={heroSrc} alt={event?.nombre} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[event?.tipo?.toLowerCase()] || defaultImagenes["otro"]; }} />
+            <img src={heroSrc} alt={event?.nombre} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { (e.target as HTMLImageElement).src = getEventImage(event?.tipo); }} />
             <div style={{ position: "absolute", top: 10, right: 10, display: "flex", gap: 8 }}>
               <div onClick={() => isOwner && setOpenShare(true)} title="Compartir" style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,.92)", display: "flex", alignItems: "center", justifyContent: "center", color: cLight, boxShadow: "0 3px 10px rgba(0,0,0,.14)", cursor: isOwner ? "pointer" : "default" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4" /></svg></div>
               <div onClick={() => isOwner && setIsMounted(true)} title="Editar evento" style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,.92)", display: "flex", alignItems: "center", justifyContent: "center", color: cLight, boxShadow: "0 3px 10px rgba(0,0,0,.14)", opacity: isOwner ? 1 : .5, cursor: isOwner ? "pointer" : "default" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></div>
