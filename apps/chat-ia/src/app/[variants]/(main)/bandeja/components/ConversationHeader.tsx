@@ -18,13 +18,12 @@ import { useConversationActions } from '../hooks/useConversationActions';
 import { ConversationStatus, useConversationMeta } from '../hooks/useConversationMeta';
 import { generateSummary } from '../hooks/useDraftSync';
 import { ChannelBadge } from './ChannelBadge';
-import { useIaLevel } from '../hooks/useIaLevel';
 import { useBandejaBrand } from '../utils/brand';
 import { describeVisibility } from '../utils/visibility';
 import { ChannelTypeChip } from './ChannelTypeChip';
 import { ConversationSummary } from './ConversationSummary';
 import { SharePanel } from './SharePanel';
-import { IaLevelPicker } from './IaLevelPicker';
+import { IaModeBadge } from './RowIndicators';
 
 interface ConversationHeaderProps {
   channel?: string;
@@ -158,8 +157,9 @@ export function ConversationHeader({
     if (fromStorage && fromStorage !== development) setDevelopment(fromStorage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  // M4: el nivel de IA vive en useIaLevel (carga, guardado y reversión si el servidor rechaza).
-  const { change: persistIaLevel, level: iaLevel } = useIaLevel(development);
+  // El nivel de la bandeja ya no se lee aquí: el indicador de la conversación lo resuelve
+  // por su cuenta (propio o heredado) y cambiarlo desde esta cabecera ponía en automático las
+  // noventa conversaciones creyendo tocar solo esta.
   const searchInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -365,13 +365,18 @@ export function ConversationHeader({
                 {conversation.contact.name}
               </h2>
               <ChannelBadge channel={conversation.channel} size="sm" />
-              {/* IaLevelPicker PRESERVADO 3-niveles — solo se rediseña visualmente
-                  desde su propio componente en un bloque posterior si se decide. */}
-              <IaLevelPicker
-                level={iaLevel}
-                // El hook ya mueve la interfaz al instante y revierte si el servidor rechaza.
-                onChange={(next) => void persistIaLevel(next)}
-              />
+              {/* Aquí había el selector de IA de TODA la bandeja, pegado al nombre del
+                  contacto (17-09). Puesto ahí parecía el modo de esta conversación, y no lo
+                  era: cambiarlo ponía en automático las noventa. El modo del conjunto se
+                  gobierna desde la cabecera de la lista, que es donde se ve la lista; aquí va
+                  el de ESTA conversación, con el mismo icono que en su fila. */}
+              {conversationId && (
+                <IaModeBadge
+                  conTexto
+                  conversationId={conversationId}
+                  development={development}
+                />
+              )}
             </div>
             <div className="mt-0.5 flex items-center gap-1.5">
               <p className="truncate text-xs" style={{ color: '#84848F' }}>

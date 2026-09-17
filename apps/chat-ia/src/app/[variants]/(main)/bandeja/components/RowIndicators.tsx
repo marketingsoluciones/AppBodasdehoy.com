@@ -111,9 +111,15 @@ export function SharedBadge({
 }
 
 export function IaModeBadge({
+  conMenu = true,
+  conTexto = false,
   conversationId,
   development,
 }: {
+  /** Permite abrir el menú de cambio. */
+  conMenu?: boolean;
+  /** En la cabecera hay sitio para el nombre del modo; en la fila, no. */
+  conTexto?: boolean;
   conversationId: string;
   development: string;
 }) {
@@ -198,6 +204,7 @@ export function IaModeBadge({
         aria-haspopup="menu"
         aria-label={`IA en modo ${modo.nombre}${propio ? ' en esta conversación' : ' (heredado de la bandeja)'}`}
         className={PASTILLA}
+        disabled={!conMenu}
         onClick={(e) => {
           e.stopPropagation();
           if (abierto) setAbierto(false);
@@ -220,6 +227,12 @@ export function IaModeBadge({
         type="button"
       >
         <span aria-hidden="true">{modo.icono}</span>
+        {conTexto && (
+          <span className="ml-0.5">
+            {modo.nombre}
+            {!propio && <span className="ml-1 font-normal opacity-70">· de la bandeja</span>}
+          </span>
+        )}
       </button>
 
       {aviso && (
