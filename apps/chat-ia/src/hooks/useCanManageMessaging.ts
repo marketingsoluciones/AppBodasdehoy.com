@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useChatStore } from '@/store/chat';
 // Import relativo a proposito: en vitest.config.mts el alias '@/utils' apunta al
 // sub-paquete packages/utils, no a src/utils — con '@/utils/jwtRole' el test no resuelve.
-import { canManageRole, getJwtRole } from '../utils/jwtRole';
+import { canManageAnyRole, canManageRole, getJwtDevelopmentRoles } from '../utils/jwtRole';
 
 /**
  * useCanManageMessaging — ¿este usuario gestiona canales/mensajería de la marca?
@@ -23,6 +23,17 @@ import { canManageRole, getJwtRole } from '../utils/jwtRole';
  *
  * Ahora manda el rol del store (fuente del backend) y el claim del JWT queda como
  * respaldo. El default sigue siendo restrictivo: sin rol conocido, no se gestiona.
+ *
+ * ── 17-09: se lee `developmentRoles`, NO `role` ──────────────────────────────────
+ * El backend añadió el claim `developmentRoles`: los roles del usuario EN ESTA
+ * MARCA (array, p. ej. ["empresa","editor","admin"]). Es el que hay que consultar
+ * para "Gestionar canales".
+ *
+ * El claim `role` de al lado es el rol de PLATAFORMA y se deja de usar a propósito:
+ * un usuario puede ser 'admin' de plataforma sin ser nada en esta marca, y leerlo
+ * le daba administración de una marca ajena. Antes el gate dependía por completo de
+ * ese claim — verificado en dev, el `userRole` del store llega `null`, así que `role`
+ * era lo único que lo abría.
  */
 export function useCanManageMessaging(): boolean {
   const userRole = useChatStore((s) => s.userRole);
@@ -31,5 +42,7 @@ export function useCanManageMessaging(): boolean {
 
   // Primer render (y SSR) restrictivo y estable → sin mismatch de hidratación.
   if (!mounted) return false;
-  return canManageRole(userRole) || canManageRole(getJwtRole());
+  // Orden: roles de marca del JWT (fuente correcta) → rol del store (backend, hoy
+  // suele venir null). El claim `role` YA NO cuenta.
+  return canManageAnyRole(getJwtDevelopmentRoles()) || canManageRole(userRole);
 }
