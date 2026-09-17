@@ -8,10 +8,9 @@ import { useTypingInConv } from '@/store/bandeja/selectors';
 import { useAgentAssignmentOverrides } from '../hooks/useAgentAssignmentOverrides';
 import { Conversation } from '../hooks/useConversations';
 import { useBandejaBrand } from '../utils/brand';
-import { describeVisibility } from '../utils/visibility';
 import { stripMiniMarkdown } from './MiniMarkdown';
 import { previewText } from '../utils/preview';
-import { IaModeControl } from './IaModeControl';
+import { IaModeBadge, SharedBadge } from './RowIndicators';
 import { useConversationActions } from '../hooks/useConversationActions';
 import { ConversationStatus, useConversationMeta } from '../hooks/useConversationMeta';
 
@@ -161,14 +160,16 @@ export function ConversationItem({
   const agentName = agentOverride !== undefined
     ? agentOverride.name
     : (conversation.assignedAgentName ?? null);
-  // Señal ✦: si esta conversación tiene IA activa (copilot o autopilot).
-  // Preservamos la señal cromática de los mensajes (teal/cyan/morado) — este ✦
-  // es solo un marcador de "hay IA operando aquí" en la lista. Cast defensivo:
-  // el hook useConversations no tipa `iaLevel`, pero el store bandeja sí lo
-  // propaga en algunos endpoints — si no viene, hasIa cae a false.
-  const iaLevel = (conversation as unknown as { iaLevel?: string }).iaLevel;
-  const hasIa = iaLevel === 'copilot' || iaLevel === 'autopilot';
-  const visibility = describeVisibility(conversation.sharedWith);
+  // El ✦ que marcaba "hay IA aquí" se retiró el 17-09: decía que la IA operaba, pero no en
+  // qué modo, que es lo que hay que saber antes de abrir. Lo sustituye el indicador de modo.
+
+  // El nombre suele SER el teléfono; cuando no, el dato sigue accesible en el tooltip en vez
+  // de gastar una tercera línea en cada fila.
+  const contacto =
+    [conversation.contact.phone, conversation.contact.username]
+      .filter(Boolean)
+      .filter((v) => v !== conversation.contact.name)
+      .join(' · ') || conversation.contact.name;
 
   const irACompartir = () =>
     router.push(
@@ -177,10 +178,14 @@ export function ConversationItem({
 
   return (
     <>
-      <div className="relative">
-      <button
-        className="w-full text-left transition-colors"
-        onClick={handleClick}
+      {/* Misma fila que la bandeja principal: dos líneas y 64px. Antes esta lista iba a 95px
+          con una tercera línea de chips (canal, tipo de línea, teléfono) que dentro de un
+          canal repetía en las noventa filas lo que ya dice la cabecera. El canal lo sigue
+          diciendo el punto del avatar; el teléfono, el tooltip del nombre.
+          El botón de la fila va DEBAJO del contenido, no envolviéndolo: los indicadores son
+          botones y no pueden anidarse dentro de otro. */}
+      <div
+        className="relative"
         onContextMenu={handleContextMenu}
         onMouseEnter={(e) => {
           if (!isSelected) e.currentTarget.style.backgroundColor = '#FCFCFD';
@@ -188,63 +193,84 @@ export function ConversationItem({
         onMouseLeave={(e) => {
           if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent';
         }}
-        style={{
-          backgroundColor: isSelected ? '#F2F1F6' : 'transparent',
-        }}
-        type="button"
+        style={{ backgroundColor: isSelected ? '#F2F1F6' : 'transparent' }}
       >
-        {/* Fila compacta (16-09, prototipo aprobado): 9px de alto interior y avatar de 36px,
-            centrado en vertical. Antes eran 10px + avatar de 40 alineado arriba y cabían
-            cuatro conversaciones en una pantalla de portátil. */}
-        <div className="flex items-center gap-2.5 px-3 py-2">
-          {/* Avatar 36x36 con punto de canal */}
+        <button
+          aria-label={`Abrir conversación con ${conversation.contact.name}`}
+          className="absolute inset-0 h-full w-full"
+          onClick={handleClick}
+          type="button"
+        />
+        <div className="pointer-events-none relative flex items-center gap-2.5 px-3 py-2 text-left">
+          {/* Avatar con punto de canal y presencia */}
           <div className="relative flex-shrink-0">
             <div
               className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold"
-              style={{
-                backgroundColor: '#F2F1F6',
-                color: '#1C1C22',
-              }}
+              style={{ backgroundColor: '#F2F1F6', color: '#1C1C22' }}
             >
               {conversation.contact.name.charAt(0).toUpperCase()}
             </div>
-            {/* Punto de canal (rediseño 18-jul) */}
             <span
-              aria-label={`Canal ${conversation.channel}`}
+              aria-label={`Canal ${CHANNEL_NAME[conversation.channel] ?? conversation.channel}`}
               className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full"
-              style={{
-                backgroundColor: channelDot,
-                boxShadow: '0 0 0 2px #FFFFFF',
-              }}
+              style={{ backgroundColor: channelDot, boxShadow: '0 0 0 2px #FFFFFF' }}
+              title={
+                conversation.channel === 'whatsapp' && conversation.channelType
+                  ? `WhatsApp · ${CHANNEL_TYPE_LABEL[conversation.channelType] ?? conversation.channelType}`
+                  : (CHANNEL_NAME[conversation.channel] ?? conversation.channel)
+              }
             />
-            {/* Presence dot: si hay presencia, encima del canal en top-right */}
             {isOnline && (
               <span
                 aria-label="En línea"
                 className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full"
-                style={{
-                  backgroundColor: '#22C55E',
-                  boxShadow: '0 0 0 2px #FFFFFF',
-                }}
+                style={{ backgroundColor: '#22C55E', boxShadow: '0 0 0 2px #FFFFFF' }}
               />
             )}
           </div>
 
-          {/* Content */}
           <div className="min-w-0 flex-1">
-            {/* Header: nombre + hora */}
-            <div className="mb-0.5 flex items-baseline justify-between gap-2">
-              {/* Fase 2 hifi: nombre 13px/700 #262131, timestamp 10px #A8A3B5 (spec). */}
-              <h3 className="truncate text-[13px] font-bold" style={{ color: '#262131' }}>
+            {/* Nombre + estado + hora */}
+            <div className="flex items-baseline justify-between gap-2">
+              <h3
+                className="truncate text-[13px] font-bold"
+                style={{ color: '#262131' }}
+                title={contacto}
+              >
                 {conversation.contact.name}
               </h3>
+              {status === 'pending' && (
+                <span
+                  className="flex-none rounded-full px-1.5 text-[10px] font-medium"
+                  style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}
+                >
+                  En espera
+                </span>
+              )}
+              {status === 'closed' && (
+                <span
+                  className="flex-none rounded-full px-1.5 text-[10px] font-medium"
+                  style={{ backgroundColor: '#F2F1F6', color: '#84848F' }}
+                >
+                  Cerrada
+                </span>
+              )}
+              {assignedToMe && (
+                <span
+                  className="flex-none rounded-full px-1.5 text-[10px] font-medium"
+                  style={{ backgroundColor: brand.brandBg, color: brand.brand }}
+                  title="Esta conversación está asignada a ti"
+                >
+                  Tuya
+                </span>
+              )}
               <span className="flex-shrink-0 text-[10px]" style={{ color: '#A8A3B5' }}>
                 {formatTimestamp(conversation.lastMessage.timestamp)}
               </span>
             </div>
 
-            {/* Preview mensaje / Typing + contador no leídos */}
-            <div className="flex items-center justify-between gap-2">
+            {/* Mensaje + indicadores (acceso, modo de IA) + no leídos */}
+            <div className="flex items-center gap-1">
               <div className="min-w-0 flex-1">
                 {isTyping ? (
                   <TypingIndicator />
@@ -256,14 +282,6 @@ export function ConversationItem({
                       fontWeight: conversation.unreadCount > 0 ? 500 : 400,
                     }}
                   >
-                    {hasIa && (
-                      <span
-                        aria-hidden
-                        style={{ color: brand.brand, marginRight: 4 }}
-                      >
-                        ✦
-                      </span>
-                    )}
                     {!conversation.lastMessage.fromUser && (
                       <span style={{ color: '#9A9AA6' }}>Tú: </span>
                     )}
@@ -271,7 +289,19 @@ export function ConversationItem({
                   </p>
                 )}
               </div>
-              {/* Contador no leídos: pill morado #6B4EFF */}
+              {agentName && (
+                <span
+                  aria-label={`Responsable: ${agentName}`}
+                  className="inline-flex max-w-[80px] flex-none items-center gap-0.5 truncate rounded-full px-1 text-[10px] font-medium"
+                  style={{ backgroundColor: brand.brandBg, color: brand.brand }}
+                  title={`Responsable: ${agentName}`}
+                >
+                  <span aria-hidden>🤖</span>
+                  <span className="truncate">{agentName}</span>
+                </span>
+              )}
+              <SharedBadge onManage={irACompartir} sharedWith={conversation.sharedWith} />
+              {marca && <IaModeBadge conversationId={conversation.id} development={marca} />}
               {conversation.unreadCount > 0 && (
                 <span
                   aria-label={`${conversation.unreadCount} sin leer`}
@@ -282,117 +312,8 @@ export function ConversationItem({
                 </span>
               )}
             </div>
-
-            {/* Fila 3: chips secundarios (canal + status + asignada + phone) */}
-            <div className="mt-0.5 flex items-center gap-1 text-[10px]" style={{ color: '#9A9AA6' }}>
-              {/* Chip de canal con color + nombre → distinguir WhatsApp de otros de un vistazo.
-                  En WhatsApp añade el tipo de línea (QR / Meta API) — nº1 de la auditoría 1-sep. */}
-              <span
-                className="inline-flex flex-none items-center gap-1 rounded-full px-1.5 py-0.5 font-medium"
-                style={{ backgroundColor: `${channelDot}1A`, color: channelDot }}
-                title={
-                  conversation.channel === 'whatsapp' && conversation.channelType
-                    ? `WhatsApp ${CHANNEL_TYPE_LABEL[conversation.channelType] ?? conversation.channelType}`
-                    : undefined
-                }
-              >
-                <span
-                  className="h-1.5 w-1.5 rounded-full"
-                  style={{ backgroundColor: channelDot }}
-                />
-                {CHANNEL_NAME[conversation.channel] ?? conversation.channel}
-                {conversation.channel === 'whatsapp' && conversation.channelType && (
-                  <span style={{ opacity: 0.75 }}>
-                    · {CHANNEL_TYPE_LABEL[conversation.channelType] ?? conversation.channelType}
-                  </span>
-                )}
-              </span>
-              {status === 'pending' && (
-                <span
-                  className="rounded-full px-1.5 py-0.5 font-medium"
-                  style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}
-                >
-                  En espera
-                </span>
-              )}
-              {status === 'closed' && (
-                <span
-                  className="rounded-full px-1.5 py-0.5 font-medium"
-                  style={{ backgroundColor: '#F2F1F6', color: '#84848F' }}
-                >
-                  Cerrada
-                </span>
-              )}
-              {assignedToMe && (
-                <span
-                  className="rounded-full px-1.5 py-0.5 font-medium"
-                  style={{ backgroundColor: brand.brandBg, color: brand.brand }}
-                >
-                  Asignada a ti
-                </span>
-              )}
-              {agentName && (
-                <span
-                  aria-label={`Responsable: ${agentName}`}
-                  className="inline-flex max-w-[45%] items-center gap-1 truncate rounded-full px-1.5 py-0.5 font-medium"
-                  style={{ backgroundColor: brand.brandBg, color: brand.brand }}
-                  title={`Responsable: ${agentName}`}
-                >
-                  <span aria-hidden>🤖</span>
-                  <span className="truncate">{agentName}</span>
-                </span>
-              )}
-              {(conversation.contact.phone || conversation.contact.username) && (
-                <span className="truncate">
-                  {conversation.contact.phone || conversation.contact.username}
-                </span>
-              )}
-            </div>
           </div>
         </div>
-      </button>
-      {/* Acceso: quién ve esta conversación y atajo para gestionarlo sin entrar primero.
-          Va FUERA del <button> de la fila —posicionado encima— porque un botón no puede
-          contener otro elemento interactivo: es inválido y los clics se pisan. Aparece en
-          todas las filas, no solo en las compartidas: si solo saliera cuando ya hay alguien,
-          no habría por dónde empezar a dar acceso. */}
-      {/* Modo de la IA en ESTA conversación (api-ia lo guarda por conversación con herencia
-          del de la marca). Junto al acceso, fuera del botón de fila. */}
-      <span className="absolute bottom-1.5 right-11">
-        <IaModeControl conversationId={conversation.id} development={marca} />
-      </span>
-      <button
-        aria-label={
-          visibility ? `Gestionar acceso · ${visibility.title}` : 'Dar acceso a alguien del equipo'
-        }
-        className="absolute bottom-1.5 right-2 inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-medium"
-        onClick={(e) => {
-          e.stopPropagation();
-          irACompartir();
-        }}
-        style={{
-          backgroundColor: visibility ? '#EEF2FF' : 'transparent',
-          color: visibility ? '#4F46E5' : '#B4B0BE',
-        }}
-        title={visibility ? `${visibility.title} · pulsa para gestionar` : 'Dar acceso a alguien del equipo'}
-        type="button"
-      >
-        <svg
-          fill="none"
-          height="11"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          viewBox="0 0 24 24"
-          width="11"
-        >
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-        {visibility ? visibility.label.replace('Compartida · ', '') : ''}
-      </button>
       </div>
 
       {/* Context menu */}

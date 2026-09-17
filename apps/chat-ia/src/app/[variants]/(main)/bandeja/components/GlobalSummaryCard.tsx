@@ -42,34 +42,44 @@ export function GlobalSummaryCard({ convUnread }: { convUnread: number }) {
     };
   }, []);
 
+  // Solo se enseña lo que tiene número. Antes salían los cuatro siempre y tres de ellos
+  // marcaban "…" porque api-ia no responde ese resumen en esta marca: una tarjeta de 60px
+  // que en la práctica decía "no sé, no sé, no sé". (Owner 17-09: «ocupa mucho espacio,
+  // aporta poco valor».) Ahora es una línea y desaparece si no hay nada que contar.
   const stats: Array<{ icon: string; label: string; value: number | null }> = [
     { icon: '💍', label: 'bodas', value: num(summary?.eventos) },
     { icon: '💬', label: 'sin leer', value: convUnread },
     { icon: '⏳', label: 'esperan', value: num(summary?.esperanRespuesta) },
     { icon: '✅', label: 'confirmados', value: num(summary?.confirmados) },
-  ];
+  ].filter((s) => s.value !== null && s.value !== 0) as Array<{
+    icon: string;
+    label: string;
+    value: number;
+  }>;
+
+  if (stats.length === 0) return null;
 
   return (
-    <div className="border-b border-gray-100 px-3 py-2.5">
-      <div
-        className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide"
+    <div className="no-scrollbar flex items-center gap-3 overflow-x-auto border-b border-gray-100 px-3 py-1.5">
+      <span
+        aria-hidden="true"
+        className="flex-none text-[11px]"
         style={{ color: brand.brand }}
+        title="Resumen de todas tus bodas"
       >
-        <span aria-hidden="true">🌐</span> Todas tus bodas
-      </div>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-        {stats.map((s) => (
-          <div className="flex items-baseline gap-1" key={s.label}>
-            <span className="text-sm">{s.icon}</span>
-            <span className="text-base font-bold" style={{ color: '#1C1C22' }}>
-              {s.value === null ? '…' : s.value}
-            </span>
-            <span className="text-[11px]" style={{ color: '#84848F' }}>
-              {s.label}
-            </span>
-          </div>
-        ))}
-      </div>
+        🌐
+      </span>
+      {stats.map((s) => (
+        <span className="flex flex-none items-baseline gap-1" key={s.label}>
+          <span aria-hidden="true" className="text-[11px]">{s.icon}</span>
+          <span className="text-[13px] font-bold" style={{ color: '#1C1C22' }}>
+            {s.value}
+          </span>
+          <span className="text-[11px]" style={{ color: '#84848F' }}>
+            {s.label}
+          </span>
+        </span>
+      ))}
     </div>
   );
 }

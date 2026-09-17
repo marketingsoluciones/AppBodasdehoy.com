@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { BandejaTabs, useActiveBandejaTab } from './components/BandejaTabs';
 import { GlobalSummaryCard } from './components/GlobalSummaryCard';
+import { InboxOverview } from './components/InboxOverview';
 import { InboxFilters, type ChannelFilter, type RsvpFilter } from './components/InboxFilters';
 import { NewMessageModal } from './components/NewMessageModal';
 import { ScopeSelector, type ScopeId } from './components/ScopeSelector';
@@ -351,25 +352,14 @@ export default function MessagesPage() {
                   onChannelChange={setChannelFilter}
                   onPendingIaToggle={() => setPendingIaActive((v) => !v)}
                   onRsvpChange={setRsvpFilter}
+                  onToggleSpam={toggleShowSpam}
                   pendingIaActive={pendingIaActive}
                   pendingIaCount={pendingIaCount}
                   rsvp={rsvpFilter}
+                  showSpam={showSpam}
                 />
-                {/* MOB-21 toggle "ver spam" (15-jul) — chip discreto que revierte
-                    el filtro auto de newsletter/broadcast si el usuario lo pide. */}
-                <div className="flex justify-end border-b border-gray-100 px-3 py-1">
-                  <button
-                    aria-pressed={showSpam}
-                    className="rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[11px] font-medium text-gray-600 hover:bg-gray-100"
-                    onClick={toggleShowSpam}
-                    // A4 (QA 6-ago): color inline gana al override global del tema oscuro
-                    // (el repo no usa variantes dark:), evitando texto invisible sobre el bg blanco.
-                    style={{ color: '#4b5563' }}
-                    type="button"
-                  >
-                    {showSpam ? '📢 Ocultar newsletters/estados' : '👁 Ver newsletters/estados'}
-                  </button>
-                </div>
+{/* El toggle de newsletters/estados se fue a la fila de filtros (17-09): tenía
+                    fila propia con borde, 27px, para un chip. */}
               </>
             )}
             <div className="min-h-0 flex-1 overflow-hidden">
@@ -382,66 +372,30 @@ export default function MessagesPage() {
               />
             </div>
           </div>
-          {/* Panel principal — empty state según tab. Oculto en móvil (la lista va full-width;
-              al tocar una conversación se navega a su ruta de detalle a pantalla completa). */}
+          {/* Panel principal. Oculto en móvil (la lista va full-width; al tocar una
+              conversación se navega a su ruta de detalle a pantalla completa). */}
           <div className="hidden flex-1 flex-col items-center justify-center bg-gray-50 px-6 text-center md:flex">
-            <div className="max-w-md">
-              {activeTab === 'history' ? (
-                <>
-                  <div className="text-4xl">🔔</div>
-                  <div className="mt-3 text-sm font-semibold text-gray-800">Notificaciones</div>
-                  <div className="mt-1 text-xs text-gray-500">
-                    Selecciona una notificación para ver el detalle. Las acciones se
-                    enlazan al hilo de la conversación o entidad correspondiente.
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="text-4xl">💬</div>
-                  <div className="mt-3 text-sm font-semibold text-gray-800">
-                    Bandeja unificada
-                  </div>
-                  <div className="mt-1 text-xs text-gray-500">
-                    Mensajes y notificaciones en un solo sitio. Selecciona una conversación
-                    para ver el detalle.
-                  </div>
-                  {/* Gate N29 (QA 14-09): conectar canales solo para roles que
-                      gestionan mensajeria; el resto ve copy de soporte. */}
-                  {canManage ? (
-                    <div className="mt-4 flex items-center justify-center gap-2">
-                      <button
-                        className="rounded-lg bg-violet-600 px-3 py-2 text-xs font-semibold text-white hover:bg-violet-700"
-                        onClick={() => setShowNewMessage(true)}
-                        type="button"
-                      >
-                        ✍️ Nuevo mensaje
-                      </button>
-                      <button
-                        className="rounded-lg bg-pink-500 px-3 py-2 text-xs font-semibold text-white hover:bg-pink-600"
-                        onClick={() => router.push('/bandeja/whatsapp')}
-                        type="button"
-                      >
-                        Conectar WhatsApp
-                      </button>
-                      <button
-                        className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
-                        onClick={() => router.push('/settings/integrations')}
-                        // A4 (QA 6-ago): color inline evita texto invisible en tema oscuro.
-                        style={{ color: '#374151' }}
-                        title="Instagram, Facebook, Telegram, correo o chat web"
-                        type="button"
-                      >
-                        Conectar otro canal
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="mt-4 text-xs text-gray-400">
-                      Contacta con soporte para activar la mensajería de tu evento.
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
+            {activeTab === 'history' ? (
+              <div className="max-w-md">
+                <div className="text-4xl">🔔</div>
+                <div className="mt-3 text-sm font-semibold text-gray-800">Notificaciones</div>
+                <div className="mt-1 text-xs text-gray-500">
+                  Selecciona una notificación para ver el detalle. Las acciones se
+                  enlazan al hilo de la conversación o entidad correspondiente.
+                </div>
+              </div>
+            ) : (
+              /* Gate N29 (QA 14-09): conectar canales solo para roles que gestionan
+                 mensajería; el resto ve copy de soporte. */
+              <InboxOverview
+                canManage={canManage}
+                items={filteredItems}
+                onConnectOther={() => router.push('/settings/integrations')}
+                onConnectWhatsApp={() => router.push('/bandeja/whatsapp')}
+                onItemClick={handleItemClick}
+                onNewMessage={() => setShowNewMessage(true)}
+              />
+            )}
           </div>
         </div>
       </div>

@@ -203,6 +203,20 @@ test('QA bandeja — usabilidad y navegación', async ({ page }) => {
     anota('Hay salida a todos los canales', /Todos los canales/i.test(enCanal));
     anota('Modo de IA por defecto visible', /IA por defecto/i.test(enCanal));
 
+    // Densidad de la lista POR CANAL: es otro componente que la bandeja, y la auditoría la
+    // midió en 95px cuando la bandeja iba a 64. Dos densidades para lo mismo.
+    const altoCanal = await page.evaluate(() => {
+      const alturas = [...document.querySelectorAll('button')]
+        .map((el) => Math.round(el.getBoundingClientRect().height))
+        .filter((h) => h > 30 && h < 140);
+      const cuenta: Record<number, number> = {};
+      alturas.forEach((h) => (cuenta[h] = (cuenta[h] || 0) + 1));
+      const top = Object.entries(cuenta).sort((a, b) => b[1] - a[1])[0];
+      return top ? Number(top[0]) : null;
+    });
+    anota('Densidad de la lista por canal igual a la de la bandeja (≤70px)',
+      altoCanal === null ? null : altoCanal <= 70, `${altoCanal ?? '?'}px`);
+
     const gestionAcceso = await page.locator('button[aria-label*="acceso"]').count();
     anota('Control de acceso en las filas', gestionAcceso > 0, `${gestionAcceso} filas con control`);
 

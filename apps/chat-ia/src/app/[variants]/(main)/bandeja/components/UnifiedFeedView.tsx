@@ -8,9 +8,10 @@ import type { FeedItem } from '../hooks/useUnifiedFeed';
 import { useBandejaBrand } from '../utils/brand';
 import { useCanManageMessaging } from '@/hooks/useCanManageMessaging';
 
+import { getUserContext } from '../utils/auth';
 import { formatPhone } from '../utils/jid';
+import { IaModeBadge, SharedBadge } from './RowIndicators';
 import { previewText } from '../utils/preview';
-import { describeVisibility } from '../utils/visibility';
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -62,42 +63,49 @@ function initials(name: string): string {
 // ─── FeedItemRow ─────────────────────────────────────────────────────────────
 
 function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void }) {
-  const visibility = describeVisibility(item.sharedWith);
+  const router = useRouter();
+  const { development } = getUserContext();
   const channelKey = item.channelKind as string;
   const cfg = FEED_CHANNEL_CONFIG[channelKey] ?? FEED_CHANNEL_CONFIG.web;
   const hasUnread = item.unreadCount > 0 || !item.isRead;
   // ISSUE-002 (dogfood 20-ago): items newsletter/broadcast (status de WhatsApp, canales
   // informativos) NO admiten respuesta — al abrirlos el composer solo deja "nota interna".
   // Antes parecían conversaciones WA normales en la lista → el operador abría a ciegas.
-  // Tag "Informativo" en la fila para saberlo ANTES de abrir. (Solo se ven si el usuario
-  // activa "Ver newsletters/estados"; por defecto están filtrados.)
   const isOneWay = item.jidType === 'newsletter' || item.jidType === 'broadcast';
-  // Etiqueta de línea WhatsApp (QR / Meta API) — solo en WhatsApp y solo si el dato llega.
+  // Tipo de línea y número: ya no ocupan un chip en la fila (el owner: "ocupa mucho espacio,
+  // aporta poco valor"). El canal lo dice el distintivo del avatar; el detalle, su tooltip.
   const waType =
     item.channelKind === 'whatsapp' && item.channelType
       ? (WA_TYPE_LABEL[item.channelType] ?? item.channelType)
       : null;
-  // #8: últimos dígitos de la LÍNEA receptora (distinguir 910 vs Meta por hilo).
-  const waLine =
-    item.channelKind === 'whatsapp' && item.lineLabel
-      ? String(item.lineLabel).replaceAll(/\D/g, '').slice(-4) || String(item.lineLabel)
-      : '';
+  const detalleCanal = [
+    cfg.label,
+    waType ? (waType === 'QR' ? 'número vinculado por QR' : 'Meta Business API') : null,
+    item.lineLabel ? `línea ${formatPhone(String(item.lineLabel))}` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   let rowBg = 'bg-white hover:bg-gray-50';
   if (!item.isRead && item.kind === 'notification') rowBg = 'bg-pink-50/60 hover:bg-pink-50';
   else if (item.unreadCount > 0) rowBg = 'bg-green-50/50 hover:bg-green-50';
 
-  const avatarBg =
-    item.kind === 'notification' ? 'bg-gray-100' : 'bg-gray-200';
+  const avatarBg = item.kind === 'notification' ? 'bg-gray-100' : 'bg-gray-200';
 
   return (
-    <button
-      className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors ${rowBg} border-b border-gray-100 last:border-0`}
-      onClick={onClick}
-      type="button"
-    >
-      {/* Avatar 38x38 con badge canal (bottom-LEFT) + RSVP (bottom-RIGHT)
-          según FASE B v2.0 P-handoff Bandeja Diseño 24-jun. */}
+    /* El botón ocupa toda la fila por debajo del contenido, en vez de envolverlo. Los
+       indicadores (acceso, modo de IA) son botones a su vez y anidarlos dentro habría dado
+       HTML inválido; posicionarlos en absoluto, como estaban, los montaba encima del mensaje
+       al estrechar la lista. Así el contenido fluye y solo los indicadores capturan el clic. */
+    <div className={`relative border-b border-gray-100 last:border-0 ${rowBg}`}>
+      <button
+        aria-label={`Abrir ${item.name}`}
+        className="absolute inset-0 h-full w-full"
+        onClick={onClick}
+        type="button"
+      />
+      <div className="pointer-events-none relative flex items-center gap-2.5 px-3 py-2 text-left">
+      {/* Avatar con distintivo de canal (abajo-izquierda) + RSVP (abajo-derecha). */}
       <div className="relative shrink-0">
         <div
           className={`flex h-9 w-9 items-center justify-center rounded-full ${avatarBg} text-sm font-medium text-gray-600`}
@@ -108,17 +116,15 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
             <span>{initials(item.name)}</span>
           )}
         </div>
-        {/* Badge canal — bottom-LEFT, cuadrado 16x16 radius 4px */}
         {item.kind !== 'notification' && (
           <span
-            aria-label={`Canal ${cfg.label}`}
+            aria-label={`Canal ${detalleCanal}`}
             className={`absolute -bottom-0.5 -left-0.5 flex h-4 min-w-4 items-center justify-center rounded px-0.5 text-[9px] font-bold text-white ${cfg.bg}`}
+            title={detalleCanal}
           >
             {item.channelLabel ?? cfg.label}
           </span>
         )}
-        {/* Badge RSVP — bottom-RIGHT, círculo 15x15. Solo cuando hay valor
-            (rsvpStatus llega de api-mcp en modo Evento; undefined si no aplica). */}
         {item.rsvpStatus && (
           <span
             aria-label={`RSVP ${item.rsvpStatus}`}
@@ -139,7 +145,7 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
         )}
       </div>
 
-      {/* Content */}
+      {/* Contenido: dos líneas fijas. Nombre y hora arriba; mensaje e indicadores abajo. */}
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
           <span
@@ -147,20 +153,6 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
           >
             {item.name}
           </span>
-          {/* Usabilidad 17-09: este chip ponía "QR ·3622" en cada fila. Ni "QR" ni los
-              cuatro dígitos significan nada para quien atiende; el tipo de línea y su número
-              siguen estando en el tooltip y, con detalle y estado de conexión, en la cabecera
-              de la conversación, que es donde se necesitan. La lista se queda con el nombre,
-              el mensaje y la hora. */}
-          {waType && (
-            <span
-              aria-hidden
-              className="shrink-0 rounded-full bg-green-50 px-1.5 py-0.5 text-[9px] font-semibold text-green-700"
-              title={`WhatsApp · ${waType === 'QR' ? 'número vinculado por QR' : 'Meta Business API'}${item.lineLabel ? ` · línea ${formatPhone(item.lineLabel)}` : ''}`}
-            >
-              WhatsApp
-            </span>
-          )}
           {isOneWay && (
             <span
               className="shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-gray-500"
@@ -171,33 +163,30 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
           )}
           <span className="shrink-0 text-xs text-gray-400">{timeAgo(item.timestamp)}</span>
         </div>
-        <p className="truncate text-xs text-gray-500">{previewText(item.preview)}</p>
-        {/* FASE 2 Agentes (17-ago) — badge "responsable": qué AGENTE IA atiende esta
-            conversación. Solo se pinta cuando backend expone assignedAgentName (null-safe,
-            mismo patrón que el badge RSVP). Hoy queda dormido: 0 dead code, 0 fallback. */}
-        {item.kind === 'conversation' && item.assignedAgentName && (
-          <span
-            aria-label={`Responsable: ${item.assignedAgentName}`}
-            className="mt-1 inline-flex max-w-full items-center gap-1 truncate rounded-full bg-violet-50 px-1.5 py-0.5 text-[10px] font-medium text-violet-600"
-          >
-            <span aria-hidden="true">🤖</span>
-            <span className="truncate">{item.assignedAgentName}</span>
-          </span>
-        )}
-        {/* Con quién está compartida. Va aquí y no solo en la lista por canal porque la
-            bandeja principal es esta, y el chip no servía de nada donde nadie lo veía. */}
-        {visibility && (
-          <span
-            className="ml-1 mt-1 inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium"
-            style={{ backgroundColor: '#EEF2FF', color: '#4F46E5' }}
-            title={visibility.title}
-          >
-            {visibility.label}
-          </span>
-        )}
+        <div className="flex items-center gap-1">
+          <p className="min-w-0 flex-1 truncate text-xs text-gray-500">{previewText(item.preview)}</p>
+          {item.kind === 'conversation' && item.assignedAgentName && (
+            <span
+              aria-label={`Responsable: ${item.assignedAgentName}`}
+              className="inline-flex max-w-[80px] flex-none items-center gap-0.5 truncate rounded-full bg-violet-50 px-1 text-[10px] font-medium text-violet-600"
+              title={`Responsable: ${item.assignedAgentName}`}
+            >
+              <span aria-hidden="true">🤖</span>
+              <span className="truncate">{item.assignedAgentName}</span>
+            </span>
+          )}
+          {item.kind === 'conversation' && (
+            <>
+              <SharedBadge
+                onManage={() => router.push(`/bandeja/conversacion/${item.id}?compartir=1`)}
+                sharedWith={item.sharedWith}
+              />
+              {development && <IaModeBadge conversationId={item.id} development={development} />}
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Unread indicator */}
       {hasUnread && (
         <div className="shrink-0">
           {item.kind === 'notification' ? (
@@ -209,7 +198,8 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
           )}
         </div>
       )}
-    </button>
+      </div>
+    </div>
   );
 }
 
@@ -300,35 +290,30 @@ export function UnifiedFeedView({ items, loading, onItemClick, groupBy, groups }
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-white">
-      {/* Header — SIN título "Bandeja" (la pestaña de arriba ya lo dice; evita el
-          "dos bandejas" que reportó el owner 19-ago). Solo buscador + filtro sin-leer. */}
-      <div className="border-b border-gray-100 px-4 py-2">
-        <div className="flex items-center gap-2">
-          <input
-            className="flex-1 rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs placeholder:text-gray-400 focus:border-blue-400 focus:bg-white focus:outline-none"
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar..."
-            type="text"
-            value={search}
-          />
-        </div>
-        {availableFilters.length > 0 && (
-          <div className="mt-2 flex gap-1 overflow-x-auto pb-1">
-            {availableFilters.map((t) => (
-              <button
-                className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-medium transition-colors ${
-                  filter === t.key ? 'text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                }`}
-                key={t.key}
-                onClick={() => setFilter(filter === t.key ? 'all' : t.key)}
-                style={filter === t.key ? { backgroundColor: brand.brand } : undefined}
-                type="button"
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-        )}
+      {/* Buscador y "Sin leer" en la MISMA fila (17-09). Eran dos, con el chip solo en la
+          segunda, y entre la pestaña y la primera conversación se apilaban seis bloques con
+          borde propio: 340px de cabecera para una lista de 64px por fila. */}
+      <div className="flex items-center gap-1.5 border-b border-gray-100 px-3 py-1.5">
+        <input
+          className="min-w-0 flex-1 rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs placeholder:text-gray-400 focus:border-blue-400 focus:bg-white focus:outline-none"
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar..."
+          type="text"
+          value={search}
+        />
+        {availableFilters.map((t) => (
+          <button
+            className={`flex-none rounded-full px-2 py-1 text-[10px] font-medium transition-colors ${
+              filter === t.key ? 'text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+            }`}
+            key={t.key}
+            onClick={() => setFilter(filter === t.key ? 'all' : t.key)}
+            style={filter === t.key ? { backgroundColor: brand.brand } : undefined}
+            type="button"
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
       {/* Body */}

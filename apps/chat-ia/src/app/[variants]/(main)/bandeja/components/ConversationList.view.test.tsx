@@ -1,6 +1,15 @@
 import { render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 
+// El indicador de modo de IA pide el nivel de la bandeja al montar. En el test no hay red:
+// sin esto el fetch real falla contra localhost y ensucia la salida con un rechazo suelto.
+vi.mock('../data/iaConfig', () => ({
+  getConversationIaLevel: vi.fn().mockResolvedValue({ level: 'copilot', source: 'workspace' }),
+  getIaLevel: vi.fn().mockResolvedValue('copilot'),
+  saveConversationIaLevel: vi.fn().mockResolvedValue(true),
+  saveIaLevel: vi.fn().mockResolvedValue(true),
+}));
+
 vi.mock('next/navigation', async () => {
   const actual = await vi.importActual<any>('next/navigation');
   return {
