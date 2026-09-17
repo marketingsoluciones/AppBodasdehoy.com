@@ -119,6 +119,20 @@ rotar_builds() {
       a_borrar=$(( a_borrar - 1 ))
     fi
   done || true
+
+  # A los que SOBREVIVEN y ya no sirven se les quita `cache/`. Un build de app son
+  # ~4.2 GB de los que 4.1 son cache regenerable; el artefacto que hace falta para
+  # SERVIR son 156 MB. Guardar el cache de un rollback es pagar 4 GB por nada, y ya
+  # nos costó un build muerto por disco lleno.
+  # El VIVO y el RECIÉN DESPLEGADO se quedan con el suyo: en el que está sirviendo,
+  # `cache/` también guarda el cache de ISR y de imágenes en ejecución.
+  ls -1d "$dir/${prefijo}-"* 2>/dev/null | while read -r d; do
+    b=$(basename "$d")
+    if [ "$b" != "$nuevo" ] && [ "$b" != "$vivo" ] && [ -d "$d/cache" ]; then
+      liberado=$(du -sm "$d/cache" 2>/dev/null | cut -f1)
+      rm -rf "$d/cache" && echo "    cache de $b liberado (${liberado:-?} MB)"
+    fi
+  done || true
   return 0
 }
 
@@ -335,10 +349,21 @@ info "Validando el build antes de tocar el puntero"
 [ -f "$D/BUILD_ID" ]            || morir "sin BUILD_ID → build incompleto. NO se despliega."
 [ -f "$D/routes-manifest.json" ] || morir "sin routes-manifest.json → build incompleto."
 BID=$(cat "$D/BUILD_ID")
-TAM_MB=$(du -sm "$D" 2>/dev/null | cut -f1)
-MIN_MB=$([ "$APP" = app ] && echo 2000 || echo 150)
-[ "${TAM_MB:-0}" -ge "$MIN_MB" ] || morir "solo ${TAM_MB} MB (mínimo ${MIN_MB}) → build a medias."
-verde "✓ Build válido · BUILD_ID=$BID · ${TAM_MB} MB"
+# El tamaño se mide SIN `cache/`, y esto no es cosmético: medido el 17-09, un build de
+# app son 4348 MB en total de los que 4192 son cache y solo 156 el artefacto. El umbral
+# de 2000 MB estaba calibrado sobre la cifra con cache, así que:
+#   · un build BUENO en una máquina con cache frío (156 MB) se habría rechazado como
+#     "a medias" — el fallo más tonto posible, y solo aparece la primera vez en una
+#     máquina nueva, que es cuando menos ganas hay de depurar el script;
+#   · y un build ROTO con un cache gordo pasaba el mínimo sin problema, o sea que la
+#     comprobación estaba midiendo casi solo el cache.
+# `du` de BSD no tiene --exclude, así que se resta.
+TAM_TOTAL=$(du -sm "$D" 2>/dev/null | cut -f1)
+TAM_CACHE=$(du -sm "$D/cache" 2>/dev/null | cut -f1 || echo 0)
+TAM_MB=$(( ${TAM_TOTAL:-0} - ${TAM_CACHE:-0} ))
+MIN_MB=$([ "$APP" = app ] && echo 100 || echo 150)
+[ "${TAM_MB:-0}" -ge "$MIN_MB" ] || morir "artefacto de solo ${TAM_MB} MB (mínimo ${MIN_MB}) → build a medias."
+verde "✓ Build válido · BUILD_ID=$BID · ${TAM_MB} MB de artefacto (+${TAM_CACHE:-0} MB de cache)"
 
 if [ "$DRY" = 1 ]; then
   verde "✓ --dry: build listo en $D. Puntero sin tocar."

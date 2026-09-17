@@ -219,6 +219,32 @@ case "$(quedan "$D")" in
   *) falla "borró el build VIVO por no tener marca" "quedan: $(quedan "$D")" ;;
 esac
 
+# ── 10 · libera el cache de los supervivientes que ya no sirven ─────────────
+# Un build de app son ~4.2 GB de los que 4.1 son cache regenerable. Guardar el cache
+# de un rollback cuesta 4 GB por nada, y ya perdimos un build por disco lleno.
+D="$TMP/cache"
+montar "$D" ".next-app" "20260917a" "20260917b" "20260917c"
+for n in 20260917a 20260917b 20260917c; do
+  mkdir -p "$D/.next-app-$n/cache"; echo "basura" > "$D/.next-app-$n/cache/chunk"
+done
+# vivo=c, nuevo=c: sobra 1 (muere a), y b sobrevive sin servir → su cache debe irse.
+rotar_builds "$D" ".next-app" 2 ".next-app-20260917c" ".next-app-20260917c" >/dev/null 2>&1
+if [ ! -d "$D/.next-app-20260917b/cache" ] && [ -d "$D/.next-app-20260917b" ]; then
+  ok "libera el cache del superviviente que ya no sirve"
+else
+  falla "no liberó el cache del rollback" \
+        "cache de b: $([ -d "$D/.next-app-20260917b/cache" ] && echo sigue || echo no existe) · dir b: $([ -d "$D/.next-app-20260917b" ] && echo existe || echo BORRADO)"
+fi
+
+# ── 11 · pero NO toca el cache del vivo ni del recién desplegado ────────────
+# En el que está sirviendo, `cache/` guarda también el de ISR y el de imágenes en
+# ejecución: vaciarlo en caliente no rompe nada pero hace trabajar de más al servidor.
+if [ -d "$D/.next-app-20260917c/cache" ]; then
+  ok "conserva el cache del build que está sirviendo"
+else
+  falla "borró el cache del build VIVO" "es el que atiende peticiones ahora mismo"
+fi
+
 echo
 if [ "$FALLIDOS" -eq 0 ]; then
   printf '\033[32m%s\033[0m\n' "✓ rotar_builds: $PASADOS comprobaciones en verde"
