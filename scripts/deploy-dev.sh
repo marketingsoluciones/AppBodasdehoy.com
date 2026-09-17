@@ -80,6 +80,57 @@ marcar_build_ok() {
   } > "$dir/$nombre/$MARCA_OK" 2>/dev/null || true
 }
 
+# Mide el estado de la máquina. Separada de la decisión, y en una función para que el
+# test pueda comprobar que NO revienta — porque su primera versión reventaba.
+#
+# `pgrep` devuelve 1 cuando no encuentra nada, y con `set -Eeuo pipefail` (línea 30)
+# eso mata el script. O sea que moría justo en el caso NORMAL: ningún otro build
+# corriendo. Es la tercera vez hoy que este script se rompe por el estado de salida de
+# una tubería, y las tres veces con la misma forma: un comando cuyo "no hay nada" se
+# codifica como error. El `|| true` no es adorno.
+#
+# Imprime: "<builds_ajenos> <memoria_libre_pct> <load_1min> <swap_usado>"
+#
+# El patrón de búsqueda es un argumento con valor por defecto para que el test pueda
+# pasar uno que NO case. Sin eso, el test dependía de que no hubiera ningún build
+# corriendo: cuando el otro agente arrancó el suyo, `pgrep` encontró algo, dejó de
+# devolver 1 y el caso que vigilaba el `|| true` pasó a ser vacuo sin avisar. Cuarta
+# vez hoy que un test verde no prueba nada, y la primera en que la causa era el estado
+# de la máquina y no el test.
+medir_recursos() {
+  local patron="${1:-next build}"
+  local ajenos libre carga swap
+  ajenos=$(pgrep -f "$patron" 2>/dev/null | wc -l | tr -d ' ') || ajenos=0
+  libre=$(memory_pressure 2>/dev/null | awk '/free percentage/{print $5+0}') || libre=""
+  carga=$(uptime | sed 's/.*averages*: *//' | awk '{print $1}' | tr -d ',') || carga=0
+  swap=$(sysctl -n vm.swapusage 2>/dev/null | awk '{print $6}') || swap="?"
+  echo "${ajenos:-0} ${libre:-100} ${carga:-0} ${swap:-?}"
+}
+
+# Decide si se puede compilar, a partir de datos ya medidos. Está separada de la
+# medición a propósito: así `deploy-dev.recursos_test.sh` puede probar la REGLA sin
+# depender del estado real de la máquina.
+#   recursos_veredicto <builds_ajenos> <memoria_libre_pct> <load_entero>
+# Imprime: "parar: <motivo>" | "avisar: <motivo>" | "seguir"
+recursos_veredicto() {
+  local ajenos="${1:-0}" libre="${2:-100}" carga="${3:-0}"
+  if [ "$ajenos" -gt 0 ]; then
+    echo "parar: ya hay $ajenos proceso(s) next build corriendo"
+    return 0
+  fi
+  if [ "$libre" -lt 20 ]; then
+    echo "parar: solo queda ${libre}% de memoria libre"
+    return 0
+  fi
+  # El load NO para: cuenta procesos ejecutables, no presión de memoria, y con un IDE
+  # y un navegador abiertos esta máquina no baja de 8 ni estando libre de builds.
+  if [ "$carga" -ge 8 ]; then
+    echo "avisar: load $carga, el build tardará más"
+    return 0
+  fi
+  echo "seguir"
+}
+
 rotar_builds() {
   local dir="$1" prefijo="$2" conservar="$3" nuevo="$4" vivo="$5"
   local total a_borrar b marca="${MARCA_OK:-.deploy-ok}"
@@ -239,15 +290,40 @@ if ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null; th
   sleep 4
 fi
 
-# ─── Carga de la máquina ──────────────────────────────────────────────────────
-# Petición del otro agente que despliega aquí: si el equipo ya va ahogado, no
-# empezar. Un build con la máquina saturada acaba en SIGKILL y hay que repetirlo.
-CARGA=$(uptime | sed 's/.*averages*: *//' | awk '{print $1}' | tr -d ',')
-CARGA_ENT=${CARGA%%.*}
-info "Carga (1 min): $CARGA"
-if [ "${CARGA_ENT:-0}" -ge 8 ]; then
-  morir "la máquina va cargada (load $CARGA ≥ 8). Espera y reintenta."
-fi
+# ─── Recursos de la máquina ───────────────────────────────────────────────────
+# ESTO MIRABA EL DATO EQUIVOCADO. La versión anterior moría si el load de 1 minuto
+# llegaba a 8. El fallo que se quería evitar era el del 17-09: dos `next build` a la
+# vez agotando la RAM y el sistema matando los dos. Pero el load de macOS cuenta
+# procesos EJECUTABLES, no presión de memoria.
+#
+# Medido en esta máquina con el guardián bloqueando un despliegue: load 8.49, CERO
+# builds corriendo, 79% de memoria libre, y la carga la hacían un renderer de Chrome
+# y cuatro helpers de Trae al 100% de CPU cada uno. O sea el estado NORMAL de un
+# equipo con IDE y navegador abiertos. Un umbral que nunca se cumple acaba
+# esquivándose de rutina, y un guardián que se esquiva ya no protege.
+#
+# Ahora se comprueba lo que de verdad importa, en orden de cuán directo es el dato:
+#   1. ¿hay OTRO `next build` corriendo? — detección directa del fallo real. El
+#      cerrojo de este script cubre dos ejecuciones SUYAS, pero no un build lanzado
+#      a mano o por otra herramienta, que es exactamente lo que pasó el 17-09.
+#   2. ¿queda poca memoria? — la magnitud que limita un heap de 8 GB.
+#   3. el load pasa a ser AVISO, no muerte: informa de que va a tardar más.
+#
+# Y se imprime el swap sin usarlo como puerta: aquí marca 8,7 GB de 10,2 usados
+# mientras `memory_pressure` dice 79% libre. Los dos datos se contradicen (macOS
+# acumula swap con la memoria comprimida y no lo libera), así que cambiar un umbral
+# equivocado por otro habría sido repetir el error con otra magnitud. Lo ve un humano
+# y decide.
+read -r AJENOS LIBRE CARGA SWAP <<EOF_REC
+$(medir_recursos)
+EOF_REC
+info "Recursos: ${LIBRE}% memoria libre · load $CARGA · swap usado ${SWAP} · otros builds: $AJENOS"
+
+VEREDICTO=$(recursos_veredicto "${AJENOS:-0}" "${LIBRE:-100}" "${CARGA%%.*}")
+case "$VEREDICTO" in
+  parar:*)  morir "${VEREDICTO#parar: }. Dos builds a la vez agotan la RAM y el sistema mata los dos." ;;
+  avisar:*) rojo "⚠ ${VEREDICTO#avisar: }. Sigo." ;;
+esac
 
 # ─── Nombre del build: se RESERVA dentro del cerrojo ──────────────────────────
 # El 17-09 dos agentes eligieron `.next-chat-20260917h` a la vez y el segundo
