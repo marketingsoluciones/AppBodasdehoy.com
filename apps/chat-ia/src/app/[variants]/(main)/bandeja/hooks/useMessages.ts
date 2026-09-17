@@ -6,6 +6,7 @@ import { useAuthCheck } from '@/hooks/useAuthCheck';
 
 import { getWhatsAppMessagesGQL } from '@/services/mcpApi/whatsapp';
 import { buildHeaders } from '../utils/auth';
+import { DEL_CONTACTO_SI_NO_CONSTA, esDelContacto } from '../utils/direccion';
 import { dedupeFetch } from '../utils/dedupeFetch';
 import { useMessageStream } from './useMessageStream';
 import type { StreamMessage } from './useMessageStream';
@@ -49,17 +50,9 @@ function buildFetchUrl(channel: string, conversationId: string): string | null {
 
 // Exportada para poder probar el criterio de los acuses sin montar el hook entero.
 export function normalizeMessage(msg: any): Message {
-  // Direction detection — covers: REST Baileys (fromMe bool), MCP GraphQL (emitUserUid),
-  // api-ia normalized (direction string), legacy (fromUser bool)
-  let fromUser: boolean;
-  if (msg.direction !== undefined) {
-    fromUser = msg.direction === 'INBOUND';
-  } else if (typeof msg.fromMe === 'boolean') {
-    // Baileys / MCP WhatsApp: fromMe=true means WE sent it
-    fromUser = !msg.fromMe;
-  } else {
-    fromUser = msg.fromUser !== false;
-  }
+  // Quién lo escribió: criterio único compartido con el stream (utils/direccion), que tenía
+  // el suyo e invertido. Cubre REST Baileys (fromMe), api-ia (direction) y el formato viejo.
+  const fromUser = esDelContacto(msg) ?? DEL_CONTACTO_SI_NO_CONSTA;
 
   return {
     attachments: msg.attachments,

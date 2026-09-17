@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from 'react';
 
+import { DEL_CONTACTO_SI_NO_CONSTA, esDelContacto } from '../utils/direccion';
+
 import { useBandejaStore } from '@/store/bandeja';
 
 export interface StreamMessage {
@@ -69,7 +71,9 @@ export function useMessageStream({
           attachments: msg.attachments ?? [],
           channel: eventChannel,
           conversationId: event.convId,
-          fromUser: msg.fromUser ?? msg.from_user ?? (msg.direction === 'outbound' || msg.fromMe === true),
+          // Antes aquí: `msg.direction === 'outbound' || msg.fromMe === true`, que atribuye
+          // al contacto justo los mensajes que mandamos nosotros. Mismo criterio que el REST.
+          fromUser: esDelContacto(msg) ?? DEL_CONTACTO_SI_NO_CONSTA,
           id: String(id),
           status: msg.status,
           text: msg.text ?? msg.content ?? '',
