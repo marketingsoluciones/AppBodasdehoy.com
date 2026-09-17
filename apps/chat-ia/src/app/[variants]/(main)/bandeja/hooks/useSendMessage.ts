@@ -136,7 +136,13 @@ export function useSendMessage() {
         message: {
           ...optimisticMsg,
           id: data.messageId || data.id || optimisticMsg.id,
-          status: 'delivered',
+          // 'sent' (un ✓), no 'delivered' (✓✓): un 200 dice que la API ACEPTÓ el mensaje,
+          // no que haya llegado al teléfono de nadie. Es la misma distinción que api-mcp
+          // acaba de hacer explícita en los envíos masivos ('aceptado' ≠ 'entregado', 17-09).
+          // La entrega real la confirma el acuse que llega después; hasta entonces no se
+          // afirma. Antes se pintaba ✓✓ en cuanto respondía la API, así que un mensaje que
+          // el operador daba por entregado podía no haber salido del backend.
+          status: 'sent',
         },
         success: true,
       };

@@ -47,7 +47,8 @@ function buildFetchUrl(channel: string, conversationId: string): string | null {
   return `/api/messages/conversations/${encodeURIComponent(conversationId)}/messages`;
 }
 
-function normalizeMessage(msg: any): Message {
+// Exportada para poder probar el criterio de los acuses sin montar el hook entero.
+export function normalizeMessage(msg: any): Message {
   // Direction detection — covers: REST Baileys (fromMe bool), MCP GraphQL (emitUserUid),
   // api-ia normalized (direction string), legacy (fromUser bool)
   let fromUser: boolean;
@@ -64,7 +65,12 @@ function normalizeMessage(msg: any): Message {
     attachments: msg.attachments,
     fromUser,
     id: msg.id || msg.messageId || msg._id || `msg_${Date.now()}_${Math.random()}`,
-    status: msg.status || 'read',
+    // Sin estado del servidor NO se inventa 'read': eso pinta el ✓✓ azul de "lo ha leído",
+    // que es la afirmación más fuerte de las tres y nadie la ha hecho. Los nuestros se
+    // quedan en 'sent' (salió de aquí, que es lo único que consta) y los entrantes sin
+    // ninguna marca, porque los acuses no aplican a lo que nos mandan. El acuse real sigue
+    // subiendo el estado a 'read' cuando llega (evento bandeja:read_receipt).
+    status: msg.status || (fromUser ? undefined : 'sent'),
     // Field variants: api-ia 'text', Baileys 'body', MCP graphql 'message', generic 'content'
     text: msg.text || msg.body || msg.message || msg.content || '',
     // Timestamp variants: ISO string, Unix seconds (Baileys), Float ms (MCP graphql)
