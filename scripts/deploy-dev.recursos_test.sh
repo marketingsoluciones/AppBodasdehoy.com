@@ -118,6 +118,44 @@ else
         "un interrogante en una línea de diagnóstico se lee como 'no hay', no como 'no se pudo medir'"
 fi
 
+# ── 9 · el cuerpo va dentro de main() y el fichero acaba en exit ───────────
+# Inmunidad a editar el fichero EN CALIENTE. Bash lee por posición de byte: si el
+# fichero cambia de tamaño durante un `next build` de doce minutos, al volver retoma en
+# el offset viejo y ejecuta basura. Pasó el 17-09 y costó un despliegue.
+# Medido: sin envoltorio el trabajo NO termina; con main() termina pero bash lee tras la
+# llamada y saca un error espurio; con main() + exit termina limpio. Las dos mitades
+# hacen falta, así que se comprueban las dos.
+ULTIMAS=$(grep -vE '^\s*(#|$)' "$AQUI/deploy-dev.sh" | tail -2 | tr '\n' ' ')
+case "$ULTIMAS" in
+  *'main "$@"'*exit*) ok "el fichero acaba en main \"\$@\" + exit" ;;
+  *) falla "el fichero no acaba en main + exit" \
+           "acaba en: $ULTIMAS · sin el exit, bash sigue leyendo tras la llamada y una edición en caliente mete ruido con salida != 0" ;;
+esac
+
+# Y que el cuerpo esté DENTRO de main, no suelto: si alguien añade código después del
+# exit, queda fuera de la protección y no se ejecuta nunca — peor que el fallo original,
+# porque falla en silencio.
+#
+# Los `|| ...` de abajo no son adorno. La primera versión de este caso usaba
+# `grep -n '^main "\$@"'`, el patrón no casaba por el escape, `pipefail` propagó el 1 y
+# `set -e` MATÓ EL TEST: se quedó sin resumen y con salida 1, y parecía que fallaba el
+# script cuando fallaba el test. Cuarta vez en el día con el mismo patrón —un comando
+# cuyo "no hay coincidencias" es un error— y la primera en un test recién escrito.
+LINEA_MAIN=$(grep -n '^main ' "$AQUI/deploy-dev.sh" | head -1 | cut -d: -f1) || LINEA_MAIN=""
+if [ -z "$LINEA_MAIN" ]; then
+  falla "no encuentro la llamada a main en el script" \
+        "sin ella el cuerpo no se ejecuta, o no está envuelto"
+else
+  DESPUES=$(tail -n "+$((LINEA_MAIN + 1))" "$AQUI/deploy-dev.sh" \
+            | grep -vE '^[[:space:]]*(#|$)' | grep -vE '^[[:space:]]*exit' | wc -l | tr -d ' ') || DESPUES=0
+  if [ "${DESPUES:-0}" = "0" ]; then
+    ok "no hay código suelto después de main (llamada en la línea $LINEA_MAIN)"
+  else
+    falla "hay $DESPUES línea(s) de código después de main" \
+          "quedan fuera de la función: no se ejecutan nunca y no avisa nadie"
+  fi
+fi
+
 echo
 if [ "$FALLIDOS" -eq 0 ]; then
   printf '\033[32m%s\033[0m\n' "✓ recursos: $PASADOS comprobaciones en verde"

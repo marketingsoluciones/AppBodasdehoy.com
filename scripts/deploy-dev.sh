@@ -208,6 +208,30 @@ if [ "${BASH_SOURCE[0]}" != "$0" ]; then
   return 0 2>/dev/null || true
 fi
 
+# ─── Todo el trabajo va dentro de main() ──────────────────────────────────────
+# NO es cosmético. Bash lee un script por POSICIÓN DE BYTE, no por líneas: si el
+# fichero cambia de tamaño mientras se ejecuta, al volver de un comando largo retoma
+# en el offset viejo, que en el fichero nuevo cae a mitad de una línea. Pasó el 17-09:
+# yo copié una versión nueva de este script al checkout de despliegue —con `cp`, que
+# escribe sobre el MISMO inodo— mientras el otro agente estaba dentro de un `next build`
+# de doce minutos. Al terminar el build, su bash retomó en el byte equivocado y murió
+# con «line 421: 7: command not found», apuntando a un comentario. Perdió el despliegue
+# y tuvo que hacer los cuatro pasos finales a mano.
+#
+# Con el cuerpo dentro de una función, bash parsea la definición COMPLETA antes de
+# ejecutarla, así que una edición a mitad de camino ya no puede partirla. Medido:
+#   sin envoltorio      → «line 5: hacia: command not found», el trabajo NO termina
+#   con main()          → el trabajo termina, pero bash sigue leyendo tras la llamada
+#                          y saca un error espurio con salida ≠ 0
+#   con main() + exit   → termina bien, salida 0, sin ruido
+# De ahí el `exit $?` de la última línea: sin él la inmunidad está a medias.
+#
+# Aun así, la forma correcta de actualizar este fichero es atómica (`mv`, que crea un
+# inodo nuevo), no `cp`. Esto es la red por si alguien se olvida — y me olvidé yo, que
+# lo había hecho bien dos horas antes.
+main() {
+
+
 # ─── Argumentos ───────────────────────────────────────────────────────────────
 APP="${1:-}"; shift || true
 DRY=0
@@ -549,3 +573,8 @@ if [ -n "$VIVO" ] && [ -d "$DIR/$VIVO" ] && [ ! -f "$DIR/$VIVO/$MARCA_OK" ]; the
     && rojo "  Verificado más reciente: $ROLLBACK_ALT"
 fi
 verde "✓ $APP desplegado. Rollback: $VAR=\"$VIVO\" en $PM2_SCRIPTS/$SCRIPT + $PM2BIN restart $PM2"
+
+}
+
+main "$@"
+exit $?
