@@ -162,6 +162,14 @@ describe('color de marca: una sola verdad', () => {
         if (e.isDirectory() && !e.name.startsWith('.')) raices.push(path.join(grupo, e.name));
       }
     }
+    // Extensiones EXCLUIDAS en vez de incluidas. La versión anterior enumeraba
+    // .ts/.tsx/.css/.js, así que se le habría escapado un respaldo en un .jsx, un .svg o
+    // un .html — hay ficheros con color hexadecimal en los tres. Hoy ninguno tiene un
+    // respaldo de marca, o sea que el hueco era potencial; pero es el MISMO error que la
+    // lista de ficheros y la de raíces, una capa más abajo. Lo que se enumera envejece.
+    // Invertido, una extensión nueva entra sola y solo hay que mantener la lista de lo
+    // que no es texto.
+    const BINARIOS = /\.(png|jpe?g|gif|webp|avif|ico|woff2?|ttf|eot|otf|mp[34]|webm|mov|pdf|zip|gz|tgz|map|lock|snap|node|wasm)$/i;
     const re = /var\(\s*--(?:color-primary|primary-color|color-brand[\w-]*)\s*,\s*(#[0-9A-Fa-f]{3,8})\s*\)/g;
     const colores = new Set(Object.values(shared).map((c) => c.toUpperCase()));
     const ajenos: string[] = [];
@@ -188,7 +196,7 @@ describe('color de marca: una sola verdad', () => {
         const ruta = path.join(dir, e.name);
         if (e.isDirectory()) {
           recorrer(ruta);
-        } else if (/\.(tsx?|css|js|mjs|cjs)$/.test(e.name) && !e.name.includes('.test.')) {
+        } else if (!BINARIOS.test(e.name) && !e.name.includes('.test.')) {
           let txt: string;
           try {
             txt = fs.readFileSync(ruta, 'utf8');
