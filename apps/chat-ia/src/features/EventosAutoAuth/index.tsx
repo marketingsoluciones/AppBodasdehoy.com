@@ -912,7 +912,12 @@ user_id: effectiveUserId,
               }
               if (config.colors) {
                 const root = document.documentElement;
-                root.style.setProperty('--primary-color', config.colors.primary || '#F7628C');
+                // Se publican los DOS nombres: '--primary-color' es el histórico de este componente
+                // y '--color-primary' es el que consume styles/tailwind.css (y el que usa
+                // appEventos). Sin el segundo, esta vía de auth dejaba a Tailwind con su
+                // respaldo. Y el respaldo era '#F7628C', el rosa ANTERIOR de la marca.
+                root.style.setProperty('--primary-color', config.colors.primary || '#EF5B94');
+                root.style.setProperty('--color-primary', config.colors.primary || '#EF5B94');
                 root.style.setProperty('--secondary-color', config.colors.secondary || '#D6497A');
                 root.style.setProperty('--background-color', config.colors.background || '#ffffff');
                 root.style.setProperty('--text-color', config.colors.text || '#1a202c');
@@ -949,7 +954,12 @@ user_id: effectiveUserId,
             }
             if (config.colors) {
               const root = document.documentElement;
-              root.style.setProperty('--primary-color', config.colors.primary || '#F7628C');
+              // Se publican los DOS nombres: '--primary-color' es el histórico de este componente
+                // y '--color-primary' es el que consume styles/tailwind.css (y el que usa
+                // appEventos). Sin el segundo, esta vía de auth dejaba a Tailwind con su
+                // respaldo. Y el respaldo era '#F7628C', el rosa ANTERIOR de la marca.
+                root.style.setProperty('--primary-color', config.colors.primary || '#EF5B94');
+                root.style.setProperty('--color-primary', config.colors.primary || '#EF5B94');
               root.style.setProperty('--secondary-color', config.colors.secondary || '#D6497A');
               root.style.setProperty('--background-color', config.colors.background || '#ffffff');
               root.style.setProperty('--text-color', config.colors.text || '#1a202c');
@@ -976,7 +986,12 @@ user_id: effectiveUserId,
               }
               if (config.colors) {
                 const root = document.documentElement;
-                root.style.setProperty('--primary-color', config.colors.primary || '#F7628C');
+                // Se publican los DOS nombres: '--primary-color' es el histórico de este componente
+                // y '--color-primary' es el que consume styles/tailwind.css (y el que usa
+                // appEventos). Sin el segundo, esta vía de auth dejaba a Tailwind con su
+                // respaldo. Y el respaldo era '#F7628C', el rosa ANTERIOR de la marca.
+                root.style.setProperty('--primary-color', config.colors.primary || '#EF5B94');
+                root.style.setProperty('--color-primary', config.colors.primary || '#EF5B94');
                 root.style.setProperty('--secondary-color', config.colors.secondary || '#D6497A');
                 root.style.setProperty('--background-color', config.colors.background || '#ffffff');
                 root.style.setProperty('--text-color', config.colors.text || '#1a202c');

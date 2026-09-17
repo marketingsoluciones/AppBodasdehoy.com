@@ -1,3 +1,8 @@
+/* El respaldo de --color-primary era #7C3AED, el morado del prototipo "Bandeja".
+   Si la variable no está puesta todavía —primer paint, antes de que corra el efecto
+   de AppTheme— chat pintaba MORADO donde appEventos pinta rosa. Ahora el respaldo es
+   el primario real de bodasdehoy, así que el peor caso se parece a la marca en vez de
+   a una maqueta. Lo vigila jwtRole/colorMarca: ver apps/chat-ia/src/styles/*.test.ts */
 @import "tailwindcss";
 
 /* ════════════════════════════════════════════════════════════════════
@@ -12,9 +17,9 @@
      el color del tenant. Ahora deriva de --color-primary, la misma variable que publica
      appEventos (_app.tsx) y que alimenta su tailwind.config. El morado queda solo como
      respaldo si no hay tenant resuelto. */
-  --color-brand: var(--color-primary, #7C3AED);
-  --color-brand-light: color-mix(in srgb, var(--color-primary, #7C3AED) 8%, white);
-  --color-brand-border: color-mix(in srgb, var(--color-primary, #7C3AED) 35%, white);
+  --color-brand: var(--color-primary, #EF5B94);
+  --color-brand-light: color-mix(in srgb, var(--color-primary, #EF5B94) 8%, white);
+  --color-brand-border: color-mix(in srgb, var(--color-primary, #EF5B94) 35%, white);
   --color-event-rosa: #E11D48;
   --color-event-light: #FFF6F7;
   --color-event-border: #FBD0D7;
@@ -42,12 +47,12 @@
   --color-ch-wa: #25D366;
   --color-ch-sms: #334155;
   --color-ch-ig: #E1306C;
-  --color-ch-web: #7C3AED;
+  --color-ch-web: #EF5B94;
   --color-ch-tg: #0088CC;
   --color-ch-fb: #1877F2;
 
   /* ── Superficies ────────────────────────────────────────────────── */
-  --color-surface-rail: color-mix(in srgb, var(--color-primary, #7C3AED) 6%, white);
+  --color-surface-rail: color-mix(in srgb, var(--color-primary, #EF5B94) 6%, white);
   --color-surface-panel: #ffffff;
   --color-surface-chat: #FAFAFC;
   --color-border-light: #EFEFF3;
