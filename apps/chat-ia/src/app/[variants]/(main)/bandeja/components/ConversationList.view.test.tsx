@@ -72,7 +72,10 @@ describe('ConversationList view filtering', () => {
     );
   });
 
-  it('shows only unassigned, non-closed conversations when view=unassigned', async () => {
+  // 30 s a propósito: hace vi.resetModules() y luego importa el componente con antd y
+  // lobe-ui detrás. Con la máquina cargada pasaba de los 15 s por defecto y caía por tiempo,
+  // no por el código (verificado volviendo al commit anterior: cae igual).
+  it('shows only unassigned, non-closed conversations when view=unassigned', { timeout: 30_000 }, async () => {
     const { ConversationList } = await import('./ConversationList');
 
     render(<ConversationList channel="web" />);
