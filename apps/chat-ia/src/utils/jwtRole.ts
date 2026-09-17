@@ -35,9 +35,35 @@ export function getJwtRole(): JwtRole {
 /** Roles que pueden gestionar canales/mensajería de la marca. */
 export const MESSAGING_MANAGER_ROLES = ['agent', 'admin', 'support', 'superadmin'];
 
+/**
+ * Roles del usuario EN LA MARCA activa — claim `developmentRoles` (backend 17-09).
+ *
+ * Es el claim que hay que leer para decidir si alguien gestiona canales. El claim
+ * `role` de al lado es el rol de PLATAFORMA y no debe habilitar administración de
+ * marca: un usuario puede ser 'admin' de plataforma sin ser nada en esta marca.
+ *
+ * Forma real verificada contra un JWT vivo: array de strings, p. ej.
+ * ["empresa","editor","admin"]. Se tolera que llegue como string sueltoss o
+ * separado por comas, por si el backend lo cambia.
+ */
+export function getJwtDevelopmentRoles(): string[] {
+  if (typeof window === 'undefined') return [];
+  const token = localStorage.getItem('jwt_token') || localStorage.getItem('mcp_jwt_token');
+  if (!token) return [];
+  const crudo = decodeJwtPayload(token)?.developmentRoles;
+  if (Array.isArray(crudo)) return crudo.filter((r) => typeof r === 'string');
+  if (typeof crudo === 'string') return crudo.split(',').map((r) => r.trim()).filter(Boolean);
+  return [];
+}
+
 /** Regla de rol, aislada para poder aplicarla a cualquier fuente (store o JWT). */
 export function canManageRole(role?: string | null): boolean {
   return !!role && MESSAGING_MANAGER_ROLES.includes(role);
+}
+
+/** true si alguno de los roles de marca gestiona canales/mensajería. */
+export function canManageAnyRole(roles?: readonly (string | null | undefined)[]): boolean {
+  return (roles || []).some((r) => canManageRole(r));
 }
 
 /**

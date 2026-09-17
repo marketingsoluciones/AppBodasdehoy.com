@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { canManageMessaging, canManageRole, getJwtRole } from './jwtRole';
+import { canManageAnyRole, canManageMessaging, canManageRole, getJwtDevelopmentRoles, getJwtRole } from './jwtRole';
 
 /**
  * Auditoria QA 14-09 (N27/N29): gates visuales por rol del JWT.
@@ -57,5 +57,52 @@ describe('canManageRole — regla de rol aislada (auditoria 15-09)', () => {
     expect(canManageRole('')).toBe(false);
     expect(canManageRole(undefined)).toBe(false);
     expect(canManageRole(null)).toBe(false);
+  });
+});
+
+describe('developmentRoles — el claim de marca (backend 17-09)', () => {
+  const jwt = (payload: Record<string, any>) => {
+    const b64 = (o: any) => Buffer.from(JSON.stringify(o)).toString('base64url');
+    return `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64(payload)}.firma`;
+  };
+  const conToken = (payload: Record<string, any>) => {
+    localStorage.setItem('jwt_token', jwt(payload));
+  };
+
+  beforeEach(() => localStorage.clear());
+
+  it('lee el array tal como lo manda el backend', () => {
+    // Forma verificada contra un JWT vivo en dev.
+    conToken({ developmentRoles: ['empresa', 'editor', 'admin'], role: 'admin' });
+    expect(getJwtDevelopmentRoles()).toEqual(['empresa', 'editor', 'admin']);
+  });
+
+  it('tolera que llegue como string separado por comas', () => {
+    conToken({ developmentRoles: 'editor, admin' });
+    expect(getJwtDevelopmentRoles()).toEqual(['editor', 'admin']);
+  });
+
+  it('sin el claim devuelve lista vacía, no adivina', () => {
+    conToken({ role: 'admin' });
+    expect(getJwtDevelopmentRoles()).toEqual([]);
+  });
+
+  it('descarta entradas que no son texto', () => {
+    conToken({ developmentRoles: ['admin', 42, null, 'editor'] });
+    expect(getJwtDevelopmentRoles()).toEqual(['admin', 'editor']);
+  });
+
+  it('canManageAnyRole abre con un rol de gestión y cierra sin ninguno', () => {
+    expect(canManageAnyRole(['empresa', 'editor', 'admin'])).toBe(true);
+    expect(canManageAnyRole(['agent'])).toBe(true);
+    expect(canManageAnyRole(['empresa', 'editor'])).toBe(false);
+    expect(canManageAnyRole([])).toBe(false);
+    expect(canManageAnyRole(undefined)).toBe(false);
+  });
+
+  it('el rol de PLATAFORMA no abre la gestión de marca', () => {
+    // Lo esencial del cambio: 'admin' de plataforma sin roles en la marca NO gestiona.
+    conToken({ development: 'bodasdehoy', developmentRoles: [], role: 'admin' });
+    expect(canManageAnyRole(getJwtDevelopmentRoles())).toBe(false);
   });
 });

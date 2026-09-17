@@ -1,11 +1,10 @@
 import { FC, useMemo, useState } from "react";
-import { fetchApiBodas, queries } from "../../utils/Fetching";
 
 /**
  * ConfirmarAsistenciaStudio — portal público de RSVP del invitado, fiel a
  * Confirmar_asistencia(.movil).dc.html. MISMO backend que FormConfirmarAsistencia:
  * confirma la asistencia + menú del invitado y crea/actualiza acompañantes con la
- * mutación queries.createGuests (agregarInvitadosBatch). Responsivo: 2 columnas en
+ * ruta de servidor /api/public/rsvp-confirm → confirmarAsistenciaPublica. Responsivo: 2 columnas en
  * escritorio, una sola en móvil. No usa contextos autenticados (página pública).
  */
 
@@ -75,7 +74,8 @@ const ConfirmarAsistenciaStudio: FC<Props> = ({ guestData, guestFather, menus_ar
     if (!listo || enviando) return;
     setEnviando(true);
     try {
-      const eventID = eventId || pGuestToken?.slice(-24);
+      // El evento_id lo resuelve el servidor desde el token del enlace: no se manda
+      // desde aquí (el cliente no debe poder elegir a qué evento escribe).
       const asistPadre = asiste ? "confirmado" : "cancelado";
       const sendValues: any[] = [
         {
@@ -104,25 +104,21 @@ const ConfirmarAsistenciaStudio: FC<Props> = ({ guestData, guestFather, menus_ar
           });
         });
       }
-      // QA 17-09: `fetchApiBodas` NO lanza cuando el backend responde
-      // `{success:false}` dentro de `data` — que es justo lo que devuelve
-      // `agregarInvitadosBatch` a un invitado anónimo ("Usuario no autenticado").
-      // Antes se llamaba a setEnviado(true) sin mirar la respuesta: el invitado veía
-      // "¡Confirmado!", el anfitrión no recibía nada, y nadie se enteraba de nada.
-      const res: any = await fetchApiBodas({
-        query: queries.createGuests,
-        variables: { eventID, invitados_array: sendValues },
+      // El guardado va por /api/public/rsvp-confirm, NO por `agregarInvitadosBatch`.
+      // Esa mutación exige sesión de usuario y el invitado del enlace no la tiene:
+      // fallaba SIEMPRE con "Usuario no autenticado". api-mcp expone ahora
+      // `confirmarAsistenciaPublica` (17-09), que hace UPSERT y pide credencial de
+      // SERVICIO — por eso la llamada vive en el servidor y no aquí.
+      const resp = await fetch("/api/public/rsvp-confirm", {
+        body: JSON.stringify({ invitados: sendValues, p: pGuestToken }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
       });
-      const ok = res?.success === true || res?.agregarInvitadosBatch?.success === true;
-      if (!ok) {
-        const motivo =
-          res?.errors?.[0]?.message ||
-          res?.agregarInvitadosBatch?.errors?.[0]?.message ||
-          "";
+      const res: any = await resp.json().catch(() => null);
+      if (!resp.ok || res?.success !== true) {
         setErrorEnvio(
-          motivo
-            ? `No se pudo guardar tu confirmación (${motivo}). Avisa a quien te invitó.`
-            : "No se pudo guardar tu confirmación. Inténtalo de nuevo o avisa a quien te invitó.",
+          res?.error ||
+            "No se pudo guardar tu confirmación. Inténtalo de nuevo o avisa a quien te invitó.",
         );
         return;
       }

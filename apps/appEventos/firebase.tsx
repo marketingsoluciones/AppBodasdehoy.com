@@ -166,7 +166,7 @@ export const developments = [
     }],
     headTitle: "Bodas de hoy - Organizador de Bodas",
     theme: {
-      primaryColor: "#F7628C",
+      primaryColor: "#EF5B94",
       secondaryColor: "#87F3B5",
       tertiaryColor: "#FBFF4E",
       baseColor: "#F2F2F2",
