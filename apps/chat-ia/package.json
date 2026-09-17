@@ -36,7 +36,7 @@
     "build": "cross-env ENABLE_OIDC=0 APP_URL=http://localhost:8000 NODE_OPTIONS=--max-old-space-size=8192 NEXT_TELEMETRY_DISABLED=1 next build --no-lint && npm run postbuild",
     "copy-locales": "node -e \"const fs=require('fs');const path=require('path');const src=path.join(__dirname,'locales');const dst=path.join(__dirname,'public','locales');if(fs.existsSync(dst))fs.rmSync(dst,{recursive:true});fs.cpSync(src,dst,{recursive:true});console.log('[build] Locales copiados a public/locales para servir en producción')\"",
     "postbuild": "npm run build-sitemap && npm run build-migrate-db && npm run copy-locales",
-    "build-migrate-db": "bun run db:migrate",
+    "build-migrate-db": "npm run db:migrate",
     "build-sitemap": "tsx ./scripts/buildSitemapIndex/index.ts",
     "build:analyze": "ENABLE_OIDC=0 APP_URL=http://localhost:8000 NODE_OPTIONS=--max-old-space-size=8192 ANALYZE=true next build",
     "build:docker": "npm run prebuild && ENABLE_OIDC=0 APP_URL=http://localhost:8000 NODE_OPTIONS=--max-old-space-size=8192 DOCKER=true next build && npm run build-sitemap",
