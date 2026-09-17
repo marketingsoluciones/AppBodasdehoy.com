@@ -24,6 +24,8 @@ import path from 'node:path';
 const RAIZ = path.resolve(__dirname, '../../../..');
 const RUTA_SHARED = path.join(RAIZ, 'packages/shared/src/types/developments.ts');
 const RUTA_APP = path.join(RAIZ, 'apps/appEventos/firebase.tsx');
+/** El artefacto que las apps consumen de verdad. Gitignoreado: se compila, no viaja. */
+const RUTA_DIST = path.join(RAIZ, 'packages/shared/dist/types/developments.js');
 
 /** Empareja `development: 'x'` con el `primaryColor` de su bloque de tema. */
 function leerTabla(ruta: string): Record<string, string> {
@@ -63,10 +65,57 @@ describe('color de marca: una sola verdad', () => {
 
   it('bodasdehoy usa el rosa que la app pinta de verdad', () => {
     // #EF5B94 aparece en 82 ficheros de appEventos (botones, enlaces, bordes).
-    // El viejo #F7628C solo salía en el trazo de un SVG: estaba configurado y no
-    // se usaba. Si alguien lo revierte, este test lo dice.
+    //
+    // CORRECCIÓN 17-09: este comentario decía que el viejo #F7628C "solo salía en
+    // el trazo de un SVG". Es falso — hay 16 en appEventos y 47 en chat-ia. Dos de
+    // ellas no eran decorativas: el respaldo de `themePrimary` en pages/login.tsx
+    // (que es el primer paint de SSR, o sea visible en CADA carga del login) y el
+    // último recurso de LoginStudio. Corregidas. Lo que queda es decorativo
+    // (iconos SVG, paleta de un gráfico) y espera la decisión del barrido.
     expect(app['bodasdehoy']).toBe('#EF5B94');
     expect(shared['bodasdehoy']).toBe('#EF5B94');
+  });
+
+  it('el respaldo del login no pinta el rosa anterior', () => {
+    // Se quitan los comentarios antes de buscar. La primera versión de este test se
+    // pillaba a SÍ MISMA: el comentario de arriba nombra el color viejo para explicar
+    // el arreglo, y el test lo leía como si fuera código. Un test que no distingue
+    // prosa de código obliga a no volver a mencionar el problema por escrito, que es
+    // justo lo contrario de lo que interesa.
+    const sinComentarios = (src: string) =>
+      src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+    const rutas = ['pages/login.tsx', 'components/Forms/Login/LoginStudio.tsx'];
+    const culpables = rutas.filter((r) =>
+      sinComentarios(
+        fs.readFileSync(path.join(RAIZ, 'apps/appEventos', r), 'utf8'),
+      ).includes('#F7628C'),
+    );
+    expect(culpables).toEqual([]);
+  });
+
+
+  it('packages/shared/dist no se queda atrás de su fuente', () => {
+    // EL FALLO MÁS CARO DEL 17-09, y no daba ningún síntoma.
+    //
+    // `packages/shared/dist/` está en .gitignore: ningún commit lo lleva y cada
+    // checkout tiene el suyo. Las CUATRO apps consumen el paquete por su exports
+    // map, que apunta solo a dist (appEventos lo saca incluso de transpilePackages
+    // "tras migrar a dist build"). Ninguna resuelve a src.
+    //
+    // Resultado: el arreglo de colores estaba commiteado y revisado, y dist seguía
+    // con los valores ANTERIORES en 7 de 11 marcas — bodasdehoy entre ellas. Nada
+    // falla, nada avisa, y la pantalla sigue pintando el color viejo. Lo único que
+    // lo arregla es recompilar (`cd packages/shared && npx tsc`), y lo único que
+    // lo detecta es esto.
+    //
+    // Se salta si no hay dist (clon limpio o CI antes de compilar): ahí la ausencia
+    // no es el fallo. El fallo es un dist PRESENTE y viejo, que es lo que engaña.
+    if (!fs.existsSync(RUTA_DIST)) return;
+    const dist = leerTabla(RUTA_DIST);
+    const atrasadas = Object.keys(shared)
+      .filter((m) => m in dist && dist[m] !== shared[m])
+      .map((m) => `${m}: dist=${dist[m]} vs fuente=${shared[m]}`);
+    expect(atrasadas).toEqual([]);
   });
 
   it('todos los colores son hexadecimales de 6 dígitos', () => {

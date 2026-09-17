@@ -67,7 +67,7 @@ const ROLES: { key: string; label: string; icon: ReactNode }[] = [
 /** Respaldo cuando aún no hay config de marca (SSR o dominio desconocido):
  *  el primario de bodasdehoy del paquete compartido, no un literal duplicado. */
 const BRAND_PRIMARY_FALLBACK =
-  developments.find((d) => d.name === 'bodasdehoy')?.theme?.primaryColor ?? '#F7628C';
+  developments.find((d) => d.name === 'bodasdehoy')?.theme?.primaryColor ?? '#EF5B94';
 
 const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, initialView }) => {
   const { SetWihtProvider, setIsStartingRegisterOrLogin, setUser, setVerificationDone, geoInfo, linkMedia, preregister } = AuthContextProvider() as any;

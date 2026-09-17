@@ -246,10 +246,28 @@ info "Recompilando packages/shared (las apps leen su dist, no su fuente)"
 # que este script dice evitar. Se borra dist antes para que no pueda hacerse pasar
 # por bueno, y se captura la salida en vez de encadenarla.
 rm -rf packages/shared/dist
-SALIDA_TSC=$( cd packages/shared && npx tsc 2>&1 ) || {
-  echo "$SALIDA_TSC" | grep -vE "Cannot find name 'process'" >&2
+SALIDA_TSC=$( cd packages/shared && npx tsc 2>&1 ) && CODIGO_TSC=0 || CODIGO_TSC=$?
+
+# `src/crm-ui/client.ts` usa `process` sin @types/node y falla desde ANTES de que
+# este script existiera (git log de ese fichero lo confirma). tsc sale 2 y EMITE
+# igual: comprobado el 17-09, dist se generó completo y con la tabla de colores
+# correcta. La versión anterior moría aquí por ese error ajeno, y encima filtraba
+# del mensaje justo esas líneas — o sea, abortaba el despliegue sin decir nada.
+# Se muere solo si hay errores DISTINTOS de ese, que son los que sí importan.
+OTROS_TSC=$(echo "$SALIDA_TSC" | grep -E "error TS" \
+            | grep -vE "src/crm-ui/.*Cannot find name 'process'" || true)
+if [ -n "$OTROS_TSC" ]; then
+  echo "$OTROS_TSC" >&2
   morir "packages/shared no compila"
-}
+fi
+[ "$CODIGO_TSC" = 0 ] || info "  tsc salió $CODIGO_TSC solo por los errores conocidos de crm-ui; emitió igual"
+
+# `rm -rf` arriba + esta comprobación son lo que garantiza que dist NO es viejo.
+# Importa más de lo que parece: dist está en .gitignore, así que ningún commit lo
+# lleva y cada checkout tiene el suyo. El 17-09 el dist de este checkout tenía los
+# colores de marca ANTERIORES en 7 de 11 marcas — bodasdehoy incluida — mientras
+# la fuente ya estaba arreglada, y chat-ia resuelve @bodasdehoy/shared SOLO a dist
+# (su exports map no expone src). El arreglo estaba commiteado y no se veía.
 [ -f packages/shared/dist/index.js ] || morir "packages/shared/dist no se generó"
 
 # ─── Build ────────────────────────────────────────────────────────────────────
@@ -313,15 +331,20 @@ done
 #   · El entorno del proceso — la fiable para las dos apps. OJO: `pm2 jlist`
 #     MIENTE aquí, porque la variable la exporta el script de arranque por dentro
 #     y pm2 solo guarda el entorno del `pm2 start` original; sigue mostrando el
-#     directorio del primer arranque para siempre. La fuente buena es `ps eww`
-#     del proceso padre (el `pnpm next start`), no del hijo que abre el puerto.
+#     directorio del primer arranque para siempre. La fuente buena es `ps eww`.
+#     Sobre QUÉ pid: medido el 17-09 en la máquina, el proceso que casa con
+#     `next start -p PUERTO` es `node .../pnpm next start`, su entorno SÍ trae la
+#     variable, y su padre es el God Daemon de pm2 (pid 1 de pm2), que NO la trae.
+#     O sea: preguntar al padre devuelve vacío. De ahí que el bucle de abajo
+#     recorra los candidatos y se quede con el que TIENE el dato, en vez de
+#     asumir una jerarquía concreta — que además cambia según cómo reinicie pm2.
 #
 #   · El buildId del HTML — solo sirve en appEventos (Pages Router, emite
 #     __NEXT_DATA__). chat-ia es App Router y NO lo emite: comprobarlo ahí daba un
 #     aviso falso en cada despliegue.
-# `grep next start -p PUERTO` casa con el PADRE y con el HIJO. Quedarse con el
-# PID más bajo confía en que el padre arrancó antes: suele ser cierto y falla el
-# día raro. El criterio correcto es "el que TIENE el dato".
+# `grep next start -p PUERTO` puede casar con más de un proceso. Quedarse con el
+# PID más bajo, o con el padre, confía en una jerarquía que pm2 no garantiza. El
+# único criterio que aguanta es "el que TIENE el dato".
 PID_APP=""; CARGADO=""
 for _p in $(ps -eo pid,command 2>/dev/null | grep "[n]ext start -p $PUERTO" | awk '{print $1}'); do
   _v=$(ps eww "$_p" 2>/dev/null | tr ' ' '\n' | grep -E "^${VAR}=" | head -1 | cut -d= -f2)

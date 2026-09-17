@@ -28,7 +28,9 @@ const APP_EVENTOS_LEFT_PANEL = {
   ],
   /** Oculta el bloque de cifras del default (evita otra “capa” de marketing). */
   stats: [],
-  gradient: 'linear-gradient(150deg, #F7628C 0%, #87F3B5 60%, #FBFF4E 100%)',
+  // Mismo grupo de respaldos que themePrimary/Secondary/Tertiary de abajo: el
+  // gradiente por defecto arranca en el primario REAL de bodasdehoy (#EF5B94).
+  gradient: 'linear-gradient(150deg, #EF5B94 0%, #87F3B5 60%, #FBFF4E 100%)',
 };
 
 const PageLogin = () => {
@@ -56,7 +58,10 @@ const PageLogin = () => {
 
   // Hasta montar: mismos defaults en SSR y 1er paint cliente (evita hydration mismatch
   // si AuthContext aún no tiene el tenant definitivo).
-  const themePrimary = safeThemeValue(config?.theme?.primaryColor) || '#F7628C'
+  // El respaldo es el rosa que la app pinta de verdad (#EF5B94). Estaba en el
+  // ANTERIOR (#F7628C), y esto no es un caso raro: es el primer paint de SSR, así
+  // que el login de bodasdehoy arrancaba con el rosa viejo en cada carga.
+  const themePrimary = safeThemeValue(config?.theme?.primaryColor) || '#EF5B94'
   const themeSecondary = safeThemeValue(config?.theme?.secondaryColor) || '#87F3B5'
   const themeTertiary = safeThemeValue(config?.theme?.tertiaryColor) || '#FBFF4E'
   const splitLeftPanel = useMemo(() => {
