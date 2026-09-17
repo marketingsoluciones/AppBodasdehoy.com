@@ -61,6 +61,7 @@ const ConfirmarAsistenciaStudio: FC<Props> = ({ guestData, guestFather, menus_ar
   const [acomps, setAcomps] = useState<Acomp[]>(existingAcomps);
   const [enviado, setEnviado] = useState(false);
   const [enviando, setEnviando] = useState(false);
+  const [errorEnvio, setErrorEnvio] = useState<string>("");
 
   const nombre = guestFather?.nombre || "invitado";
   const inicial = (nombre || "?").charAt(0).toUpperCase();
@@ -103,10 +104,33 @@ const ConfirmarAsistenciaStudio: FC<Props> = ({ guestData, guestFather, menus_ar
           });
         });
       }
-      await fetchApiBodas({ query: queries.createGuests, variables: { eventID, invitados_array: sendValues } });
+      // QA 17-09: `fetchApiBodas` NO lanza cuando el backend responde
+      // `{success:false}` dentro de `data` — que es justo lo que devuelve
+      // `agregarInvitadosBatch` a un invitado anónimo ("Usuario no autenticado").
+      // Antes se llamaba a setEnviado(true) sin mirar la respuesta: el invitado veía
+      // "¡Confirmado!", el anfitrión no recibía nada, y nadie se enteraba de nada.
+      const res: any = await fetchApiBodas({
+        query: queries.createGuests,
+        variables: { eventID, invitados_array: sendValues },
+      });
+      const ok = res?.success === true || res?.agregarInvitadosBatch?.success === true;
+      if (!ok) {
+        const motivo =
+          res?.errors?.[0]?.message ||
+          res?.agregarInvitadosBatch?.errors?.[0]?.message ||
+          "";
+        setErrorEnvio(
+          motivo
+            ? `No se pudo guardar tu confirmación (${motivo}). Avisa a quien te invitó.`
+            : "No se pudo guardar tu confirmación. Inténtalo de nuevo o avisa a quien te invitó.",
+        );
+        return;
+      }
+      setErrorEnvio("");
       setEnviado(true);
-    } catch {
-      /* fallo silencioso: se mantiene el formulario para reintentar */
+    } catch (e: any) {
+      // Un fallo de red sí llega aquí. Tampoco puede quedarse mudo.
+      setErrorEnvio("No se pudo guardar tu confirmación. Revisa tu conexión e inténtalo de nuevo.");
     } finally {
       setEnviando(false);
     }
@@ -189,6 +213,11 @@ const ConfirmarAsistenciaStudio: FC<Props> = ({ guestData, guestFather, menus_ar
           <button onClick={enviar} disabled={!listo || enviando} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: 14, borderRadius: 13, background: listo ? "#EF5B94" : "#f0f0f2", color: listo ? "#fff" : "#a0a0a8", font: "600 14px Poppins", border: "none", cursor: listo ? "pointer" : "default", boxShadow: listo ? "0 6px 16px rgba(239,91,148,.3)" : "none" }}>
             {enviando ? "Enviando…" : listo ? (asiste ? "Confirmar asistencia" : "Enviar respuesta") : "Selecciona una opción"}
           </button>
+          {errorEnvio && (
+            <div role="alert" style={{ marginTop: 12, padding: "11px 13px", borderRadius: 11, background: "#FDECEF", border: "1px solid #F7C9D5", font: "500 11.5px Poppins", color: "#B3245A", textAlign: "center" }}>
+              {errorEnvio}
+            </div>
+          )}
           <div style={{ font: "400 10.5px Poppins", color: "#a0a0a8", textAlign: "center", marginTop: 12 }}>Podrás modificar tu respuesta desde este mismo enlace.</div>
         </>
       ) : (
