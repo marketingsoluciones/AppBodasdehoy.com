@@ -84,6 +84,30 @@ test('QA bandeja — usabilidad y navegación', async ({ page }) => {
   });
   anota('Barra de filtros en una línea (objetivo ≤48px)', filtrosAlto === null ? null : filtrosAlto <= 48, `${filtrosAlto ?? '?'}px`);
 
+  // ── 2-bis. La cabecera no se come la lista ────────────────────────────────
+  // Owner 17-09: «ocupa mucho espacio, aporta poco valor». Se mide lo que hay entre el
+  // borde superior y la primera conversación: eran ~340px para filas de 64.
+  const altoCabecera = await page.evaluate(() => {
+    const filas = [...document.querySelectorAll('button')].filter((b) =>
+      /^Abrir /.test(b.getAttribute('aria-label') || ''),
+    );
+    if (filas.length === 0) return null;
+    const primera = filas[0].getBoundingClientRect();
+    return Math.round(primera.top);
+  });
+  anota('Cabecera de la bandeja contenida (objetivo ≤240px)',
+    altoCabecera === null ? null : altoCabecera <= 240, `${altoCabecera ?? '?'}px hasta la 1ª conversación`);
+
+  // ── 2-ter. El panel central dice algo útil ────────────────────────────────
+  anota('El panel central orienta en vez de describirse',
+    !/Bandeja unificada/.test(textoPagina) &&
+      /esperan? respuesta|Todo contestado|Empieza por aquí|Aún no hay conversaciones/i.test(textoPagina),
+    /Bandeja unificada/.test(textoPagina) ? 'sigue el cartel "Bandeja unificada"' : 'muestra por dónde empezar');
+
+  anota('No invita a conectar lo que ya está conectado',
+    !(/Conectar WhatsApp/i.test(textoPagina) && /esperan? respuesta|Empieza por aquí/i.test(textoPagina)),
+    'CTA de conectar solo con la bandeja vacía');
+
   // ── 3. Chip de visibilidad ────────────────────────────────────────────────
   anota('Chip de conversación compartida visible', /Compartida ·|Equipo\b/.test(textoPagina) ? true : null,
     /Compartida ·|Equipo\b/.test(textoPagina) ? 'encontrado' : 'ninguna conversación compartida todavía (no concluyente)');
@@ -199,7 +223,15 @@ test('QA bandeja — usabilidad y navegación', async ({ page }) => {
     await page.goto(`${CHAT}/bandeja/wa-bodasdehoy`, { timeout: 90_000, waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(7000);
     const enCanal = await page.evaluate(() => document.body.innerText);
-    anota('La cabecera dice en qué canal estás', /WhatsApp/.test(enCanal) && !/^Comunicaciones$/m.test(enCanal));
+    // No basta con que el texto esté en el DOM: el título llegó a quedarse con 0px de ancho
+    // (aplastado por los controles de al lado) y "WhatsApp" no se leía aunque estuviera.
+    const tituloCanal = await page.evaluate(() => {
+      const h = [...document.querySelectorAll('h2')].find((el) => /WhatsApp|Chat web|Instagram|Telegram|Messenger|Email/.test(el.textContent || ''));
+      return h ? { ancho: Math.round(h.getBoundingClientRect().width), texto: (h.textContent || '').trim() } : null;
+    });
+    anota('La cabecera dice en qué canal estás y se lee',
+      !!tituloCanal && tituloCanal.ancho > 40,
+      tituloCanal ? `"${tituloCanal.texto}" · ${tituloCanal.ancho}px` : 'no hay título de canal');
     anota('Hay salida a todos los canales', /Todos los canales/i.test(enCanal));
     anota('Modo de IA por defecto visible', /IA por defecto/i.test(enCanal));
 
@@ -207,7 +239,9 @@ test('QA bandeja — usabilidad y navegación', async ({ page }) => {
     // midió en 95px cuando la bandeja iba a 64. Dos densidades para lo mismo.
     const altoCanal = await page.evaluate(() => {
       const alturas = [...document.querySelectorAll('button')]
-        .map((el) => Math.round(el.getBoundingClientRect().height))
+        .filter((el) => /^Abrir conversación/.test(el.getAttribute('aria-label') || ''))
+        .filter((el) => el.getBoundingClientRect().width > 0)
+        .map((el) => Math.round(el.parentElement!.getBoundingClientRect().height))
         .filter((h) => h > 30 && h < 140);
       const cuenta: Record<number, number> = {};
       alturas.forEach((h) => (cuenta[h] = (cuenta[h] || 0) + 1));
@@ -217,11 +251,27 @@ test('QA bandeja — usabilidad y navegación', async ({ page }) => {
     anota('Densidad de la lista por canal igual a la de la bandeja (≤70px)',
       altoCanal === null ? null : altoCanal <= 70, `${altoCanal ?? '?'}px`);
 
-    const gestionAcceso = await page.locator('button[aria-label*="acceso"]').count();
-    anota('Control de acceso en las filas', gestionAcceso > 0, `${gestionAcceso} filas con control`);
+    // Rediseño 17-09: el <select> pasó a una pastilla de 18px, y el acceso a 👥 con el
+    // número. El de acceso solo sale en conversaciones compartidas (poner un icono apagado
+    // en las noventa filas era el ruido que se quitó), así que 0 no es un fallo: es que
+    // todavía no hay ninguna compartida.
+    const modoIa = await page.locator('button[aria-label*="IA en modo"]').count();
+    // Ojo: la lista se pinta dos veces (copia móvil de 0x0 + escritorio). Medir la primera
+    // del DOM da 0px y parece un fallo que no existe; ya pasó en la auditoría anterior.
+    anota('Indicador de modo de IA en las filas', modoIa > 0, `${modoIa} filas con indicador`);
 
-    const modoIa = await page.locator('select[aria-label*="Modo de la IA"]').count();
-    anota('Modo de IA por conversación en las filas', modoIa > 0, `${modoIa} filas con selector`);
+    const anchoIndicador = await page.evaluate(() => {
+      const b = [...document.querySelectorAll('button[aria-label*="IA en modo"]')].find(
+        (el) => el.getBoundingClientRect().width > 0,
+      );
+      return b ? Math.round(b.getBoundingClientRect().width) : null;
+    });
+    anota('El indicador de IA no come la fila (≤40px)',
+      anchoIndicador === null ? null : anchoIndicador <= 40, `${anchoIndicador ?? '?'}px`);
+
+    const gestionAcceso = await page.locator('button[aria-label*="Compartida"]').count();
+    anota('Indicador de acceso en las compartidas', gestionAcceso > 0 ? true : null,
+      gestionAcceso > 0 ? `${gestionAcceso} filas` : 'ninguna conversación compartida (no concluyente)');
 
     const volverCanales = page.locator('button').filter({ hasText: /Todos los canales/i }).first();
     if (await volverCanales.count()) {

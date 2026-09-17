@@ -278,11 +278,15 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
           </div>
           {/* Modo de IA POR DEFECTO de la bandeja. Cada conversación puede tener el suyo
               propio (api-ia lo resuelve en cascada) y se cambia desde su fila; este es el que
-              heredan las que no lo tengan. */}
-          <div className="flex flex-none items-center gap-1.5">
-            <span className="text-[11px]" style={{ color: '#84848F' }} title="Modo que heredan las conversaciones que no tengan uno propio">
-              IA por defecto
-            </span>
+              heredan las que no lo tengan.
+              El rótulo "IA por defecto" se retiró el 17-09: en una columna de 300px, entre él,
+              el selector y el orden, al título del canal le quedaban cero píxeles y "WhatsApp"
+              desaparecía —medido: h2 de 0px de ancho—. Lo que decía el rótulo lo dice ahora su
+              tooltip, y la leyenda del panel central enseña los tres iconos. */}
+          <div
+            className="flex flex-none items-center"
+            title="Modo de IA que heredan las conversaciones sin uno propio"
+          >
             <IaLevelPicker level={iaLevel} onChange={(next) => void cambiarIa(next)} />
           </div>
           {/* Sort toggle discreto */}
@@ -302,7 +306,12 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
             }
             type="button"
           >
-            {sortMode === 'recent' ? 'Recientes' : 'No leídos'}
+            {/* Icono en vez de "Recientes"/"No leídos": dos palabras que se comían el ancho
+                del título. Lo que hace sigue dicho en el tooltip. */}
+            <span aria-hidden>{sortMode === 'recent' ? '↓' : '●'}</span>
+            <span className="sr-only">
+              {sortMode === 'recent' ? 'Orden: recientes primero' : 'Orden: no leídos primero'}
+            </span>
           </button>
         </div>
         {/* Buscador con icono Search y tokens del sistema */}

@@ -80,24 +80,32 @@ export function SharedBadge({
   const visibilidad = describeVisibility(sharedWith);
   const total = Array.isArray(sharedWith) ? sharedWith.length : 0;
 
-  // Sin comparticiones no se pinta nada: un icono apagado en las noventa filas sería ruido,
-  // y "privada" sería falso (la bandeja es de equipo).
-  if (!visibilidad) return null;
-
+  // Compartida: se ve siempre, con cuánta gente. Sin compartir: el icono aparece al pasar el
+  // ratón (o al tabular). Pintarlo encendido en las noventa filas sería el ruido que se
+  // quitó, pero no pintarlo nunca dejaba sin puerta para DAR acceso desde la lista. Y
+  // "privada" no se dice porque sería falso: la bandeja es de equipo.
   return (
     <button
-      aria-label={visibilidad.title}
-      className={PASTILLA}
+      aria-label={visibilidad ? visibilidad.title : 'Dar acceso a alguien del equipo'}
+      className={`${PASTILLA} ${visibilidad ? '' : 'opacity-0 focus:opacity-100 group-hover:opacity-60'}`}
       onClick={(e) => {
         e.stopPropagation();
         onManage?.();
       }}
-      style={{ backgroundColor: '#EEF2FF', color: '#4F46E5' }}
-      title={`${visibilidad.title}. Pulsa para gestionar el acceso.`}
+      style={
+        visibilidad
+          ? { backgroundColor: '#EEF2FF', color: '#4F46E5' }
+          : { color: '#9A9AA6' }
+      }
+      title={
+        visibilidad
+          ? `${visibilidad.title}. Pulsa para gestionar el acceso.`
+          : 'Nadie más del equipo la tiene asignada. Pulsa para dar acceso.'
+      }
       type="button"
     >
       <span aria-hidden="true">👥</span>
-      <span>{total}</span>
+      {visibilidad && <span>{total}</span>}
     </button>
   );
 }

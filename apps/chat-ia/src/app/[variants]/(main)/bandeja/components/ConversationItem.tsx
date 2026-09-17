@@ -185,7 +185,7 @@ export function ConversationItem({
           El botón de la fila va DEBAJO del contenido, no envolviéndolo: los indicadores son
           botones y no pueden anidarse dentro de otro. */}
       <div
-        className="relative"
+        className="group relative"
         onContextMenu={handleContextMenu}
         onMouseEnter={(e) => {
           if (!isSelected) e.currentTarget.style.backgroundColor = '#FCFCFD';
@@ -201,7 +201,7 @@ export function ConversationItem({
           onClick={handleClick}
           type="button"
         />
-        <div className="pointer-events-none relative flex items-center gap-2.5 px-3 py-2 text-left">
+        <div className="pointer-events-none relative flex items-center gap-2.5 px-3 py-1.5 text-left">
           {/* Avatar con punto de canal y presencia */}
           <div className="relative flex-shrink-0">
             <div

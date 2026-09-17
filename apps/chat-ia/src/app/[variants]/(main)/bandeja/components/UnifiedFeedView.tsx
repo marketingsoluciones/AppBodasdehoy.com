@@ -97,7 +97,7 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
        indicadores (acceso, modo de IA) son botones a su vez y anidarlos dentro habría dado
        HTML inválido; posicionarlos en absoluto, como estaban, los montaba encima del mensaje
        al estrechar la lista. Así el contenido fluye y solo los indicadores capturan el clic. */
-    <div className={`relative border-b border-gray-100 last:border-0 ${rowBg}`}>
+    <div className={`group relative border-b border-gray-100 last:border-0 ${rowBg}`}>
       <button
         aria-label={`Abrir ${item.name}`}
         className="absolute inset-0 h-full w-full"
