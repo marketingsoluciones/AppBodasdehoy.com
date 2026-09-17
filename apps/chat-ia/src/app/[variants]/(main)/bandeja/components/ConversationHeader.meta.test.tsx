@@ -97,9 +97,11 @@ describe('ConversationHeader meta', () => {
     expect(statusSelect.value).toBe('open');
     expect(screen.getByText('Abierta', { selector: 'option' })).toBeInTheDocument();
 
-    const assignBtn = screen.getByRole('button', { name: 'Sin asignar' });
+    // El botón de asignación pasó a icono el 17-09 (el texto ocupaba ~90px de barra para un
+    // dato que se cambia una vez por conversación); el significado vive ahora en el aria-label.
+    const assignBtn = screen.getByRole('button', { name: /Sin asignar/ });
     fireEvent.click(assignBtn);
 
-    expect(screen.getByRole('button', { name: 'Asignada a ti' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Asignada a ti/ })).toBeInTheDocument();
   });
 });

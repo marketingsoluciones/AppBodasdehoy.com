@@ -477,22 +477,52 @@ export function ConversationHeader({
               <option value="closed">Cerrada</option>
             </select>
 
-            {/* Asignación */}
+            {/* Asignación. El texto ("Asignada a ti", "Sin asignar") se va al aria-label y
+                al tooltip: son hasta 90px de barra para un dato que se consulta de un
+                vistazo y se cambia una vez por conversación, mientras compite con el
+                nombre del contacto por el mismo ancho. El estado se lee en el icono —
+                relleno y en color de marca si es tuya, relleno gris si la lleva otro,
+                contorno si no la lleva nadie— y en el punto de la esquina. */}
             <button
-              className="rounded-md px-2 py-1 text-xs transition-colors"
+              aria-label={
+                assignedToMe
+                  ? 'Asignada a ti. Pulsa para soltarla'
+                  : meta.assignedUserId
+                    ? 'Asignada a otra persona. Pulsa para asignártela'
+                    : 'Sin asignar. Pulsa para asignártela'
+              }
+              className="flex h-8 w-8 items-center justify-center rounded-md transition-colors"
               onClick={() => {
                 if (!userId) return;
                 assignToUser(assignedToMe ? null : userId);
               }}
               style={{
-                backgroundColor: assignedToMe ? brand.brandBg : '#FFFFFF',
+                backgroundColor: assignedToMe ? brand.brandBg : 'transparent',
                 border: `1px solid ${assignedToMe ? brand.brandBg : '#EDEDF0'}`,
                 color: assignedToMe ? brand.brand : '#84848F',
-                fontWeight: assignedToMe ? 500 : 400,
               }}
+              title={
+                assignedToMe
+                  ? 'Asignada a ti · pulsa para soltarla'
+                  : meta.assignedUserId
+                    ? 'La lleva otra persona · pulsa para asignártela'
+                    : 'Sin asignar · pulsa para asignártela'
+              }
               type="button"
             >
-              {assignedToMe ? 'Asignada a ti' : meta.assignedUserId ? 'Asignada' : 'Sin asignar'}
+              <svg
+                fill={assignedToMe || meta.assignedUserId ? 'currentColor' : 'none'}
+                height="15"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1.8"
+                viewBox="0 0 24 24"
+                width="15"
+              >
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
             </button>
           </div>
 
@@ -508,7 +538,9 @@ export function ConversationHeader({
             type="button"
           >
             <span aria-hidden="true">{summarizing ? '⏳' : '✦'}</span>
-            {summarizing ? 'Resumiendo…' : 'Resumir'}
+            {/* La palabra solo cuando hay ancho: por debajo de 1280px compite con el
+                nombre del contacto, que importa más. El aria-label no cambia nunca. */}
+            <span className="hidden xl:inline">{summarizing ? 'Resumiendo…' : 'Resumir'}</span>
           </button>
 
           {/* Botón búsqueda con Lucide SVG (antes emoji 🔍) */}
