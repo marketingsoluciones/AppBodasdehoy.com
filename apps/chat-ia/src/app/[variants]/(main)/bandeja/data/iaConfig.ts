@@ -38,3 +38,52 @@ export async function saveIaLevel(development: string, level: IaLevel): Promise<
   });
   return res.ok;
 }
+
+/** De dónde sale el modo que se está aplicando a una conversación. */
+export type IaLevelSource = 'conversation' | 'default' | 'workspace';
+
+export interface ConversationIaLevel {
+  level: IaLevel;
+  /** `conversation` = tiene su propio modo · `workspace` = hereda el de la bandeja. */
+  source: IaLevelSource;
+}
+
+const convUrl = (conversationId: string, development: string) =>
+  `/api/messages/conversations/${encodeURIComponent(conversationId)}/ia-level?development=${encodeURIComponent(development)}`;
+
+/**
+ * Modo de IA de UNA conversación.
+ *
+ * api-ia lo resuelve en cascada: si la conversación tiene override lo devuelve con
+ * `source: 'conversation'`; si no, hereda el de la marca (`source: 'workspace'`). Por eso la
+ * interfaz puede distinguir "esta conversación está en automático" de "toda la bandeja lo
+ * está", que para quien atiende no es lo mismo.
+ */
+export async function getConversationIaLevel(
+  conversationId: string,
+  development: string,
+): Promise<ConversationIaLevel | null> {
+  const res = await dedupeFetch(convUrl(conversationId, development), { headers: buildHeaders() });
+  if (!res.ok) return null;
+  const json = await res.json().catch(() => null);
+  return isIaLevel(json?.level)
+    ? { level: json.level, source: (json?.source as IaLevelSource) ?? 'workspace' }
+    : null;
+}
+
+/**
+ * Cambia el modo de esa conversación. `null` borra el override y vuelve a heredar el de la
+ * bandeja, que es justo lo que hace falta para poder deshacer sin adivinar el valor global.
+ */
+export async function saveConversationIaLevel(
+  conversationId: string,
+  development: string,
+  level: IaLevel | null,
+): Promise<boolean> {
+  const res = await fetch(convUrl(conversationId, development), {
+    body: JSON.stringify({ level }),
+    headers: buildHeaders(),
+    method: 'PUT',
+  });
+  return res.ok;
+}

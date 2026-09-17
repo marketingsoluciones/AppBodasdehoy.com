@@ -276,12 +276,12 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
               )}
             </p>
           </div>
-          {/* Modo de IA. Va aquí y NO por conversación a propósito: el backend lo guarda por
-              marca (`{marca}:workspace:ia_level`), así que un interruptor en cada fila daría a
-              entender que se cambia solo esa, cuando cambia la bandeja entera. */}
+          {/* Modo de IA POR DEFECTO de la bandeja. Cada conversación puede tener el suyo
+              propio (api-ia lo resuelve en cascada) y se cambia desde su fila; este es el que
+              heredan las que no lo tengan. */}
           <div className="flex flex-none items-center gap-1.5">
-            <span className="text-[11px]" style={{ color: '#84848F' }}>
-              IA de la bandeja
+            <span className="text-[11px]" style={{ color: '#84848F' }} title="Modo que heredan las conversaciones que no tengan uno propio">
+              IA por defecto
             </span>
             <IaLevelPicker level={iaLevel} onChange={(next) => void cambiarIa(next)} />
           </div>

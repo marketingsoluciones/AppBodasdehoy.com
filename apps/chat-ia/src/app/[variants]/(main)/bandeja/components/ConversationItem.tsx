@@ -11,6 +11,7 @@ import { useBandejaBrand } from '../utils/brand';
 import { describeVisibility } from '../utils/visibility';
 import { stripMiniMarkdown } from './MiniMarkdown';
 import { previewText } from '../utils/preview';
+import { IaModeControl } from './IaModeControl';
 import { useConversationActions } from '../hooks/useConversationActions';
 import { ConversationStatus, useConversationMeta } from '../hooks/useConversationMeta';
 
@@ -86,7 +87,7 @@ export function ConversationItem({
   const brand = useBandejaBrand();
   const router = useRouter();
   const { checkAuth } = useAuthCheck();
-  const { userId } = checkAuth();
+  const { development: marca, userId } = checkAuth();
   const { meta } = useConversationMeta(conversation.id);
   const status: ConversationStatus = meta.status ?? 'open';
   const assignedToMe = !!(userId && meta.assignedUserId && meta.assignedUserId === userId);
@@ -355,6 +356,11 @@ export function ConversationItem({
           contener otro elemento interactivo: es inválido y los clics se pisan. Aparece en
           todas las filas, no solo en las compartidas: si solo saliera cuando ya hay alguien,
           no habría por dónde empezar a dar acceso. */}
+      {/* Modo de la IA en ESTA conversación (api-ia lo guarda por conversación con herencia
+          del de la marca). Junto al acceso, fuera del botón de fila. */}
+      <span className="absolute bottom-1.5 right-11">
+        <IaModeControl conversationId={conversation.id} development={marca} />
+      </span>
       <button
         aria-label={
           visibility ? `Gestionar acceso · ${visibility.title}` : 'Dar acceso a alguien del equipo'
