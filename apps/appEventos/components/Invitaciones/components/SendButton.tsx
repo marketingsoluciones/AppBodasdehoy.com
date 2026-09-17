@@ -1,4 +1,5 @@
 import { FC, useCallback, useEffect, useState } from 'react';
+import { clasificarEnvio } from "../../../utils/estadoEnvio";
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { fetchApiEventos, queries } from '../../../utils/Fetching';
@@ -278,7 +279,7 @@ export const SendButton: FC<SendButtonProps> = ({ isResend = false, optionSelect
         ? (selectedEmailTemplate || event?.templateEmailSelect)
         : (selectedWhatsappTemplate || event?.templateWhatsappSelect);
 
-      await fetchApiEventos({
+      const res: any = await fetchApiEventos({
         query: queries.sendComunications,
         variables: {
           evento_id: event?._id,
@@ -290,7 +291,36 @@ export const SendButton: FC<SendButtonProps> = ({ isResend = false, optionSelect
         }
       });
 
-      toast("success", transportSelected === "email" ? t("Envio por email exitoso") : t("Envio por WhatsApp exitoso"));
+      // Antes esto era un toast de "exitoso" FIJO: se hacia el await y se cantaba exito
+      // sin mirar la respuesta, asi que decia lo mismo si fallaban todos los invitados.
+      // Es el mismo fallo que ya aparecio dos veces esta semana (la confirmacion del
+      // invitado y el visor de itinerario): la interfaz declarando exito por haber
+      // recibido respuesta, no por lo que la respuesta decia.
+      //
+      // Y en WhatsApp, desde el despliegue 0088ef9a de api-mcp, 'aceptado' significa que
+      // Meta lo admitio para procesar, NO que se entrego (`enviado` es false SIEMPRE).
+      // Lo que no se reconozca no se asume bueno: la lista de estados va a crecer cuando
+      // api-ia procese value.statuses.
+      // Misma clasificación que InvitacionesStudio, en un único sitio y con tests.
+      const { aceptados: sent, conError, desconocidos: raros, sinRespuesta, sinTelefono } = clasificarEnvio(res);
+      const failed = Number(res?.failed || 0);
+      const motivo = res?.errors?.[0]?.message || "";
+
+      if (sinRespuesta) {
+        toast("error", motivo || t("No se pudo enviar: el servidor no devolvio resultado"));
+      } else if (sent === 0) {
+        toast("error", motivo || `${t("No se envio ninguna")} (${failed})${sinTelefono ? ` · ${sinTelefono} ${t("sin telefono")}` : ""}`);
+      } else {
+        const base = transportSelected === "email"
+          ? `${t("Invitacion enviada por email")}: ${sent}`
+          : `${sent} ${t("en cola en WhatsApp (aceptado, entrega sin confirmar)")}`;
+        const extra = [
+          sinTelefono ? `${sinTelefono} ${t("sin telefono")}` : "",
+          conError ? `${conError} ${t("con error")}` : "",
+          raros ? `${raros} ${t("con estado desconocido")}` : "",
+        ].filter(Boolean).join(" · ");
+        toast(failed || raros ? "warning" : "success", extra ? `${base} · ${extra}` : base);
+      }
 
       // if (result?.invitados_array) {
       //   const invitadosActualizados = event.invitados_array.map(invitado => {

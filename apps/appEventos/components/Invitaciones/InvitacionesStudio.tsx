@@ -5,6 +5,7 @@ import BlockTitle from "../Utils/BlockTitle";
 import { EventContextProvider } from "../../context/EventContext";
 import { AuthContextProvider } from "../../context/AuthContext";
 import { useToast } from "../../hooks/useToast";
+import { clasificarEnvio } from "../../utils/estadoEnvio";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { descartarTextosHeredadosDeBoda, getInvitacionDefaults } from "../../utils/defaultInvitacionPorTipo";
 import { subir_archivo } from "./ModuloSubida";
@@ -381,19 +382,47 @@ export const InvitacionesStudio: FC = () => {
         toast("error", errMsg || "No se pudo enviar (el servidor no devolvió resultado). Recarga la página (Cmd+Shift+R) e inténtalo de nuevo.");
         return;
       }
+      // Estados de sendComunications tras el despliegue 0088ef9a de api-mcp. En WhatsApp
+      // 'aceptado' significa que Meta ADMITIO el mensaje para procesar, NO que se entrego,
+      // y `enviado` es false SIEMPRE desde ese cambio. Leerlo como senal de exito volvia a
+      // pintar justo la mentira que el backend acaba de quitar: el anfitrion veia "enviada"
+      // y no volvia a mirar. En email no hay `estado`, asi que ahi `enviado` sigue mandando.
+      //
+      // La lista de estados va a CRECER cuando api-ia procese value.statuses ('entregado',
+      // 'leido', 'no_entregado'). Por eso lo que no se reconozca se cuenta aparte y se
+      // ensena como desconocido: asumir que un estado nuevo es bueno es como se cuela esta
+      // clase de fallo, y un estado nuevo bueno solo cuesta un aviso raro durante un dia.
+      // La clasificación vive en utils/estadoEnvio.ts porque esta pantalla y SendButton
+      // tenían que interpretar lo mismo y lo hacían distinto. Ahí está cubierta por tests.
+      const resumen = clasificarEnvio(res);
+      const { conError, desconocidos, estadosRaros, sinTelefono } = resumen;
+
       if (sent > 0) {
-        // Marca como enviados solo los que el backend confirma (o todos si no detalla y sent === seleccionados).
-        const okIds = results.filter((r) => r?.enviado).map((r) => r?.invitado_id || r?._id).filter(Boolean);
+        // Se marcan los aceptados: el anfitrion SI los mando, y desmarcarlos invitaria a
+        // enviar dos veces. Lo que cambia es lo que se le dice, que es donde estaba el engaño.
+        const okIds = resumen.aceptadosIds;
         const marked = okIds.length ? okIds : (sent >= ids.length ? ids : []);
         if (marked.length) setSentIds((prev) => { const n = { ...prev }; marked.forEach((id: string) => { n[id] = true; }); return n; });
         setChecked({});
-        const chLabel = sendChan === "email" ? "email" : "WhatsApp";
-        toast("success", failed > 0
-          ? `Enviado a ${sent} · ${failed} sin enviar${errMsg ? ` (${errMsg})` : ""}`
-          : `Invitación enviada a ${sent} invitado${sent > 1 ? "s" : ""} por ${chLabel}`);
+        const partes: string[] = [
+          sendChan === "whatsapp"
+            ? `${sent} en cola en WhatsApp (aceptado por Meta; la entrega se confirma aparte)`
+            : `Invitación enviada a ${sent} invitado${sent > 1 ? "s" : ""} por email`,
+        ];
+        if (sinTelefono) partes.push(`${sinTelefono} sin teléfono`);
+        if (conError) partes.push(`${conError} con error`);
+        if (desconocidos) partes.push(`${desconocidos} con estado desconocido (${estadosRaros.join(", ")})`);
+        if (errMsg) partes.push(`(${errMsg})`);
+        toast(conError || desconocidos ? "warning" : "success", partes.join(" · "));
       } else {
-        // sent === 0 && failed > 0 → ninguno se envió; motivo real del backend.
-        toast("error", errMsg || `No se envió ninguna (${failed} ${failed > 1 ? "fallaron" : "falló"}). ${sendChan === "whatsapp" ? "Revisa que los invitados tengan número de teléfono." : ""}`);
+        // sent === 0 && failed > 0 → ninguno se acepto. `failed` suma fallidos + sin_telefono,
+        // asi que ahora se puede decir CUAL de los dos fue en vez de sugerirlo.
+        const detalle = sinTelefono && !conError
+          ? `${sinTelefono} ${sinTelefono > 1 ? "invitados no tienen" : "invitado no tiene"} teléfono.`
+          : sinTelefono
+            ? `${conError} con error y ${sinTelefono} sin teléfono.`
+            : "";
+        toast("error", errMsg || `No se envió ninguna (${failed} ${failed > 1 ? "fallaron" : "falló"}). ${detalle}`.trim());
       }
     } catch {
       toast("error", "Error al enviar invitaciones");
