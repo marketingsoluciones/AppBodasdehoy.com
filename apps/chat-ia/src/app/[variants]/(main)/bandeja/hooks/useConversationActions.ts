@@ -2,8 +2,16 @@
 
 import { useCallback, useSyncExternalStore } from 'react';
 
-// ─── localStorage-based conversation actions ─────────────────────────────────
-// Persists archive/mute state per conversation until backend support is added.
+import { persistArchived } from '../data/conversationMeta';
+
+// ─── Acciones de conversación ────────────────────────────────────────────────
+// Archivar se guarda en el SERVIDOR (api-mcp, estado ARCHIVED): hasta el 17-09 vivía solo en
+// este `localStorage`, así que cada persona archivaba para sí misma y el resto del equipo
+// seguía viendo la conversación en la bandeja. Aquí localStorage queda como respuesta
+// inmediata mientras el servidor confirma, y se revierte si lo rechaza.
+//
+// Silenciar sigue siendo local a propósito: api-mcp no tiene dónde guardarlo y es una
+// preferencia de quien mira, no del equipo. La interfaz lo dice.
 
 const STORAGE_KEY = 'inbox_conversation_actions';
 
@@ -76,8 +84,16 @@ export function useConversationActions() {
   const toggleArchive = useCallback((conversationId: string) => {
     const map = { ...readFromStorage() };
     const current = map[conversationId] ?? {};
-    map[conversationId] = { ...current, archived: !current.archived };
+    const siguiente = !current.archived;
+    map[conversationId] = { ...current, archived: siguiente };
     saveMap(map);
+    // El servidor manda: si rechaza, se deshace en vez de dejar la lista mintiendo.
+    void persistArchived(conversationId, siguiente).then((ok) => {
+      if (ok) return;
+      const vuelta = { ...readFromStorage() };
+      vuelta[conversationId] = { ...(vuelta[conversationId] ?? {}), archived: !siguiente };
+      saveMap(vuelta);
+    });
   }, []);
 
   const toggleMute = useCallback((conversationId: string) => {
@@ -87,15 +103,21 @@ export function useConversationActions() {
     saveMap(map);
   }, []);
 
-  const deleteConversation = useCallback((conversationId: string) => {
-    const map = { ...readFromStorage() };
-    map[conversationId] = { ...map[conversationId], archived: true };
-    saveMap(map);
-  }, []);
+  // "Eliminar" nunca borró nada: archivaba. Se mantiene el nombre que usa el menú, pero
+  // apunta al mismo archivado del servidor para que no haya dos verdades.
+  const deleteConversation = useCallback(
+    (conversationId: string) => {
+      const map = { ...readFromStorage() };
+      map[conversationId] = { ...map[conversationId], archived: true };
+      saveMap(map);
+      void persistArchived(conversationId, true);
+    },
+    [],
+  );
 
   const clearChat = useCallback((_conversationId: string) => {
-    // Placeholder — when backend supports it, this will clear messages.
-    // For now it's a no-op that closes the menu.
+    // Sin soporte en el backend: no se ofrece en ningún menú. Se conserva la función para no
+    // romper a quien la importe, pero no finge hacer nada.
   }, []);
 
   return { clearChat, deleteConversation, isArchived, isMuted, toggleArchive, toggleMute };

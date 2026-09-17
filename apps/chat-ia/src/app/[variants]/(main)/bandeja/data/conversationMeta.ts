@@ -32,6 +32,24 @@ export function fromServerStatus(status: string | null | undefined): InboxStatus
   return s === 'open' || s === 'pending' || s === 'closed' ? (s as InboxStatus) : null;
 }
 
+/**
+ * Archiva o desarchiva para TODO el equipo.
+ *
+ * Archivar vivía solo en `localStorage` (17-09): cada persona archivaba en su navegador y
+ * el resto seguía viendo la conversación en la bandeja. api-mcp admite el estado `ARCHIVED`
+ * desde hace tiempo; al desarchivar se vuelve a `ACTIVE`, igual que hace `reopenConversation`.
+ */
+export async function persistArchived(
+  conversationId: string,
+  archived: boolean,
+): Promise<boolean> {
+  try {
+    return await setConversationStatus(conversationId, archived ? 'ARCHIVED' : 'ACTIVE');
+  } catch {
+    return false;
+  }
+}
+
 /** Guarda el estado para TODO el equipo. false si el servidor lo rechaza. */
 export async function persistStatus(
   conversationId: string,

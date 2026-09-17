@@ -339,6 +339,9 @@ export function ConversationItem({
             type="button"
           >
             {conversationMuted ? '🔔 Activar sonido' : '🔇 Silenciar'}
+            <span className="ml-auto text-[10px]" style={{ color: '#9A9AA6' }}>
+              solo aquí
+            </span>
           </button>
           <div className="my-1 h-px bg-gray-100" />
           <button

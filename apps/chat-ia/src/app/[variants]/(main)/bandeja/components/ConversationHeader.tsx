@@ -702,6 +702,9 @@ export function ConversationHeader({
                   type="button"
                 >
                   {conversationMuted ? 'Activar sonido' : 'Silenciar'}
+                  <span className="ml-auto text-[10px]" style={{ color: '#9A9AA6' }}>
+                    solo aquí
+                  </span>
                 </button>
                 <div style={{ borderTop: '1px solid #EDEDF0', margin: '4px 0' }} />
                 <button
