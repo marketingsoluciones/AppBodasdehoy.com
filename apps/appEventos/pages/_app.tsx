@@ -182,10 +182,16 @@ const Load = ({ setValirBlock }) => {
   // todos los var() de la app caerían a su respaldo: bodasdehoy se vería bien y el
   // resto de marcas se romperían — justo lo contrario del barrido. Me pasó al barrer.
   const themePrimary = safeThemeValue(config?.theme?.primaryColor) || '#EF5B94'
-  const themeSecondary = safeThemeValue(config?.theme?.secondaryColor) || '#f472b6'
-  const themeTertiary = safeThemeValue(config?.theme?.tertiaryColor) || '#f9a8d4'
-  const themeBase = safeThemeValue(config?.theme?.baseColor) || '#ffffff'
-  const themeScroll = safeThemeValue(config?.theme?.colorScroll) || '#e5e7eb'
+  // Los cuatro respaldos de abajo eran tonos de Tailwind (#f472b6, #f9a8d4, #ffffff,
+  // #e5e7eb), restos de la misma familia que el #ec4899 del primario. Los reales de
+  // bodasdehoy son verde menta y amarillo, no rosas: al fallar la resolución, el
+  // gradiente del login salía rosa-rosa-rosa en vez de rosa-menta-amarillo. Y
+  // pages/login.tsx ya tenía los correctos, así que los dos ficheros se contradecían.
+  // Valores tomados de packages/shared/src/types/developments.ts (bodasdehoy).
+  const themeSecondary = safeThemeValue(config?.theme?.secondaryColor) || '#87F3B5'
+  const themeTertiary = safeThemeValue(config?.theme?.tertiaryColor) || '#FBFF4E'
+  const themeBase = safeThemeValue(config?.theme?.baseColor) || '#F2F2F2'
+  const themeScroll = safeThemeValue(config?.theme?.colorScroll) || '#ffc0cb'
 
   const devLoggerEnabled =
     process.env.NODE_ENV === 'development' &&
