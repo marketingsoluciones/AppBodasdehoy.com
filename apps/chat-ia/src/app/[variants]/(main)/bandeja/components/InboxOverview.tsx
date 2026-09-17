@@ -1,7 +1,6 @@
 'use client';
 
 import type { FeedItem } from '../hooks/useUnifiedFeed';
-import { useBandejaBrand } from '../utils/brand';
 import { previewText } from '../utils/preview';
 import { IA_MODES } from './RowIndicators';
 
@@ -12,6 +11,10 @@ import { IA_MODES } from './RowIndicators';
  * botones, uno de ellos "Conectar WhatsApp" con WhatsApp ya conectado y noventa
  * conversaciones al lado. Owner 17-09: «la pantalla central no se entiende, no aporta valor,
  * debemos ser más ingeniosos». Es la mitad de la pantalla explicando el nombre del producto.
+ *
+ * El color de marca va en clases (`bg-brand`, `text-brand`), no con el hook: los tokens de
+ * tailwind.css ya derivan del color del tenant, se leen en el markup y no obligan a montar un
+ * hook para pintar un botón. Acuerdo con el otro frente, 17-09.
  *
  * Lo que sí hace falta ahí es la respuesta a "¿por dónde empiezo?": cuántas esperan, cuáles
  * son las más antiguas sin contestar —lo más antiguo sin responder es lo que más quema— y un
@@ -45,8 +48,6 @@ export function InboxOverview({
   onItemClick,
   onNewMessage,
 }: InboxOverviewProps) {
-  const brand = useBandejaBrand();
-
   const conversaciones = items.filter((i) => i.kind === 'conversation');
   const esperan = conversaciones
     .filter((i) => (i.unreadCount ?? 0) > 0 || !i.isRead)
@@ -66,9 +67,8 @@ export function InboxOverview({
         {canManage ? (
           <div className="mt-4 flex items-center justify-center gap-2">
             <button
-              className="rounded-lg px-3 py-2 text-xs font-semibold text-white"
+              className="rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white"
               onClick={onConnectWhatsApp}
-              style={{ backgroundColor: brand.brand }}
               type="button"
             >
               Conectar WhatsApp
@@ -98,7 +98,7 @@ export function InboxOverview({
       <div className="text-center">
         {esperan.length > 0 ? (
           <>
-            <div className="text-[32px] font-bold leading-none" style={{ color: brand.brand }}>
+            <div className="text-[32px] font-bold leading-none text-brand">
               {esperan.length}
             </div>
             <div className="mt-1 text-sm font-semibold text-gray-800">
@@ -147,9 +147,8 @@ export function InboxOverview({
 
       <div className="mt-3 flex items-center justify-center gap-2">
         <button
-          className="rounded-lg px-3 py-2 text-xs font-semibold text-white"
+          className="rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white"
           onClick={onNewMessage}
-          style={{ backgroundColor: brand.brand }}
           type="button"
         >
           ✍️ Nuevo mensaje
