@@ -1,5 +1,7 @@
 'use client';
 
+import { useBandejaBrand } from '../utils/brand';
+
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -52,6 +54,9 @@ function normalizePhone(raw: string): string {
 }
 
 export function NewMessageModal({ onClose }: { onClose: () => void }) {
+  // El botón de enviar iba en el rosa del prototipo: en una marca que no sea Bodas de Hoy
+  // pintaba el color de otra empresa. El color de marca ya lo resuelve el whitelabel.
+  const brand = useBandejaBrand();
   const router = useRouter();
   const [network, setNetwork] = useState<Network>('whatsapp');
   const [phone, setPhone] = useState('');
@@ -237,7 +242,8 @@ export function NewMessageModal({ onClose }: { onClose: () => void }) {
             Cancelar
           </button>
           <button
-            className="rounded-lg bg-pink-500 px-4 py-2 text-xs font-semibold text-white hover:bg-pink-600 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+            style={{ backgroundColor: brand.brand }}
             disabled={!canSend}
             onClick={handleSend}
             type="button"

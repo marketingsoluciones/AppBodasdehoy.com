@@ -63,6 +63,7 @@ function initials(name: string): string {
 // ─── FeedItemRow ─────────────────────────────────────────────────────────────
 
 function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void }) {
+  const brand = useBandejaBrand();
   const router = useRouter();
   const { development } = getUserContext();
   const channelKey = item.channelKind as string;
@@ -193,7 +194,10 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
       {hasUnread && (
         <div className="shrink-0">
           {item.kind === 'notification' ? (
-            <span className="block h-2 w-2 rounded-full bg-pink-500" />
+            <span
+              className="block h-2 w-2 rounded-full"
+              style={{ backgroundColor: brand.brand }}
+            />
           ) : (
             <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-green-500 px-1 text-[10px] font-bold text-white">
               {item.unreadCount > 99 ? '99+' : item.unreadCount}
@@ -333,7 +337,8 @@ export function UnifiedFeedView({ items, loading, onItemClick, groupBy, groups }
             {/* Gate N29 (QA 14-09) */}
             {canManage && (
               <button
-                className="mt-2 rounded-lg bg-pink-500 px-4 py-2 text-sm font-medium text-white hover:bg-pink-600 transition-colors"
+                className="mt-2 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors"
+                style={{ backgroundColor: brand.brand }}
                 onClick={() => router.push('/settings/integrations')}
                 type="button"
               >
