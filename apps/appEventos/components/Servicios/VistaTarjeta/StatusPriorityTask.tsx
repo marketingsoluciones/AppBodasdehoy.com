@@ -49,7 +49,7 @@ export const StatusPriorityTask: FC<StatusPriorityTaskProps> = ({
   };
   const [estFg, estBg] = EST_HEX[String(currentStatus.value)] ?? EST_HEX.pending;
   const EST_DOT: Record<string, string> = {
-    pending: "#3A3A42", in_progress: "#EF5B94", completed: "#2FB37E", blocked: "#D83E7C",
+    pending: "#3A3A42", in_progress: "var(--color-primary,#EF5B94)", completed: "#2FB37E", blocked: "#D83E7C",
   };
   const menuStudio: React.CSSProperties = {
     position: "absolute", marginTop: 8, zIndex: 50, background: "#fff", borderRadius: 14,

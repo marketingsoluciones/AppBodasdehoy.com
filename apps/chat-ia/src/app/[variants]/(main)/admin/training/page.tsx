@@ -79,7 +79,7 @@ const getCategoryConfig = (category: string) => {
   const configs = {
     basic: { color: 'bg-blue-100 text-blue-700', icon: '📚', name: 'Básicas' },
     commercial: { color: 'bg-green-100 text-green-700', icon: '💰', name: 'Comerciales' },
-    emotional: { color: 'bg-pink-100 text-pink-700', icon: '❤️', name: 'Emocionales' },
+    emotional: { color: 'bg-brand-light text-brand', icon: '❤️', name: 'Emocionales' },
     technical: { color: 'bg-purple-100 text-purple-700', icon: '⚙️', name: 'Técnicas' },
   };
   return configs[category as keyof typeof configs] || configs.basic;
@@ -329,9 +329,9 @@ export default function TrainingPage() {
           <div className="text-sm text-gray-600">Básicas</div>
           <div className="mt-1 text-2xl font-bold text-blue-700">{categoryCounts.basic}</div>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-pink-50 to-pink-100 p-4">
+        <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-brand-light to-brand-light p-4">
           <div className="text-sm text-gray-600">Emocionales</div>
-          <div className="mt-1 text-2xl font-bold text-pink-700">{categoryCounts.emotional}</div>
+          <div className="mt-1 text-2xl font-bold text-brand">{categoryCounts.emotional}</div>
         </div>
         <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-purple-50 to-purple-100 p-4">
           <div className="text-sm text-gray-600">Técnicas</div>

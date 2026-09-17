@@ -17,7 +17,7 @@ import { useTranslation } from "react-i18next";
  */
 
 const inputStyle: React.CSSProperties = { width: "100%", border: "1.5px solid #EF9CC0", borderRadius: 10, padding: "11px 14px", font: "500 13px Poppins", color: "#3A3A42", outline: "none", background: "#fff" };
-const labelStyle: React.CSSProperties = { font: "600 12.5px Poppins", color: "#EF5B94", marginBottom: 7, display: "block" };
+const labelStyle: React.CSSProperties = { font: "600 12.5px Poppins", color: "var(--color-primary,var(--color-primary,#EF5B94))", marginBottom: 7, display: "block" };
 const errStyle: React.CSSProperties = { font: "500 11px Poppins", color: "#D83E7C", marginTop: 5 };
 
 const CUTLERY = <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M4 3v7c0 1.1.9 2 2 2s2-.9 2-2V3M6 12v9M17 3c-1.7 1-3 3.2-3 5.5 0 2 1.3 3.5 3 3.5v9" /></svg>;
@@ -81,7 +81,7 @@ const FormCrearMenuStudio: FC<{ onClose: () => void }> = ({ onClose }) => {
 
   const content = (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(40,40,46,.45)", display: "flex", alignItems: "stretch", fontFamily: "'Poppins',sans-serif" }}>
-      <style dangerouslySetInnerHTML={{ __html: "@keyframes fcm-slidein{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:none}}.fcm-in:focus{border-color:#EF5B94!important;}.fcm-body::-webkit-scrollbar{width:0;height:0;}" }} />
+      <style dangerouslySetInnerHTML={{ __html: "@keyframes fcm-slidein{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:none}}.fcm-in:focus{border-color:var(--color-primary,var(--color-primary,#EF5B94))!important;}.fcm-body::-webkit-scrollbar{width:0;height:0;}" }} />
       <div onClick={(e) => e.stopPropagation()} style={{ width: 420, maxWidth: "94vw", height: "100%", background: "#fff", display: "flex", flexDirection: "column", boxShadow: "8px 0 40px rgba(0,0,0,.14)", animation: "fcm-slidein .22s ease" }}>
         {/* Cabecera */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "22px 30px 16px", borderBottom: "1px solid #f0f0f2" }}>
@@ -95,7 +95,7 @@ const FormCrearMenuStudio: FC<{ onClose: () => void }> = ({ onClose }) => {
             {({ isSubmitting }) => (
               <Form style={{ display: "flex", flexDirection: "column", gap: 18 }}>
                 <Field name="nombre" label={t("Nombre del menú")} />
-                <button type="submit" disabled={isSubmitting} style={{ width: "100%", padding: 13, borderRadius: 12, background: isSubmitting ? "#f19bbb" : "#EF5B94", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: isSubmitting ? "default" : "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}>{t("Crear menú")}</button>
+                <button type="submit" disabled={isSubmitting} style={{ width: "100%", padding: 13, borderRadius: 12, background: isSubmitting ? "#f19bbb" : "var(--color-primary,var(--color-primary,#EF5B94))", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: isSubmitting ? "default" : "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}>{t("Crear menú")}</button>
               </Form>
             )}
           </Formik>

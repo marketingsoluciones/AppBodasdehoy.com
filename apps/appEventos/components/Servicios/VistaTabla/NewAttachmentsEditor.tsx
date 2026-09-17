@@ -315,7 +315,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
           <div className={`w-5 h-5 rounded-full flex items-center justify-center ${isStudio ? 'bg-[#f2f2f4]' : (task.attachments.length > 0 ? 'bg-emerald-600' : 'bg-gray-300')}`}>
             <span className={`text-xs font-extrabold ${isStudio ? 'text-[#8a8a90] !font-bold text-[10.5px]' : 'text-white'}`}>{task.attachments.length}</span>
           </div>
-          <span className={`text-xs font-bold ${isStudio ? 'text-[#EF5B94]' : (task.attachments.length > 0 ? 'text-emerald-600' : 'text-gray-500')}`}>{showAttachments ? t("Ocultar") : t("Ver")}</span>
+          <span className={`text-xs font-bold ${isStudio ? 'text-[var(--color-primary,#EF5B94)]' : (task.attachments.length > 0 ? 'text-emerald-600' : 'text-gray-500')}`}>{showAttachments ? t("Ocultar") : t("Ver")}</span>
           {/*  {!canEdit && (
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">
               <Lock className="w-3 h-3 mr-1" />

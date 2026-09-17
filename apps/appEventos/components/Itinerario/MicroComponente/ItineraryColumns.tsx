@@ -360,7 +360,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
     const GRID = "1.6fr 1fr 0.8fr 1.1fr 2.2fr 1fr 76px"
     return (
       <div style={{ maxWidth: 1120, margin: "0 auto", background: "#fff", borderRadius: 14, border: "1px solid #f0f0f2" }}>
-        <style dangerouslySetInnerHTML={{ __html: ".iti-trow:hover{background:#fdf7fa;}.iti-abtn:hover{background:#f5f5f7;color:#EF5B94 !important;}.iti-menuit:hover{background:#fdf7fa;color:#EF5B94;}.iti-menuit-peligro:hover{background:#FBE4EF;}" }} />
+        <style dangerouslySetInnerHTML={{ __html: ".iti-trow:hover{background:#fdf7fa;}.iti-abtn:hover{background:#f5f5f7;color:var(--color-primary,#EF5B94) !important;}.iti-menuit:hover{background:#fdf7fa;color:var(--color-primary,#EF5B94);}.iti-menuit-peligro:hover{background:#FBE4EF;}" }} />
         {/* cabecera */}
         <div style={{ display: "grid", gridTemplateColumns: GRID, gap: 12, alignItems: "center", padding: "13px 22px", background: "#fafafa", borderBottom: "1px solid #f0f0f2", borderRadius: "14px 14px 0 0", font: "600 11px Poppins", color: "#8a8a90", letterSpacing: ".6px", textTransform: "uppercase" }}>
           <div>{t("title")}</div><div>{t("date")}</div><div>{t("duracion")}</div><div>{t("responsible")}</div><div>{t("tips")}</div><div>{t("labels")}</div><div></div>
@@ -376,7 +376,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
                 ? <input autoFocus defaultValue={task?.descripcion || ""}
                     onBlur={(e) => { makeHandleUpdate(task)('descripcion', e.target.value.trim()); setEditingTitle(null) }}
                     onKeyDown={(e) => { if (e.key === 'Enter') { makeHandleUpdate(task)('descripcion', e.currentTarget.value.trim()); setEditingTitle(null) } else if (e.key === 'Escape') setEditingTitle(null) }}
-                    style={{ font: "600 13px Poppins", color: "#3A3A42", border: "1.5px solid #EF5B94", borderRadius: 6, padding: "3px 7px", outline: "none", width: "100%", background: "#fff" }} />
+                    style={{ font: "600 13px Poppins", color: "#3A3A42", border: "1.5px solid var(--color-primary,#EF5B94)", borderRadius: 6, padding: "3px 7px", outline: "none", width: "100%", background: "#fff" }} />
                 : <div onClick={() => isAllowed() ? setEditingTitle(task?._id) : ht()} title={t("Haz clic para editar")} style={{ font: "600 13px Poppins", color: "#3A3A42", cursor: "pointer" }}>{task?.descripcion || t("Sin título")}</div>}
               <div className="iti-cell-edit">
                 <DateTask handleUpdate={makeHandleUpdate(task)} canEdit={isAllowed()} task={task} setEditing={(v: boolean) => setEditingCell(v ? { taskId: task?._id, field: 'fecha' } : null)} editing={!!(editingCell?.taskId === task?._id && editingCell?.field === 'fecha')} uso="itinerary" ValidationEdit={isAllowed()} />
@@ -393,7 +393,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
                 {tags.map((tag: string, i: number) => <span key={i} style={{ display: "inline-block", font: "600 10.5px Poppins", color: "#D83E7C", background: "#FCE7F0", padding: "4px 10px", borderRadius: 12 }}>{tag}</span>)}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 2, justifyContent: "flex-end", position: "relative" }}>
-                {optOjo && <button className="iti-abtn" onClick={() => runOpt(optOjo, task)} title={t("Visible para invitados · clic para ocultar")} style={{ width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", cursor: "pointer", color: task?.spectatorView ? "#EF5B94" : "#b3b3ba" }}>
+                {optOjo && <button className="iti-abtn" onClick={() => runOpt(optOjo, task)} title={t("Visible para invitados · clic para ocultar")} style={{ width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", cursor: "pointer", color: task?.spectatorView ? "var(--color-primary,#EF5B94)" : "#b3b3ba" }}>
                   <span style={{ transform: "scale(0.85)", display: "flex" }}>{optOjo.getIcon ? optOjo.getIcon(task?.spectatorView) : optOjo.icon}</span>
                 </button>}
                 <ClickAwayListener onClickAway={() => menuOpen && setOpenMenuId(null)}>

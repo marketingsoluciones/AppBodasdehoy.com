@@ -65,7 +65,7 @@ const DashboardStudio: FC<Props> = ({ categorias }) => {
     { label: t("Total recibido"), val: data.recibido, sub: t("Del presupuesto total"), tone: "#2FB37E", bg: "#E4F5EE" },
     { label: t("Fondos disponibles"), val: data.disponible, sub: `${pctDisp}% ${t("del total")}`, tone: "#3A3A42", bg: "#faf9fb" },
     { label: t("Total utilizado"), val: data.utilizado, sub: `${t("En")} ${data.wpPagos.length} ${t("pagos")}`, tone: "#B4801F", bg: "#FBF0DA" },
-    { label: t("Pagos directos"), val: data.totalDirectos, sub: `${data.directos.length} ${t("pagos")}`, tone: "#EF5B94", bg: "#FCE7F0" },
+    { label: t("Pagos directos"), val: data.totalDirectos, sub: `${data.directos.length} ${t("pagos")}`, tone: "var(--color-primary,#EF5B94)", bg: "#FCE7F0" },
   ];
   const finStats = [
     { label: t("Presupuesto total"), val: data.presupuestoTotal, sub: t("Todos los gastos incluidos"), tone: "#3A3A42", bg: "#faf9fb" },
@@ -140,7 +140,7 @@ ${kpi("Por Wedding Planner", data.totalWP, "#D83E7C", "#FBE4EF")}
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, fontFamily: "'Poppins',sans-serif" }}>
-      <style dangerouslySetInnerHTML={{ __html: ".ds-in:focus{border-color:#EF5B94!important;}.ds-ghost:hover{border-color:#EF5B94!important;color:#EF5B94!important;}" }} />
+      <style dangerouslySetInnerHTML={{ __html: ".ds-in:focus{border-color:var(--color-primary,#EF5B94)!important;}.ds-ghost:hover{border-color:var(--color-primary,#EF5B94)!important;color:var(--color-primary,#EF5B94)!important;}" }} />
 
       {/* Cabecera (sin repetir el nombre del evento — ya está en el holder de la página) */}
       <div style={{ ...card, display: "flex", alignItems: "center", gap: 16, padding: "20px 22px", flexWrap: "wrap" }}>
@@ -160,7 +160,7 @@ ${kpi("Por Wedding Planner", data.totalWP, "#D83E7C", "#FBE4EF")}
 
       {/* Registrar nuevo depósito */}
       <div>
-        <button onClick={() => { if (!isAllowed()) { ht(); return; } setDepOpen((v) => !v); }} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "11px 20px", borderRadius: 10, background: "#EF5B94", border: "none", color: "#fff", font: "600 13px Poppins", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}><span style={{ fontSize: 16, lineHeight: 1 }}>＋</span>{t("Registrar nuevo depósito")}</button>
+        <button onClick={() => { if (!isAllowed()) { ht(); return; } setDepOpen((v) => !v); }} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "11px 20px", borderRadius: 10, background: "var(--color-primary,#EF5B94)", border: "none", color: "#fff", font: "600 13px Poppins", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}><span style={{ fontSize: 16, lineHeight: 1 }}>＋</span>{t("Registrar nuevo depósito")}</button>
       </div>
       {depOpen && (
         <div style={{ ...card, padding: "20px 22px" }}>
@@ -171,7 +171,7 @@ ${kpi("Por Wedding Planner", data.totalWP, "#D83E7C", "#FBE4EF")}
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 16 }}>
             <button onClick={() => setDepOpen(false)} style={{ padding: "10px 18px", borderRadius: 10, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 12.5px Poppins", cursor: "pointer" }}>{t("Cancelar")}</button>
-            <button onClick={submitDep} disabled={!canConfirm} style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "10px 18px", borderRadius: 10, background: canConfirm ? "#EF5B94" : "#f3c4d8", border: "none", color: "#fff", font: "600 12.5px Poppins", cursor: canConfirm ? "pointer" : "default" }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>{t("Confirmar depósito")}</button>
+            <button onClick={submitDep} disabled={!canConfirm} style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "10px 18px", borderRadius: 10, background: canConfirm ? "var(--color-primary,#EF5B94)" : "#f3c4d8", border: "none", color: "#fff", font: "600 12.5px Poppins", cursor: canConfirm ? "pointer" : "default" }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>{t("Confirmar depósito")}</button>
           </div>
         </div>
       )}
@@ -180,7 +180,7 @@ ${kpi("Por Wedding Planner", data.totalWP, "#D83E7C", "#FBE4EF")}
       <div style={{ display: "flex", gap: 22, borderBottom: "1.5px solid #ececef", padding: "0 4px" }}>
         {[{ k: "main", l: t("Dashboard principal") }, { k: "hist", l: t("Historial de depósitos") }].map((tb) => {
           const on = tab === tb.k;
-          return <button key={tb.k} onClick={() => setTab(tb.k as any)} style={{ background: "none", border: "none", cursor: "pointer", padding: "10px 2px 12px", font: "600 13px Poppins", whiteSpace: "nowrap", marginBottom: "-1.5px", color: on ? "#EF5B94" : "#8a8a90", borderBottom: `2.5px solid ${on ? "#EF5B94" : "transparent"}` }}>{tb.l}</button>;
+          return <button key={tb.k} onClick={() => setTab(tb.k as any)} style={{ background: "none", border: "none", cursor: "pointer", padding: "10px 2px 12px", font: "600 13px Poppins", whiteSpace: "nowrap", marginBottom: "-1.5px", color: on ? "var(--color-primary,#EF5B94)" : "#8a8a90", borderBottom: `2.5px solid ${on ? "var(--color-primary,#EF5B94)" : "transparent"}` }}>{tb.l}</button>;
         })}
       </div>
 
@@ -191,7 +191,7 @@ ${kpi("Por Wedding Planner", data.totalWP, "#D83E7C", "#FBE4EF")}
             <div style={{ ...card, overflow: "hidden" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "16px 20px", borderBottom: "1px solid #f2f2f4" }}>
                 <div style={{ font: "700 14.5px Poppins", color: "#3A3A42" }}>{t("Pagos directos")}</div>
-                <div style={{ textAlign: "right" }}><div style={{ font: "500 10.5px Poppins", color: "#a0a0a8" }}>{t("Total en pagos directos")}</div><div style={{ font: "700 15px Poppins", color: "#EF5B94" }}>{getCurrency(data.totalDirectos, cur)}</div></div>
+                <div style={{ textAlign: "right" }}><div style={{ font: "500 10.5px Poppins", color: "#a0a0a8" }}>{t("Total en pagos directos")}</div><div style={{ font: "700 15px Poppins", color: "var(--color-primary,#EF5B94)" }}>{getCurrency(data.totalDirectos, cur)}</div></div>
               </div>
               {data.directos.length === 0 && <div style={{ padding: "40px 20px", textAlign: "center", font: "500 12px Poppins", color: "#a0a0a8" }}>{t("No hay pagos directos")}</div>}
               {data.directos.map((p: any, i: number) => (

@@ -70,7 +70,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
   const cats = Array.isArray(categorias) ? categorias : [];
   const isOpen = (id: string) => open[id] !== false;
   // Checkbox custom (rosa garantizado, sin depender de accent-color del navegador)
-  const chkBox = (on: boolean): any => ({ width: 16, height: 16, borderRadius: 5, display: "inline-flex", alignItems: "center", justifyContent: "center", background: on ? "#EF5B94" : "#fff", border: `1.5px solid ${on ? "#EF5B94" : "#d8d8dd"}`, color: "#fff", fontSize: 11, flex: "none" });
+  const chkBox = (on: boolean): any => ({ width: 16, height: 16, borderRadius: 5, display: "inline-flex", alignItems: "center", justifyContent: "center", background: on ? "var(--color-primary,#EF5B94)" : "#fff", border: `1.5px solid ${on ? "var(--color-primary,#EF5B94)" : "#d8d8dd"}`, color: "#fff", fontSize: 11, flex: "none" });
 
   // Columnas (algunas ocultables desde "Columnas")
   const ALL_COLS = [
@@ -337,7 +337,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
   };
 
   const cellStyle = (align: string): any => ({ textAlign: align === "left" ? "left" : align, minWidth: 0 });
-  const editInput: any = { width: "100%", padding: "5px 7px", borderRadius: 7, border: "1.5px solid #EF5B94", font: "500 12px Poppins", color: "#3A3A42", outline: "none", boxSizing: "border-box" };
+  const editInput: any = { width: "100%", padding: "5px 7px", borderRadius: 7, border: "1.5px solid var(--color-primary,#EF5B94)", font: "500 12px Poppins", color: "#3A3A42", outline: "none", boxSizing: "border-box" };
   const filtersActive = filters.categories.length > 0 || filters.paymentStatus !== "all";
 
   // Info evento
@@ -359,18 +359,18 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
   return (
     <div style={{ position: "relative", transition: "margin .3s ease, width .3s ease", ...(wide ? { width: "94vw", marginLeft: "calc(-47vw + 50%)" } : {}) }}>
       <style dangerouslySetInnerHTML={{ __html: `
-        .pd-tool:hover{color:#EF5B94!important;}
+        .pd-tool:hover{color:var(--color-primary,#EF5B94)!important;}
         .pd-row:hover{background:#faf9fb;}
         .pd-ghead:hover{background:#f4f3f6!important;}
         .pd-dots:hover{background:#faf9fb!important;color:#6b6b72!important;}
         .pd-menu button:hover{background:#FCE7F0;color:#D83E7C;}
         .pd-menu .pd-del:hover{background:#FBE4EF;}
-        .pd-collapse:hover{color:#EF5B94!important;background:#faf9fb!important;}
+        .pd-collapse:hover{color:var(--color-primary,#EF5B94)!important;background:#faf9fb!important;}
         .pd-scrollx{overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
         .pd-scrollx::-webkit-scrollbar{display:none;}
         .pd-pop label:hover{background:#faf9fb;}
         .pd-search:focus,.pd-search:focus-visible{outline:none!important;box-shadow:none!important;border:none!important;}
-        .pd-fsel:focus,.pd-fin:focus{border-color:#EF5B94!important;}
+        .pd-fsel:focus,.pd-fin:focus{border-color:var(--color-primary,#EF5B94)!important;}
         .pd-cat:hover{background:#faf9fb;}
         .pd-limpiar:hover{color:#D83E7C!important;}
         .pd-x:hover{background:#faf9fb!important;color:#3A3A42!important;}
@@ -387,14 +387,14 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
             <input className="pd-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Buscar…") as string} style={{ border: "none", background: "none", flex: 1, minWidth: 0, font: "500 12.5px Poppins", color: "#3A3A42", outline: "none" }} />
           </div>
 
-          <button ref={filRef} className="pd-tool" onClick={() => setPanel(panel === "filtros" ? null : "filtros")} style={{ display: "flex", alignItems: "center", gap: 6, font: "600 12.5px Poppins", color: filtersActive ? "#EF5B94" : "#6b6b72", cursor: "pointer", background: "none", border: "none", padding: 0 }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M3 5h18l-7 8v6l-4 2v-8z" /></svg>{t("category", { defaultValue: "Categorías" })}</button>
+          <button ref={filRef} className="pd-tool" onClick={() => setPanel(panel === "filtros" ? null : "filtros")} style={{ display: "flex", alignItems: "center", gap: 6, font: "600 12.5px Poppins", color: filtersActive ? "var(--color-primary,#EF5B94)" : "#6b6b72", cursor: "pointer", background: "none", border: "none", padding: 0 }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M3 5h18l-7 8v6l-4 2v-8z" /></svg>{t("category", { defaultValue: "Categorías" })}</button>
           <div style={{ width: 1, height: 20, background: "#ececef", flex: "none" }} />
 
-          <button ref={colRef} className="pd-tool" onClick={() => setPanel(panel === "columnas" ? null : "columnas")} style={{ display: "flex", alignItems: "center", gap: 6, font: "600 12.5px Poppins", color: panel === "columnas" ? "#EF5B94" : "#6b6b72", cursor: "pointer", background: "none", border: "none", padding: 0 }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M10 4v16M14 4v16" /></svg>{t("Columnas")}</button>
-          <button className="pd-tool" onClick={() => setWide((w) => !w)} style={{ display: "flex", alignItems: "center", gap: 6, font: "600 12.5px Poppins", color: wide ? "#EF5B94" : "#6b6b72", cursor: "pointer", background: "none", border: "none", padding: 0 }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">{wide ? <path d="M9 9L4 4M4 4v4M4 4h4M15 9l5-5M20 4v4M20 4h-4M9 15l-5 5M4 20v-4M4 20h4M15 15l5 5M20 20v-4M20 20h-4" /> : <path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4" />}</svg>{wide ? t("Contraer", { defaultValue: "Contraer" }) : t("Expandir", { defaultValue: "Expandir" })}</button>
-          <button ref={infRef} className="pd-tool" onClick={() => setPanel(panel === "info" ? null : "info")} style={{ display: "flex", alignItems: "center", gap: 6, font: "600 12.5px Poppins", color: panel === "info" ? "#EF5B94" : "#6b6b72", cursor: "pointer", background: "none", border: "none", padding: 0 }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h0" /></svg>{t("Info evento")}</button>
+          <button ref={colRef} className="pd-tool" onClick={() => setPanel(panel === "columnas" ? null : "columnas")} style={{ display: "flex", alignItems: "center", gap: 6, font: "600 12.5px Poppins", color: panel === "columnas" ? "var(--color-primary,#EF5B94)" : "#6b6b72", cursor: "pointer", background: "none", border: "none", padding: 0 }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M10 4v16M14 4v16" /></svg>{t("Columnas")}</button>
+          <button className="pd-tool" onClick={() => setWide((w) => !w)} style={{ display: "flex", alignItems: "center", gap: 6, font: "600 12.5px Poppins", color: wide ? "var(--color-primary,#EF5B94)" : "#6b6b72", cursor: "pointer", background: "none", border: "none", padding: 0 }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">{wide ? <path d="M9 9L4 4M4 4v4M4 4h4M15 9l5-5M20 4v4M20 4h-4M9 15l-5 5M4 20v-4M4 20h4M15 15l5 5M20 20v-4M20 20h-4" /> : <path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4" />}</svg>{wide ? t("Contraer", { defaultValue: "Contraer" }) : t("Expandir", { defaultValue: "Expandir" })}</button>
+          <button ref={infRef} className="pd-tool" onClick={() => setPanel(panel === "info" ? null : "info")} style={{ display: "flex", alignItems: "center", gap: 6, font: "600 12.5px Poppins", color: panel === "info" ? "var(--color-primary,#EF5B94)" : "#6b6b72", cursor: "pointer", background: "none", border: "none", padding: 0 }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h0" /></svg>{t("Info evento")}</button>
 
-          <button onClick={() => { if (!isAllowed()) { ht(); return; } onAddCategoria(); }} style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 7, background: "#EF5B94", color: "#fff", border: "none", borderRadius: 12, padding: "9px 16px", font: "600 12.5px Poppins", cursor: "pointer", whiteSpace: "nowrap" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Nueva categoría", { defaultValue: "Nueva categoría" })}</button>
+          <button onClick={() => { if (!isAllowed()) { ht(); return; } onAddCategoria(); }} style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 7, background: "var(--color-primary,#EF5B94)", color: "#fff", border: "none", borderRadius: 12, padding: "9px 16px", font: "600 12.5px Poppins", cursor: "pointer", whiteSpace: "nowrap" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Nueva categoría", { defaultValue: "Nueva categoría" })}</button>
         </div>
 
         {/* Fila 2: pills de filtro de pago + totales (al filtrar por Pagado/Pendiente se ocultan los totales no aplicables) */}
@@ -441,7 +441,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
               const abierto = ql ? true : isOpen(c._id);
               return (
                 <div key={c._id}>
-                  <div className="pd-ghead" onClick={() => { if (catEdit?.id === c._id) return; setOpen((o) => ({ ...o, [c._id]: !abierto })); }} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 22px 12px 18px", background: highlight === c._id ? "#FCE7F0" : "#faf9fb", borderBottom: "1px solid #f6f6f8", borderLeft: `4px solid ${highlight === c._id ? "#EF5B94" : "transparent"}`, cursor: "pointer", transition: "background .3s, border-color .3s" }}>
+                  <div className="pd-ghead" onClick={() => { if (catEdit?.id === c._id) return; setOpen((o) => ({ ...o, [c._id]: !abierto })); }} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 22px 12px 18px", background: highlight === c._id ? "#FCE7F0" : "#faf9fb", borderBottom: "1px solid #f6f6f8", borderLeft: `4px solid ${highlight === c._id ? "var(--color-primary,#EF5B94)" : "transparent"}`, cursor: "pointer", transition: "background .3s, border-color .3s" }}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" style={{ transform: abierto ? "none" : "rotate(-90deg)", transition: "transform .15s", flex: "none" }}><path d="M6 9l6 6 6-6" /></svg>
                     {catEdit?.id === c._id ? (
                       <input autoFocus value={catEdit.name} onClick={(e) => e.stopPropagation()} onChange={(e) => setCatEdit({ id: c._id, name: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveCatName(c); } else if (e.key === "Escape") setCatEdit(null); }} onBlur={() => saveCatName(c)} style={{ ...editInput, maxWidth: 260, font: "600 13.5px Poppins" }} />
@@ -592,7 +592,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                                   </div>
                                 );
                               })}
-                              <button onClick={() => { if (!isAllowed()) { ht(); return; } setPagoTarget({ cat: c._id, gasto: g._id }); }} style={{ display: "inline-flex", alignItems: "center", gap: 7, marginTop: 10, background: "none", border: "none", cursor: "pointer", font: "600 12px Poppins", color: "#EF5B94", padding: 0 }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Añadir pago", { defaultValue: "Añadir pago" })}</button>
+                              <button onClick={() => { if (!isAllowed()) { ht(); return; } setPagoTarget({ cat: c._id, gasto: g._id }); }} style={{ display: "inline-flex", alignItems: "center", gap: 7, marginTop: 10, background: "none", border: "none", cursor: "pointer", font: "600 12px Poppins", color: "var(--color-primary,#EF5B94)", padding: 0 }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Añadir pago", { defaultValue: "Añadir pago" })}</button>
                             </div>
                           );
                         })()}
@@ -600,7 +600,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                     );
                   })}
                   {abierto && filters.paymentStatus === "all" && (
-                    <div className="pd-addpartida" onClick={() => addPartida(c)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 20px 10px 22px", borderBottom: "1px solid #f4f4f6", cursor: "pointer", font: "600 12px Poppins", color: "#EF5B94" }}>
+                    <div className="pd-addpartida" onClick={() => addPartida(c)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 20px 10px 22px", borderBottom: "1px solid #f4f4f6", cursor: "pointer", font: "600 12px Poppins", color: "var(--color-primary,#EF5B94)" }}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Añadir partida", { defaultValue: "Añadir partida" })}
                     </div>
                   )}
@@ -621,7 +621,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
           <div style={{ position: "absolute", ...anchorPos(filRef, 320), zIndex: 50, width: 320, background: "#fff", border: "1px solid #ececef", borderRadius: 16, boxShadow: "0 16px 40px rgba(0,0,0,.14)", overflow: "hidden", fontFamily: "'Poppins',sans-serif" }}>
             <div style={{ display: "flex", alignItems: "center", padding: "16px 18px", borderBottom: "1px solid #f2f2f4" }}>
               <div style={{ font: "700 15px Poppins", color: "#3A3A42", flex: 1 }}>{t("Filtros")}</div>
-              <button className="pd-limpiar" onClick={() => { onClearFilters(); setViewLevel(3); }} style={{ font: "600 12.5px Poppins", color: "#EF5B94", background: "none", border: "none", cursor: "pointer", padding: "4px 8px" }}>{t("Limpiar")}</button>
+              <button className="pd-limpiar" onClick={() => { onClearFilters(); setViewLevel(3); }} style={{ font: "600 12.5px Poppins", color: "var(--color-primary,#EF5B94)", background: "none", border: "none", cursor: "pointer", padding: "4px 8px" }}>{t("Limpiar")}</button>
               <button className="pd-x" onClick={() => setPanel(null)} style={{ width: 26, height: 26, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#a0a0a8", background: "none", border: "none", cursor: "pointer" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
             </div>
             <div className="pd-scrollx" style={{ maxHeight: 420, overflowY: "auto", padding: "16px 18px", display: "flex", flexDirection: "column", gap: 16 }}>
@@ -637,7 +637,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
               <div>
                 <div style={lblTxt}>{t("Filtrar por categorías")} ({filters.categories.length} {t("seleccionadas")})</div>
                 <div className="pd-scrollx" style={{ border: "1.5px solid #E7E7EA", borderRadius: 10, maxHeight: 150, overflowY: "auto" }}>
-                  <label onClick={() => onFilterChange("categories", allChecked ? [] : cats.map((c) => c._id))} style={{ display: "flex", alignItems: "center", gap: 9, padding: "9px 12px", borderBottom: "1px solid #f4f4f6", cursor: "pointer", font: "600 12.5px Poppins", color: "#EF5B94" }}>
+                  <label onClick={() => onFilterChange("categories", allChecked ? [] : cats.map((c) => c._id))} style={{ display: "flex", alignItems: "center", gap: 9, padding: "9px 12px", borderBottom: "1px solid #f4f4f6", cursor: "pointer", font: "600 12.5px Poppins", color: "var(--color-primary,#EF5B94)" }}>
                     <span style={chkBox(allChecked)}>{allChecked ? "✓" : ""}</span>{t("Seleccionar todas")}
                   </label>
                   {cats.map((c) => {
@@ -694,12 +694,12 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                 <div style={{ display: "flex", background: "#faf9fb", border: "1px solid #ececef", borderRadius: 10, padding: 3 }}>
                   {[{ k: "conf", l: t("Confirmados") }, { k: "est", l: t("Estimados") }].map((m) => {
                     const on = guestMode === m.k;
-                    return <button key={m.k} onClick={() => setGuestMode(m.k as any)} style={{ padding: "5px 12px", borderRadius: 8, border: "none", cursor: "pointer", font: "600 11.5px Poppins", background: on ? "#fff" : "transparent", color: on ? "#EF5B94" : "#8a8a90", boxShadow: on ? "0 2px 6px rgba(0,0,0,.08)" : "none" }}>{m.l}</button>;
+                    return <button key={m.k} onClick={() => setGuestMode(m.k as any)} style={{ padding: "5px 12px", borderRadius: 8, border: "none", cursor: "pointer", font: "600 11.5px Poppins", background: on ? "#fff" : "transparent", color: on ? "var(--color-primary,#EF5B94)" : "#8a8a90", boxShadow: on ? "0 2px 6px rgba(0,0,0,.08)" : "none" }}>{m.l}</button>;
                   })}
                 </div>
               </div>
               <div style={{ border: "1.5px solid #ececef", borderRadius: 12, padding: 16, textAlign: "center" }}>
-                <div style={{ font: "700 26px Poppins", color: "#EF5B94" }}>{guests.n}</div>
+                <div style={{ font: "700 26px Poppins", color: "var(--color-primary,#EF5B94)" }}>{guests.n}</div>
                 <div style={{ font: "700 10px Poppins", color: "#8a8a90", letterSpacing: ".8px", textTransform: "uppercase", marginTop: 2 }}>{guests.label}</div>
                 <div style={{ display: "flex", justifyContent: "center", gap: 34, marginTop: 12 }}>
                   <div><div style={{ font: "600 16px Poppins", color: "#3A3A42" }}>{guests.ad}</div><div style={{ font: "500 11px Poppins", color: "#a0a0a8" }}>{t("Adultos")}</div></div>
@@ -728,7 +728,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria, foc
                 <div style={{ font: "600 13px Poppins", color: "#3A3A42" }}>{t("Progreso del presupuesto")}</div>
                 <div style={{ font: "700 13px Poppins", color: "#3A3A42" }}>{pct}%</div>
               </div>
-              <div style={{ height: 8, borderRadius: 8, background: "#f0f0f2", overflow: "hidden" }}><div style={{ height: "100%", width: `${Math.min(pct, 100)}%`, background: "#EF5B94", borderRadius: 8 }} /></div>
+              <div style={{ height: 8, borderRadius: 8, background: "#f0f0f2", overflow: "hidden" }}><div style={{ height: "100%", width: `${Math.min(pct, 100)}%`, background: "var(--color-primary,#EF5B94)", borderRadius: 8 }} /></div>
               <div style={{ display: "flex", justifyContent: "space-between", marginTop: 7, font: "600 11.5px Poppins" }}>
                 <span style={{ color: "#2FB37E" }}>{t("Pagado")}: {getCurrency(totals.pag, cur)}</span>
                 <span style={{ color: "#D83E7C" }}>{t("Pendiente")}: {getCurrency(totals.pen, cur)}</span>

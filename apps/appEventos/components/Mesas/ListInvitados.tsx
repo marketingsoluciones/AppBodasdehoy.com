@@ -132,7 +132,7 @@ const ListInvitados: FC<propsListInvitados> = ({ editInv, setEditInv, setSelecte
 
         {/* SENTADOS — solo lectura con etiqueta de asiento (Mesa · A{chair+1}). */}
         <div className={showSeated ? '' : 'hidden'}>
-          <div className="px-3 pt-2 pb-0.5 text-[10px] font-bold uppercase tracking-wide text-[#EF5B94]">
+          <div className="px-3 pt-2 pb-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--color-primary,#EF5B94)]">
             {t('seated')} · {seated.length}
           </div>
           {seated.length === 0 && showSeated &&
@@ -147,7 +147,7 @@ const ListInvitados: FC<propsListInvitados> = ({ editInv, setEditInv, setSelecte
                 alt={ImageProfile[g.sexo]?.alt || "Invitado"}
               />
               <span className="flex-1 min-w-0 font-display text-sm truncate text-gray-600">{g?.nombre?.trim() ? g.nombre : (g.isChild ? `Acompañante de ${g.parentName}` : t('companion', 'Acompañante'))}</span>
-              <span className="text-[10px] font-semibold text-[#EF5B94] bg-[#FCE7F0] px-2 py-0.5 rounded-md whitespace-nowrap">
+              <span className="text-[10px] font-semibold text-[var(--color-primary,#EF5B94)] bg-[#FCE7F0] px-2 py-0.5 rounded-md whitespace-nowrap">
                 {g.nombre_mesa ? `${g.nombre_mesa} · ` : ''}A{(g.chair ?? 0) + 1}
               </span>
             </div>

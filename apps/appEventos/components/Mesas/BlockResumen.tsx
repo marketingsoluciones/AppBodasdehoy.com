@@ -65,7 +65,7 @@ const BlockResumen: FC<propsBlockResumen> = ({ InvitadoSentados }) => {
             <div className="rounded-[13px] p-3.5 bg-white border border-[#f0f0f2] shadow-[0_3px_10px_rgba(0,0,0,.04)]">
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-baseline gap-1.5">
-                        <span className="text-2xl font-bold leading-none text-[#EF5B94]">{overallPct}%</span>
+                        <span className="text-2xl font-bold leading-none text-[var(--color-primary,#EF5B94)]">{overallPct}%</span>
                         <span className="text-[10.5px] font-semibold text-[#8a8a90]">{t("occupied") || "ocupado"}</span>
                     </div>
                     <span className="text-[9px] font-bold tracking-wider uppercase text-[#b3b3ba]">{t("eventsummary") || "Resumen del evento"}</span>
@@ -86,13 +86,13 @@ const BlockResumen: FC<propsBlockResumen> = ({ InvitadoSentados }) => {
                     <div key={idx} onClick={() => handleSelectSpace(r._id)} title={t("showthisplan") || "Mostrar este plano"} className={`cursor-pointer rounded-[11px] px-3 py-[11px] border transition-colors ${active ? "bg-[#FCF2F6] border-[#f7c2da]" : "bg-white border-[#f0f0f2] hover:border-[#f7c2da] hover:bg-[#fdf7fa]"}`}>
                         <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-[#EF5B94]" />
+                                <span className="w-2 h-2 rounded-full bg-[var(--color-primary,#EF5B94)]" />
                                 <span className="text-[12.5px] font-semibold text-[#3A3A42] capitalize">{t(r.title)}</span>
                             </div>
-                            <div className="text-[11px] font-semibold text-[#EF5B94]">{r.sentados} · {r.pct}%</div>
+                            <div className="text-[11px] font-semibold text-[var(--color-primary,#EF5B94)]">{r.sentados} · {r.pct}%</div>
                         </div>
                         <div className="h-[7px] rounded-[7px] bg-[#ececed] overflow-hidden">
-                            <div className="h-full rounded-[7px] bg-[#EF5B94] transition-all duration-300" style={{ width: `${r.pct}%` }} />
+                            <div className="h-full rounded-[7px] bg-[var(--color-primary,#EF5B94)] transition-all duration-300" style={{ width: `${r.pct}%` }} />
                         </div>
                     </div>
                 )

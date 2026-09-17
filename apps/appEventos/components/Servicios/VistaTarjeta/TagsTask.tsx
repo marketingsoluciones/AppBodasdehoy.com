@@ -95,7 +95,7 @@ export const TagsTask: FC<Props> = ({ canEdit, task, handleUpdate, owner, sugges
             </ClickAwayListener>
           ) : (
             canShowAddButton && (
-              <button onClick={() => setEditing(true)} style={{ display: "inline-flex", color: "#EF5B94" }}>
+              <button onClick={() => setEditing(true)} style={{ display: "inline-flex", color: "var(--color-primary,#EF5B94)" }}>
                 <Plus className="w-4 h-4" />
               </button>
             )

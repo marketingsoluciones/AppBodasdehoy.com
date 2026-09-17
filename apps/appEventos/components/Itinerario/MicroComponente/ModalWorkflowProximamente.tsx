@@ -28,7 +28,7 @@ export const ModalWorkflowProximamente: FC<{ onClose: () => void }> = ({ onClose
 
         <div style={{ padding: "2px 34px 30px", display: "flex", flexDirection: "column", alignItems: "center", gap: 13 }}>
           {/* icono workflow */}
-          <div style={{ width: 66, height: 66, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}>
+          <div style={{ width: 66, height: 66, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary,#EF5B94)" }}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="5" r="2.4" /><circle cx="6" cy="19" r="2.4" /><circle cx="18" cy="12" r="2.4" /><path d="M6 7.5v9M8.4 5.5c5.5 0 3.8 6 7.2 6.3M8.4 18.5c5.5 0 3.8-6 7.2-6.3" /></svg>
           </div>
 
@@ -42,13 +42,13 @@ export const ModalWorkflowProximamente: FC<{ onClose: () => void }> = ({ onClose
           <div style={{ font: "400 12.5px/1.65 Poppins", color: "#6b6b72", maxWidth: 300 }}>{t("workflowsDesc", { defaultValue: "Estamos construyendo esta funcionalidad para que conectes tareas y se disparen solas. Muy pronto estará disponible." })}</div>
 
           <button type="button" onClick={() => setAvisado(true)} disabled={avisado}
-            style={{ display: "flex", alignItems: "center", gap: 7, padding: "12px 26px", borderRadius: 12, background: avisado ? "#2FB37E" : "#EF5B94", color: "#fff", font: "600 13px Poppins", border: "none", cursor: avisado ? "default" : "pointer", boxShadow: avisado ? "0 6px 16px rgba(47,179,126,.3)" : "0 6px 16px rgba(239,91,148,.3)", marginTop: 6, transition: "background .2s" }}>
+            style={{ display: "flex", alignItems: "center", gap: 7, padding: "12px 26px", borderRadius: 12, background: avisado ? "#2FB37E" : "var(--color-primary,#EF5B94)", color: "#fff", font: "600 13px Poppins", border: "none", cursor: avisado ? "default" : "pointer", boxShadow: avisado ? "0 6px 16px rgba(47,179,126,.3)" : "0 6px 16px rgba(239,91,148,.3)", marginTop: 6, transition: "background .2s" }}>
             {avisado
               ? <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>{t("weWillNotifyYou", { defaultValue: "¡Te avisaremos!" })}</>
               : <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></svg>{t("notifyMeWhenReady", { defaultValue: "Avisarme cuando esté lista" })}</>}
           </button>
           <span onClick={onClose} style={{ font: "600 12px Poppins", color: "#8a8a90", cursor: "pointer" }}
-            onMouseOver={(e) => { e.currentTarget.style.color = "#EF5B94" }} onMouseOut={(e) => { e.currentTarget.style.color = "#8a8a90" }}>
+            onMouseOver={(e) => { e.currentTarget.style.color = "var(--color-primary,#EF5B94)" }} onMouseOut={(e) => { e.currentTarget.style.color = "#8a8a90" }}>
             {t("understoodBackToTasks", { defaultValue: "Entendido, volver a mis tareas" })}
           </span>
         </div>

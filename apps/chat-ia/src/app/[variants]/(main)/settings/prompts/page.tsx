@@ -19,7 +19,7 @@ const getCategoryConfig = (category: string) => {
   const configs = {
     assistant: { color: 'bg-green-100 text-green-700', icon: '🤖', name: 'Asistente' },
     commercial: { color: 'bg-purple-100 text-purple-700', icon: '💰', name: 'Comercial' },
-    emotional: { color: 'bg-pink-100 text-pink-700', icon: '❤️', name: 'Emocional' },
+    emotional: { color: 'bg-brand-light text-brand', icon: '❤️', name: 'Emocional' },
     system: { color: 'bg-gray-100 text-gray-700', icon: '⚙️', name: 'Sistema' },
     technical: { color: 'bg-orange-100 text-orange-700', icon: '🔧', name: 'Técnico' },
     user: { color: 'bg-blue-100 text-blue-700', icon: '👤', name: 'Usuario' },

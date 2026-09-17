@@ -84,9 +84,9 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
           {/* Rediseño Fase C: zoom agrupado en pastilla blanca (fiel a MESAS.dc.html).
               Mismos handlers: zoomOut/centerView(reset a ajuste)/zoomIn. */}
           <div className="flex items-center bg-white rounded-lg border border-[#f0f0f2] shadow-sm overflow-hidden h-7">
-            <button type="button" onClick={() => zoomOut(0.1)} className="w-7 h-7 flex items-center justify-center text-[#EF5B94] text-base leading-none md:hover:bg-[#FCF2F6] transition">−</button>
+            <button type="button" onClick={() => zoomOut(0.1)} className="w-7 h-7 flex items-center justify-center text-[var(--color-primary,#EF5B94)] text-base leading-none md:hover:bg-[#FCF2F6] transition">−</button>
             <button type="button" onClick={() => centerView(scaleIni)} title={t('adjust') || 'Ajustar'} className="px-2 h-7 min-w-[46px] text-[11px] font-bold text-[#3A3A42] md:hover:bg-[#FCF2F6] transition">{Math.round((state?.previousScale || 1) * 100)}%</button>
-            <button type="button" onClick={() => zoomIn(0.1)} className="w-7 h-7 flex items-center justify-center text-[#EF5B94] text-base leading-none md:hover:bg-[#FCF2F6] transition">＋</button>
+            <button type="button" onClick={() => zoomIn(0.1)} className="w-7 h-7 flex items-center justify-center text-[var(--color-primary,#EF5B94)] text-base leading-none md:hover:bg-[#FCF2F6] transition">＋</button>
           </div>
           {/* Bloquear/Desbloquear plano — pastilla flotante fiel al HTML (🔒 + texto),
               sustituye al ButtonConstrolsLienzo con pulso + al icono Lock separado. */}
@@ -102,7 +102,7 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
             {disableDrag ? t('unlockfloorplan') : t('lockflat')}
           </button>
           {/* Plano actual — pastilla flotante rosa marca, integrada en el grupo izq (fiel al HTML) */}
-          <div className="hidden sm:block bg-white rounded-lg shadow-sm border border-[#f0f0f2] px-3 py-1.5 text-[10px] font-semibold text-[#EF5B94] truncate max-w-[220px]">
+          <div className="hidden sm:block bg-white rounded-lg shadow-sm border border-[#f0f0f2] px-3 py-1.5 text-[10px] font-semibold text-[var(--color-primary,#EF5B94)] truncate max-w-[220px]">
             {`${t("plan")}: ${t(planSpaceActive?.title)} · ${lienzo?.width / 100}×${lienzo?.height / 100} m`}
           </div>
         </div>
@@ -142,9 +142,9 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
                       className="w-full flex items-center gap-2 text-left font-semibold py-1.5 mb-1 border-b border-gray-100 hover:text-primary"
                     >
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="shrink-0" aria-hidden="true">
-                        <path d="M6.5 2.75h7L18 7.25V19a2.25 2.25 0 0 1-2.25 2.25H6.5A2.25 2.25 0 0 1 4.25 19V5A2.25 2.25 0 0 1 6.5 2.75Z" fill="#fff" stroke="#EF5B94" strokeWidth="1.5" />
-                        <path d="M13.25 2.75V7.5H18" stroke="#EF5B94" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        <rect x="4.25" y="12.4" width="13.75" height="5.9" rx="1.4" fill="#EF5B94" />
+                        <path d="M6.5 2.75h7L18 7.25V19a2.25 2.25 0 0 1-2.25 2.25H6.5A2.25 2.25 0 0 1 4.25 19V5A2.25 2.25 0 0 1 6.5 2.75Z" fill="#fff" stroke="var(--color-primary,#EF5B94)" strokeWidth="1.5" />
+                        <path d="M13.25 2.75V7.5H18" stroke="var(--color-primary,#EF5B94)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <rect x="4.25" y="12.4" width="13.75" height="5.9" rx="1.4" fill="var(--color-primary,#EF5B94)" />
                         <text x="11.1" y="16.75" textAnchor="middle" fontFamily="'Poppins',Arial,sans-serif" fontSize="4.3" fontWeight="700" fill="#fff">PDF</text>
                       </svg>{t('exportpdf') || 'Exportar PDF'}
                     </button>
@@ -162,7 +162,7 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
               {showSetup &&
                 <div className="bg-white absolute z-[50] top-9 right-8 rounded-2xl border border-[#f0f0f2] w-[252px] p-4 text-gray-800" style={{ fontFamily: "'Poppins',sans-serif", boxShadow: "0 16px 44px rgba(0,0,0,.18)" }}>
                   <div className="flex items-center gap-2.5 mb-3.5">
-                    <div className="w-8 h-8 rounded-[10px] bg-[#FCE7F0] text-[#EF5B94] flex items-center justify-center flex-none">
+                    <div className="w-8 h-8 rounded-[10px] bg-[#FCE7F0] text-[var(--color-primary,#EF5B94)] flex items-center justify-center flex-none">
                       <mdIcons.MdSettings className="w-[17px] h-[17px]" />
                     </div>
                     <div className="min-w-0">
@@ -229,7 +229,7 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
           bloquear el dropzone js-dropTables. */}
       {(planSpaceActive?.tables?.length ?? 0) === 0 && (
         <div className="absolute inset-0 z-[15] flex flex-col items-center justify-center gap-3.5 pointer-events-none px-4">
-          <div className="w-16 h-16 rounded-full bg-white border-2 border-dashed border-[#f0aecb] flex items-center justify-center text-[#EF5B94] shadow-[0_6px_18px_rgba(0,0,0,.06)]">
+          <div className="w-16 h-16 rounded-full bg-white border-2 border-dashed border-[#f0aecb] flex items-center justify-center text-[var(--color-primary,#EF5B94)] shadow-[0_6px_18px_rgba(0,0,0,.06)]">
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><ellipse cx="12" cy="9" rx="8" ry="3"></ellipse><path d="M6 10v8M18 10v8"></path></svg>
           </div>
           <div className="text-center">
@@ -239,7 +239,7 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
           <button
             type="button"
             onClick={() => window.dispatchEvent(new CustomEvent('open-table-designer'))}
-            className="pointer-events-auto px-[22px] py-[13px] rounded-[10px] bg-[#EF5B94] text-white text-[13.5px] font-semibold shadow-[0_8px_20px_rgba(239,91,148,.35)]"
+            className="pointer-events-auto px-[22px] py-[13px] rounded-[10px] bg-[var(--color-primary,#EF5B94)] text-white text-[13.5px] font-semibold shadow-[0_8px_20px_rgba(239,91,148,.35)]"
           >
             ＋ {t("createfirsttable") || "Crea tu primera mesa"}
           </button>

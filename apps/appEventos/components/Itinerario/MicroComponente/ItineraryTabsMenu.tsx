@@ -188,7 +188,7 @@ export const ItineraryTabsMenu: FC<props> = ({ setModalDuplicate, itinerario, it
                                     setShowMenu(false)
                                 }
                             }}
-                            style={isStudio ? { width: 32, height: 32, borderRadius: 9, border: `1.5px solid ${showMenu ? "#F3B6CE" : "#E7E7EA"}`, background: showMenu ? "#FCE7F0" : "#fff", color: showMenu ? "#EF5B94" : "#8a8a90", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flex: "none", transition: "background .15s,border-color .15s,color .15s" } : undefined}
+                            style={isStudio ? { width: 32, height: 32, borderRadius: 9, border: `1.5px solid ${showMenu ? "#F3B6CE" : "#E7E7EA"}`, background: showMenu ? "#FCE7F0" : "#fff", color: showMenu ? "var(--color-primary,#EF5B94)" : "#8a8a90", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flex: "none", transition: "background .15s,border-color .15s,color .15s" } : undefined}
                             className={isStudio ? "" : `w-6 h-6 rounded-full bg-gray-100 flex justify-center items-center text-gray-600 hover:bg-gray-200 hover:text-gray-900 ${showMenu && "bg-gray-200 text-gray-900"}`}>
                             {isStudio
                                 ? <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7" /><circle cx="12" cy="12" r="1.7" /><circle cx="12" cy="19" r="1.7" /></svg>

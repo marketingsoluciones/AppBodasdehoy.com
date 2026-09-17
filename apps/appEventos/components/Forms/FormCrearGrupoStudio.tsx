@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next";
  */
 
 const inputStyle: React.CSSProperties = { width: "100%", border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "11px 14px", font: "500 13px Poppins", color: "#3A3A42", outline: "none", background: "#fff" };
-const labelStyle: React.CSSProperties = { font: "600 12.5px Poppins", color: "#EF5B94", marginBottom: 7, display: "block" };
+const labelStyle: React.CSSProperties = { font: "600 12.5px Poppins", color: "var(--color-primary,var(--color-primary,#EF5B94))", marginBottom: 7, display: "block" };
 const errStyle: React.CSSProperties = { font: "500 11px Poppins", color: "#D83E7C", marginTop: 5 };
 
 const Field: FC<{ name: string; label: string }> = ({ name, label }) => {
@@ -61,7 +61,7 @@ const FormCrearGrupoStudio: FC<{ onClose: () => void }> = ({ onClose }) => {
 
   const content = (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(40,40,46,.45)", display: "flex", alignItems: "stretch", fontFamily: "'Poppins',sans-serif" }}>
-      <style dangerouslySetInnerHTML={{ __html: "@keyframes fcg-slidein{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:none}}.fcg-in:focus{border-color:#EF5B94!important;}" }} />
+      <style dangerouslySetInnerHTML={{ __html: "@keyframes fcg-slidein{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:none}}.fcg-in:focus{border-color:var(--color-primary,var(--color-primary,#EF5B94))!important;}" }} />
       <div onClick={(e) => e.stopPropagation()} style={{ width: 420, maxWidth: "94vw", height: "100%", background: "#fff", display: "flex", flexDirection: "column", boxShadow: "8px 0 40px rgba(0,0,0,.14)", animation: "fcg-slidein .22s ease" }}>
         <Formik {...formikValidateUx} initialValues={{ nombre: "" }} onSubmit={handleSubmit} validationSchema={validationSchema}>
           {({ isSubmitting }) => (
@@ -74,7 +74,7 @@ const FormCrearGrupoStudio: FC<{ onClose: () => void }> = ({ onClose }) => {
               {/* Cuerpo */}
               <div style={{ padding: "22px 30px", display: "flex", flexDirection: "column", gap: 18 }}>
                 <Field name="nombre" label={t("Nombre del grupo de invitados")} />
-                <button type="submit" disabled={isSubmitting} style={{ width: "100%", padding: 13, borderRadius: 12, background: isSubmitting ? "#f19bbb" : "#EF5B94", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: isSubmitting ? "default" : "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}>{t("Crear grupo")}</button>
+                <button type="submit" disabled={isSubmitting} style={{ width: "100%", padding: 13, borderRadius: 12, background: isSubmitting ? "#f19bbb" : "var(--color-primary,var(--color-primary,#EF5B94))", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: isSubmitting ? "default" : "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}>{t("Crear grupo")}</button>
               </div>
             </Form>
           )}

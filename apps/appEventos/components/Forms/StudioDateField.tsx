@@ -23,7 +23,7 @@ const parseISO = (s: any): { y: number; m: number; d: number } | null => {
 const eq = (a: any, b: { y: number; m: number; d: number }) => !!a && a.y === b.y && a.m === b.m && a.d === b.d;
 
 const navBtn: any = { width: 25, height: 25, borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center", background: "#fff", border: "1px solid #ececef", color: "#6b6b72", cursor: "pointer" };
-const footBtn: any = { background: "none", border: "none", cursor: "pointer", font: "600 11.5px Poppins", color: "#EF5B94", padding: "3px 5px" };
+const footBtn: any = { background: "none", border: "none", cursor: "pointer", font: "600 11.5px Poppins", color: "var(--color-primary,#EF5B94)", padding: "3px 5px" };
 
 interface Props { name: string; label?: string; }
 
@@ -88,7 +88,7 @@ const StudioDateField: FC<Props> = ({ name, label }) => {
               <button type="button" key={i} onClick={() => pick(d)} className="sdf-day" style={{
                 height: 29, borderRadius: 8, border: "none", cursor: "pointer",
                 font: isSel ? "700 11.5px Poppins" : "500 11.5px Poppins",
-                background: isSel ? "#EF5B94" : "transparent",
+                background: isSel ? "var(--color-primary,#EF5B94)" : "transparent",
                 color: isSel ? "#fff" : inMonth ? "#3A3A42" : "#c9c9cf",
                 boxShadow: isToday && !isSel ? "inset 0 0 0 1.5px #F5A8C7" : "none",
                 transition: "background .12s",
@@ -110,9 +110,9 @@ const StudioDateField: FC<Props> = ({ name, label }) => {
   return (
     <div>
       {label && <label>{label}</label>}
-      <div ref={anchorRef} onClick={openCal} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, border: `1.5px solid ${open ? "#EF5B94" : "#E7E7EA"}`, borderRadius: 10, padding: "11px 14px", background: "#fff", cursor: "pointer", transition: "border-color .15s" }}>
+      <div ref={anchorRef} onClick={openCal} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, border: `1.5px solid ${open ? "var(--color-primary,#EF5B94)" : "#E7E7EA"}`, borderRadius: 10, padding: "11px 14px", background: "#fff", cursor: "pointer", transition: "border-color .15s" }}>
         <span style={{ font: "500 13px Poppins", color: display ? "#3A3A42" : "#a0a0a8" }}>{display || "dd/mm/aaaa"}</span>
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="3" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,#EF5B94)" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="3" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
       </div>
       {meta.touched && meta.error && <p style={{ font: "500 11px Poppins", color: "#D83E7C", marginTop: 4 }}>{meta.error as string}</p>}
       {cal}

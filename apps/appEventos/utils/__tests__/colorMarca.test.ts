@@ -118,6 +118,56 @@ describe('color de marca: una sola verdad', () => {
     expect(atrasadas).toEqual([]);
   });
 
+  it('la variable de marca NO se define en términos de sí misma', () => {
+    // Me lo hice yo al barrer los literales. `_app.tsx` publica
+    // `--color-primary: ${themePrimary}`, y el barrido convirtió el respaldo de
+    // `themePrimary` en `var(--color-primary,#EF5B94)`. Eso es una definición cíclica:
+    // CSS la invalida, la variable se queda SIN valor, y entonces TODOS los var() de
+    // la app caen a su respaldo. Resultado: bodasdehoy perfecta y las otras diez marcas
+    // pintando rosa de bodasdehoy — exactamente lo contrario de para qué era el barrido.
+    // Y no lo habría visto mirando bodasdehoy, que es lo que se mira siempre.
+    const src = fs.readFileSync(path.join(RAIZ, 'apps/appEventos/pages/_app.tsx'), 'utf8');
+    const sinComentarios = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+    const asignaciones = sinComentarios
+      .split('\n')
+      .filter((l) => /const theme(Primary|Secondary|Tertiary|Base|Scroll)\s*=/.test(l))
+      .filter((l) => l.includes('var(--color-'));
+    expect(asignaciones).toEqual([]);
+  });
+
+  it('ningún respaldo de la variable de marca pinta un color ajeno', () => {
+    // Había TRES respaldos y cada uno de un color distinto: #ec4899 (de ninguna marca)
+    // en _app.tsx, #7C3AED (morado del prototipo) en el tailwind.css de chat, y
+    // #F7628C (el rosa anterior) en su vía de auto-auth. Cuando la variable no está
+    // resuelta todavía, el respaldo ES lo que se ve, así que tiene que ser un color
+    // de marca real y no una maqueta.
+    const sitios = [
+      'apps/appEventos/pages/_app.tsx',
+      'apps/chat-ia/src/styles/tailwind.css',
+      'apps/chat-ia/src/features/EventosAutoAuth/index.tsx',
+    ];
+    const colores = new Set(Object.values(shared).map((c) => c.toUpperCase()));
+    const ajenos: string[] = [];
+    for (const rel of sitios) {
+      const ruta = path.join(RAIZ, rel);
+      if (!fs.existsSync(ruta)) continue;
+      const txt = fs
+        .readFileSync(ruta, 'utf8')
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/\/\/.*$/gm, '');
+      // Solo el PRIMARIO. El secundario y el terciario son colores de acompañamiento
+      // (#f472b6, #f9a8d4) que no están en la tabla de primaryColor y no tiene sentido
+      // exigirles que estén: la primera versión de este test los marcaba como ajenos.
+      const re = /var\(\s*--(?:color-primary|primary-color|color-brand[\w-]*)\s*,\s*(#[0-9A-Fa-f]{6})\s*\)|(?:primary|Primary)[^\n]{0,60}?(?:\|\||\?\?)\s*['"](#[0-9A-Fa-f]{6})['"]/g;
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(txt)) !== null) {
+        const hex = (m[1] || m[2]).toUpperCase();
+        if (!colores.has(hex)) ajenos.push(`${rel}: ${hex}`);
+      }
+    }
+    expect(ajenos).toEqual([]);
+  });
+
   it('todos los colores son hexadecimales de 6 dígitos', () => {
     const malos = Object.entries({ ...shared, ...app })
       .filter(([, c]) => !/^#[0-9A-F]{6}$/.test(c))

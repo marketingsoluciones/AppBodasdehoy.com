@@ -87,9 +87,9 @@ export function CostOverview({ period }: CostOverviewProps) {
       </div>
 
       {/* Costo Promedio por Request */}
-      <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-pink-50 to-pink-100 p-6">
+      <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-brand-light to-brand-light p-6">
         <div className="text-sm font-medium text-gray-600">📊 Costo Promedio/Request</div>
-        <div className="mt-2 text-3xl font-bold text-pink-700">
+        <div className="mt-2 text-3xl font-bold text-brand">
           ${data.avgCostPerRequest.toFixed(4)}
         </div>
         <div className="mt-1 text-xs text-gray-500">Por consulta</div>

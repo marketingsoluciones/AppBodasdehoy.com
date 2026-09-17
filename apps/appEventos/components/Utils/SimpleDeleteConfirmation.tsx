@@ -61,7 +61,7 @@ export const SimpleDeleteConfirmation: FC<props> = ({
     <Modal set={setModal} loading={loading} classe={modalShellClass}>
       <div className="w-full h-auto min-h-[200px] p-6 flex flex-col">
         <div className="flex items-center gap-[11px] mb-[18px]">
-          <div className="w-10 h-10 rounded-[11px] flex-none bg-[#FCE7F0] text-[#EF5B94] flex items-center justify-center">
+          <div className="w-10 h-10 rounded-[11px] flex-none bg-[#FCE7F0] text-[var(--color-primary,#EF5B94)] flex items-center justify-center">
             <IoTrashOutline className="w-5 h-5" />
           </div>
           <div>

@@ -224,7 +224,7 @@ export const ElementContent: FC<propsElement> = ({ item, scale, disableDrag }) =
           line-height: 1.4;
           position: static !important;
           /* Input tipo píldora con borde rosa SOLO al editar (fiel al prototipo). */
-          border: ${isEditing ? "1.5px solid #EF5B94" : "none"} !important;
+          border: ${isEditing ? "1.5px solid var(--color-primary,#EF5B94)" : "none"} !important;
           border-radius: ${isEditing ? "9999px" : "0"};
           padding: ${isEditing ? "4px 16px" : "0"};
           /* Sin fondo blanco en display: el texto se ve limpio sobre la cuadrícula.

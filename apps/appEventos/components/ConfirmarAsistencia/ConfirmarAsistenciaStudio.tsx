@@ -170,7 +170,7 @@ const ConfirmarAsistenciaStudio: FC<Props> = ({ guestData, guestFather, menus_ar
               <div className="ca-hs" style={{ display: "flex", gap: 7, flexWrap: "wrap", marginBottom: 20 }}>
                 {menuOptions.map((m) => {
                   const on = menu === m;
-                  return <div key={m} onClick={() => setMenu(m)} style={{ padding: "8px 16px", borderRadius: 16, border: `1.5px solid ${on ? "#EF5B94" : "#E7E7EA"}`, background: on ? "#FCE7F0" : "#fff", color: on ? "#D83E7C" : "#6b6b72", font: "600 11.5px Poppins", cursor: "pointer", whiteSpace: "nowrap" }}>{m}</div>;
+                  return <div key={m} onClick={() => setMenu(m)} style={{ padding: "8px 16px", borderRadius: 16, border: `1.5px solid ${on ? "var(--color-primary,var(--color-primary,#EF5B94))" : "#E7E7EA"}`, background: on ? "#FCE7F0" : "#fff", color: on ? "#D83E7C" : "#6b6b72", font: "600 11.5px Poppins", cursor: "pointer", whiteSpace: "nowrap" }}>{m}</div>;
                 })}
               </div>
 
@@ -179,7 +179,7 @@ const ConfirmarAsistenciaStudio: FC<Props> = ({ guestData, guestFather, menus_ar
 
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                 <div style={{ font: "600 12.5px Poppins", color: "#3A3A42" }}>Tus acompañantes <span style={{ fontWeight: 400, color: "#a0a0a8" }}>({acomps.length} de {maxAcomp})</span></div>
-                <span onClick={addAcomp} style={{ display: "flex", alignItems: "center", gap: 5, font: "600 11.5px Poppins", color: acomps.length >= maxAcomp ? "#c4c4cc" : "#EF5B94", cursor: acomps.length >= maxAcomp ? "default" : "pointer" }}>
+                <span onClick={addAcomp} style={{ display: "flex", alignItems: "center", gap: 5, font: "600 11.5px Poppins", color: acomps.length >= maxAcomp ? "#c4c4cc" : "var(--color-primary,var(--color-primary,#EF5B94))", cursor: acomps.length >= maxAcomp ? "default" : "pointer" }}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>Añadir
                 </span>
               </div>
@@ -206,7 +206,7 @@ const ConfirmarAsistenciaStudio: FC<Props> = ({ guestData, guestFather, menus_ar
             </>
           )}
 
-          <button onClick={enviar} disabled={!listo || enviando} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: 14, borderRadius: 13, background: listo ? "#EF5B94" : "#f0f0f2", color: listo ? "#fff" : "#a0a0a8", font: "600 14px Poppins", border: "none", cursor: listo ? "pointer" : "default", boxShadow: listo ? "0 6px 16px rgba(239,91,148,.3)" : "none" }}>
+          <button onClick={enviar} disabled={!listo || enviando} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: 14, borderRadius: 13, background: listo ? "var(--color-primary,var(--color-primary,#EF5B94))" : "#f0f0f2", color: listo ? "#fff" : "#a0a0a8", font: "600 14px Poppins", border: "none", cursor: listo ? "pointer" : "default", boxShadow: listo ? "0 6px 16px rgba(239,91,148,.3)" : "none" }}>
             {enviando ? "Enviando…" : listo ? (asiste ? "Confirmar asistencia" : "Enviar respuesta") : "Selecciona una opción"}
           </button>
           {errorEnvio && (
@@ -229,7 +229,7 @@ const ConfirmarAsistenciaStudio: FC<Props> = ({ guestData, guestFather, menus_ar
               ? `Gracias, ${nombre}. Hemos registrado tu confirmación${acomps.filter((a) => a.nombre.trim()).length > 0 ? ` y la de tus ${acomps.filter((a) => a.nombre.trim()).length} acompañante(s)` : ""}. ¡Nos vemos en el evento!`
               : `Gracias por avisarnos, ${nombre}. Lamentamos que no puedas acompañarnos — los organizadores han sido notificados.`}
           </div>
-          <span onClick={() => setEnviado(false)} style={{ font: "600 12.5px Poppins", color: "#EF5B94", cursor: "pointer", marginTop: 4 }}>Editar mi respuesta</span>
+          <span onClick={() => setEnviado(false)} style={{ font: "600 12.5px Poppins", color: "var(--color-primary,var(--color-primary,#EF5B94))", cursor: "pointer", marginTop: 4 }}>Editar mi respuesta</span>
         </div>
       )}
     </div>
@@ -240,7 +240,7 @@ const ConfirmarAsistenciaStudio: FC<Props> = ({ guestData, guestFather, menus_ar
       <style dangerouslySetInnerHTML={{ __html: "@keyframes ca-fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}.ca-hs::-webkit-scrollbar{display:none;}.ca-hs{scrollbar-width:none;}" }} />
       {/* Header */}
       <div style={{ background: "#fff", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 2px 10px rgba(0,0,0,.04)" }}>
-        <div style={{ font: "700 20px Poppins", color: "#EF5B94" }}>Bodasdehoy<span style={{ fontSize: 12, color: "#3A3A42" }}>.com</span></div>
+        <div style={{ font: "700 20px Poppins", color: "var(--color-primary,var(--color-primary,#EF5B94))" }}>Bodasdehoy<span style={{ fontSize: 12, color: "#3A3A42" }}>.com</span></div>
         <div style={{ display: "flex", alignItems: "center", gap: 6, font: "500 12px Poppins", color: "#8a8a90" }}>Español<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round"><path d="M6 9l6 6 6-6" /></svg></div>
       </div>
 
@@ -253,7 +253,7 @@ const ConfirmarAsistenciaStudio: FC<Props> = ({ guestData, guestFather, menus_ar
             <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
               {info.map((it, i) => (
                 <div key={i} className="ca-infopoint" style={{ display: "flex", alignItems: "flex-start", gap: 11 }}>
-                  <span style={{ width: 30, height: 30, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", flex: "none" }}>
+                  <span style={{ width: 30, height: 30, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary,var(--color-primary,#EF5B94))", flex: "none" }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">{it.icon}</svg>
                   </span>
                   <span style={{ font: "500 13px Poppins", color: "#3A3A42", paddingTop: 4, lineHeight: 1.6 }}>{it.txt}</span>

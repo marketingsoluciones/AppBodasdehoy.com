@@ -76,13 +76,13 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={2} strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
             <input type="text" value={searchTerm} onChange={(e) => onSearchChange(e.target.value)} placeholder={t("Buscar tareas…", { defaultValue: "Buscar tareas…" })} style={{ border: "none", outline: "none", font: "400 12.5px Poppins", color: "#3A3A42", width: "100%", background: "transparent" }} />
           </div>
-          <button onClick={onToggleFilters} title={t("Filtros", { defaultValue: "Filtros" })} style={{ ...ico, borderColor: showFilters ? "#EF5B94" : "#E7E7EA", color: showFilters ? "#EF5B94" : "#8a8a90" }}>
+          <button onClick={onToggleFilters} title={t("Filtros", { defaultValue: "Filtros" })} style={{ ...ico, borderColor: showFilters ? "var(--color-primary,#EF5B94)" : "#E7E7EA", color: showFilters ? "var(--color-primary,#EF5B94)" : "#8a8a90" }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M4 5h16l-6 7v5l-4 2v-7L4 5z" /></svg>
           </button>
           <span style={{ font: "400 12px Poppins", color: "#a0a0a8", whiteSpace: "nowrap" }}>{nCols} {t("columnas", { defaultValue: "columnas" })} · {totalTasks ?? 0} {t("tareas")}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
-          <button onClick={onAddTask} style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 18px", borderRadius: 12, background: "#EF5B94", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 5px 14px rgba(239,91,148,.28)", whiteSpace: "nowrap" }}>
+          <button onClick={onAddTask} style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 18px", borderRadius: 12, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 5px 14px rgba(239,91,148,.28)", whiteSpace: "nowrap" }}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
             {t("Añadir tarea", { defaultValue: "Añadir tarea" })}
           </button>
@@ -90,7 +90,7 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 4v12M7 11l5 5 5-5M4 20h16" /></svg>
           </button>
           {onToggleExpand && (
-            <button onClick={onToggleExpand} title={expanded ? t("Contraer", { defaultValue: "Contraer" }) : t("Expandir", { defaultValue: "Expandir" })} style={{ ...ico, borderColor: expanded ? "#EF5B94" : "#E7E7EA", color: expanded ? "#EF5B94" : "#8a8a90" }}>
+            <button onClick={onToggleExpand} title={expanded ? t("Contraer", { defaultValue: "Contraer" }) : t("Expandir", { defaultValue: "Expandir" })} style={{ ...ico, borderColor: expanded ? "var(--color-primary,#EF5B94)" : "#E7E7EA", color: expanded ? "var(--color-primary,#EF5B94)" : "#8a8a90" }}>
               {expanded
                 ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M3 8h5V3M21 8h-5V3M3 16h5v5M21 16h-5v5" /></svg>
                 : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" /></svg>}

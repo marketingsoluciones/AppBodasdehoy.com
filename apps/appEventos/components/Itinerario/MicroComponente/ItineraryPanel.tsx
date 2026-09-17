@@ -214,12 +214,12 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                   <div style={{ width: 1.5, height: 14, background: first ? "transparent" : "#F3B6CE" }} />
-                  <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#fff", border: "3px solid #EF5B94", flex: "none" }} />
+                  <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#fff", border: "3px solid var(--color-primary,#EF5B94)", flex: "none" }} />
                   <div style={{ width: 1.5, flex: 1, background: last ? "transparent" : "#F3B6CE" }} />
                 </div>
                 <div style={{ paddingBottom: 22 }}>
                   <div style={{ font: "700 15px Poppins", color: "#3A3A42" }}>{hora}{dur && <span style={{ font: "500 11.5px Poppins", color: "#a0a0a8", marginLeft: 6 }}>{t("duracion")} {dur}</span>}</div>
-                  <div style={{ font: "600 13.5px Poppins", color: "#EF5B94", marginTop: 3 }}>{task?.descripcion || t("Sin título")}</div>
+                  <div style={{ font: "600 13.5px Poppins", color: "var(--color-primary,#EF5B94)", marginTop: 3 }}>{task?.descripcion || t("Sin título")}</div>
                   <div style={{ font: "400 12px Poppins", color: "#8a8a90", marginTop: 2 }}>{t("responsible")}: {responsables.length ? <b style={{ color: "#6b6b72", fontWeight: 500 }}>{responsables.join(", ")}</b> : <span style={{ color: "#c4c4cc" }}>{t("Sin asignar", { defaultValue: "sin asignar" })}</span>}</div>
                 </div>
               </div>
@@ -948,7 +948,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <button
               onClick={() => !isAllowed() ? ht() : handleTaskCreate({})}
-              style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 18px", borderRadius: 12, background: "#EF5B94", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 5px 14px rgba(239,91,148,.28)", whiteSpace: "nowrap" }}
+              style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 18px", borderRadius: 12, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 5px 14px rgba(239,91,148,.28)", whiteSpace: "nowrap" }}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
               {t("Añadir tarea", { defaultValue: "Añadir tarea" })}
@@ -1023,7 +1023,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                       <div className="w-full flex-1 flex flex-col gap-3">
                         <div
                           onClick={() => setTablaDetalle(null)}
-                          style={{ display: "inline-flex", alignItems: "center", gap: 7, font: "600 13px Poppins", color: "#EF5B94", cursor: "pointer", padding: "2px 2px 0", alignSelf: "flex-start" }}
+                          style={{ display: "inline-flex", alignItems: "center", gap: 7, font: "600 13px Poppins", color: "var(--color-primary,#EF5B94)", cursor: "pointer", padding: "2px 2px 0", alignSelf: "flex-start" }}
                         >
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
                           {t("Volver a la vista Tabla", { defaultValue: "Volver a la vista Tabla" })}
@@ -1102,7 +1102,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                           {["/itinerario"].includes(window?.location?.pathname) && <div className={`w-full flex ${view === "schema" ? "justify-start" : "justify-center"}`}>
                             {isStudioIti && view !== "schema"
                               ? <span style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", border: "1.5px solid #E7E7EA", borderRadius: 20, padding: "6px 16px", font: "600 12.5px Poppins", color: "#3A3A42" }}>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={1.8} strokeLinecap="round"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 9h18M8 3v4M16 3v4" /></svg>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,#EF5B94)" strokeWidth={1.8} strokeLinecap="round"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 9h18M8 3v4M16 3v4" /></svg>
                                 {new Date(el?.fecha).toLocaleString(navigator.language, { year: "numeric", month: "long", day: "2-digit", timeZone: "UTC" })}
                               </span>
                               : <span className={`${view === "schema" ? "border-primary border-dotted mb-1" : "border-gray-300"} border-[1px] px-5 py-[1px] rounded-full text-[12px] font-semibold`}>

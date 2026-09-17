@@ -97,9 +97,9 @@ const SkTabla: FC = () => (
       </div>
     </div>
     {/* Estadísticas */}
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 6px 14px", borderBottom: "2px solid #EF5B94", marginBottom: 16 }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 6px 14px", borderBottom: "2px solid var(--color-primary,#EF5B94)", marginBottom: 16 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-        <span style={{ font: "700 22px Poppins", color: "#EF5B94" }}>44</span>
+        <span style={{ font: "700 22px Poppins", color: "var(--color-primary,#EF5B94)" }}>44</span>
         <span style={{ font: "600 14px Poppins", color: "#3A3A42" }}>Invitados</span>
         <span style={{ font: "500 12px Poppins", color: "#8a8a90" }}>35 adultos · 8 niños</span>
       </div>
@@ -109,13 +109,13 @@ const SkTabla: FC = () => (
             <span style={{ width: 7, height: 7, borderRadius: "50%", background: "currentColor" }} />{s[0]}
           </span>
         ))}
-        <span style={{ font: "600 12.5px Poppins", color: "#fff", background: "#EF5B94", borderRadius: 12, padding: "10px 18px" }}>Sentar invitados</span>
+        <span style={{ font: "600 12.5px Poppins", color: "#fff", background: "var(--color-primary,#EF5B94)", borderRadius: 12, padding: "10px 18px" }}>Sentar invitados</span>
       </div>
     </div>
     {/* Acciones + buscador */}
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
       <div style={{ display: "flex", gap: 10 }}>
-        <span style={{ font: "600 12.5px Poppins", color: "#fff", background: "#EF5B94", borderRadius: 12, padding: "10px 18px" }}>+ Invitados</span>
+        <span style={{ font: "600 12.5px Poppins", color: "#fff", background: "var(--color-primary,#EF5B94)", borderRadius: 12, padding: "10px 18px" }}>+ Invitados</span>
         {["+ Grupo", "+ Menú", "Exportar"].map((b, i) => (
           <span key={i} style={{ font: "600 12.5px Poppins", color: "#6b6b72", background: "#fff", border: "1.5px solid #E7E7EA", borderRadius: 12, padding: "10px 18px" }}>{b}</span>
         ))}
@@ -168,10 +168,10 @@ const SkPlano: FC = () => (
       <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #f0f0f2", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
         <div style={{ display: "flex", gap: 16, borderBottom: "1px solid #f0f0f2", paddingBottom: 10 }}>
           {[["Planos", false], ["Mesas", true], ["Mobiliario", false], ["Resumen", false]].map((tb, i) => (
-            <span key={i} style={{ font: "600 12px Poppins", color: tb[1] ? "#EF5B94" : "#8a8a90", borderBottom: tb[1] ? "2px solid #EF5B94" : "none", paddingBottom: 6 }}>{tb[0]}</span>
+            <span key={i} style={{ font: "600 12px Poppins", color: tb[1] ? "var(--color-primary,#EF5B94)" : "#8a8a90", borderBottom: tb[1] ? "2px solid var(--color-primary,#EF5B94)" : "none", paddingBottom: 6 }}>{tb[0]}</span>
           ))}
         </div>
-        <div style={{ font: "700 10px Poppins", color: "#EF5B94", letterSpacing: ".5px" }}>MESAS EN «RECEPCIÓN» · 0</div>
+        <div style={{ font: "700 10px Poppins", color: "var(--color-primary,#EF5B94)", letterSpacing: ".5px" }}>MESAS EN «RECEPCIÓN» · 0</div>
         <div style={{ font: "400 11.5px/1.6 Poppins", color: "#a0a0a8" }}>Aún no hay mesas en este plano. Usa «+ Añadir mesa» en el plano.</div>
         <div style={{ flex: 1 }} />
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid #f0f0f2", paddingTop: 10 }}>
@@ -201,17 +201,17 @@ const SkPlano: FC = () => (
         </div>
         {/* estado vacío */}
         <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10 }}>
-          <div style={{ width: 90, height: 90, borderRadius: "50%", background: "#fff", border: "2px dashed #F3B6CE", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", marginBottom: 6 }}>
+          <div style={{ width: 90, height: 90, borderRadius: "50%", background: "#fff", border: "2px dashed #F3B6CE", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary,#EF5B94)", marginBottom: 6 }}>
             <svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="12" cy="9" rx="7" ry="3.2" /><path d="M11 11h2v7h-2z" /></svg>
           </div>
           <div style={{ font: "700 18px Poppins", color: "#3A3A42" }}>Aún no hay mesas</div>
           <div style={{ font: "400 13px Poppins", color: "#8a8a90" }}>Empieza creando tu primera mesa para este espacio.</div>
-          <span style={{ font: "600 13px Poppins", color: "#fff", background: "#EF5B94", borderRadius: 12, padding: "12px 24px", marginTop: 6 }}>+ Crea tu primera mesa</span>
+          <span style={{ font: "600 13px Poppins", color: "#fff", background: "var(--color-primary,#EF5B94)", borderRadius: 12, padding: "12px 24px", marginTop: 6 }}>+ Crea tu primera mesa</span>
         </div>
         {/* botones inferiores */}
         <div style={{ position: "absolute", right: 16, bottom: 16, display: "flex", gap: 10 }}>
-          <span style={{ font: "600 12.5px Poppins", color: "#EF5B94", background: "#fff", border: "1.5px solid #F3B6CE", borderRadius: 12, padding: "10px 18px" }}>+ Bancos</span>
-          <span style={{ font: "600 12.5px Poppins", color: "#fff", background: "#EF5B94", borderRadius: 12, padding: "10px 18px" }}>+ Añadir mesa</span>
+          <span style={{ font: "600 12.5px Poppins", color: "var(--color-primary,#EF5B94)", background: "#fff", border: "1.5px solid #F3B6CE", borderRadius: 12, padding: "10px 18px" }}>+ Bancos</span>
+          <span style={{ font: "600 12.5px Poppins", color: "#fff", background: "var(--color-primary,#EF5B94)", borderRadius: 12, padding: "10px 18px" }}>+ Añadir mesa</span>
         </div>
       </div>
     </div>
@@ -257,13 +257,13 @@ const SkPresupuesto: FC = () => (
     <SkHead title="Presupuesto" />
     <div style={{ background: "#fff", borderRadius: 14, boxShadow: "0 2px 10px rgba(0,0,0,.04)", padding: "16px 28px", display: "flex", gap: 60, marginBottom: 16 }}>
       {[["Resumen", true], ["Gastos", false], ["Panel del planner", false]].map((tb, i) => (
-        <span key={i} style={{ font: "600 14px Poppins", color: tb[1] ? "#EF5B94" : "#8a8a90" }}>{tb[0]}</span>
+        <span key={i} style={{ font: "600 14px Poppins", color: tb[1] ? "var(--color-primary,#EF5B94)" : "#8a8a90" }}>{tb[0]}</span>
       ))}
     </div>
     <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 2px 10px rgba(0,0,0,.04)", padding: "26px 28px", marginBottom: 16 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-          <span style={{ width: 54, height: 54, borderRadius: 14, background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}>
+          <span style={{ width: 54, height: 54, borderRadius: 14, background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary,#EF5B94)" }}>
             <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M4 11a6 6 0 0 1 6-6h3a6 6 0 0 1 6 5c1 .2 1 1.5 0 1.7V13a4 4 0 0 1-2 3.4V19h-2.5v-1.5h-3V19H9v-2.2A6 6 0 0 1 6 13H5a1 1 0 0 1-1-1v-1zm10.5-1a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" /></svg>
           </span>
           <div>
@@ -283,7 +283,7 @@ const SkPresupuesto: FC = () => (
       <div style={{ display: "flex", alignItems: "center", gap: 8, font: "600 13px Poppins", color: "#2FB37E", background: "#E4F5EE", borderRadius: 12, padding: "12px 16px", width: "fit-content", margin: "18px 0 14px" }}>✓ Vas por buen camino · 3.566.603,10 € disponibles</div>
       <div style={{ height: 12, borderRadius: 8, background: "#f0e3e9", overflow: "hidden", marginBottom: 14 }}><div style={{ height: "100%", width: "30%", background: "#F3B6CE" }} /></div>
       <div style={{ display: "flex", gap: 50 }}>
-        {[["Ya pagado", "0,00 €", "#EF5B94"], ["Comprometido sin pagar", "1.523.381,00 €", "#F3B6CE"], ["Aún libre", "3.566.603,10 €", "#2FB37E"]].map((s, i) => (
+        {[["Ya pagado", "0,00 €", "var(--color-primary,#EF5B94)"], ["Comprometido sin pagar", "1.523.381,00 €", "#F3B6CE"], ["Aún libre", "3.566.603,10 €", "#2FB37E"]].map((s, i) => (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ width: 12, height: 12, borderRadius: 3, background: s[2], flex: "none" }} />
             <div><div style={{ font: "500 11px Poppins", color: "#8a8a90" }}>{s[0]}</div><div style={{ font: "700 13px Poppins", color: i === 2 ? "#2FB37E" : "#3A3A42" }}>{s[1]}</div></div>
@@ -298,7 +298,7 @@ const SkPresupuesto: FC = () => (
       </div>
       <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 2px 10px rgba(0,0,0,.04)", padding: "20px 22px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div><div style={{ font: "700 15px Poppins", color: "#3A3A42", marginBottom: 6 }}>¿Cuánto cuesta mi evento?</div><div style={{ font: "400 12.5px Poppins", color: "#8a8a90" }}>Distribución del gasto real por categoría</div></div>
-        <span style={{ font: "600 12.5px Poppins", color: "#EF5B94", textDecoration: "underline" }}>Ver distribución</span>
+        <span style={{ font: "600 12.5px Poppins", color: "var(--color-primary,#EF5B94)", textDecoration: "underline" }}>Ver distribución</span>
       </div>
     </div>
   </div>
@@ -309,7 +309,7 @@ const SkInvitaciones: FC = () => (
   <div style={{ fontFamily: "'Poppins',sans-serif" }}>
     <SkHead title="Invitaciones" />
     <div style={{ display: "inline-flex", gap: 8, background: "#fff", borderRadius: 14, boxShadow: "0 2px 10px rgba(0,0,0,.04)", padding: 8, marginBottom: 14 }}>
-      <span style={{ display: "flex", alignItems: "center", gap: 8, font: "600 13px Poppins", color: "#D83E7C", background: "#FCE7F0", borderRadius: 10, padding: "9px 16px" }}><span style={{ width: 20, height: 20, borderRadius: "50%", background: "#EF5B94", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", font: "700 11px Poppins" }}>1</span>Diseñar invitación</span>
+      <span style={{ display: "flex", alignItems: "center", gap: 8, font: "600 13px Poppins", color: "#D83E7C", background: "#FCE7F0", borderRadius: 10, padding: "9px 16px" }}><span style={{ width: 20, height: 20, borderRadius: "50%", background: "var(--color-primary,#EF5B94)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", font: "700 11px Poppins" }}>1</span>Diseñar invitación</span>
       <span style={{ display: "flex", alignItems: "center", gap: 8, font: "600 13px Poppins", color: "#8a8a90", padding: "9px 16px" }}><span style={{ width: 20, height: 20, borderRadius: "50%", background: "#ececef", color: "#8a8a90", display: "flex", alignItems: "center", justifyContent: "center", font: "700 11px Poppins" }}>2</span>Enviar</span>
     </div>
     <div style={{ display: "flex", alignItems: "center", gap: 8, font: "600 13px Poppins", color: "#6b6b72", background: "#FCE7F0", borderRadius: 12, padding: "12px 16px", marginBottom: 16 }}>ⓘ Diseña tu invitación y envíala por email, WhatsApp o SMS.</div>
@@ -327,9 +327,9 @@ const SkInvitaciones: FC = () => (
           <div style={{ font: "700 15px Poppins", color: "#3A3A42", marginBottom: 14 }}>Plantilla</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
             {[["Elegante", "linear-gradient(160deg,#E7D3BE,#D3B99C)", true], ["Clásica", "linear-gradient(160deg,#EDE6D6,#D9CDB4)", false], ["Moderna", "linear-gradient(160deg,#DCE6EE,#BFD3E0)", false]].map((tp, i) => (
-              <div key={i} style={{ border: tp[2] ? "2px solid #EF5B94" : "1px solid #ececef", borderRadius: 12, padding: 4 }}>
+              <div key={i} style={{ border: tp[2] ? "2px solid var(--color-primary,#EF5B94)" : "1px solid #ececef", borderRadius: 12, padding: 4 }}>
                 <div style={{ height: 90, borderRadius: 9, background: tp[1] as string }} />
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 4px 2px" }}><span style={{ font: "600 11px Poppins", color: "#3A3A42" }}>{tp[0]}</span><span style={{ width: 15, height: 15, borderRadius: "50%", background: "#EF5B94" }} /></div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 4px 2px" }}><span style={{ font: "600 11px Poppins", color: "#3A3A42" }}>{tp[0]}</span><span style={{ width: 15, height: 15, borderRadius: "50%", background: "var(--color-primary,#EF5B94)" }} /></div>
               </div>
             ))}
           </div>
@@ -359,7 +359,7 @@ const SkItinerario: FC = () => (
         {[["Protocolo del Evento", true], ["Ceremonia", false], ["Ceremonia", false], ["Itinerario Boda Público", false], ["sin nombre", false], ["Previo a la boda", false]].map((tb, i) => (
           <span key={i} style={{ font: "600 12.5px Poppins", color: tb[1] ? "#D83E7C" : "#8a8a90", background: tb[1] ? "#FCE7F0" : "transparent", borderRadius: 20, padding: "8px 14px" }}>{tb[0]}</span>
         ))}
-        <span style={{ font: "600 12.5px Poppins", color: "#EF5B94", border: "1.5px solid #F3B6CE", borderRadius: 20, padding: "8px 16px" }}>+ Nuevo</span>
+        <span style={{ font: "600 12.5px Poppins", color: "var(--color-primary,#EF5B94)", border: "1.5px solid #F3B6CE", borderRadius: 20, padding: "8px 16px" }}>+ Nuevo</span>
       </div>
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
         <span style={{ font: "600 12px Poppins", color: "#6b6b72", border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "8px 14px" }}>🌐 Zona horaria · Madrid ⌄</span>
@@ -369,7 +369,7 @@ const SkItinerario: FC = () => (
     </div>
     <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 2px 10px rgba(0,0,0,.04)", padding: "28px 30px" }}>
       <div style={{ textAlign: "center", marginBottom: 6 }}><span style={{ font: "700 24px Poppins", color: "#3A3A42" }}>Protocolo del Evento</span></div>
-      <div style={{ width: 60, height: 3, borderRadius: 3, background: "#EF5B94", margin: "0 auto 14px" }} />
+      <div style={{ width: 60, height: 3, borderRadius: 3, background: "var(--color-primary,#EF5B94)", margin: "0 auto 14px" }} />
       <div style={{ textAlign: "center", font: "400 13px Poppins", color: "#8a8a90", marginBottom: 26 }}>Vista resumida del itinerario · ideal para compartir o descargar en PDF</div>
       {[["", "Recogida de la Novia para Peluquería", "Novia"], ["10:00 p. m. · duración 30 m", "Recogida del Autobús de los distintos hoteles", "Proveedor, Invitados"], ["10:30 p. m. · duración 30 m", "Maquillaje", "Novia"]].map((it, i) => (
         <div key={i} style={{ display: "flex", gap: 16, marginBottom: 4 }}>
@@ -392,9 +392,9 @@ const SkItinerario: FC = () => (
 const SkRegalos: FC = () => (
   <div style={{ fontFamily: "'Poppins',sans-serif" }}>
     <SkHead title="Lista de regalos" />
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 6px 14px", borderBottom: "2px solid #EF5B94", marginBottom: 16 }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 6px 14px", borderBottom: "2px solid var(--color-primary,#EF5B94)", marginBottom: 16 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-        <span style={{ font: "700 22px Poppins", color: "#EF5B94" }}>0,00 €</span>
+        <span style={{ font: "700 22px Poppins", color: "var(--color-primary,#EF5B94)" }}>0,00 €</span>
         <span style={{ font: "600 14px Poppins", color: "#3A3A42" }}>Valor total</span>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -409,12 +409,12 @@ const SkRegalos: FC = () => (
         <div style={{ font: "700 26px Poppins", color: "#3A3A42", margin: "16px 0 10px" }}>Crea la lista de regalos del evento</div>
         <div style={{ font: "400 13.5px/1.6 Poppins", color: "#8a8a90", marginBottom: 22 }}>Millones de opciones para elegir. Los invitados podrán comprar el regalo o aportar dinero, y el saldo se transfiere a los anfitriones del evento.</div>
         <div style={{ display: "flex", gap: 12 }}>
-          <span style={{ font: "600 13px Poppins", color: "#fff", background: "#EF5B94", borderRadius: 12, padding: "13px 22px" }}>a  Crear la lista en Amazon</span>
+          <span style={{ font: "600 13px Poppins", color: "#fff", background: "var(--color-primary,#EF5B94)", borderRadius: 12, padding: "13px 22px" }}>a  Crear la lista en Amazon</span>
           <span style={{ font: "600 13px Poppins", color: "#6b6b72", background: "#fff", border: "1.5px solid #E7E7EA", borderRadius: 12, padding: "13px 22px" }}>Ya tengo una lista · Vincular</span>
         </div>
       </div>
       <div style={{ width: 190, height: 190, borderRadius: "50%", background: "#FBDCEA", display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
-        <span style={{ width: 130, height: 130, borderRadius: "50%", background: "#EF5B94", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", font: "700 64px Poppins" }}>a</span>
+        <span style={{ width: 130, height: 130, borderRadius: "50%", background: "var(--color-primary,#EF5B94)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", font: "700 64px Poppins" }}>a</span>
       </div>
     </div>
     <div style={{ font: "700 16px Poppins", color: "#3A3A42", margin: "22px 4px 0" }}>¿Cómo funciona la lista?</div>
@@ -442,12 +442,12 @@ const SkMomentos: FC = () => (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 30 }}>
         <span style={{ font: "700 18px Poppins", color: "#3A3A42" }}>Álbumes</span>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <span style={{ font: "600 12.5px Poppins", color: "#EF5B94" }}>⚡ Generar desde el itinerario</span>
-          <span style={{ font: "600 12.5px Poppins", color: "#fff", background: "#EF5B94", borderRadius: 12, padding: "11px 18px" }}>+ Nuevo álbum</span>
+          <span style={{ font: "600 12.5px Poppins", color: "var(--color-primary,#EF5B94)" }}>⚡ Generar desde el itinerario</span>
+          <span style={{ font: "600 12.5px Poppins", color: "#fff", background: "var(--color-primary,#EF5B94)", borderRadius: 12, padding: "11px 18px" }}>+ Nuevo álbum</span>
         </div>
       </div>
       <div style={{ textAlign: "center", font: "500 14px Poppins", color: "#a0a0a8", padding: "34px 0 44px" }}>Cargando álbumes…</div>
-      <div style={{ textAlign: "right", borderTop: "1px solid #f2f2f4", paddingTop: 16 }}><span style={{ font: "600 12.5px Poppins", color: "#EF5B94" }}>Abrir Momentos en Copilot →</span></div>
+      <div style={{ textAlign: "right", borderTop: "1px solid #f2f2f4", paddingTop: 16 }}><span style={{ font: "600 12.5px Poppins", color: "var(--color-primary,#EF5B94)" }}>Abrir Momentos en Copilot →</span></div>
     </div>
   </div>
 );
@@ -464,7 +464,7 @@ const SkHeadM: FC<{ title: string }> = ({ title }) => (
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ font: "700 17px Poppins", color: "#3A3A42" }}>{title}</div>
-        <div style={{ font: "500 10px Poppins", color: "#a0a0a8" }}><span style={{ color: "#EF5B94", fontWeight: 600 }}>BODA</span> · Boda de Isabel &amp; Raúl</div>
+        <div style={{ font: "500 10px Poppins", color: "#a0a0a8" }}><span style={{ color: "var(--color-primary,#EF5B94)", fontWeight: 600 }}>BODA</span> · Boda de Isabel &amp; Raúl</div>
       </div>
       <span style={{ width: 32, height: 32, borderRadius: "50%", background: "#F7F6F8", flex: "none" }} />
       <span style={{ width: 32, height: 32, borderRadius: "50%", background: "#FCE7F0", flex: "none" }} />
@@ -479,14 +479,14 @@ const SkTablaM: FC = () => wrapM(<>
   <SkHeadM title="Invitados" />
   <div style={{ padding: "14px 16px 90px" }}>
     <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 10 }}>
-      <span style={{ font: "700 24px Poppins", color: "#EF5B94" }}>44</span>
+      <span style={{ font: "700 24px Poppins", color: "var(--color-primary,#EF5B94)" }}>44</span>
       <span style={{ font: "600 13px Poppins", color: "#3A3A42" }}>invitados</span>
       <span style={{ font: "500 11px Poppins", color: "#a0a0a8" }}>35 adultos · 8 niños</span>
     </div>
     <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginBottom: 14 }}>
       {chip("4 por confirmar", "#E0A32B", "#FBF0DA")}{chip("39 confirmados", "#2FB37E", "#E4F5EE")}{chip("1 cancelados", "#D83E7C", "#FBE3ED")}
     </div>
-    <div style={{ font: "600 13px Poppins", color: "#fff", background: "#EF5B94", borderRadius: 14, padding: "13px 0", textAlign: "center", marginBottom: 16 }}>🪑 Sentar invitados</div>
+    <div style={{ font: "600 13px Poppins", color: "#fff", background: "var(--color-primary,#EF5B94)", borderRadius: 14, padding: "13px 0", textAlign: "center", marginBottom: 16 }}>🪑 Sentar invitados</div>
     {[["SIN GRUPO", [["Ángel Moreno", "Confirmado", "#2FB37E", "#E4F5EE"], ["Juancarlos Test", "Pendiente", "#E0A32B", "#FBF0DA"]]], ["NOVIOS", [["Isabel QA Edit", "Confirmado", "#2FB37E", "#E4F5EE"], ["Raúl", "Confirmado", "#2FB37E", "#E4F5EE"]]], ["AMIGOS DE LA NOVIA", [["Ana María Martínez", "Confirmado", "#2FB37E", "#E4F5EE"], ["Jose Manuel", "Cancelado", "#D83E7C", "#FBE3ED"]]]].map((grp: any, gi) => (
       <div key={gi} style={{ background: "#fff", borderRadius: 14, boxShadow: "0 3px 10px rgba(0,0,0,.03)", padding: "12px 14px", marginBottom: 12 }}>
         <div style={{ font: "700 10px Poppins", color: "#a0a0a8", letterSpacing: ".5px", marginBottom: 10 }}>{grp[0]}</div>
@@ -495,7 +495,7 @@ const SkTablaM: FC = () => wrapM(<>
             <span style={{ width: 32, height: 32, borderRadius: "50%", background: AV[(gi + i) % AV.length], flex: "none" }} />
             <span style={{ flex: 1, font: "600 12.5px Poppins", color: "#3A3A42" }}>{r[0]}</span>
             {chip(r[1], r[2], r[3])}
-            <span style={{ color: "#EF5B94" }}>›</span>
+            <span style={{ color: "var(--color-primary,#EF5B94)" }}>›</span>
           </div>
         ))}
       </div>
@@ -507,19 +507,19 @@ const SkPlanoM: FC = () => wrapM(<>
   <SkHeadM title="Mesas y asientos" />
   <div style={{ padding: "14px 16px 90px" }}>
     <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-      <span style={{ font: "600 12px Poppins", color: "#fff", background: "#EF5B94", borderRadius: 20, padding: "8px 14px" }}>recepción · 8 mesas</span>
+      <span style={{ font: "600 12px Poppins", color: "#fff", background: "var(--color-primary,#EF5B94)", borderRadius: 20, padding: "8px 14px" }}>recepción · 8 mesas</span>
       <span style={{ font: "600 12px Poppins", color: "#8a8a90", background: "#fff", border: "1px solid #eee", borderRadius: 20, padding: "8px 14px" }}>ceremonia</span>
-      <span style={{ font: "600 12px Poppins", color: "#EF5B94", border: "1.5px solid #F3B6CE", borderRadius: 20, padding: "8px 12px" }}>+ Plano</span>
+      <span style={{ font: "600 12px Poppins", color: "var(--color-primary,#EF5B94)", border: "1.5px solid #F3B6CE", borderRadius: 20, padding: "8px 12px" }}>+ Plano</span>
     </div>
     <div style={{ position: "relative", height: 210, borderRadius: 14, background: "#EFEBE0", overflow: "hidden", backgroundImage: "linear-gradient(#E4DFD0 1px,transparent 1px),linear-gradient(90deg,#E4DFD0 1px,transparent 1px)", backgroundSize: "26px 26px", marginBottom: 14 }}>
       <div style={{ position: "absolute", top: 10, left: 10, font: "600 11px Poppins", color: "#3A3A42", background: "#fff", borderRadius: 8, padding: "5px 12px" }}>100% · recepción</div>
       <div style={{ position: "absolute", top: 10, right: 10, font: "600 11px Poppins", color: "#8a8a90", background: "#fff", borderRadius: 8, padding: "5px 12px" }}>🔒 Bloqueado</div>
-      <div style={{ position: "absolute", right: 12, bottom: 12, font: "600 12px Poppins", color: "#fff", background: "#EF5B94", borderRadius: 12, padding: "10px 16px" }}>+ Añadir mesa</div>
+      <div style={{ position: "absolute", right: 12, bottom: 12, font: "600 12px Poppins", color: "#fff", background: "var(--color-primary,#EF5B94)", borderRadius: 12, padding: "10px 16px" }}>+ Añadir mesa</div>
     </div>
     <div style={{ display: "flex", gap: 6, background: "#fff", borderRadius: 12, padding: 5, marginBottom: 12 }}>
-      {[["Mesas", true], ["Mobiliario", false], ["Resumen", false]].map((tb: any, i) => <span key={i} style={{ flex: 1, textAlign: "center", font: "600 12px Poppins", color: tb[1] ? "#fff" : "#8a8a90", background: tb[1] ? "#EF5B94" : "transparent", borderRadius: 9, padding: "9px 0" }}>{tb[0]}</span>)}
+      {[["Mesas", true], ["Mobiliario", false], ["Resumen", false]].map((tb: any, i) => <span key={i} style={{ flex: 1, textAlign: "center", font: "600 12px Poppins", color: tb[1] ? "#fff" : "#8a8a90", background: tb[1] ? "var(--color-primary,#EF5B94)" : "transparent", borderRadius: 9, padding: "9px 0" }}>{tb[0]}</span>)}
     </div>
-    <div style={{ font: "700 10px Poppins", color: "#EF5B94", letterSpacing: ".5px", marginBottom: 6 }}>MESAS EN «RECEPCIÓN» · 0</div>
+    <div style={{ font: "700 10px Poppins", color: "var(--color-primary,#EF5B94)", letterSpacing: ".5px", marginBottom: 6 }}>MESAS EN «RECEPCIÓN» · 0</div>
     <div style={{ font: "400 11.5px Poppins", color: "#a0a0a8", marginBottom: 14 }}>Sin mesas en este plano.</div>
     <div style={{ background: "#fff", borderRadius: 14, padding: "12px 14px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}><span style={{ font: "700 12.5px Poppins", color: "#3A3A42" }}>Invitados</span><span style={{ font: "500 11px Poppins", color: "#8a8a90" }}>Sentados 0/44</span></div>
@@ -533,21 +533,21 @@ const SkPresupuestoM: FC = () => wrapM(<>
   <SkHeadM title="Presupuesto" />
   <div style={{ padding: "14px 16px 90px" }}>
     <div style={{ display: "flex", gap: 6, background: "#fff", borderRadius: 12, padding: 5, marginBottom: 14 }}>
-      {[["Resumen", true], ["Gastos", false], ["Planner", false]].map((tb: any, i) => <span key={i} style={{ flex: 1, textAlign: "center", font: "600 12px Poppins", color: tb[1] ? "#fff" : "#8a8a90", background: tb[1] ? "#EF5B94" : "transparent", borderRadius: 9, padding: "9px 0" }}>{tb[0]}</span>)}
+      {[["Resumen", true], ["Gastos", false], ["Planner", false]].map((tb: any, i) => <span key={i} style={{ flex: 1, textAlign: "center", font: "600 12px Poppins", color: tb[1] ? "#fff" : "#8a8a90", background: tb[1] ? "var(--color-primary,#EF5B94)" : "transparent", borderRadius: 9, padding: "9px 0" }}>{tb[0]}</span>)}
     </div>
     <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 3px 10px rgba(0,0,0,.04)", padding: "16px 18px", marginBottom: 14 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><span style={{ font: "500 12px Poppins", color: "#8a8a90" }}>Presupuesto total</span><span style={{ font: "600 12px Poppins", color: "#EF5B94" }}>✎ Editar</span></div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><span style={{ font: "500 12px Poppins", color: "#8a8a90" }}>Presupuesto total</span><span style={{ font: "600 12px Poppins", color: "var(--color-primary,#EF5B94)" }}>✎ Editar</span></div>
       <div style={{ font: "700 27px Poppins", color: "#3A3A42", margin: "4px 0 14px" }}>5.089.984,10 €</div>
       <div style={{ display: "flex", gap: 8 }}>
-        {[["1.523.381,00 €", "Gastado", "#EF5B94"], ["0,00 €", "Pagado", "#2FB37E"], ["1.523.381,00 €", "Pendiente", "#E0A32B"]].map((s, i) => (
+        {[["1.523.381,00 €", "Gastado", "var(--color-primary,#EF5B94)"], ["0,00 €", "Pagado", "#2FB37E"], ["1.523.381,00 €", "Pendiente", "#E0A32B"]].map((s, i) => (
           <div key={i} style={{ flex: 1, background: "#faf9fb", borderRadius: 11, padding: "10px 8px", textAlign: "center" }}><div style={{ font: "700 12px Poppins", color: s[2] }}>{s[0]}</div><div style={{ font: "500 9.5px Poppins", color: "#a0a0a8", marginTop: 2 }}>{s[1]}</div></div>
         ))}
       </div>
     </div>
     <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 3px 10px rgba(0,0,0,.04)", padding: "16px 18px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span style={{ font: "700 14px Poppins", color: "#3A3A42" }}>¿Cómo va tu presupuesto?</span><span style={{ font: "600 12px Poppins", color: "#EF5B94" }}>+ Categoría</span></div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span style={{ font: "700 14px Poppins", color: "#3A3A42" }}>¿Cómo va tu presupuesto?</span><span style={{ font: "600 12px Poppins", color: "var(--color-primary,#EF5B94)" }}>+ Categoría</span></div>
       <div style={{ font: "400 11px Poppins", color: "#a0a0a8", marginBottom: 12 }}>Toca una categoría para ver o añadir gastos</div>
-      {[["ceremonia", "170,00 €", "89% del estimado", 0.89, "#2FB37E"], ["Catering Previo", "0,00 €", "0% del estimado", 0, "#e9e9ec"], ["invitaciones", "0,00 €", "0% del estimado", 0, "#e9e9ec"], ["flores y decoración", "908.999,00 €", "100% del estimado", 1, "#EF5B94"], ["foto y video", "0,00 €", "0% del estimado", 0, "#e9e9ec"]].map((c: any, i) => (
+      {[["ceremonia", "170,00 €", "89% del estimado", 0.89, "#2FB37E"], ["Catering Previo", "0,00 €", "0% del estimado", 0, "#e9e9ec"], ["invitaciones", "0,00 €", "0% del estimado", 0, "#e9e9ec"], ["flores y decoración", "908.999,00 €", "100% del estimado", 1, "var(--color-primary,#EF5B94)"], ["foto y video", "0,00 €", "0% del estimado", 0, "#e9e9ec"]].map((c: any, i) => (
         <div key={i} style={{ padding: "10px 0", borderTop: i ? "1px solid #f5f5f7" : "none" }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}><span style={{ font: "600 12px Poppins", color: "#3A3A42" }}>{c[0]}</span><span style={{ font: "600 12px Poppins", color: "#3A3A42" }}>{c[1]}</span></div>
           <div style={{ height: 5, borderRadius: 5, background: "#f0f0f2", overflow: "hidden" }}><div style={{ height: "100%", width: `${c[3] * 100}%`, background: c[4] }} /></div>
@@ -562,7 +562,7 @@ const SkInvitacionesM: FC = () => wrapM(<>
   <SkHeadM title="Invitaciones" />
   <div style={{ padding: "14px 16px 90px" }}>
     <div style={{ display: "flex", gap: 8, background: "#fff", borderRadius: 14, padding: 6, marginBottom: 12 }}>
-      <span style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, font: "600 12px Poppins", color: "#D83E7C", background: "#FCE7F0", borderRadius: 10, padding: "8px 0" }}><span style={{ width: 18, height: 18, borderRadius: "50%", background: "#EF5B94", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", font: "700 10px Poppins" }}>1</span>Diseñar invitación</span>
+      <span style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, font: "600 12px Poppins", color: "#D83E7C", background: "#FCE7F0", borderRadius: 10, padding: "8px 0" }}><span style={{ width: 18, height: 18, borderRadius: "50%", background: "var(--color-primary,#EF5B94)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", font: "700 10px Poppins" }}>1</span>Diseñar invitación</span>
       <span style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, font: "600 12px Poppins", color: "#8a8a90", padding: "8px 0" }}><span style={{ width: 18, height: 18, borderRadius: "50%", background: "#ececef", display: "flex", alignItems: "center", justifyContent: "center", font: "700 10px Poppins" }}>2</span>Enviar</span>
     </div>
     <div style={{ font: "600 11.5px Poppins", color: "#6b6b72", background: "#FCE7F0", borderRadius: 12, padding: "10px 14px", marginBottom: 12 }}>ⓘ Diseña tu invitación y envíala por email, WhatsApp o SMS.</div>
@@ -584,12 +584,12 @@ const SkItinerarioM: FC = () => wrapM(<>
   <SkHeadM title="Itinerario" />
   <div style={{ padding: "14px 16px 90px" }}>
     <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-      <span style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", font: "600 12.5px Poppins", color: "#3A3A42", background: "#fff", border: "1px solid #f0f0f2", borderRadius: 12, padding: "11px 14px" }}>Protocolo del Evento <span style={{ color: "#EF5B94" }}>⌄</span></span>
-      <span style={{ font: "600 12px Poppins", color: "#EF5B94", background: "#fff", border: "1px solid #f0f0f2", borderRadius: 12, padding: "11px 14px" }}>+ Nuevo</span>
+      <span style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", font: "600 12.5px Poppins", color: "#3A3A42", background: "#fff", border: "1px solid #f0f0f2", borderRadius: 12, padding: "11px 14px" }}>Protocolo del Evento <span style={{ color: "var(--color-primary,#EF5B94)" }}>⌄</span></span>
+      <span style={{ font: "600 12px Poppins", color: "var(--color-primary,#EF5B94)", background: "#fff", border: "1px solid #f0f0f2", borderRadius: 12, padding: "11px 14px" }}>+ Nuevo</span>
     </div>
     <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 14 }}><span style={{ font: "600 11.5px Poppins", color: "#D83E7C", border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "7px 12px" }}>esquema ⌄</span></div>
     <div style={{ textAlign: "center", marginBottom: 4 }}><span style={{ font: "700 20px Poppins", color: "#3A3A42" }}>Protocolo del Evento</span></div>
-    <div style={{ width: 50, height: 3, borderRadius: 3, background: "#EF5B94", margin: "6px auto 12px" }} />
+    <div style={{ width: 50, height: 3, borderRadius: 3, background: "var(--color-primary,#EF5B94)", margin: "6px auto 12px" }} />
     <div style={{ textAlign: "center", font: "400 11.5px Poppins", color: "#a0a0a8", marginBottom: 20 }}>Vista resumida del itinerario · ideal para compartir o descargar en PDF</div>
     {[["", "Recogida de la Novia para Peluquería", "Novia"], ["10:00 p. m. · duración 30 m", "Recogida del Autobús de los distintos hoteles", "Proveedor, Invitados"], ["10:30 p. m. · duración 30 m", "Maquillaje", "Novia"], ["11:30 p. m. · duración 30 m", "Coctel Bienvenida", "Catering"]].map((it, i) => (
       <div key={i} style={{ display: "flex", gap: 14, marginBottom: 4 }}>
@@ -613,12 +613,12 @@ const SkRegalosM: FC = () => wrapM(<>
     <span style={{ font: "700 10px Poppins", color: "#D83E7C", background: "#FCE7F0", borderRadius: 20, padding: "6px 14px", letterSpacing: ".5px" }}>CONECTA CON AMAZON</span>
     <div style={{ font: "700 22px Poppins", color: "#3A3A42", margin: "14px 0 8px" }}>Crea la lista de regalos del evento</div>
     <div style={{ font: "400 12px/1.6 Poppins", color: "#a0a0a8", marginBottom: 20 }}>Millones de opciones. Los invitados compran el regalo o aportan dinero, y el saldo se transfiere a los anfitriones.</div>
-    <div style={{ font: "600 13px Poppins", color: "#fff", background: "#EF5B94", borderRadius: 14, padding: "14px 0", marginBottom: 12 }}>a  Crear la lista en Amazon</div>
+    <div style={{ font: "600 13px Poppins", color: "#fff", background: "var(--color-primary,#EF5B94)", borderRadius: 14, padding: "14px 0", marginBottom: 12 }}>a  Crear la lista en Amazon</div>
     <div style={{ font: "600 13px Poppins", color: "#6b6b72", background: "#fff", border: "1.5px solid #E7E7EA", borderRadius: 14, padding: "14px 0", marginBottom: 22 }}>Ya tengo una lista · Vincular</div>
     <div style={{ font: "700 15px Poppins", color: "#3A3A42", textAlign: "left", marginBottom: 12 }}>¿Cómo funciona?</div>
     {[["1", "Crea la lista", "Añade regalos entre millones de opciones de Amazon."], ["2", "Compártela", "Envíala a los invitados para que elijan su regalo."], ["3", "Recibe el dinero", "El saldo se transfiere a los anfitriones cuando quieran."]].map((s, i) => (
       <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", background: "#fff", borderRadius: 12, boxShadow: "0 3px 10px rgba(0,0,0,.03)", padding: "12px 14px", marginBottom: 10, textAlign: "left" }}>
-        <span style={{ width: 24, height: 24, borderRadius: "50%", background: "#FCE7F0", color: "#EF5B94", display: "flex", alignItems: "center", justifyContent: "center", font: "700 11px Poppins", flex: "none" }}>{s[0]}</span>
+        <span style={{ width: 24, height: 24, borderRadius: "50%", background: "#FCE7F0", color: "var(--color-primary,#EF5B94)", display: "flex", alignItems: "center", justifyContent: "center", font: "700 11px Poppins", flex: "none" }}>{s[0]}</span>
         <div><div style={{ font: "700 12.5px Poppins", color: "#3A3A42" }}>{s[1]}</div><div style={{ font: "400 11px Poppins", color: "#a0a0a8", marginTop: 2 }}>{s[2]}</div></div>
       </div>
     ))}
@@ -628,8 +628,8 @@ const SkRegalosM: FC = () => wrapM(<>
 const SkMomentosM: FC = () => wrapM(<>
   <div style={{ background: "#fff", padding: "16px 16px 12px", display: "flex", alignItems: "center", gap: 10 }}>
     <span style={{ color: "#3A3A42" }}>‹</span>
-    <div style={{ flex: 1 }}><div style={{ font: "600 9px Poppins", color: "#EF5B94", letterSpacing: ".5px" }}>BODA</div><div style={{ font: "700 16px Poppins", color: "#3A3A42" }}>Momentos</div></div>
-    <span style={{ color: "#EF5B94" }}>⤴</span>
+    <div style={{ flex: 1 }}><div style={{ font: "600 9px Poppins", color: "var(--color-primary,#EF5B94)", letterSpacing: ".5px" }}>BODA</div><div style={{ font: "700 16px Poppins", color: "#3A3A42" }}>Momentos</div></div>
+    <span style={{ color: "var(--color-primary,#EF5B94)" }}>⤴</span>
   </div>
   <div style={{ padding: "14px 16px 90px" }}>
     <div style={{ display: "flex", alignItems: "center", gap: 12, background: "#fff", borderRadius: 14, boxShadow: "0 3px 10px rgba(0,0,0,.04)", padding: "12px 14px", marginBottom: 14 }}>
@@ -637,13 +637,13 @@ const SkMomentosM: FC = () => wrapM(<>
       <div style={{ flex: 1, minWidth: 0 }}><div style={{ font: "700 12.5px Poppins", color: "#3A3A42" }}>Portal para invitados</div><div style={{ font: "400 10px Poppins", color: "#a0a0a8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>app-dev.bodasdehoy.com/e/66a9042dec5…</div></div>
     </div>
     <div style={{ background: "#fff", borderRadius: 14, boxShadow: "0 3px 10px rgba(0,0,0,.04)", padding: "14px 16px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}><span style={{ font: "700 15px Poppins", color: "#3A3A42" }}>Álbumes <span style={{ font: "500 11px Poppins", color: "#a0a0a8" }}>2 álbumes</span></span><span style={{ font: "600 11px Poppins", color: "#EF5B94" }}>⚡ Generar del itinerario</span></div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}><span style={{ font: "700 15px Poppins", color: "#3A3A42" }}>Álbumes <span style={{ font: "500 11px Poppins", color: "#a0a0a8" }}>2 álbumes</span></span><span style={{ font: "600 11px Poppins", color: "var(--color-primary,#EF5B94)" }}>⚡ Generar del itinerario</span></div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
         {[["curl-uid-test"], ["sss"]].map((a, i) => (
           <div key={i}><div style={{ height: 100, borderRadius: 12, background: "#f2f2f4", display: "flex", alignItems: "center", justifyContent: "center", font: "500 10px Poppins", color: "#b3b3ba", marginBottom: 6 }}>Sin fotos aún</div><div style={{ font: "600 12px Poppins", color: "#3A3A42" }}>{a[0]}</div><div style={{ font: "400 10px Poppins", color: "#a0a0a8" }}>Creado manualmente</div></div>
         ))}
       </div>
-      <div style={{ textAlign: "center", font: "600 12px Poppins", color: "#EF5B94" }}>Abrir Momentos en Copilot →</div>
+      <div style={{ textAlign: "center", font: "600 12px Poppins", color: "var(--color-primary,#EF5B94)" }}>Abrir Momentos en Copilot →</div>
     </div>
   </div>
 </>);
@@ -674,7 +674,7 @@ const ModuloBloqueadoInvitado: FC<{ modulo: ModKey }> = ({ modulo }) => {
         {/* 3) TARJETA modal de registro — centrada sobre el fondo completo */}
         <div style={{ position: "relative", zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 64px)", padding: "32px 20px 40px" }}>
           <div style={{ width: "100%", maxWidth: 480, background: "#fff", borderRadius: 20, boxShadow: "0 30px 80px rgba(0,0,0,.18)", padding: "28px 22px 24px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", boxSizing: "border-box" }}>
-            <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", marginBottom: 16 }}>{m.icon}</div>
+            <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary,#EF5B94)", marginBottom: 16 }}>{m.icon}</div>
             <div style={{ font: "700 21px Poppins", color: "#3A3A42", marginBottom: 8 }}>{m.title}</div>
             <div style={{ font: "400 13px/1.65 Poppins", color: "#8a8a90", maxWidth: 440, marginBottom: 22 }}>{m.desc}</div>
             <div style={{ background: "#fafafa", border: "1px solid #f0f0f2", borderRadius: 14, padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10, alignItems: "flex-start", marginBottom: 24, width: "100%", boxSizing: "border-box" }}>
@@ -684,8 +684,8 @@ const ModuloBloqueadoInvitado: FC<{ modulo: ModKey }> = ({ modulo }) => {
                 </div>
               ))}
             </div>
-            <a href={registerHref} className="mbi-cta" style={{ padding: "12px 32px", borderRadius: 12, background: "#EF5B94", color: "#fff", font: "600 13px Poppins", border: "none", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)", marginBottom: 14, textDecoration: "none" }}>Crear cuenta gratis</a>
-            <div style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>¿Ya tienes cuenta? <a href={loginHref} style={{ color: "#EF5B94", fontWeight: 600, textDecoration: "none" }}>Inicia sesión</a></div>
+            <a href={registerHref} className="mbi-cta" style={{ padding: "12px 32px", borderRadius: 12, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 13px Poppins", border: "none", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)", marginBottom: 14, textDecoration: "none" }}>Crear cuenta gratis</a>
+            <div style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>¿Ya tienes cuenta? <a href={loginHref} style={{ color: "var(--color-primary,#EF5B94)", fontWeight: 600, textDecoration: "none" }}>Inicia sesión</a></div>
           </div>
         </div>
         <style dangerouslySetInnerHTML={{ __html: ".mbi-cta:hover{background:#D83E7C !important;}" }} />

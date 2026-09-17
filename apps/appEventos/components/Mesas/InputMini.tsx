@@ -76,7 +76,7 @@ export const InputMini: FC<propsInputMini> = ({ label, lienzo, setLienzo, center
   return (
     <div className="w-full flex items-center justify-between gap-2" style={{ fontFamily: "'Poppins',sans-serif" }}>
       <span className="flex items-center gap-2 text-[12px] font-medium text-[#6b6b72] capitalize">
-        <span className="text-[#EF5B94] flex-none">{FIELD_ICON[label] || null}</span>
+        <span className="text-[var(--color-primary,#EF5B94)] flex-none">{FIELD_ICON[label] || null}</span>
         {label && t(label)}
       </span>
       <div className="flex items-center gap-1.5 flex-none">
@@ -85,7 +85,7 @@ export const InputMini: FC<propsInputMini> = ({ label, lienzo, setLienzo, center
           type="number"
           step={0.01}
           name="scala"
-          className="w-[54px] h-8 text-[13px] text-center rounded-[9px] border-[1.5px] border-[#E7E7EA] focus:border-[#EF5B94] outline-none font-semibold text-[#3A3A42] disabled:opacity-60 bg-white"
+          className="w-[54px] h-8 text-[13px] text-center rounded-[9px] border-[1.5px] border-[#E7E7EA] focus:border-[var(--color-primary,#EF5B94)] outline-none font-semibold text-[#3A3A42] disabled:opacity-60 bg-white"
           value={`${value}`}
           onChange={(e) => { handleOnChange(e) }}
           onBlur={handleOnBlur}

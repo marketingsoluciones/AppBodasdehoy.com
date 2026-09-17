@@ -616,8 +616,8 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                             ? <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                                 <input type="text" autoFocus value={title} onChange={(e) => setTitle(e.target.value)}
                                     onKeyDown={(e) => { if (e.key === "Enter") handleUpdateTitle(); else if (e.key === "Escape") setEditTitle(false) }}
-                                    style={{ font: "700 16px Poppins", color: "#3A3A42", border: "1.5px solid #EF5B94", borderRadius: 10, padding: "6px 12px", outline: "none", maxWidth: 300 }} />
-                                <button type="button" onClick={() => handleUpdateTitle()} style={{ padding: "7px 16px", borderRadius: 9, background: "#EF5B94", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer" }}>{t("save", { defaultValue: "Guardar" })}</button>
+                                    style={{ font: "700 16px Poppins", color: "#3A3A42", border: "1.5px solid var(--color-primary,#EF5B94)", borderRadius: 10, padding: "6px 12px", outline: "none", maxWidth: 300 }} />
+                                <button type="button" onClick={() => handleUpdateTitle()} style={{ padding: "7px 16px", borderRadius: 9, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer" }}>{t("save", { defaultValue: "Guardar" })}</button>
                                 <button type="button" onClick={() => setEditTitle(false)} style={{ padding: "7px 14px", borderRadius: 9, background: "#fff", color: "#8a8a90", font: "600 12.5px Poppins", border: "1.5px solid #E7E7EA", cursor: "pointer" }}>{t("Cancelar", { defaultValue: "Cancelar" })}</button>
                             </div>
                             : <div style={{ font: "700 17px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 340 }}>
@@ -663,7 +663,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                     {!isTareas && ["cards", "table"].includes(view) && (
                         <PermissionAddButton
                             onClick={addTask}
-                            className="flex items-center gap-[7px] bg-[#EF5B94] text-white rounded-[10px] px-4 py-[9px] text-[12.5px] font-semibold shadow-[0_6px_16px_rgba(239,91,148,0.3)] flex-none"
+                            className="flex items-center gap-[7px] bg-[var(--color-primary,#EF5B94)] text-white rounded-[10px] px-4 py-[9px] text-[12.5px] font-semibold shadow-[0_6px_16px_rgba(239,91,148,0.3)] flex-none"
                         >
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.2} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
                             {t("Añadir tarea", { defaultValue: "Añadir tarea" })}
@@ -721,9 +721,9 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 <div className="mobile-dropdown" style={{ position: "relative", display: "flex", alignItems: "center", gap: 8, padding: "12px 16px 0", zIndex: 15 }}>
                     <div onClick={toggleMobileDropdown} style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, background: "#fff", border: "1px solid #f0f0f2", boxShadow: "0 3px 10px rgba(0,0,0,.04)", borderRadius: 12, padding: "11px 14px", cursor: "pointer" }}>
                         <span style={{ font: "600 13px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{itinerario?.title || t("Seleccionar itinerario")}</span>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2.2} strokeLinecap="round" style={{ flex: "none", transform: isMobileDropdownOpen ? "rotate(180deg)" : "none", transition: "transform .18s" }}><path d="M6 9l6 6 6-6" /></svg>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,#EF5B94)" strokeWidth={2.2} strokeLinecap="round" style={{ flex: "none", transform: isMobileDropdownOpen ? "rotate(180deg)" : "none", transition: "transform .18s" }}><path d="M6 9l6 6 6-6" /></svg>
                     </div>
-                    <button onClick={handleCreateItinerario} style={{ display: "flex", alignItems: "center", gap: 5, padding: "11px 14px", borderRadius: 12, border: "1px solid #f0f0f2", boxShadow: "0 3px 10px rgba(0,0,0,.04)", background: "#fff", color: "#EF5B94", cursor: "pointer", font: "600 12px Poppins", flex: "none" }}>
+                    <button onClick={handleCreateItinerario} style={{ display: "flex", alignItems: "center", gap: 5, padding: "11px 14px", borderRadius: 12, border: "1px solid #f0f0f2", boxShadow: "0 3px 10px rgba(0,0,0,.04)", background: "#fff", color: "var(--color-primary,#EF5B94)", cursor: "pointer", font: "600 12px Poppins", flex: "none" }}>
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Nuevo", { defaultValue: "Nuevo" })}
                     </button>
                     {isMobileDropdownOpen && (
@@ -760,7 +760,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 </div>
                 {/* FAB Añadir tarea (solo vista Tarjeta, fiel al HTML) */}
                 {view === "cards" && (
-                    <button onClick={addTask} style={{ position: "fixed", right: 16, bottom: 84, display: "flex", alignItems: "center", gap: 7, padding: "13px 18px", borderRadius: 26, background: "#EF5B94", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 10px 26px rgba(239,91,148,.45)", zIndex: 50 }}>
+                    <button onClick={addTask} style={{ position: "fixed", right: 16, bottom: 84, display: "flex", alignItems: "center", gap: 7, padding: "13px 18px", borderRadius: 26, background: "var(--color-primary,#EF5B94)", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 10px 26px rgba(239,91,148,.45)", zIndex: 50 }}>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Añadir tarea", { defaultValue: "Añadir tarea" })}
                     </button>
                 )}

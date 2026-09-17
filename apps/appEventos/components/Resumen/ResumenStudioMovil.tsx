@@ -23,7 +23,7 @@ const curSym = (c?: string) => {
 };
 
 const DASH = "1.5px dashed #F4A9C8";
-const dashBtn: React.CSSProperties = { display: "block", margin: "14px auto 0", height: 40, width: 170, borderRadius: 11, background: "transparent", border: DASH, color: "var(--color-primary, #EF5B94)", font: "600 12px Poppins", cursor: "pointer" };
+const dashBtn: React.CSSProperties = { display: "block", margin: "14px auto 0", height: 40, width: 170, borderRadius: 11, background: "transparent", border: DASH, color: "var(--color-primary, var(--color-primary,#EF5B94))", font: "600 12px Poppins", cursor: "pointer" };
 const secTitle: React.CSSProperties = { font: "600 15px Poppins", color: "#6b6b72", margin: "0 2px 9px" };
 const cardStyle: React.CSSProperties = { background: "#fff", border: "1px solid #f0f0f2", borderRadius: 15, boxShadow: "0 3px 10px rgba(0,0,0,.04)" };
 
@@ -34,11 +34,11 @@ const ResumenStudioMovil: FC = () => {
   // Color de marca (gate isBodas, igual que LoginStudio/Navigation): bodasdehoy exacto, resto config.theme.
   const _p = config?.theme?.primaryColor;
   const isBodas = !_p || config?.development === 'bodasdehoy';
-  const cLight = isBodas ? '#EF5B94' : _p;
+  const cLight = isBodas ? 'var(--color-primary,#EF5B94)' : _p;
   const cDark = isBodas ? '#D83E7C' : (config?.theme?.secondaryColor || _p);
   const cPale = isBodas ? '#FCE7F0' : `color-mix(in srgb, ${cLight} 12%, white)`;
-  const cGrad135 = isBodas ? 'linear-gradient(135deg,#EF5B94,#f588b3)' : `linear-gradient(135deg, ${cLight}, color-mix(in srgb, ${cLight} 55%, white))`;
-  const cGrad90 = isBodas ? 'linear-gradient(90deg,#EF5B94,#f588b3)' : `linear-gradient(90deg, ${cLight}, color-mix(in srgb, ${cLight} 55%, white))`;
+  const cGrad135 = isBodas ? 'linear-gradient(135deg,var(--color-primary,#EF5B94),#f588b3)' : `linear-gradient(135deg, ${cLight}, color-mix(in srgb, ${cLight} 55%, white))`;
+  const cGrad90 = isBodas ? 'linear-gradient(90deg,var(--color-primary,#EF5B94),#f588b3)' : `linear-gradient(90deg, ${cLight}, color-mix(in srgb, ${cLight} 55%, white))`;
   const cSh28 = isBodas ? '0 6px 16px rgba(239,91,148,.28)' : `0 6px 16px color-mix(in srgb, ${cLight} 30%, transparent)`;
   const cSh26 = isBodas ? '0 8px 20px rgba(239,91,148,.26)' : `0 8px 20px color-mix(in srgb, ${cLight} 28%, transparent)`;
   const [openShare, setOpenShare] = useState(false);

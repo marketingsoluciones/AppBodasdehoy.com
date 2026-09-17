@@ -422,15 +422,15 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
               .ce-studio .overflow-auto{scrollbar-width:none;-ms-overflow-style:none;}
               .ce-studio .overflow-auto::-webkit-scrollbar{display:none;width:0;height:0;}
               .ce-fila2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-              .ce-label{display:block;font:600 12.5px Poppins;color:#EF5B94;margin-bottom:7px;}
+              .ce-label{display:block;font:600 12.5px Poppins;color:var(--color-primary,var(--color-primary,#EF5B94));margin-bottom:7px;}
               .ce-foot{display:flex;gap:12px;padding:16px 30px 22px;border-top:1px solid #f0f0f2;flex:none;background:#fff;}
               .ce-btn{flex:1;padding:12px 20px;border-radius:10px;font:600 13px Poppins;cursor:pointer;font-family:inherit;}
               .ce-btn-sec{background:#fff;border:1.5px solid #E7E7EA;color:#6b6b72;}
-              .ce-btn-pri{background:#EF5B94;color:#fff;border:none;box-shadow:0 6px 16px rgba(239,91,148,.3);}
+              .ce-btn-pri{background:var(--color-primary,var(--color-primary,#EF5B94));color:#fff;border:none;box-shadow:0 6px 16px rgba(239,91,148,.3);}
               .ce-btn-pri:hover{background:#D83E7C;}
-              .ce-studio label{display:block!important;font:600 12.5px Poppins!important;color:#EF5B94!important;margin-bottom:7px!important;text-transform:none!important;}
+              .ce-studio label{display:block!important;font:600 12.5px Poppins!important;color:var(--color-primary,var(--color-primary,#EF5B94))!important;margin-bottom:7px!important;text-transform:none!important;}
               .ce-studio input[type="text"],.ce-studio input[type="date"],.ce-studio select,.ce-studio input:not([type]){width:100%!important;border:1.5px solid #E7E7EA!important;border-radius:10px!important;padding:11px 14px!important;font:500 13px Poppins!important;color:#3A3A42!important;outline:none!important;background:#fff!important;height:auto!important;text-transform:none!important;}
-              .ce-studio input:focus,.ce-studio select:focus{border-color:#EF5B94!important;box-shadow:none!important;}
+              .ce-studio input:focus,.ce-studio select:focus{border-color:var(--color-primary,var(--color-primary,#EF5B94))!important;box-shadow:none!important;}
             ` }} />
             <AutoSubmitToken valueImage={valueImage} />
             <div className="ce-head">

@@ -1,12 +1,9 @@
 'use client';
 
-import { useBandejaBrand } from '../utils/brand';
-
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-import { getUserContext } from '../utils/auth';
-import { sendFreeText, sendTemplate } from '../data/outbound';
+import { buildHeaders, getUserContext } from '../utils/auth';
 import {
   templateBodyText,
   templateFillParams,
@@ -54,9 +51,6 @@ function normalizePhone(raw: string): string {
 }
 
 export function NewMessageModal({ onClose }: { onClose: () => void }) {
-  // El botón de enviar iba en el rosa del prototipo: en una marca que no sea Bodas de Hoy
-  // pintaba el color de otra empresa. El color de marca ya lo resuelve el whitelabel.
-  const brand = useBandejaBrand();
   const router = useRouter();
   const [network, setNetwork] = useState<Network>('whatsapp');
   const [phone, setPhone] = useState('');
@@ -98,18 +92,24 @@ export function NewMessageModal({ onClose }: { onClose: () => void }) {
     try {
       let url: string;
       let body: string;
-      // Plantilla HSM fuera de la ventana de 24 h; texto libre dentro de ella.
-      const sendWhatsApp = () =>
-        useTemplate && selectedTpl
-          ? sendTemplate(development, phoneClean, {
-              language: selectedTpl.language,
-              name: selectedTpl.name,
-              parameters: tplParams.slice(0, tplNeeded),
-            })
-          : sendFreeText(development, phoneClean, text.trim());
-      const { data, ok, status } = await sendWhatsApp();
-      if (!ok || data?.success === false) {
-        const msg = data?.message || data?.error || `HTTP ${status}`;
+      if (useTemplate && selectedTpl) {
+        // Plantilla HSM (fuera de la ventana 24h) → endpoint de plantillas.
+        url = `/api/messages/whatsapp/messages/template?development=${encodeURIComponent(development)}`;
+        body = JSON.stringify({
+          language_code: selectedTpl.language || 'es',
+          parameters: tplParams.slice(0, tplNeeded),
+          phone_number: phoneClean,
+          template_name: selectedTpl.name,
+        });
+      } else {
+        // Texto libre (solo válido dentro de la ventana de 24h) → endpoint de envío.
+        url = `/api/messages/whatsapp/messages/send?development=${encodeURIComponent(development)}`;
+        body = JSON.stringify({ content: text.trim(), phone_number: phoneClean });
+      }
+      const res = await fetch(url, { body, headers: { ...buildHeaders(), 'Content-Type': 'application/json' }, method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data?.success === false) {
+        const msg = data?.message || data?.error || `HTTP ${res.status}`;
         const isWindow = /24|window|template|hsm|re-?engage/i.test(String(msg));
         setError(
           isWindow && !useTemplate
@@ -242,8 +242,7 @@ export function NewMessageModal({ onClose }: { onClose: () => void }) {
             Cancelar
           </button>
           <button
-            className="rounded-lg px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ backgroundColor: brand.brand }}
+            className="rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-white hover:bg-brand disabled:cursor-not-allowed disabled:opacity-50"
             disabled={!canSend}
             onClick={handleSend}
             type="button"

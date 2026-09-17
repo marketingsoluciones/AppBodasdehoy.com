@@ -41,7 +41,7 @@ const BlockPanelMesas: FC<propsBlockPanelMesas> = ({ setShowFormEditar }) => {
   return (
     <div id="listTables" className="w-full h-full overflow-auto flex flex-col gap-[11px] p-1">
       <div className="flex-none text-[11px] font-bold tracking-wider uppercase text-[#b3b3ba]">
-        {t('tablesin', 'Mesas en')} «{planSpaceActive?.title || '—'}» · <span className="text-[#EF5B94]">{tables.length}</span>
+        {t('tablesin', 'Mesas en')} «{planSpaceActive?.title || '—'}» · <span className="text-[var(--color-primary,#EF5B94)]">{tables.length}</span>
       </div>
 
       {tables.length === 0 &&

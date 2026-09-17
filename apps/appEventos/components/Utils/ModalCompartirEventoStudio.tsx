@@ -104,12 +104,12 @@ const ModalCompartirEventoStudio: FC<Props> = ({ event, onClose }) => {
           <div className="mcs-scroll" style={{ padding: "20px 22px", maxHeight: "60vh", overflow: "auto" }}>
             <div style={{ display: "flex", gap: 9, marginBottom: 20 }}>
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); if (!saving) invitar(); } }} placeholder="Correo de la persona a invitar…" style={{ flex: 1, padding: "12px 14px", borderRadius: 11, border: "1.5px solid #E7E7EA", font: "500 13px Poppins", color: "#3A3A42", outline: "none" }} />
-              <button onClick={() => !saving && invitar()} disabled={saving} style={{ flex: "none", padding: "12px 18px", borderRadius: 11, background: "#EF5B94", border: "none", color: "#fff", font: "600 13px Poppins", cursor: saving ? "default" : "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)", opacity: saving ? .7 : 1 }}>Invitar</button>
+              <button onClick={() => !saving && invitar()} disabled={saving} style={{ flex: "none", padding: "12px 18px", borderRadius: 11, background: "var(--color-primary,#EF5B94)", border: "none", color: "#fff", font: "600 13px Poppins", cursor: saving ? "default" : "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)", opacity: saving ? .7 : 1 }}>Invitar</button>
             </div>
             <div style={{ font: "700 11px Poppins", color: "#b3b3ba", letterSpacing: 1, textTransform: "uppercase", marginBottom: 11 }}>Personas con acceso</div>
             {/* Propietario */}
             <div style={{ display: "flex", alignItems: "center", gap: 11, padding: 10, borderRadius: 12, background: "#faf9fb", marginBottom: 9 }}>
-              <div style={{ width: 34, height: 34, borderRadius: "50%", flex: "none", background: "#EF5B94", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", font: "700 13px Poppins" }}>{(ownerName || "?").charAt(0).toUpperCase()}</div>
+              <div style={{ width: 34, height: 34, borderRadius: "50%", flex: "none", background: "var(--color-primary,#EF5B94)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", font: "700 13px Poppins" }}>{(ownerName || "?").charAt(0).toUpperCase()}</div>
               <div style={{ flex: 1, minWidth: 0, font: "600 12.5px Poppins", color: "#3A3A42", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>Tú ({ownerName})</div>
               <span style={{ flex: "none", background: "#f2f2f4", color: "#8a8a90", borderRadius: 999, padding: "6px 14px", font: "600 11.5px Poppins" }}>Propietario</span>
             </div>
@@ -118,7 +118,7 @@ const ModalCompartirEventoStudio: FC<Props> = ({ event, onClose }) => {
               const em = p?.email || p?.displayName || p?.uid || "";
               return (
                 <div key={p?.uid || i} className="mcs-row" style={{ display: "flex", alignItems: "center", gap: 11, padding: "8px 10px", borderRadius: 12, marginBottom: 4 }}>
-                  <div style={{ width: 34, height: 34, borderRadius: "50%", flex: "none", background: "#FCE7F0", color: "#EF5B94", display: "flex", alignItems: "center", justifyContent: "center", font: "700 13px Poppins" }}>{String(em || "?").charAt(0).toUpperCase()}</div>
+                  <div style={{ width: 34, height: 34, borderRadius: "50%", flex: "none", background: "#FCE7F0", color: "var(--color-primary,#EF5B94)", display: "flex", alignItems: "center", justifyContent: "center", font: "700 13px Poppins" }}>{String(em || "?").charAt(0).toUpperCase()}</div>
                   <div style={{ flex: 1, minWidth: 0, font: "500 12.5px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={em}>{em}</div>
                   <button className="mcs-perm" onClick={() => abrirPermisos(p)} style={{ flex: "none", display: "inline-flex", alignItems: "center", gap: 5, padding: "7px 12px", borderRadius: 9, border: "1.5px solid #E7E7EA", background: "#fff", font: "600 11.5px Poppins", color: "#3A3A42", cursor: "pointer" }}>Permisos:<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round"><path d="M6 9l6 6 6-6" /></svg></button>
                   <button className="mcs-x" onClick={() => quitar(p)} title="Quitar acceso" style={{ flex: "none", width: 26, height: 26, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#a0a0a8", background: "none", border: "none", cursor: "pointer" }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg></button>
@@ -129,11 +129,11 @@ const ModalCompartirEventoStudio: FC<Props> = ({ event, onClose }) => {
             <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 9, padding: "11px 14px", borderRadius: 11, background: "#f7f7f9", border: "1px solid #f0f0f2" }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={1.8}><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1" /><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1" /></svg>
               <span style={{ flex: 1, font: "500 12px Poppins", color: "#8a8a90", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={link}>{link}</span>
-              <button onClick={copiar} style={{ flex: "none", display: "flex", alignItems: "center", gap: 5, font: "600 12px Poppins", color: "#EF5B94", background: "none", border: "none", cursor: "pointer" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><rect x="9" y="9" width="12" height="12" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></svg>{copied ? "¡Copiado!" : "Copiar"}</button>
+              <button onClick={copiar} style={{ flex: "none", display: "flex", alignItems: "center", gap: 5, font: "600 12px Poppins", color: "var(--color-primary,#EF5B94)", background: "none", border: "none", cursor: "pointer" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><rect x="9" y="9" width="12" height="12" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></svg>{copied ? "¡Copiado!" : "Copiar"}</button>
             </div>
           </div>
           <div style={{ padding: "14px 22px", borderTop: "1px solid #f0f0f2", display: "flex", justifyContent: "flex-end" }}>
-            <button onClick={onClose} style={{ padding: "11px 28px", borderRadius: 11, background: "#EF5B94", border: "none", color: "#fff", font: "600 13px Poppins", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}>Hecho</button>
+            <button onClick={onClose} style={{ padding: "11px 28px", borderRadius: 11, background: "var(--color-primary,#EF5B94)", border: "none", color: "#fff", font: "600 13px Poppins", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}>Hecho</button>
           </div>
         </div>
       </div>
@@ -155,7 +155,7 @@ const ModalCompartirEventoStudio: FC<Props> = ({ event, onClose }) => {
                     {(["none", "view", "edit"] as Perm[]).map((v) => {
                       const on = (permState[s.key] || "none") === v;
                       return (
-                        <button key={v} onClick={() => setPermState((st) => ({ ...st, [s.key]: v }))} title={v === "none" ? "Sin acceso" : v === "view" ? "Ver" : "Editar"} style={{ width: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "none", cursor: "pointer", background: on ? "#FCE7F0" : "#f7f7f9", color: on ? "#EF5B94" : "#c9c9cf" }}>{v === "none" ? IconNone() : v === "view" ? IconView() : IconEdit()}</button>
+                        <button key={v} onClick={() => setPermState((st) => ({ ...st, [s.key]: v }))} title={v === "none" ? "Sin acceso" : v === "view" ? "Ver" : "Editar"} style={{ width: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "none", cursor: "pointer", background: on ? "#FCE7F0" : "#f7f7f9", color: on ? "var(--color-primary,#EF5B94)" : "#c9c9cf" }}>{v === "none" ? IconNone() : v === "view" ? IconView() : IconEdit()}</button>
                       );
                     })}
                   </div>
@@ -168,12 +168,12 @@ const ModalCompartirEventoStudio: FC<Props> = ({ event, onClose }) => {
               <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>{IconEdit(10)}Editar</span>
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
-              <button onClick={guardarPermisos} style={{ padding: "10px 24px", borderRadius: 11, background: "#EF5B94", border: "none", color: "#fff", font: "600 13px Poppins", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}>Guardar</button>
+              <button onClick={guardarPermisos} style={{ padding: "10px 24px", borderRadius: 11, background: "var(--color-primary,#EF5B94)", border: "none", color: "#fff", font: "600 13px Poppins", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}>Guardar</button>
             </div>
           </div>
         </div>
       )}
-      <style dangerouslySetInnerHTML={{ __html: ".mcs-row:hover{background:#faf9fb;}.mcs-perm:hover{border-color:#EF5B94 !important;color:#D83E7C !important;}.mcs-x:hover{background:#FBE4EF !important;color:#D83E7C !important;}.mcs-secrow:hover{background:#faf9fb;}.mcs-scroll{scrollbar-width:none;}.mcs-scroll::-webkit-scrollbar{width:0;height:0;display:none;}" }} />
+      <style dangerouslySetInnerHTML={{ __html: ".mcs-row:hover{background:#faf9fb;}.mcs-perm:hover{border-color:var(--color-primary,#EF5B94) !important;color:#D83E7C !important;}.mcs-x:hover{background:#FBE4EF !important;color:#D83E7C !important;}.mcs-secrow:hover{background:#faf9fb;}.mcs-scroll{scrollbar-width:none;}.mcs-scroll::-webkit-scrollbar{width:0;height:0;display:none;}" }} />
     </>,
     document.body
   );

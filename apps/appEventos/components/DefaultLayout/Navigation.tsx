@@ -220,9 +220,9 @@ const Navigation: FC = () => {
   // marcas usan su config.theme (mismo gate isBodas que LoginStudio).
   const _navPrimary = config?.theme?.primaryColor;
   const navIsBodas = !_navPrimary || config?.development === 'bodasdehoy';
-  const navLight = navIsBodas ? '#EF5B94' : _navPrimary;
+  const navLight = navIsBodas ? 'var(--color-primary,var(--color-primary,#EF5B94))' : _navPrimary;
   const navGrad = navIsBodas
-    ? 'linear-gradient(180deg,#F473A4,#EF5B94 55%,#E94F89)'
+    ? 'linear-gradient(180deg,#F473A4,var(--color-primary,var(--color-primary,#EF5B94)) 55%,#E94F89)'
     : `linear-gradient(180deg, color-mix(in srgb, ${navLight} 82%, white), ${navLight} 55%, color-mix(in srgb, ${navLight} 88%, black))`;
   const navShadow = navIsBodas ? '0 14px 30px rgba(239,91,148,.35)' : `0 14px 30px color-mix(in srgb, ${navLight} 35%, transparent)`;
 

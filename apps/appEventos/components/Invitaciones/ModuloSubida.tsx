@@ -207,7 +207,7 @@ const ModuloSubida = (props) => {
             </>
           ) : (
             <>
-              <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", boxShadow: "0 3px 10px rgba(239,91,148,.15)" }}>
+              <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary,#EF5B94)", boxShadow: "0 3px 10px rgba(239,91,148,.15)" }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h3l2-2.5h6L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" /><circle cx="12" cy="14" r="3.4" /></svg>
               </div>
               <div style={{ font: "600 12px Poppins", color: "#D83E7C" }}>{t("Subir una foto")}</div>

@@ -24,7 +24,7 @@ export const IntegrateButtonsBox: FC<Props> = ({ task, handleUpdate, handleDupli
     && new URLSearchParams(window.location.search).get("studio") !== "legacy";
 
   // Botonera studio: los tres primeros botones del grupo unido de
-  // tareastarjetacerradaabierta.html — 34x32, separados por 1px #f0f0f2, ojo en #EF5B94
+  // tareastarjetacerradaabierta.html — 34x32, separados por 1px #f0f0f2, ojo en var(--color-primary,#EF5B94)
   // y el resto en #8a8a90. Mismos manejadores que la versión anterior.
   if (isStudio) {
     const btn: React.CSSProperties = {
@@ -41,7 +41,7 @@ export const IntegrateButtonsBox: FC<Props> = ({ task, handleUpdate, handleDupli
             toast('success', t(newValue ? 'Tarea visible' : 'Tarea oculta'));
           }}
           title={t(task.spectatorView ? 'Tarea visible' : 'Tarea oculta')}
-          style={{ ...btn, color: task.spectatorView ? "#EF5B94" : "#8a8a90" }}
+          style={{ ...btn, color: task.spectatorView ? "var(--color-primary,#EF5B94)" : "#8a8a90" }}
         >
           {task.spectatorView
             ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></svg>

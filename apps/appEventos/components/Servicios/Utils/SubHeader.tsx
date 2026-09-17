@@ -141,12 +141,12 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
                         {showModalCompartir && <ClickAwayListener onClickAway={() => showModalCompartir && setShowModalCompartir(false)}>
                             <div data-pdf-hide style={{ position: "absolute", top: "100%", right: 0, marginTop: 8, width: 320, background: "#fff", borderRadius: 14, border: "1px solid #f0f0f2", boxShadow: "0 18px 50px rgba(0,0,0,.16)", zIndex: 50, padding: 14 }}>
                                 <input type="text" readOnly value={link} onClick={(e) => e.currentTarget.select()} className="share-url-studio" style={{ width: "100%", border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "10px 13px", font: "400 12px Poppins", color: "#6b6b72", outline: "none", background: "#fafafa", marginBottom: 10 }} />
-                                <div onClick={handleCopyStudio} className="share-copy-studio" style={{ display: "flex", alignItems: "center", gap: 8, font: "600 13px Poppins", color: "#EF5B94", cursor: "pointer", padding: "4px 2px 12px", borderBottom: "1px solid #f0f0f2" }}>
+                                <div onClick={handleCopyStudio} className="share-copy-studio" style={{ display: "flex", alignItems: "center", gap: 8, font: "600 13px Poppins", color: "var(--color-primary,#EF5B94)", cursor: "pointer", padding: "4px 2px 12px", borderBottom: "1px solid #f0f0f2" }}>
                                     <span>{copied ? t("¡Enlace copiado!", { defaultValue: "¡Enlace copiado!" }) : t("Copiar Enlace", { defaultValue: "Copiar Enlace" })}</span>
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></svg>
                                 </div>
                                 <a href={`/api/ical/${event?._id}/${itinerario?._id}`} download={`itinerario-${itinerario?._id}.ics`} onClick={() => setShowModalCompartir(false)} className="share-ics-studio" style={{ display: "flex", alignItems: "center", gap: 10, font: "500 13px Poppins", color: "#6b6b72", cursor: "pointer", padding: "12px 2px 2px", textDecoration: "none" }}>
-                                    <span style={{ width: 26, height: 26, borderRadius: 8, background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", flex: "none" }}>
+                                    <span style={{ width: 26, height: 26, borderRadius: 8, background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-primary,#EF5B94)", flex: "none" }}>
                                         <BsCalendarPlus className="w-[14px] h-[14px]" />
                                     </span>
                                     {t("Añadir al calendario (.ics)", { defaultValue: "Añadir al calendario (.ics)" })}
@@ -159,22 +159,22 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
                         ? <h2 onClick={() => !isAllowed() ? ht() : setEditTitle(true)} title={t("Haz clic para renombrar", { defaultValue: "Haz clic para renombrar" })} style={{ font: "700 24px Poppins", color: "#3A3A42", textAlign: "center", margin: 0, cursor: "pointer" }}>{title}</h2>
                         : <div style={{ display: "flex", gap: 8, width: "min(60%, 420px)" }}>
                             <input onChange={(e) => setTitle(e.target.value)} type="text" value={title} autoFocus style={{ flex: 1, font: "500 14px Poppins", color: "#3A3A42", textAlign: "center", border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "8px 14px", outline: "none" }} />
-                            <button type="button" onClick={() => handleUpdateTitle()} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 38, borderRadius: 10, background: "#EF5B94", color: "#fff", border: "none", cursor: "pointer" }}>
+                            <button type="button" onClick={() => handleUpdateTitle()} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 38, borderRadius: 10, background: "var(--color-primary,#EF5B94)", color: "#fff", border: "none", cursor: "pointer" }}>
                                 <FaCheck />
                             </button>
                         </div>}
                     {/* subrayado rosa */}
-                    <div style={{ width: 56, height: 3, borderRadius: 3, background: "#EF5B94", marginTop: 10 }} />
+                    <div style={{ width: 56, height: 3, borderRadius: 3, background: "var(--color-primary,#EF5B94)", marginTop: 10 }} />
                 </div>
                 {loading && <div className="fixed top-0 left-0 w-[100vw] h-[100vh] flex items-center justify-center z-50">
                     <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4" />
                 </div>}
                 <style jsx>{`
                     .cab-acc{width:34px;height:34px;border-radius:10px;background:#fff;border:1.5px solid #E7E7EA;display:flex;align-items:center;justify-content:center;color:#6b6b72;cursor:pointer;transition:all .15s;}
-                    .cab-acc:hover{border-color:#EF5B94;color:#EF5B94;}
+                    .cab-acc:hover{border-color:var(--color-primary,#EF5B94);color:var(--color-primary,#EF5B94);}
                     .share-copy-studio:hover{color:#D83E7C;}
                     .share-ics-studio:hover{color:#3A3A42;}
-                    .share-url-studio:focus{border-color:#EF5B94;}
+                    .share-url-studio:focus{border-color:var(--color-primary,#EF5B94);}
                     @media(max-width:767px){.sh-actions{display:none !important;}}
                     .loader{border-top-color:${config?.theme?.primaryColor || "#EF5B94"};-webkit-animation:spinner 1.5s linear infinite;animation:spinner 1.5s linear infinite;}
                     @-webkit-keyframes spinner{0%{-webkit-transform:rotate(0deg);}100%{-webkit-transform:rotate(360deg);}}

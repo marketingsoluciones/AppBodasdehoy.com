@@ -5,15 +5,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { BandejaTabs, useActiveBandejaTab } from './components/BandejaTabs';
 import { GlobalSummaryCard } from './components/GlobalSummaryCard';
-import { IaLevelPicker } from './components/IaLevelPicker';
-import { InboxOverview } from './components/InboxOverview';
 import { InboxFilters, type ChannelFilter, type RsvpFilter } from './components/InboxFilters';
 import { NewMessageModal } from './components/NewMessageModal';
 import { ScopeSelector, type ScopeId } from './components/ScopeSelector';
 import { UnifiedFeedView } from './components/UnifiedFeedView';
-import { useBandejaBrand } from './utils/brand';
-import { getUserContext } from './utils/auth';
-import { useIaLevel } from './hooks/useIaLevel';
 import { type FeedItem, useUnifiedFeed } from './hooks/useUnifiedFeed';
 import { useCanManageMessaging } from '@/hooks/useCanManageMessaging';
 
@@ -43,11 +38,6 @@ function classifyPendingItem(item: FeedItem): string {
 // Cualquier código que llegue a este page.tsx ya pasó ese filtro, por eso
 // aquí no hace falta un segundo gate — sería inalcanzable.
 export default function MessagesPage() {
-  const brand = useBandejaBrand();
-  // Modo de IA por defecto de la bandeja. El hook mueve la interfaz al instante y revierte
-  // si el servidor rechaza, así que un 401 no se traga en silencio.
-  const { development: marca } = getUserContext();
-  const { change: cambiarIa, level: iaLevel } = useIaLevel(marca || 'bodasdehoy');
   const canManage = useCanManageMessaging();
   const router = useRouter();
   const activeTab = useActiveBandejaTab();
@@ -324,7 +314,7 @@ export default function MessagesPage() {
                 Hoy dormido: nada enlaza a ?agent= y no hay datos de agente. */}
             {agentFilter && agentDataAvailable && (
               <div className="flex items-center justify-between gap-2 border-b border-gray-100 bg-violet-50 px-3 py-2">
-                <span className="truncate text-[12px] font-semibold" style={{ color: brand.brand }}>
+                <span className="truncate text-[12px] font-semibold" style={{ color: '#6B4EFF' }}>
                   🤖 Conversaciones de {agentFilterName ?? 'este agente'}
                 </span>
                 <button
@@ -344,21 +334,8 @@ export default function MessagesPage() {
                 el feed es plano (notificaciones) sin scope ni filtros canal/RSVP. */}
             {activeTab === 'inbox' && (
               <>
-                {/* Ámbito y modo de IA de LA BANDEJA, juntos: los dos dicen "sobre qué
-                    estás trabajando". El modo vivía en la cabecera de cada conversación,
-                    donde parecía el modo de esa conversación y cambiaba el de las noventa
-                    (17-09); aquí no hay ambigüedad posible, porque lo que se ve es la lista
-                    entera. El de cada conversación se cambia en su propia fila. */}
-                <div className="flex items-center gap-2 border-b border-gray-100 px-3 py-2">
-                  <div className="min-w-0 flex-1">
-                    <ScopeSelector activeScope={activeScope} onChange={handleScopeChange} />
-                  </div>
-                  <div
-                    className="flex-none"
-                    title="Modo de IA que heredan las conversaciones sin uno propio"
-                  >
-                    <IaLevelPicker level={iaLevel} onChange={(next) => void cambiarIa(next)} />
-                  </div>
+                <div className="border-b border-gray-100 px-3 py-2">
+                  <ScopeSelector activeScope={activeScope} onChange={handleScopeChange} />
                 </div>
                 {/* G2 (auditoría 22-ago): resumen del dueño en modo Global (sin evento
                     seleccionado). Datos agregados en front (eventos + no-leídos ya en memoria). */}
@@ -372,14 +349,25 @@ export default function MessagesPage() {
                   onChannelChange={setChannelFilter}
                   onPendingIaToggle={() => setPendingIaActive((v) => !v)}
                   onRsvpChange={setRsvpFilter}
-                  onToggleSpam={toggleShowSpam}
                   pendingIaActive={pendingIaActive}
                   pendingIaCount={pendingIaCount}
                   rsvp={rsvpFilter}
-                  showSpam={showSpam}
                 />
-{/* El toggle de newsletters/estados se fue a la fila de filtros (17-09): tenía
-                    fila propia con borde, 27px, para un chip. */}
+                {/* MOB-21 toggle "ver spam" (15-jul) — chip discreto que revierte
+                    el filtro auto de newsletter/broadcast si el usuario lo pide. */}
+                <div className="flex justify-end border-b border-gray-100 px-3 py-1">
+                  <button
+                    aria-pressed={showSpam}
+                    className="rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[11px] font-medium text-gray-600 hover:bg-gray-100"
+                    onClick={toggleShowSpam}
+                    // A4 (QA 6-ago): color inline gana al override global del tema oscuro
+                    // (el repo no usa variantes dark:), evitando texto invisible sobre el bg blanco.
+                    style={{ color: '#4b5563' }}
+                    type="button"
+                  >
+                    {showSpam ? '📢 Ocultar newsletters/estados' : '👁 Ver newsletters/estados'}
+                  </button>
+                </div>
               </>
             )}
             <div className="min-h-0 flex-1 overflow-hidden">
@@ -392,30 +380,66 @@ export default function MessagesPage() {
               />
             </div>
           </div>
-          {/* Panel principal. Oculto en móvil (la lista va full-width; al tocar una
-              conversación se navega a su ruta de detalle a pantalla completa). */}
+          {/* Panel principal — empty state según tab. Oculto en móvil (la lista va full-width;
+              al tocar una conversación se navega a su ruta de detalle a pantalla completa). */}
           <div className="hidden flex-1 flex-col items-center justify-center bg-gray-50 px-6 text-center md:flex">
-            {activeTab === 'history' ? (
-              <div className="max-w-md">
-                <div className="text-4xl">🔔</div>
-                <div className="mt-3 text-sm font-semibold text-gray-800">Notificaciones</div>
-                <div className="mt-1 text-xs text-gray-500">
-                  Selecciona una notificación para ver el detalle. Las acciones se
-                  enlazan al hilo de la conversación o entidad correspondiente.
-                </div>
-              </div>
-            ) : (
-              /* Gate N29 (QA 14-09): conectar canales solo para roles que gestionan
-                 mensajería; el resto ve copy de soporte. */
-              <InboxOverview
-                canManage={canManage}
-                items={filteredItems}
-                onConnectOther={() => router.push('/settings/integrations')}
-                onConnectWhatsApp={() => router.push('/bandeja/whatsapp')}
-                onItemClick={handleItemClick}
-                onNewMessage={() => setShowNewMessage(true)}
-              />
-            )}
+            <div className="max-w-md">
+              {activeTab === 'history' ? (
+                <>
+                  <div className="text-4xl">🔔</div>
+                  <div className="mt-3 text-sm font-semibold text-gray-800">Notificaciones</div>
+                  <div className="mt-1 text-xs text-gray-500">
+                    Selecciona una notificación para ver el detalle. Las acciones se
+                    enlazan al hilo de la conversación o entidad correspondiente.
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-4xl">💬</div>
+                  <div className="mt-3 text-sm font-semibold text-gray-800">
+                    Bandeja unificada
+                  </div>
+                  <div className="mt-1 text-xs text-gray-500">
+                    Mensajes y notificaciones en un solo sitio. Selecciona una conversación
+                    para ver el detalle.
+                  </div>
+                  {/* Gate N29 (QA 14-09): conectar canales solo para roles que
+                      gestionan mensajeria; el resto ve copy de soporte. */}
+                  {canManage ? (
+                    <div className="mt-4 flex items-center justify-center gap-2">
+                      <button
+                        className="rounded-lg bg-violet-600 px-3 py-2 text-xs font-semibold text-white hover:bg-violet-700"
+                        onClick={() => setShowNewMessage(true)}
+                        type="button"
+                      >
+                        ✍️ Nuevo mensaje
+                      </button>
+                      <button
+                        className="rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white hover:bg-brand"
+                        onClick={() => router.push('/bandeja/whatsapp')}
+                        type="button"
+                      >
+                        Conectar WhatsApp
+                      </button>
+                      <button
+                        className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+                        onClick={() => router.push('/settings/integrations')}
+                        // A4 (QA 6-ago): color inline evita texto invisible en tema oscuro.
+                        style={{ color: '#374151' }}
+                        title="Instagram, Facebook, Telegram, correo o chat web"
+                        type="button"
+                      >
+                        Conectar otro canal
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="mt-4 text-xs text-gray-400">
+                      Contacta con soporte para activar la mensajería de tu evento.
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>

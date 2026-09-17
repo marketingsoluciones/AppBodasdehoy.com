@@ -177,7 +177,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
     && isStudioPathname(window.location.pathname)
     && new URLSearchParams(window.location.search).get("studio") !== "legacy";
   const STUDIO_COL: Record<string, string> = {
-    pending: "#3A3A42", in_progress: "#EF5B94", completed: "#2FB37E", blocked: "#D83E7C",
+    pending: "#3A3A42", in_progress: "var(--color-primary,#EF5B94)", completed: "#2FB37E", blocked: "#D83E7C",
   };
   const studioColor = STUDIO_COL[column.id] ?? "#8a8a90";
 

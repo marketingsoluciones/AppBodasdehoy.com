@@ -114,7 +114,7 @@ const ModalImportarStudio: FC<Props> = ({ onClose }) => {
         {/* acciones */}
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 20 }}>
           <button onClick={onClose} style={{ padding: "10px 18px", borderRadius: 12, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 12.5px Poppins", cursor: "pointer" }}>{t("cancel", "Cancelar")}</button>
-          <button onClick={handleImport} disabled={!sel || saving} style={{ padding: "10px 20px", borderRadius: 12, background: sel ? "#EF5B94" : "#F5A8C7", border: "none", color: "#fff", font: "600 12.5px Poppins", cursor: sel && !saving ? "pointer" : "not-allowed" }}>{t("import", "Importar")}</button>
+          <button onClick={handleImport} disabled={!sel || saving} style={{ padding: "10px 20px", borderRadius: 12, background: sel ? "var(--color-primary,#EF5B94)" : "#F5A8C7", border: "none", color: "#fff", font: "600 12.5px Poppins", cursor: sel && !saving ? "pointer" : "not-allowed" }}>{t("import", "Importar")}</button>
         </div>
         <style dangerouslySetInnerHTML={{ __html: ".imp-opt-studio:hover{background:#FCE7F0 !important;}.imp-scroll{scrollbar-width:none;-ms-overflow-style:none;}.imp-scroll::-webkit-scrollbar{display:none;width:0;height:0;}" }} />
       </div>
