@@ -35,6 +35,10 @@ set -Eeuo pipefail
 REPO="${DEPLOY_REPO:-/Users/juancarlosparra/Projects/AppBodasdehoy.com}"
 PM2_SCRIPTS="${PM2_SCRIPTS_DIR:-$HOME/.pm2-scripts}"
 LOCK="/tmp/appbodasdehoy-deploy.lock"
+# `npx pm2` puede resolver un pm2 DISTINTO del que tiene el demonio con los
+# procesos, y en el peor caso levanta un segundo demonio: dos mundos paralelos.
+# Aquí el del PATH es 6.0.14 y npx da 7.0.4, así que el riesgo es real.
+PM2BIN="$(command -v pm2 || echo 'npx pm2')"
 CONSERVAR="${DEPLOY_KEEP:-2}"     # builds a conservar por app (el vivo incluido)
 
 rojo()  { printf '\033[31m%s\033[0m\n' "$*"; }
@@ -49,6 +53,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --dry|--dry-run) DRY=1 ;;
     --keep) CONSERVAR="${2:-2}"; shift ;;
+    --zona) ZONA="${2:-}"; shift ;;
     *) morir "opción desconocida: $1" ;;
   esac
   shift
@@ -58,13 +63,16 @@ case "$APP" in
   app)  DIR="apps/appEventos"; PREFIJO=".next-app";  VAR="APP_BUILD_DIR";  PM2="app-dev";  PUERTO=3220; SCRIPT="start-app.sh" ;;
   chat) DIR="apps/chat-ia";    PREFIJO=".next-chat"; VAR="CHAT_BUILD_DIR"; PM2="chat-dev"; PUERTO=3210; SCRIPT="start-chat.sh" ;;
   *) cat >&2 <<'AYUDA'
-uso: deploy-dev.sh app|chat [--dry] [--keep N]
+uso: deploy-dev.sh app|chat [--zona NOMBRE] [--dry] [--keep N]
 
   app   appEventos → app-dev  (:3220)
   chat  chat-ia    → chat-dev (:3210)
 
   --dry     compila y valida, pero NO cambia el puntero ni reinicia
   --keep N  builds a conservar por app (por defecto 2)
+  --zona X  etiqueta del build: .next-<app>-<fecha>-<zona>N en vez de letras.
+            Dice QUIÉN lo hizo, que vale más que una letra corta cuando hay
+            varios agentes desplegando. Ej: --zona bandeja, --zona invitaciones
 AYUDA
      exit 2 ;;
 esac
@@ -102,7 +110,18 @@ limpiar() {
     rojo "  Limpiando el build incompleto $NUEVO"
     rm -rf "$DIR/$NUEVO"
   fi
-  [ "$codigo" -ne 0 ] && rojo "✗ Terminó con error. El puntero NO se cambió: el sitio sigue con el build anterior."
+  if [ "$codigo" -ne 0 ]; then
+    # Decir la verdad importa más de noche que tranquilizar: el mensaje anterior
+    # afirmaba SIEMPRE que el puntero no se había tocado, también cuando el fallo
+    # era posterior. Eso manda a buscar el problema al lado equivocado.
+    if [ "${PUNTERO_TOCADO:-0}" = 1 ]; then
+      rojo "✗ Falló DESPUÉS de cambiar el puntero a ${NUEVO:-?}."
+      rojo "  Revertir: pon ${VAR}=\"${VIVO:-?}\" en $PM2_SCRIPTS/$SCRIPT y ejecuta:"
+      rojo "    $PM2BIN restart $PM2"
+    else
+      rojo "✗ Falló antes de tocar el puntero: el sitio sigue con el build anterior."
+    fi
+  fi
   return $codigo
 }
 trap limpiar EXIT
@@ -139,13 +158,28 @@ fi
 # donde nadie más puede estar mirando.
 HOY=$(date '+%Y%m%d')
 NUEVO=""
-for L in a b c d e f g h i j k l m n o p q r s t u v w x y z; do
-  cand="${PREFIJO}-${HOY}${L}"
-  # mkdir atómico = reserva. Si existe, la letra está tomada (por un build vivo
-  # o por otro agente que la reservó hace un instante).
-  if mkdir "$DIR/$cand" 2>/dev/null; then NUEVO="$cand"; break; fi
-done
-[ -n "$NUEVO" ] || morir "26 builds hoy ya; limpia antes de seguir"
+if [ -n "${ZONA:-}" ]; then
+  # Nombre con zona: `.next-chat-20260917-bandeja1`. Requiere que la rotación
+  # ordene por FECHA y no alfabéticamente — en ASCII el guion va antes que las
+  # letras, así que un nombre con zona ordenaría por delante de los de letra y
+  # sería el primer candidato a borrar. Eso ya está arreglado más abajo; si
+  # alguien revierte esa parte, esta convención vuelve a ser peligrosa.
+  ZONA_LIMPIA=$(printf '%s' "$ZONA" | tr -cd 'a-zA-Z0-9-')
+  [ -n "$ZONA_LIMPIA" ] || morir "--zona solo admite letras, dígitos y guiones"
+  for N in 1 2 3 4 5 6 7 8 9; do
+    cand="${PREFIJO}-${HOY}-${ZONA_LIMPIA}${N}"
+    if mkdir "$DIR/$cand" 2>/dev/null; then NUEVO="$cand"; break; fi
+  done
+  [ -n "$NUEVO" ] || morir "9 builds hoy de la zona '$ZONA_LIMPIA'; limpia antes de seguir"
+else
+  for L in a b c d e f g h i j k l m n o p q r s t u v w x y z; do
+    cand="${PREFIJO}-${HOY}${L}"
+    # mkdir atómico = reserva. Si existe, la letra está tomada (por un build vivo
+    # o por otro agente que la reservó hace un instante).
+    if mkdir "$DIR/$cand" 2>/dev/null; then NUEVO="$cand"; break; fi
+  done
+  [ -n "$NUEVO" ] || morir "26 builds hoy ya; limpia antes de seguir"
+fi
 info "Build nuevo: $NUEVO"
 
 # ─── Disco ────────────────────────────────────────────────────────────────────
@@ -159,15 +193,27 @@ if [ "${LIBRE_GB:-0}" -lt "$MINIMO" ]; then
 fi
 
 # ─── AppleDouble: rompen Playwright y ESLint ───────────────────────────────────
-BASURA=$(find . -name '._*' -not -path '*/node_modules/*' 2>/dev/null | wc -l | tr -d ' ')
-if [ "$BASURA" -gt 0 ]; then
-  info "Limpiando $BASURA ficheros AppleDouble (rompen el glob de tests y el linter)"
-  find . -name '._*' -not -path '*/node_modules/*' -delete 2>/dev/null || true
-fi
+# Solo donde molestan: e2e-app (rompen el glob de Playwright) y la app que se
+# compila. Un `find .` desde la raíz en un volumen externo tenía a fskitd al 40%
+# de CPU y contribuía al load que frena los builds de los demás.
+for zona in e2e-app "$DIR/src" "$DIR/components" "$DIR/pages" "$DIR/utils"; do
+  [ -d "$zona" ] || continue
+  find "$zona" -name '._*' -not -path '*/node_modules/*' -delete 2>/dev/null || true
+done
 
 # ─── packages/shared SIEMPRE: se consume desde dist ───────────────────────────
 info "Recompilando packages/shared (las apps leen su dist, no su fuente)"
-( cd packages/shared && npx tsc ) 2>&1 | grep -vE "Cannot find name 'process'" || true
+# El estado de salida de una tubería es el del ÚLTIMO comando: con
+# `tsc | grep || true` mandaba grep y un fallo de tsc pasaba desapercibido.
+# Y el guardián de `dist/index.js` no salvaba, porque el fichero existe de builds
+# anteriores: se desplegaba con un dist VIEJO, que es justo el fallo silencioso
+# que este script dice evitar. Se borra dist antes para que no pueda hacerse pasar
+# por bueno, y se captura la salida en vez de encadenarla.
+rm -rf packages/shared/dist
+SALIDA_TSC=$( cd packages/shared && npx tsc 2>&1 ) || {
+  echo "$SALIDA_TSC" | grep -vE "Cannot find name 'process'" >&2
+  morir "packages/shared no compila"
+}
 [ -f packages/shared/dist/index.js ] || morir "packages/shared/dist no se generó"
 
 # ─── Build ────────────────────────────────────────────────────────────────────
@@ -200,19 +246,28 @@ fi
 # ─── Cambio de puntero + reinicio ─────────────────────────────────────────────
 cp "$PM2_SCRIPTS/$SCRIPT" "$PM2_SCRIPTS/$SCRIPT.bak-$(date '+%Y%m%d-%H%M%S')"
 sed -i '' "s|^export ${VAR}=.*|export ${VAR}=\"${NUEVO}\"|" "$PM2_SCRIPTS/$SCRIPT"
+PUNTERO_TOCADO=1
+# `sed -i ''` NO falla si el patrón no casa: si alguien cambió la forma de esa
+# línea, se desplegaría apuntando al build VIEJO con todo en verde hasta el final.
+grep -q "^export ${VAR}=\"${NUEVO}\"$" "$PM2_SCRIPTS/$SCRIPT" \
+  || morir "no pude escribir el puntero en $SCRIPT (¿cambió el formato de la línea?)"
 info "Puntero: ${VIVO:-?} → $NUEVO"
 
-npx pm2 restart "$PM2" --update-env >/dev/null 2>&1 || true
+$PM2BIN restart "$PM2" --update-env >/dev/null 2>&1 || true
 info "Reiniciado $PM2; esperando a que responda"
 
 # next start tarda en aceptar la primera petición: sondear, no asumir.
 OK=0
+# Mientras `next start` arranca el puerto está CERRADO y curl vuelve en
+# milisegundos con "connection refused". Sin `sleep`, los 20 intentos se gastaban
+# en menos de un segundo y el script declaraba fallido un despliegue que iba bien.
 for _ in $(seq 1 20); do
   if [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "http://127.0.0.1:$PUERTO/" 2>/dev/null)" = "200" ]; then
     OK=1; break
   fi
+  sleep 3
 done
-[ "$OK" = 1 ] || morir "no responde en :$PUERTO. Revierte: $VAR=\"$VIVO\" y pm2 restart $PM2"
+[ "$OK" = 1 ] || morir "no responde en :$PUERTO. Revierte: $VAR=\"$VIVO\" y $PM2BIN restart $PM2"
 
 # Que responda 200 no prueba nada: el proceso viejo sigue sirviendo desde memoria
 # aunque el puntero ya apunte a otro sitio (pasó el 17-09 con un build a medias).
@@ -228,17 +283,20 @@ done
 #   · El buildId del HTML — solo sirve en appEventos (Pages Router, emite
 #     __NEXT_DATA__). chat-ia es App Router y NO lo emite: comprobarlo ahí daba un
 #     aviso falso en cada despliegue.
-PID_APP=$(ps -eo pid,command 2>/dev/null | grep "[n]ext start -p $PUERTO" | awk '{print $1}' | head -1)
-CARGADO=""
-if [ -n "$PID_APP" ]; then
-  CARGADO=$(ps eww "$PID_APP" 2>/dev/null | tr ' ' '\n' | grep -E "^${VAR}=" | head -1 | cut -d= -f2)
-fi
+# `grep next start -p PUERTO` casa con el PADRE y con el HIJO. Quedarse con el
+# PID más bajo confía en que el padre arrancó antes: suele ser cierto y falla el
+# día raro. El criterio correcto es "el que TIENE el dato".
+PID_APP=""; CARGADO=""
+for _p in $(ps -eo pid,command 2>/dev/null | grep "[n]ext start -p $PUERTO" | awk '{print $1}'); do
+  _v=$(ps eww "$_p" 2>/dev/null | tr ' ' '\n' | grep -E "^${VAR}=" | head -1 | cut -d= -f2)
+  if [ -n "$_v" ]; then PID_APP="$_p"; CARGADO="$_v"; break; fi
+done
 
 if [ "$CARGADO" = "$NUEVO" ]; then
   verde "✓ El proceso (pid $PID_APP) ha cargado $NUEVO"
 elif [ -n "$CARGADO" ]; then
   rojo "⚠ El proceso sirve $CARGADO, no $NUEVO. ¿Reinició de verdad?"
-  rojo "  Reintenta: npx pm2 restart $PM2 --update-env"
+  rojo "  Reintenta: $PM2BIN restart $PM2 --update-env"
 else
   rojo "⚠ No pude leer ${VAR} del proceso. Comprueba a mano: ps eww \$(lsof -ti:$PUERTO)"
 fi
@@ -262,7 +320,12 @@ if [ "${TOTAL:-0}" -gt "$CONSERVAR" ]; then
   A_BORRAR=$(( TOTAL - CONSERVAR ))
   info "Rotando: $TOTAL builds, conservo $CONSERVAR (vivo + rollback)"
   # Los más antiguos primero; nunca el vivo ni el que acabamos de desplegar.
-  ls -1d "$DIR/${PREFIJO}-"* 2>/dev/null | sort | head -n "$A_BORRAR" | while read -r d; do
+  # Ordenar alfabéticamente era una bomba de relojería: en ASCII el guion (0x2D)
+  # va ANTES que las letras, así que `.next-chat-20260917-bandeja1` ordena por
+  # delante de `.next-chat-20260917a`. Con la convención `<fecha>-<zona><n>`, el
+  # build MÁS NUEVO se convertía en el primer candidato a borrar. `ls -t` ordena
+  # por modificación, así que `tail` da los más antiguos de verdad.
+  ls -1dt "$DIR/${PREFIJO}-"* 2>/dev/null | tail -n "$A_BORRAR" | while read -r d; do
     b=$(basename "$d")
     if [ "$b" = "$NUEVO" ] || [ "$b" = "$VIVO" ]; then
       echo "    conservo $b (vivo o recién desplegado)"
@@ -272,4 +335,4 @@ if [ "${TOTAL:-0}" -gt "$CONSERVAR" ]; then
   done
 fi
 
-verde "✓ $APP desplegado. Rollback: $VAR=\"$VIVO\" en $PM2_SCRIPTS/$SCRIPT + pm2 restart $PM2"
+verde "✓ $APP desplegado. Rollback: $VAR=\"$VIVO\" en $PM2_SCRIPTS/$SCRIPT + $PM2BIN restart $PM2"
