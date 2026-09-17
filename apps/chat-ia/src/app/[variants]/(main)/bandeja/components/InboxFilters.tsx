@@ -33,9 +33,13 @@ interface InboxFiltersProps {
   onChannelChange: (v: ChannelFilter) => void;
   onPendingIaToggle?: () => void;
   onRsvpChange: (v: RsvpFilter) => void;
+  /** Ver newsletters/estados de WhatsApp (filtrados por defecto). Vivía en su propia fila
+   *  con borde propio; ahora va al final de esta, que se desplaza en horizontal. */
+  onToggleSpam?: () => void;
   pendingIaActive?: boolean;
   pendingIaCount?: number;
   rsvp: RsvpFilter;
+  showSpam?: boolean;
 }
 
 const RSVP_OPTIONS: Array<{
@@ -86,6 +90,8 @@ export function InboxFilters({
   pendingIaCount = 0,
   pendingIaActive = false,
   onPendingIaToggle,
+  onToggleSpam,
+  showSpam = false,
 }: InboxFiltersProps) {
   const brand = useBandejaBrand();
   // Los filtros de MARCA del config estático (#EDE9FE/#5B21B6, ej. "Todos"/"Todo"/"Web")
@@ -190,6 +196,20 @@ export function InboxFilters({
                 {pendingIaCount > 99 ? '99+' : pendingIaCount}
               </span>
             )}
+          </button>
+        )}
+        {onToggleSpam && (
+          <button
+            aria-pressed={showSpam}
+            className="inline-flex flex-none items-center gap-1 rounded-full border border-gray-200 px-2 py-1 text-[11px] font-medium"
+            onClick={onToggleSpam}
+            // A4 (QA 6-ago): color inline gana al override global del tema oscuro.
+            style={{ backgroundColor: showSpam ? '#F4F4F6' : '#FFFFFF', color: '#4b5563' }}
+            title="Newsletters y estados de WhatsApp: no se pueden responder, por eso vienen ocultos"
+            type="button"
+          >
+            <span aria-hidden>{showSpam ? '📢' : '👁'}</span>
+            <span>{showSpam ? 'Ocultar estados' : 'Estados'}</span>
           </button>
         )}
       </span>

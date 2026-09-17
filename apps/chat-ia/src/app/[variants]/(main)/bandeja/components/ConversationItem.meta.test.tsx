@@ -1,6 +1,15 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 
+// El indicador de modo de IA pide el nivel de la bandeja al montar. En el test no hay red:
+// sin esto el fetch real falla contra localhost y ensucia la salida con un rechazo suelto.
+vi.mock('../data/iaConfig', () => ({
+  getConversationIaLevel: vi.fn().mockResolvedValue({ level: 'copilot', source: 'workspace' }),
+  getIaLevel: vi.fn().mockResolvedValue('copilot'),
+  saveConversationIaLevel: vi.fn().mockResolvedValue(true),
+  saveIaLevel: vi.fn().mockResolvedValue(true),
+}));
+
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
@@ -47,9 +56,9 @@ describe('ConversationItem meta', () => {
     );
 
     expect(screen.getByText('En espera')).toBeInTheDocument();
-    // Rediseño 18-jul: la etiqueta "Asignada" se rebautizó como "Asignada a ti"
-    // (más claro para el usuario en la propia conversación).
-    expect(screen.getByText('Asignada a ti')).toBeInTheDocument();
+    // "Asignada a ti" pasó a "Tuya" el 17-09 al comprimir la fila a dos líneas: la etiqueta
+    // vive ahora en la línea del nombre, donde compite con el estado y la hora.
+    expect(screen.getByText('Tuya')).toBeInTheDocument();
 
     // La fila ya no es el único botón: ahora convive con el atajo de acceso, que va fuera
     // del <button> de la fila (anidar interactivos es inválido). Se pulsa la fila por su
