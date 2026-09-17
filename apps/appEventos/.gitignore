@@ -12,6 +12,10 @@
 
 # next.js
 /.next/
+# Los builds con fecha que crea scripts/deploy-dev.sh (.next-app-20260917a y
+# compañía). chat-ia ya ignora `.next-*/`; aquí solo estaba `/.next/`, así que un
+# `git add -A` distraído intentaba commitear 4,2 GB de artefacto por cada build.
+.next-*/
 /out/
 
 # production

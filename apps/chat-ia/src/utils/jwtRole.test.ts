@@ -1,7 +1,13 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { canManageAnyRole, canManageMessaging, canManageRole, getJwtDevelopmentRoles, getJwtRole } from './jwtRole';
+import {
+  canManageAnyRole,
+  canManageMessaging,
+  canManageRole,
+  getJwtDevelopmentRoles,
+  getJwtRole,
+} from './jwtRole';
 
 /**
  * Auditoria QA 14-09 (N27/N29): gates visuales por rol del JWT.
@@ -44,6 +50,28 @@ describe('jwtRole (N27/N29)', () => {
     expect(canManageMessaging()).toBe(true);
   });
 });
+describe('empresa gestiona canales (decision JCP 17-09)', () => {
+  it('empresa abre la gestion de canales', () => {
+    // Es el rol REAL de los usuarios de marca: el JWT vivo de bodasdehoy trae
+    // developmentRoles ["empresa","editor","admin"]. Sin esto, un cliente no podia
+    // conectar su propio WhatsApp y tenia que pedirlo a soporte.
+    expect(canManageRole('empresa')).toBe(true);
+    expect(canManageAnyRole(['empresa', 'editor'])).toBe(true);
+  });
+
+  it('editor por si solo NO gestiona canales', () => {
+    // Edita contenido; configurar canales de envio es otra cosa. Si alguien mete
+    // 'editor' en la lista, este test lo dice.
+    expect(canManageRole('editor')).toBe(false);
+    expect(canManageAnyRole(['editor'])).toBe(false);
+  });
+
+  it('el default sigue siendo restrictivo para lo demas', () => {
+    expect(canManageAnyRole(['user', 'guest', 'invitado'])).toBe(false);
+    expect(canManageAnyRole([])).toBe(false);
+  });
+});
+
 describe('canManageRole — regla de rol aislada (auditoria 15-09)', () => {
   it('acepta los roles que gestionan mensajeria', () => {
     for (const role of ['agent', 'admin', 'support', 'superadmin']) {
@@ -95,7 +123,13 @@ describe('developmentRoles — el claim de marca (backend 17-09)', () => {
   it('canManageAnyRole abre con un rol de gestión y cierra sin ninguno', () => {
     expect(canManageAnyRole(['empresa', 'editor', 'admin'])).toBe(true);
     expect(canManageAnyRole(['agent'])).toBe(true);
-    expect(canManageAnyRole(['empresa', 'editor'])).toBe(false);
+    // CAMBIO DE POLÍTICA (JCP, 17-09): esta línea afirmaba `false`. Se decidió que
+    // `empresa` gestione canales, porque es el rol que de verdad tienen los usuarios
+    // de marca y sin él un cliente no podía conectar su propio WhatsApp.
+    // El test hizo su trabajo: al cambiar la lista falló aquí y obligó a declarar el
+    // cambio en vez de dejarlo pasar de tapadillo.
+    expect(canManageAnyRole(['empresa', 'editor'])).toBe(true);
+    expect(canManageAnyRole(['editor'])).toBe(false);
     expect(canManageAnyRole([])).toBe(false);
     expect(canManageAnyRole(undefined)).toBe(false);
   });

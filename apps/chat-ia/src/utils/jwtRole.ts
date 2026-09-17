@@ -32,8 +32,18 @@ export function getJwtRole(): JwtRole {
   return payload?.role || 'user';
 }
 
-/** Roles que pueden gestionar canales/mensajería de la marca. */
-export const MESSAGING_MANAGER_ROLES = ['agent', 'admin', 'support', 'superadmin'];
+/**
+ * Roles que pueden gestionar canales/mensajería de la marca.
+ *
+ * `empresa` está aquí por decisión de JCP (17-09). Es el rol que de verdad tienen los
+ * usuarios de marca: el JWT vivo de bodasdehoy trae `developmentRoles:
+ * ["empresa","editor","admin"]`, y sin `empresa` en esta lista un cliente no podía
+ * conectar su propio WhatsApp — tenía que pedirlo a soporte. Los otros cuatro son
+ * roles de operación (soporte/plataforma).
+ *
+ * `editor` NO está: edita contenido, no configura canales de envío.
+ */
+export const MESSAGING_MANAGER_ROLES = ['empresa', 'agent', 'admin', 'support', 'superadmin'];
 
 /**
  * Roles del usuario EN LA MARCA activa — claim `developmentRoles` (backend 17-09).
