@@ -6,7 +6,7 @@ import { EventContextProvider } from "../../context/EventContext";
 import { AuthContextProvider } from "../../context/AuthContext";
 import { useToast } from "../../hooks/useToast";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
-import { getInvitacionDefaults } from "../../utils/defaultInvitacionPorTipo";
+import { descartarTextosHeredadosDeBoda, getInvitacionDefaults } from "../../utils/defaultInvitacionPorTipo";
 import { subir_archivo } from "./ModuloSubida";
 
 /**
@@ -138,6 +138,8 @@ export const InvitacionesStudio: FC = () => {
   const waTemplateIdRef = useRef<string | undefined>(event?.templateWhatsappSelect); // id de la plantilla WhatsApp
   const saveTimer = useRef<ReturnType<typeof setTimeout>>();
   const tipoAplicadoRef = useRef<string | undefined>(event?.tipo);   // tipo con el que se calcularon los textos actuales
+  // Diseño corregido que hay que reescribir en la plantilla guardada (ver efecto de abajo).
+  const [pendienteMigrar, setPendienteMigrar] = useState<DesignData | null>(null);
 
   // Los textos por defecto dependen del tipo de evento, pero `useState` se evalúa
   // UNA vez: si al montar el contexto aún no tiene el evento cargado, `event.tipo`
@@ -167,7 +169,19 @@ export const InvitacionesStudio: FC = () => {
         const tpl = Array.isArray(res) ? res[0] : res;
         const dz = tpl?.design;
         // NO pisar lo que el usuario ya editó (carrera: el fetch puede resolver tras la 1ª edición).
-        if (dz && dz._studio === "v1" && !editedRef.current) setDesign({ ...defaultDesign(event), ...dz });
+        if (dz && dz._studio === "v1" && !editedRef.current) {
+          // Los eventos creados antes de los textos por tipo tienen guardado
+          // "NOS CASAMOS" aunque sean un bautizo. Si ese texto sigue siendo el
+          // viejo default sin tocar, se descarta para que gane el del tipo; lo
+          // que el usuario escribiera de verdad se respeta campo a campo.
+          const limpio = descartarTextosHeredadosDeBoda(dz, event?.tipo);
+          const merged = { ...defaultDesign(event), ...limpio };
+          setDesign(merged);
+          // Si se limpió algo, la plantilla guardada y su HTML siguen diciendo
+          // "NOS CASAMOS": hay que reescribirla o el correo que se envíe no
+          // coincidirá con lo que el usuario está viendo en pantalla.
+          if (limpio !== dz) setPendienteMigrar(merged);
+        }
       })
       .catch(() => {/* plantilla antigua → defaults */});
   }, [event?._id, event?.templateEmailSelect]);
@@ -195,6 +209,16 @@ export const InvitacionesStudio: FC = () => {
         .then((res: any) => { const id = res?._id; templateIdRef.current = id; linkToEvent(id); done(id); }).catch(() => setSaveState("idle"));
     }
   }, [event?._id, auth]);
+
+  // Reescribe la plantilla guardada cuando se han descartado textos heredados de
+  // boda. Va aquí abajo a propósito: necesita `persist`, que se define arriba.
+  // Se ejecuta una sola vez por carga (el flag se limpia al entrar) y solo si de
+  // verdad había algo que corregir, así que no escribe en cada visita.
+  useEffect(() => {
+    if (!pendienteMigrar) return;
+    setPendienteMigrar(null);
+    persist(pendienteMigrar);
+  }, [pendienteMigrar, persist]);
 
   const update = useCallback((patch: Partial<DesignData>) => {
     editedRef.current = true;

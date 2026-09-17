@@ -163,3 +163,51 @@ export function getInvitacionDefaults(tipo?: string | null): InvitacionDefaults 
   const t = (tipo || '').toLowerCase().trim();
   return POR_TIPO[t] ?? GENERICO;
 }
+
+/** true solo si el tipo es realmente una boda. */
+export function esBoda(tipo?: string | null): boolean {
+  return getInvitacionDefaults(tipo) === BODA;
+}
+
+/**
+ * Textos que la version anterior del Studio escribia SIEMPRE, fuera el evento
+ * del tipo que fuera. Son la huella de "esto no lo eligio nadie".
+ */
+const HEREDADO_DE_BODA = {
+  title: 'NOS CASAMOS',
+  message: 'Nos encantaría compartir contigo este día tan especial.',
+} as const;
+
+/**
+ * Limpia de un diseno guardado los textos de boda que nunca fueron una decision.
+ *
+ * El problema: los eventos creados antes de este cambio tienen guardado
+ * "NOS CASAMOS" aunque sean un bautizo, porque el Studio arrancaba con los
+ * textos de boda para todo. Al cargar ese diseno, sus valores pisaban los del
+ * tipo y el evento seguia anunciando una boda para siempre.
+ *
+ * La regla es conservadora y va CAMPO A CAMPO: solo se descarta un texto si
+ * coincide EXACTAMENTE con el viejo valor por defecto. Si el usuario escribio
+ * cualquier otra cosa, eso es una decision suya y se respeta. Si toco el mensaje
+ * pero no el encabezado, se corrige solo el encabezado.
+ *
+ * En eventos de tipo boda no toca nada: ahi esos textos si son los correctos.
+ *
+ * Devuelve el MISMO objeto cuando no hay nada que limpiar, para que el llamante
+ * pueda comparar por identidad y saber si hace falta volver a guardar.
+ */
+export function descartarTextosHeredadosDeBoda<T extends Record<string, any>>(
+  guardado: T,
+  tipo?: string | null,
+): T {
+  if (!guardado || esBoda(tipo)) return guardado;
+
+  const aDescartar = (Object.keys(HEREDADO_DE_BODA) as Array<keyof typeof HEREDADO_DE_BODA>)
+    .filter((campo) => String(guardado[campo] ?? '').trim() === HEREDADO_DE_BODA[campo]);
+
+  if (aDescartar.length === 0) return guardado;
+
+  const limpio = { ...guardado };
+  for (const campo of aDescartar) delete limpio[campo];
+  return limpio;
+}

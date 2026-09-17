@@ -1,4 +1,8 @@
-import { getInvitacionDefaults } from '../defaultInvitacionPorTipo';
+import {
+  descartarTextosHeredadosDeBoda,
+  esBoda,
+  getInvitacionDefaults,
+} from '../defaultInvitacionPorTipo';
 
 describe('getInvitacionDefaults', () => {
   it('la boda conserva EXACTAMENTE los textos que ya tenía', () => {
@@ -69,5 +73,79 @@ describe('getInvitacionDefaults', () => {
     const vacios = (['title', 'names', 'message', 'rsvp', 'claim', 'fallbackSubject'] as const)
       .filter((campo) => !d[campo]);
     expect(vacios).toEqual([]);
+  });
+});
+
+describe('descartarTextosHeredadosDeBoda', () => {
+  const VIEJO_TITULO = 'NOS CASAMOS';
+  const VIEJO_MENSAJE = 'Nos encantaría compartir contigo este día tan especial.';
+
+  it('en un bautizo descarta los dos textos heredados', () => {
+    const guardado = { title: VIEJO_TITULO, message: VIEJO_MENSAJE, venue: 'La Ermita' };
+    const limpio = descartarTextosHeredadosDeBoda(guardado, 'bautizo');
+    expect(limpio.title).toBeUndefined();
+    expect(limpio.message).toBeUndefined();
+    // Lo que no es texto heredado se conserva intacto.
+    expect(limpio.venue).toBe('La Ermita');
+  });
+
+  it('en una boda no toca nada — ahí esos textos son los correctos', () => {
+    const guardado = { title: VIEJO_TITULO, message: VIEJO_MENSAJE };
+    expect(descartarTextosHeredadosDeBoda(guardado, 'boda')).toBe(guardado);
+    expect(descartarTextosHeredadosDeBoda(guardado, 'BODA')).toBe(guardado);
+  });
+
+  it('respeta un encabezado que el usuario escribió', () => {
+    const guardado = { title: 'BAUTIZO DE LUCÍA', message: VIEJO_MENSAJE };
+    const limpio = descartarTextosHeredadosDeBoda(guardado, 'bautizo');
+    expect(limpio.title).toBe('BAUTIZO DE LUCÍA');   // decisión suya
+    expect(limpio.message).toBeUndefined();          // esto sí era el default
+  });
+
+  it('corrige solo el encabezado si el mensaje está personalizado', () => {
+    const guardado = { title: VIEJO_TITULO, message: 'Te esperamos a las 12 en la iglesia.' };
+    const limpio = descartarTextosHeredadosDeBoda(guardado, 'comunión');
+    expect(limpio.title).toBeUndefined();
+    expect(limpio.message).toBe('Te esperamos a las 12 en la iglesia.');
+  });
+
+  it('un cambio mínimo ya cuenta como decisión del usuario', () => {
+    // Con una sola palabra distinta, deja de ser el default y se respeta.
+    const guardado = { title: 'NOS CASAMOS!' };
+    expect(descartarTextosHeredadosDeBoda(guardado, 'bautizo').title).toBe('NOS CASAMOS!');
+  });
+
+  it('devuelve el MISMO objeto cuando no hay nada que limpiar', () => {
+    // El llamante compara por identidad para saber si debe volver a guardar.
+    const guardado = { title: 'BABY SHOWER', message: 'Ven a celebrarlo.' };
+    expect(descartarTextosHeredadosDeBoda(guardado, 'babyshower')).toBe(guardado);
+  });
+
+  it('tolera espacios alrededor del texto heredado', () => {
+    const guardado = { title: '  NOS CASAMOS  ' };
+    expect(descartarTextosHeredadosDeBoda(guardado, 'bautizo').title).toBeUndefined();
+  });
+
+  it('aguanta un diseño vacío o campos ausentes', () => {
+    expect(descartarTextosHeredadosDeBoda({}, 'bautizo')).toEqual({});
+    expect(descartarTextosHeredadosDeBoda({ title: undefined } as any, 'bautizo').title).toBeUndefined();
+  });
+
+  it('con tipo desconocido sigue limpiando (no es boda)', () => {
+    const guardado = { title: VIEJO_TITULO };
+    expect(descartarTextosHeredadosDeBoda(guardado, 'quinceañera').title).toBeUndefined();
+  });
+});
+
+describe('esBoda', () => {
+  it('reconoce la boda en los dos formatos', () => {
+    expect(esBoda('boda')).toBe(true);
+    expect(esBoda('BODA')).toBe(true);
+  });
+
+  it('todo lo demás no es boda', () => {
+    for (const t of ['bautizo', 'cumpleaños', 'BABY_SHOWER', 'otro', '', undefined, null]) {
+      expect(esBoda(t)).toBe(false);
+    }
   });
 });
