@@ -64,7 +64,18 @@ export async function getConversationIaLevel(
   development: string,
 ): Promise<ConversationIaLevel | null> {
   const res = await dedupeFetch(convUrl(conversationId, development), { headers: buildHeaders() });
+
+  // 404 `conversation_not_found`: api-ia resuelve esta ruta contra su Redis, y las
+  // conversaciones de WhatsApp viven en api-mcp, así que ahí no están. No es que no tengan
+  // modo: es que no pueden tener uno propio todavía. Se enseña el de la marca, que es el que
+  // de verdad se les aplica, marcado como heredado. Dejar la fila en blanco escondería que
+  // esa conversación puede estar respondiendo sola.
+  if (res.status === 404) {
+    const heredado = await getIaLevel(development);
+    return heredado ? { level: heredado, source: 'workspace' } : null;
+  }
   if (!res.ok) return null;
+
   const json = await res.json().catch(() => null);
   return isIaLevel(json?.level)
     ? { level: json.level, source: (json?.source as IaLevelSource) ?? 'workspace' }

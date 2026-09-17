@@ -43,6 +43,7 @@ export function IaModeControl({ conversationId, development }: IaModeControlProp
   const [level, setLevel] = useState<IaLevel | null>(null);
   const [source, setSource] = useState<IaLevelSource>('workspace');
   const [guardando, setGuardando] = useState(false);
+  const [aviso, setAviso] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelado = false;
@@ -72,8 +73,11 @@ export function IaModeControl({ conversationId, development }: IaModeControlProp
     if (!ok) {
       setLevel(anterior.level);
       setSource(anterior.source);
-      // eslint-disable-next-line no-console
-      console.warn('[bandeja] el servidor no guardó el modo de IA de la conversación');
+      // Las conversaciones de WhatsApp viven en api-mcp y api-ia resuelve esta ruta contra su
+      // Redis: hoy devuelven 404 y no admiten modo propio. Se dice, en vez de dejar que
+      // parezca que se guardó.
+      setAviso('Esta conversación todavía no admite un modo propio: usa el de la bandeja.');
+      setTimeout(() => setAviso(null), 6000);
     } else if (!nuevo) {
       const r = await getConversationIaLevel(conversationId, development);
       if (r) {
@@ -87,6 +91,12 @@ export function IaModeControl({ conversationId, development }: IaModeControlProp
   const propio = source === 'conversation';
 
   return (
+    <>
+      {aviso && (
+        <span className="mr-1 text-[10px]" style={{ color: '#B45309' }} title={aviso}>
+          no admite modo propio
+        </span>
+      )}
     <select
       aria-label="Modo de la IA en esta conversación"
       className="rounded-full border-0 px-1.5 py-0.5 text-[10px] font-medium"
@@ -113,5 +123,6 @@ export function IaModeControl({ conversationId, development }: IaModeControlProp
         </option>
       ))}
     </select>
+    </>
   );
 }

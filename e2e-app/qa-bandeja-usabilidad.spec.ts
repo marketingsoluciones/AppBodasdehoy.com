@@ -19,6 +19,16 @@ const anota = (punto: string, ok: boolean | null, dato?: string) => {
   console.log(`[QA] ${marca.padEnd(3)} ${punto}${dato ? ` · ${dato}` : ''}`);
 };
 
+/** Captura de evidencia. Si falla —la página ocupada con SSE, la máquina cargada— se anota y
+ *  se sigue: perder una foto no puede invalidar quince comprobaciones que ya pasaron. */
+async function foto(page: Page, ruta: string) {
+  try {
+    await page.screenshot({ path: ruta, timeout: 15_000 });
+  } catch {
+    console.log(`[QA] (sin captura: ${ruta})`);
+  }
+}
+
 async function login(page: Page) {
   await page.goto(`${CHAT}/login`, { timeout: 90_000, waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(2500);
@@ -78,7 +88,7 @@ test('QA bandeja — usabilidad y navegación', async ({ page }) => {
   anota('Chip de conversación compartida visible', /Compartida ·|Equipo\b/.test(textoPagina) ? true : null,
     /Compartida ·|Equipo\b/.test(textoPagina) ? 'encontrado' : 'ninguna conversación compartida todavía (no concluyente)');
 
-  await page.screenshot({ path: 'test-results/qa-01-bandeja.png', fullPage: false });
+  await foto(page, 'test-results/qa-01-bandeja.png');
 
   // ── 4. Entrar en una conversación (subopción) ─────────────────────────────
   // Una FILA de conversación, no una pestaña: alto de fila y por debajo de la cabecera.
@@ -103,7 +113,7 @@ test('QA bandeja — usabilidad y navegación', async ({ page }) => {
     const textoDetalle = await page.evaluate(() => document.body.innerText);
     anota('Botón "Compartir" en la conversación', /Compartir/i.test(textoDetalle));
     anota('Resumen del asistente disponible', /Resumir|Resumen/i.test(textoDetalle));
-    await page.screenshot({ path: 'test-results/qa-02-conversacion.png' });
+    await foto(page, 'test-results/qa-02-conversacion.png');
 
     // El panel de compartir: que abra y que el buscador encuentre gente. NO comparte nada:
     // comprobar que la búsqueda responde ya valida la parte frágil (searchUsers del backend).
@@ -130,7 +140,7 @@ test('QA bandeja — usabilidad y navegación', async ({ page }) => {
       } else {
         anota('El buscador de personas existe', false, 'no se encontró el campo');
       }
-      await page.screenshot({ path: 'test-results/qa-05-compartir.png' });
+      await foto(page, 'test-results/qa-05-compartir.png');
       await page.keyboard.press('Escape').catch(() => undefined);
       await page.waitForTimeout(1000);
     } else {
@@ -152,7 +162,7 @@ test('QA bandeja — usabilidad y navegación', async ({ page }) => {
       await page.waitForTimeout(1500);
       const textoMenu = await page.evaluate(() => document.body.innerText);
       anota('Opción "Bloquear contacto" en el menú', /Bloquear contacto/i.test(textoMenu));
-      await page.screenshot({ path: 'test-results/qa-03-menu.png' });
+      await foto(page, 'test-results/qa-03-menu.png');
       await page.keyboard.press('Escape').catch(() => undefined);
     } else {
       anota('Opción "Bloquear contacto" en el menú', null, 'no se encontró el menú de tres puntos');
@@ -185,6 +195,28 @@ test('QA bandeja — usabilidad y navegación', async ({ page }) => {
     anota('Adelante del navegador vuelve al detalle', !/\/bandeja\/?$/.test(page.url()), page.url().replace(CHAT, ''));
   }
 
+    // ── Rediseño 17-09: salida del canal, acceso y modo de IA por conversación ──
+    await page.goto(`${CHAT}/bandeja/wa-bodasdehoy`, { timeout: 90_000, waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(7000);
+    const enCanal = await page.evaluate(() => document.body.innerText);
+    anota('La cabecera dice en qué canal estás', /WhatsApp/.test(enCanal) && !/^Comunicaciones$/m.test(enCanal));
+    anota('Hay salida a todos los canales', /Todos los canales/i.test(enCanal));
+    anota('Modo de IA por defecto visible', /IA por defecto/i.test(enCanal));
+
+    const gestionAcceso = await page.locator('button[aria-label*="acceso"]').count();
+    anota('Control de acceso en las filas', gestionAcceso > 0, `${gestionAcceso} filas con control`);
+
+    const modoIa = await page.locator('select[aria-label*="Modo de la IA"]').count();
+    anota('Modo de IA por conversación en las filas', modoIa > 0, `${modoIa} filas con selector`);
+
+    const volverCanales = page.locator('button').filter({ hasText: /Todos los canales/i }).first();
+    if (await volverCanales.count()) {
+      await volverCanales.click();
+      await page.waitForTimeout(4000);
+      anota('"Todos los canales" devuelve a la bandeja', /\/bandeja\/?$/.test(page.url()), page.url().replace(CHAT, ''));
+    }
+    await foto(page, 'test-results/qa-06-canal.png');
+
   // ── 6. Integraciones: equipo con acceso ───────────────────────────────────
   await page.goto(`${CHAT}/settings/integrations`, { timeout: 90_000, waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(7000);
@@ -192,7 +224,7 @@ test('QA bandeja — usabilidad y navegación', async ({ page }) => {
   anota('Sección de canales WhatsApp visible', /Canales WhatsApp|WhatsApp/i.test(textoInt));
   anota('Panel "Equipo con acceso" por número', /Equipo con acceso/i.test(textoInt),
     /Equipo con acceso/i.test(textoInt) ? 'presente' : 'no aparece (puede ser el gate de rol)');
-  await page.screenshot({ path: 'test-results/qa-04-integraciones.png' });
+  await foto(page, 'test-results/qa-04-integraciones.png');
 
   // ── Resumen ───────────────────────────────────────────────────────────────
   const ko = R.filter((r) => r.ok === false);
