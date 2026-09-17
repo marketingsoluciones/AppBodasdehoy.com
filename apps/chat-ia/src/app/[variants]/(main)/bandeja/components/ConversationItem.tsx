@@ -10,6 +10,7 @@ import { Conversation } from '../hooks/useConversations';
 import { useBandejaBrand } from '../utils/brand';
 import { describeVisibility } from '../utils/visibility';
 import { stripMiniMarkdown } from './MiniMarkdown';
+import { previewText } from '../utils/preview';
 import { useConversationActions } from '../hooks/useConversationActions';
 import { ConversationStatus, useConversationMeta } from '../hooks/useConversationMeta';
 
@@ -259,7 +260,7 @@ export function ConversationItem({
                     {!conversation.lastMessage.fromUser && (
                       <span style={{ color: '#9A9AA6' }}>Tú: </span>
                     )}
-                    {stripMiniMarkdown(conversation.lastMessage.text)}
+                    {previewText(stripMiniMarkdown(conversation.lastMessage.text))}
                   </p>
                 )}
               </div>

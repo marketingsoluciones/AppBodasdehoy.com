@@ -66,16 +66,21 @@ export function inferJidType(
   if (backendJidType) return String(backendJidType);
   const raw = candidates.find((c) => String(c ?? '').trim() !== '');
   switch (classifyJidLike(raw)) {
-    case 'person':
+    case 'person': {
       return 'user';
-    case 'group':
+    }
+    case 'group': {
       return 'group';
-    case 'newsletter':
+    }
+    case 'newsletter': {
       return 'newsletter';
-    case 'broadcast':
+    }
+    case 'broadcast': {
       return 'broadcast';
-    default:
+    }
+    default: {
       return null;
+    }
   }
 }
 
@@ -84,6 +89,35 @@ export function inferJidType(
  *
  *  Si `jidType` viene del backend (api-mcp 7d52fec) lo usamos como
  *  fuente de verdad. Si no, heurística legacy sobre el rawPhone. */
+/**
+ * Formatea un teléfono para que se pueda LEER, no solo mostrar.
+ *
+ * Auditoría de usabilidad 17-09: en la lista salían cosas como
+ * `+1150321594779596` de un tirón. Nadie reconoce a un contacto así, y el número
+ * aparecía además dos veces en la misma fila. Se agrupa en bloques y se respeta el
+ * prefijo internacional cuando se reconoce.
+ *
+ * No inventa país: si el número no encaja en un patrón conocido, se agrupa de tres en
+ * tres desde el final, que sigue siendo legible.
+ */
+export function formatPhone(raw: string | null | undefined): string {
+  const digits = (raw ?? '').replaceAll(/\D/g, '');
+  if (digits.length < 6) return (raw ?? '').trim();
+
+  // Prefijos frecuentes del negocio, para partir por país con sentido.
+  const prefijos = ['34', '52', '54', '57', '1', '44', '51', '55', '56', '58', '593'];
+  const pais = prefijos.find((p) => digits.startsWith(p) && digits.length > p.length + 5);
+
+  const resto = pais ? digits.slice(pais.length) : digits;
+  const grupos: string[] = [];
+  let i = resto.length;
+  while (i > 0) {
+    grupos.unshift(resto.slice(Math.max(0, i - 3), i));
+    i -= 3;
+  }
+  return `+${pais ?? ''}${pais ? ' ' : ''}${grupos.join(' ')}`.trim();
+}
+
 export function friendlyContactName(
   rawName: string | null | undefined,
   rawPhone?: string | null,
@@ -101,18 +135,22 @@ export function friendlyContactName(
   const candidate = name || phone;
   const kind = jidType ? jidTypeToKind(jidType) : classifyJidLike(candidate);
   switch (kind) {
-    case 'newsletter':
+    case 'newsletter': {
       return `Canal ${(candidate || '').replace(/@.*$/, '').slice(-6)}`;
-    case 'group':
+    }
+    case 'group': {
       return `Grupo ${(candidate || '').replace(/@.*$/, '').slice(-6)}`;
-    case 'broadcast':
+    }
+    case 'broadcast': {
       return 'Status Broadcast';
+    }
     case 'person': {
       const digits = (candidate || '').replace(/@.*$/, '');
-      return digits ? `+${digits}` : 'Desconocido';
+      return digits ? formatPhone(digits) : 'Desconocido';
     }
-    default:
+    default: {
       return name || phone || 'Desconocido';
+    }
   }
 }
 

@@ -19,7 +19,10 @@ describe('ConversationItem meta', () => {
     localStorage.setItem('api2_jwt_expires_at', new Date('2099-01-01').toISOString());
   });
 
-  it('renders status and assignee badges from localStorage meta', async () => {
+  // 30 s a propósito: hace vi.resetModules() y luego importa el componente con antd y
+  // lobe-ui detrás. Con la máquina cargada pasaba de los 15 s por defecto y caía por tiempo,
+  // no por el código (verificado volviendo al commit anterior: cae igual).
+  it('renders status and assignee badges from localStorage meta', { timeout: 30_000 }, async () => {
     localStorage.setItem(
       'inbox_conversation_meta',
       JSON.stringify({ c1: { status: 'pending', assignedUserId: 'u1' } }),

@@ -8,6 +8,8 @@ import type { FeedItem } from '../hooks/useUnifiedFeed';
 import { useBandejaBrand } from '../utils/brand';
 import { useCanManageMessaging } from '@/hooks/useCanManageMessaging';
 
+import { formatPhone } from '../utils/jid';
+import { previewText } from '../utils/preview';
 import { describeVisibility } from '../utils/visibility';
 
 // ─── Config ──────────────────────────────────────────────────────────────────
@@ -145,12 +147,18 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
           >
             {item.name}
           </span>
+          {/* Usabilidad 17-09: este chip ponía "QR ·3622" en cada fila. Ni "QR" ni los
+              cuatro dígitos significan nada para quien atiende; el tipo de línea y su número
+              siguen estando en el tooltip y, con detalle y estado de conexión, en la cabecera
+              de la conversación, que es donde se necesitan. La lista se queda con el nombre,
+              el mensaje y la hora. */}
           {waType && (
             <span
+              aria-hidden
               className="shrink-0 rounded-full bg-green-50 px-1.5 py-0.5 text-[9px] font-semibold text-green-700"
-              title={`WhatsApp · ${waType === 'QR' ? 'número vinculado por QR' : 'Meta Business API'}${item.lineLabel ? ` · línea ${item.lineLabel}` : ''}`}
+              title={`WhatsApp · ${waType === 'QR' ? 'número vinculado por QR' : 'Meta Business API'}${item.lineLabel ? ` · línea ${formatPhone(item.lineLabel)}` : ''}`}
             >
-              {waType}{waLine ? ` ·${waLine}` : ''}
+              WhatsApp
             </span>
           )}
           {isOneWay && (
@@ -163,7 +171,7 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
           )}
           <span className="shrink-0 text-xs text-gray-400">{timeAgo(item.timestamp)}</span>
         </div>
-        <p className="truncate text-xs text-gray-500">{item.preview}</p>
+        <p className="truncate text-xs text-gray-500">{previewText(item.preview)}</p>
         {/* FASE 2 Agentes (17-ago) — badge "responsable": qué AGENTE IA atiende esta
             conversación. Solo se pinta cuando backend expone assignedAgentName (null-safe,
             mismo patrón que el badge RSVP). Hoy queda dormido: 0 dead code, 0 fallback. */}
