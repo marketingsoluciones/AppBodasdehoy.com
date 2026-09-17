@@ -212,7 +212,9 @@ export function ContactConversationsPanel({
       {marca.length > 0 && (
         <div className="mb-2">
           <div className="px-2 text-[10px] font-semibold uppercase text-gray-300">
-            Marca / Soporte
+            {/* "Marca / Soporte" era jerga interna. Lo que agrupa aquí son las
+                conversaciones que no cuelgan de ningún evento. */}
+            Sin evento
           </div>
           {marca.map(renderRow)}
         </div>

@@ -4,7 +4,7 @@
  * ScopeSelector — píldora clicable de la Bandeja (FASE B v2.0 P-handoff 24-jun).
  *
  * Permite al usuario alternar entre:
- *   · "Soporte" (bandeja del equipo, todos los agentes)
+ *   · "Todas tus bodas" (antes "Soporte"): la bandeja del equipo sin filtrar por evento
  *   · Un evento/boda activo del usuario (linkedEvents)
  *
  * Colores por scope (Diseño):
@@ -39,7 +39,11 @@ interface ScopeSelectorProps {
   events?: Evento[];
 }
 
-const SUPPORT_OPTION: ScopeOption = { id: 'support', kind: 'support', label: 'Soporte' };
+// "Soporte" (17-09): era el rótulo más grande de la bandeja y nombraba un concepto interno
+// —la cola de atención sin evento seleccionado—, no lo que el usuario ve, que son TODAS sus
+// conversaciones. Debajo, el resumen ya decía "todas tus bodas": dos nombres para lo mismo en
+// dos centímetros. Se llama por lo que muestra.
+const SUPPORT_OPTION: ScopeOption = { id: 'support', kind: 'support', label: 'Todas tus bodas' };
 
 function isEventScope(kind: 'support' | 'event'): boolean {
   return kind === 'event';
@@ -135,7 +139,7 @@ export function ScopeSelector({ activeScope, onChange, events }: ScopeSelectorPr
         >
           {/* Sección Soporte */}
           <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-            Atención al cliente
+            Todo junto
           </div>
           <ScopeRow
             option={SUPPORT_OPTION}

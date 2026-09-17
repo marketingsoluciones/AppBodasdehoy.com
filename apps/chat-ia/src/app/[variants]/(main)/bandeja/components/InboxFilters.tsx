@@ -117,7 +117,7 @@ export function InboxFilters({
           >
             {opt.icon && <span aria-hidden>{opt.icon}</span>}
             <span>{opt.label}</span>
-            {count != null && count > 0 && (
+            {typeof count === 'number' && count > 0 && (
               <span className="ml-0.5 rounded-full bg-white/70 px-1 text-[9px] font-bold">
                 {count}
               </span>
@@ -150,7 +150,7 @@ export function InboxFilters({
               />
             )}
             <span>{opt.label}</span>
-            {count != null && count > 0 && (
+            {typeof count === 'number' && count > 0 && (
               <span className="ml-0.5 rounded-full bg-white/70 px-1 text-[9px] font-bold">
                 {count}
               </span>
@@ -166,7 +166,12 @@ export function InboxFilters({
     // fila wrap. Antes eran 2-3 filas apiladas que comían ~90px de alto.
     // Una sola fila que se desplaza en horizontal (prototipo 16-09). Con `flex-wrap` los
     // filtros se apilaban en dos o tres líneas y se comían ~90px de alto de la lista.
-    <div className="no-scrollbar flex items-center gap-1 overflow-x-auto border-b border-gray-100 px-3 py-1.5">
+    /* El degradado de la derecha no es adorno: la fila se desplaza en horizontal y el
+       scrollbar va oculto, así que los canales que no caben —Telegram, correo, chat web—
+       quedaban cortados a media palabra sin nada que indicara que hay más. Un borde que se
+       desvanece es la señal de "sigue"; un corte seco se lee como un fallo de pintado. */
+    <div className="relative border-b border-gray-100">
+      <div className="no-scrollbar flex items-center gap-1 overflow-x-auto px-3 py-1.5">
       {!hideRsvp && <span className="flex flex-none items-center gap-1">{rsvpRow}</span>}
       <span className="flex flex-none items-center gap-1">{channelRow}</span>
       <span className="flex flex-none items-center gap-1">
@@ -213,6 +218,12 @@ export function InboxFilters({
           </button>
         )}
       </span>
+      </div>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 right-0 w-6"
+        style={{ background: 'linear-gradient(to right, rgba(255,255,255,0), #FFFFFF)' }}
+      />
     </div>
   );
 }
