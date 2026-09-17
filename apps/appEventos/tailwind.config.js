@@ -21,14 +21,27 @@ module.exports = {
     },
     extend: {
       colors: {
-        primary: `var(--color-primary, #ec4899)`,
-        secondary: `var(--color-secondary, #f472b6)`,
-        tertiary: `var(--color-tertiary, #f9a8d4)`,
-        "color-base": `var(--color-base, #ffffff)`,
+        // Respaldos = los valores REALES de bodasdehoy (developments.ts), no tonos de
+        // Tailwind. Eran #ec4899 (que no es de ninguna marca), #f472b6 y #f9a8d4 (dos
+        // rosas donde la marca tiene verde menta y amarillo). El respaldo es lo que se
+        // ve mientras la variable no está resuelta, o sea el primer paint de cada carga,
+        // y `primary` solo se usa 923 veces en la app.
+        primary: `var(--color-primary, #EF5B94)`,
+        secondary: `var(--color-secondary, #87F3B5)`,
+        tertiary: `var(--color-tertiary, #FBFF4E)`,
+        "color-base": `var(--color-base, #F2F2F2)`,
         base: `var(--color-base, #F2F2F2)`,
         green: "#13ce66",
         red: "#fa0202",
         basePage: "#F6F6F6",
+        // OJO, esto está sin decidir (JCP, 18-09): estos cuatro tokens leen las MISMAS
+        // variables que primary/secondary/tertiary, así que resuelven al color del
+        // whitelabel ACTIVO — no al color que dice su nombre. Sus respaldos son de otra
+        // marca (#6096B9 y #284C77 son de eventosorganizador) o fijos (#F4C02F,
+        // #49516F), de modo que en bodasdehoy estos 70 usos destellan AZUL antes de que
+        // la variable resuelva. No se tocan hasta saber la intención: si deben seguir a
+        // la marca, el respaldo tiene que ser el de bodasdehoy; si deben ser un color
+        // fijo, no deberían leer la variable.
         primaryOrg: `var(--color-primary, #6096B9)`,
         secondaryOrg: `var(--color-secondary, #284C77)`,
         acento: `var(--color-tertiary, #F4C02F)`,

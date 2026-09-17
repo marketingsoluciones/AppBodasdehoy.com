@@ -83,6 +83,30 @@ marcar_build_ok() {
   } > "$dir/$nombre/$MARCA_OK" 2>/dev/null || true
 }
 
+# ¿Hay cambios sin commitear que IMPORTEN? Recibe la salida de `git status --porcelain`
+# por la entrada estándar e imprime solo las rutas relevantes.
+#
+# Existe porque el aviso saltaba en el 100% de los despliegues. Next reescribe
+# `apps/appEventos/next-env.d.ts` en cada build para apuntar al distDir del momento, así
+# que el checkout de despliegue está permanentemente sucio por un fichero que el propio
+# build acaba de generar. Un aviso que salta siempre enseña a ignorarlo — y este es el
+# que debe avisar de que alguien va a compilar cambios que no sabía que tenía.
+#
+# La lista es corta y explícita a propósito: si mañana otro fichero generado ensucia el
+# árbol, el aviso volverá a saltar y habrá que decidirlo, que es lo correcto. Una regla
+# amplia (p. ej. ignorar todo *.d.ts) taparía cambios de verdad.
+GENERADOS_POR_BUILD="apps/appEventos/next-env.d.ts"
+cambios_relevantes() {
+  local ruta
+  while read -r _estado ruta _resto; do
+    [ -n "$ruta" ] || continue
+    case " $GENERADOS_POR_BUILD " in
+      *" $ruta "*) continue ;;
+    esac
+    echo "$ruta"
+  done
+}
+
 # Mide el estado de la máquina. Separada de la decisión, y en una función para que el
 # test pueda comprobar que NO revienta — porque su primera versión reventaba.
 #
@@ -178,8 +202,22 @@ rotar_builds() {
       echo "    conservo $b (vivo o recién desplegado)"
       continue
     fi
+    # La marca se lee ANTES de borrar. Parece obvio y no lo era: la versión anterior
+    # hacía `[ -f "$d/$marca" ]` DESPUÉS del `rm -rf`, así que el fichero nunca existía
+    # y TODO salía como "(sin verificar)". Un build verificado se registraba como si no
+    # lo estuviera, y leyendo el log parecía que la rotación sacrificaba correctamente
+    # lo no verificado cuando podía estar borrando builds buenos. Visto en el log de un
+    # despliegue real: «borrado .next-app-20260917a (sin verificar)» y ese build SÍ
+    # tenía marca. Un registro que miente sobre lo que hizo tapa justo la regresión que
+    # existe para detectar.
+    local estaba_marcado="no"
+    [ -f "$d/$marca" ] && estaba_marcado="sí"
     if rm -rf "$d"; then
-      [ -f "$d/$marca" ] && echo "    borrado $b" || echo "    borrado $b (sin verificar)"
+      if [ "$estaba_marcado" = "sí" ]; then
+        echo "    borrado $b (estaba verificado)"
+      else
+        echo "    borrado $b (sin verificar)"
+      fi
       a_borrar=$(( a_borrar - 1 ))
     fi
   done || true
@@ -320,9 +358,13 @@ info "Checkout : $REPO"
 info "Rama     : $(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '?') @ $(git rev-parse --short HEAD 2>/dev/null || echo '?')"
 info "Build vivo: ${VIVO:-(ninguno)}"
 
-# Aviso, no bloqueo: trabajo sin commitear puede no ser intencionado.
-if ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null; then
-  rojo "⚠ Hay cambios sin commitear en el checkout de despliegue."
+# Aviso, no bloqueo: trabajo sin commitear puede no ser intencionado. Se excluyen los
+# ficheros que el propio build regenera (ver cambios_relevantes), porque si no el aviso
+# salta siempre y deja de decir nada.
+SUCIOS=$(git status --porcelain 2>/dev/null | grep -v '^??' | cambios_relevantes) || SUCIOS=""
+if [ -n "$SUCIOS" ]; then
+  rojo "⚠ Hay cambios sin commitear en el checkout de despliegue:"
+  echo "$SUCIOS" | sed 's/^/     /' >&2
   rojo "  Se van a compilar tal cual. Ctrl-C si no es lo que quieres."
   sleep 4
 fi

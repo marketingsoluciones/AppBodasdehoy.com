@@ -146,13 +146,22 @@ describe('color de marca: una sola verdad', () => {
     // de packages/shared, todos con el #ec4899 fantasma. Un guardián con lista curada
     // envejece en silencio: protege de lo que ya sabías y no de lo siguiente. Ahora
     // recorre el árbol entero, así que un fichero nuevo entra en el radar solo.
-    const raices = [
-      'apps/appEventos',
-      'apps/chat-ia/src',
-      'packages/shared/src',
-      'packages/auth-ui/src',
-      'packages/copilot-shared/src',
-    ];
+    // LAS RAÍCES SE DESCUBREN, no se listan. La versión anterior tenía cinco rutas a
+    // mano y se le escapó `apps/appEventos/tailwind.config.js` por DOS motivos a la vez:
+    // no miraba ficheros .js y no incluía los paquetes memories ni wedding-creator.
+    // Ese fichero define los colores de Tailwind de toda la app —`primary` se usa 923
+    // veces— con el respaldo #ec4899, y por eso seguían apareciendo 43 apariciones del
+    // rosa fantasma en el build después de "arreglarlo todo".
+    // Es el mismo error que ya cometí una vez con la lista de FICHEROS: generalicé un
+    // nivel y dejé curado el siguiente.
+    const raices: string[] = [];
+    for (const grupo of ['apps', 'packages']) {
+      const base = path.join(RAIZ, grupo);
+      if (!fs.existsSync(base)) continue;
+      for (const e of fs.readdirSync(base, { withFileTypes: true })) {
+        if (e.isDirectory() && !e.name.startsWith('.')) raices.push(path.join(grupo, e.name));
+      }
+    }
     const re = /var\(\s*--(?:color-primary|primary-color|color-brand[\w-]*)\s*,\s*(#[0-9A-Fa-f]{3,8})\s*\)/g;
     const colores = new Set(Object.values(shared).map((c) => c.toUpperCase()));
     const ajenos: string[] = [];
@@ -166,11 +175,20 @@ describe('color de marca: una sola verdad', () => {
       }
       for (const e of entradas) {
         // `._*` son AppleDouble (binarios) y reventaban la lectura en UTF-8.
-        if (e.name.startsWith('._') || e.name === 'node_modules' || e.name.startsWith('.next')) continue;
+        // `dist` y `build` son artefactos: su contenido lo genera la fuente que ya se
+        // mira, y en `dist` el respaldo viejo puede sobrevivir hasta la próxima
+        // compilación. Se saltan para no dar un fallo por algo que no se edita.
+        if (
+          e.name.startsWith('._') ||
+          e.name === 'node_modules' ||
+          e.name === 'dist' ||
+          e.name === 'build' ||
+          e.name.startsWith('.next')
+        ) continue;
         const ruta = path.join(dir, e.name);
         if (e.isDirectory()) {
           recorrer(ruta);
-        } else if (/\.(tsx?|css)$/.test(e.name) && !e.name.includes('.test.')) {
+        } else if (/\.(tsx?|css|js|mjs|cjs)$/.test(e.name) && !e.name.includes('.test.')) {
           let txt: string;
           try {
             txt = fs.readFileSync(ruta, 'utf8');

@@ -245,6 +245,34 @@ else
   falla "borró el cache del build VIVO" "es el que atiende peticiones ahora mismo"
 fi
 
+# ── 12 · el registro no puede mentir sobre lo que borró ────────────────────
+# La versión anterior leía la marca DESPUÉS del `rm -rf`, así que el fichero ya no
+# existía y todo salía como "(sin verificar)". Un build verificado se registraba como
+# si no lo estuviera. Visto en un despliegue real: «borrado .next-app-20260917a (sin
+# verificar)» cuando ese build sí tenía marca.
+# Importa más de lo que parece: si la rotación empezara a sacrificar builds verificados
+# por un fallo de orden, el log diría "sin verificar" igual y nadie lo notaría. Un
+# registro que miente tapa justo la regresión que existe para detectar.
+D="$TMP/registro"
+montar "$D" ".next-app" "20260917a" "20260917b" "20260917c"
+marcar "$D" ".next-app" "20260917a" "20260917b" "20260917c"
+SALIDA_ROT=$(rotar_builds "$D" ".next-app" 2 ".next-app-20260917c" ".next-app-20260917b" 2>&1) || true
+case "$SALIDA_ROT" in
+  *"estaba verificado"*) ok "dice 'estaba verificado' al borrar uno que lo estaba" ;;
+  *"sin verificar"*) falla "registra un build verificado como 'sin verificar'" \
+        "la marca se está leyendo después del rm -rf, cuando ya no existe" ;;
+  *) falla "el registro no dice nada del estado de verificación" "salida: $SALIDA_ROT" ;;
+esac
+
+# Y el caso contrario, para que la etiqueta no sea un adorno fijo.
+D="$TMP/registro2"
+montar "$D" ".next-app" "20260917a" "20260917b" "20260917c"
+SALIDA_ROT=$(rotar_builds "$D" ".next-app" 2 ".next-app-20260917c" ".next-app-20260917b" 2>&1) || true
+case "$SALIDA_ROT" in
+  *"sin verificar"*) ok "dice 'sin verificar' al borrar uno que no lo estaba" ;;
+  *) falla "no distingue el caso sin marca" "salida: $SALIDA_ROT" ;;
+esac
+
 echo
 if [ "$FALLIDOS" -eq 0 ]; then
   printf '\033[32m%s\033[0m\n' "✓ rotar_builds: $PASADOS comprobaciones en verde"
