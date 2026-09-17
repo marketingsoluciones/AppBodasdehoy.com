@@ -137,34 +137,59 @@ describe('color de marca: una sola verdad', () => {
 
   it('ningún respaldo de la variable de marca pinta un color ajeno', () => {
     // Había TRES respaldos y cada uno de un color distinto: #ec4899 (de ninguna marca)
-    // en _app.tsx, #7C3AED (morado del prototipo) en el tailwind.css de chat, y
-    // #F7628C (el rosa anterior) en su vía de auto-auth. Cuando la variable no está
-    // resuelta todavía, el respaldo ES lo que se ve, así que tiene que ser un color
-    // de marca real y no una maqueta.
-    const sitios = [
-      'apps/appEventos/pages/_app.tsx',
-      'apps/chat-ia/src/styles/tailwind.css',
-      'apps/chat-ia/src/features/EventosAutoAuth/index.tsx',
+    // en _app.tsx, #7C3AED (morado del prototipo) en el tailwind.css de chat y #F7628C
+    // (el rosa anterior) en su vía de auto-auth. Cuando la variable no está resuelta,
+    // el respaldo ES lo que se ve, así que tiene que ser un color de marca real.
+    //
+    // ESTE TEST MIRABA UNA LISTA FIJA DE TRES FICHEROS, y por eso se le escaparon 20
+    // respaldos más: 10 en NewTypes.tsx, 8 en table-animations.css y 2 en el NotesPanel
+    // de packages/shared, todos con el #ec4899 fantasma. Un guardián con lista curada
+    // envejece en silencio: protege de lo que ya sabías y no de lo siguiente. Ahora
+    // recorre el árbol entero, así que un fichero nuevo entra en el radar solo.
+    const raices = [
+      'apps/appEventos',
+      'apps/chat-ia/src',
+      'packages/shared/src',
+      'packages/auth-ui/src',
+      'packages/copilot-shared/src',
     ];
+    const re = /var\(\s*--(?:color-primary|primary-color|color-brand[\w-]*)\s*,\s*(#[0-9A-Fa-f]{3,8})\s*\)/g;
     const colores = new Set(Object.values(shared).map((c) => c.toUpperCase()));
     const ajenos: string[] = [];
-    for (const rel of sitios) {
-      const ruta = path.join(RAIZ, rel);
-      if (!fs.existsSync(ruta)) continue;
-      const txt = fs
-        .readFileSync(ruta, 'utf8')
-        .replace(/\/\*[\s\S]*?\*\//g, '')
-        .replace(/\/\/.*$/gm, '');
-      // Solo el PRIMARIO. El secundario y el terciario son colores de acompañamiento
-      // (#f472b6, #f9a8d4) que no están en la tabla de primaryColor y no tiene sentido
-      // exigirles que estén: la primera versión de este test los marcaba como ajenos.
-      const re = /var\(\s*--(?:color-primary|primary-color|color-brand[\w-]*)\s*,\s*(#[0-9A-Fa-f]{6})\s*\)|(?:primary|Primary)[^\n]{0,60}?(?:\|\||\?\?)\s*['"](#[0-9A-Fa-f]{6})['"]/g;
-      let m: RegExpExecArray | null;
-      while ((m = re.exec(txt)) !== null) {
-        const hex = (m[1] || m[2]).toUpperCase();
-        if (!colores.has(hex)) ajenos.push(`${rel}: ${hex}`);
+
+    const recorrer = (dir: string) => {
+      let entradas: fs.Dirent[];
+      try {
+        entradas = fs.readdirSync(dir, { withFileTypes: true });
+      } catch {
+        return; // una raíz que no existe no es un fallo de color
       }
-    }
+      for (const e of entradas) {
+        // `._*` son AppleDouble (binarios) y reventaban la lectura en UTF-8.
+        if (e.name.startsWith('._') || e.name === 'node_modules' || e.name.startsWith('.next')) continue;
+        const ruta = path.join(dir, e.name);
+        if (e.isDirectory()) {
+          recorrer(ruta);
+        } else if (/\.(tsx?|css)$/.test(e.name) && !e.name.includes('.test.')) {
+          let txt: string;
+          try {
+            txt = fs.readFileSync(ruta, 'utf8');
+          } catch {
+            continue;
+          }
+          let m: RegExpExecArray | null;
+          re.lastIndex = 0;
+          while ((m = re.exec(txt)) !== null) {
+            const hex = m[1].toUpperCase();
+            if (hex.length === 7 && !colores.has(hex)) {
+              ajenos.push(`${path.relative(RAIZ, ruta)}: ${hex}`);
+            }
+          }
+        }
+      }
+    };
+    for (const r of raices) recorrer(path.join(RAIZ, r));
+
     expect(ajenos).toEqual([]);
   });
 
