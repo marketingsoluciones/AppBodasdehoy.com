@@ -242,7 +242,7 @@ export function NewMessageModal({ onClose }: { onClose: () => void }) {
             Cancelar
           </button>
           <button
-            className="rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-white hover:bg-brand disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-50"
             disabled={!canSend}
             onClick={handleSend}
             type="button"

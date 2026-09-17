@@ -20,6 +20,11 @@
   --color-brand: var(--color-primary, #EF5B94);
   --color-brand-light: color-mix(in srgb, var(--color-primary, #EF5B94) 8%, white);
   --color-brand-border: color-mix(in srgb, var(--color-primary, #EF5B94) 35%, white);
+  /* Para los hover. Las clases de Tailwind usaban un par -500/-600: el hover era un
+     tono MÁS OSCURO. Al barrer, los dos extremos cayeron en `bg-brand` y el hover se
+     quedó sin efecto en 5 sitios — el botón dejaba de responder al ratón. Un 15% de
+     negro reproduce el salto de -500 a -600 sin fijar un hex. */
+  --color-brand-dark: color-mix(in srgb, var(--color-primary, #EF5B94) 85%, black);
   --color-event-rosa: #E11D48;
   --color-event-light: #FFF6F7;
   --color-event-border: #FBD0D7;

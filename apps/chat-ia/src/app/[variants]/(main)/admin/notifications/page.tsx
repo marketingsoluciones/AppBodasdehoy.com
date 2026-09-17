@@ -251,7 +251,7 @@ export default function NotificationSettingsPage() {
       </section>
 
       <button
-        className="rounded-lg bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand disabled:opacity-50 transition-colors"
+        className="rounded-lg bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-dark disabled:opacity-50 transition-colors"
         disabled={saving}
         onClick={handleSave}
         type="button"

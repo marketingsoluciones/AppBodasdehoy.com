@@ -183,7 +183,7 @@ export default function NotificationsPage() {
         <div className="flex items-center gap-3">
           {unreadCount > 0 && (
             <button
-              className="text-sm text-brand hover:text-brand font-medium"
+              className="text-sm text-brand hover:text-brand-dark font-medium"
               onClick={handleMarkAllRead}
             >
               Marcar todas como leídas

@@ -415,7 +415,7 @@ export default function MessagesPage() {
                         ✍️ Nuevo mensaje
                       </button>
                       <button
-                        className="rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white hover:bg-brand"
+                        className="rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white hover:bg-brand-dark"
                         onClick={() => router.push('/bandeja/whatsapp')}
                         type="button"
                       >
