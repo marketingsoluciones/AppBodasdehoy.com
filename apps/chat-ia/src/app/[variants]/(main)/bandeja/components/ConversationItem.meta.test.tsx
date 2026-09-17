@@ -51,6 +51,9 @@ describe('ConversationItem meta', () => {
     // (más claro para el usuario en la propia conversación).
     expect(screen.getByText('Asignada a ti')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button'));
+    // La fila ya no es el único botón: ahora convive con el atajo de acceso, que va fuera
+    // del <button> de la fila (anidar interactivos es inválido). Se pulsa la fila por su
+    // texto, no "el botón" a secas.
+    fireEvent.click(screen.getByText('Carlos'));
   });
 });

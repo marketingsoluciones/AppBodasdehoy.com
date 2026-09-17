@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams , useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
@@ -12,7 +12,10 @@ import { useConversationActions } from '../hooks/useConversationActions';
 import { ConversationStatus, useConversationMetaState } from '../hooks/useConversationMeta';
 import { useConversations } from '../hooks/useConversations';
 import { useWhatsAppSession } from '../hooks/useWhatsAppSession';
+
+import { useIaLevel } from '../hooks/useIaLevel';
 import { ConversationItem } from './ConversationItem';
+import { IaLevelPicker } from './IaLevelPicker';
 import { EmailSetup } from './EmailSetup';
 import { FacebookSetup } from './FacebookSetup';
 import { InstagramSetup } from './InstagramSetup';
@@ -35,7 +38,7 @@ function WhatsAppConversationList({ development, selectedId }: { development: st
     return (
       <div className="flex h-full flex-col gap-2 p-3">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="flex animate-pulse items-start gap-3 rounded-lg p-2">
+          <div className="flex animate-pulse items-start gap-3 rounded-lg p-2" key={i}>
             <div className="h-10 w-10 shrink-0 rounded-full bg-gray-200" />
             <div className="flex-1 space-y-2">
               <div className="h-3 w-1/2 rounded bg-gray-200" />
@@ -58,7 +61,27 @@ function WhatsAppConversationList({ development, selectedId }: { development: st
 type SortMode = 'recent' | 'unread';
 type InboxView = 'all' | 'mine' | 'unassigned' | 'closed';
 
+/**
+ * Qué canal estoy mirando. La cabecera ponía "Comunicaciones" en todos, así que entrabas en
+ * WhatsApp y la pantalla no te lo decía; con varias líneas o varios medios abiertos era
+ * imposible saber dónde estabas.
+ */
+function tituloDelCanal(channel: string | null): string {
+  if (!channel) return 'Todas las conversaciones';
+  if (channel.startsWith('wa-')) return 'WhatsApp';
+  const nombres: Record<string, string> = {
+    email: 'Email',
+    facebook: 'Messenger',
+    instagram: 'Instagram',
+    telegram: 'Telegram',
+    web: 'Chat web',
+    whatsapp: 'WhatsApp',
+  };
+  return nombres[channel] ?? channel;
+}
+
 function ConversationListInner({ channel, selectedId }: ConversationListProps) {
+  const router = useRouter();
   const { conversations, loading, error } = useConversations(channel);
   // P0 (QA 6-ago): ConversationListInner usaba `brand.brand` (líneas ~221/277) sin definir
   // `brand` → ReferenceError que crasheaba toda la app al renderizar el contador "N sin leer"
@@ -67,7 +90,8 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
   const { isArchived } = useConversationActions();
   const metaState = useConversationMetaState();
   const { checkAuth } = useAuthCheck();
-  const { userId } = checkAuth();
+  const { development: marca, userId } = checkAuth();
+  const { change: cambiarIa, level: iaLevel } = useIaLevel(marca || 'bodasdehoy');
   const searchParams = useSearchParams();
   const view = (searchParams.get('view') as InboxView) || 'all';
   const [search, setSearch] = useState('');
@@ -138,7 +162,7 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
   if (loading) {
     // Rediseño A.2: skeleton simple 3 filas con tokens del sistema
     return (
-      <div style={{ backgroundColor: '#FFFFFF' }} className="h-full">
+      <div className="h-full" style={{ backgroundColor: '#FFFFFF' }}>
         <div
           className="sticky top-0 z-10 px-4 py-3"
           style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid #EDEDF0' }}
@@ -149,8 +173,8 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
         </div>
         {[1, 2, 3, 4].map((n) => (
           <div
-            key={n}
             className="flex items-start gap-3 px-3 py-3"
+            key={n}
             style={{ borderBottom: '1px solid #EDEDF0' }}
           >
             <div
@@ -208,13 +232,36 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
           borderBottom: '1px solid #EDEDF0',
         }}
       >
+        {/* Salida del canal (17-09). Al entrar en "solo WhatsApp" no había forma de volver a
+            los demás medios: la cabecera ponía "Comunicaciones" —igual en todos los canales—
+            y ni decía dónde estabas ni te dejaba salir. */}
+        <button
+          className="mb-1.5 inline-flex items-center gap-1 rounded-md text-xs font-medium transition-colors"
+          onClick={() => router.push('/bandeja')}
+          style={{ color: brand.brand }}
+          type="button"
+        >
+          <svg
+            fill="none"
+            height="12"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2.2"
+            viewBox="0 0 24 24"
+            width="12"
+          >
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+          Todos los canales
+        </button>
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <h2
               className="truncate text-base font-semibold"
               style={{ color: '#1C1C22', letterSpacing: '-0.01em' }}
             >
-              Comunicaciones
+              {tituloDelCanal(channel)}
             </h2>
             <p className="mt-0.5 text-xs" style={{ color: '#84848F' }}>
               {conversations.length}{' '}
@@ -229,16 +276,25 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
               )}
             </p>
           </div>
+          {/* Modo de IA. Va aquí y NO por conversación a propósito: el backend lo guarda por
+              marca (`{marca}:workspace:ia_level`), así que un interruptor en cada fila daría a
+              entender que se cambia solo esa, cuando cambia la bandeja entera. */}
+          <div className="flex flex-none items-center gap-1.5">
+            <span className="text-[11px]" style={{ color: '#84848F' }}>
+              IA de la bandeja
+            </span>
+            <IaLevelPicker level={iaLevel} onChange={(next) => void cambiarIa(next)} />
+          </div>
           {/* Sort toggle discreto */}
           <button
             className="flex-shrink-0 rounded-md px-2 py-1 text-[11px] transition-colors"
             onClick={() => setSortMode((m) => (m === 'recent' ? 'unread' : 'recent'))}
-            style={{
-              color: '#84848F',
-              backgroundColor: 'transparent',
-            }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F2F1F6')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+            style={{
+              backgroundColor: 'transparent',
+              color: '#84848F',
+            }}
             title={
               sortMode === 'recent'
                 ? 'Ordenar: no leídos primero'
@@ -268,21 +324,21 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
           </svg>
           <input
             className="w-full rounded-md py-1.5 pr-3 text-sm focus:outline-none"
+            onBlur={(e) => {
+              e.currentTarget.style.backgroundColor = '#F2F1F6';
+              e.currentTarget.style.borderColor = 'transparent';
+            }}
             onChange={(e) => setSearch(e.target.value)}
+            onFocus={(e) => {
+              e.currentTarget.style.backgroundColor = '#FFFFFF';
+              e.currentTarget.style.borderColor = brand.brand;
+            }}
             placeholder="Buscar conversación..."
             style={{
               backgroundColor: '#F2F1F6',
               border: '1px solid transparent',
               color: '#1C1C22',
               paddingLeft: '2rem',
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.backgroundColor = '#FFFFFF';
-              e.currentTarget.style.borderColor = brand.brand;
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.backgroundColor = '#F2F1F6';
-              e.currentTarget.style.borderColor = 'transparent';
             }}
             type="text"
             value={search}

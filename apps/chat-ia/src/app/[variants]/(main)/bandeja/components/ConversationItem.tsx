@@ -169,8 +169,14 @@ export function ConversationItem({
   const hasIa = iaLevel === 'copilot' || iaLevel === 'autopilot';
   const visibility = describeVisibility(conversation.sharedWith);
 
+  const irACompartir = () =>
+    router.push(
+      `/bandeja/${encodeURIComponent(conversation.channel)}/${encodeURIComponent(conversation.id)}?compartir=1`,
+    );
+
   return (
     <>
+      <div className="relative">
       <button
         className="w-full text-left transition-colors"
         onClick={handleClick}
@@ -300,16 +306,6 @@ export function ConversationItem({
                   </span>
                 )}
               </span>
-              {/* Problema 1 (auditoría 15-09): saber de un vistazo si alguien más la ve. */}
-              {visibility && (
-                <span
-                  className="rounded-full px-1.5 py-0.5 font-medium"
-                  style={{ backgroundColor: '#EEF2FF', color: '#4F46E5' }}
-                  title={visibility.title}
-                >
-                  {visibility.label}
-                </span>
-              )}
               {status === 'pending' && (
                 <span
                   className="rounded-full px-1.5 py-0.5 font-medium"
@@ -354,6 +350,44 @@ export function ConversationItem({
           </div>
         </div>
       </button>
+      {/* Acceso: quién ve esta conversación y atajo para gestionarlo sin entrar primero.
+          Va FUERA del <button> de la fila —posicionado encima— porque un botón no puede
+          contener otro elemento interactivo: es inválido y los clics se pisan. Aparece en
+          todas las filas, no solo en las compartidas: si solo saliera cuando ya hay alguien,
+          no habría por dónde empezar a dar acceso. */}
+      <button
+        aria-label={
+          visibility ? `Gestionar acceso · ${visibility.title}` : 'Dar acceso a alguien del equipo'
+        }
+        className="absolute bottom-1.5 right-2 inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+        onClick={(e) => {
+          e.stopPropagation();
+          irACompartir();
+        }}
+        style={{
+          backgroundColor: visibility ? '#EEF2FF' : 'transparent',
+          color: visibility ? '#4F46E5' : '#B4B0BE',
+        }}
+        title={visibility ? `${visibility.title} · pulsa para gestionar` : 'Dar acceso a alguien del equipo'}
+        type="button"
+      >
+        <svg
+          fill="none"
+          height="11"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+          width="11"
+        >
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+        {visibility ? visibility.label.replace('Compartida · ', '') : ''}
+      </button>
+      </div>
 
       {/* Context menu */}
       {contextMenu && (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import {
@@ -54,6 +54,12 @@ export function ConversationHeader({
   // Bloqueo (auditoría 15-09, Problema 4a): la mutación existía en api-mcp desde hace
   // tiempo y el front no la llamaba. `blocked` ya está en el enum de estado.
   const [shareOpen, setShareOpen] = useState(false);
+  // Atajo desde la lista: el icono de acceso de cada fila entra aquí con ?compartir=1 para
+  // que no haya que buscar el botón después de abrir la conversación.
+  const parametros = useSearchParams();
+  useEffect(() => {
+    if (parametros?.get('compartir') === '1') setShareOpen(true);
+  }, [parametros]);
   const [blockOverride, setBlockOverride] = useState<boolean | null>(null);
   const [blocking, setBlocking] = useState(false);
   const isBlocked =
