@@ -56,22 +56,70 @@ morir() { rojo "✗ $*"; exit 1; }
 # `.next-chat-20260917-bandeja1` ordena por delante de `.next-chat-20260917a`.
 # Con la convención `<fecha>-<zona><n>` el build MÁS NUEVO se convertía en el
 # primer candidato a borrar. Lo impide `scripts/deploy-dev.rotacion_test.sh`.
+# Marca que ESTE build superó el pipeline completo: build + postbuild + puntero +
+# reinicio + verificación. Se escribe al final, nunca antes.
+#
+# Hace falta porque el 17-09 un build FALLIDO resultó indistinguible de uno bueno por
+# cualquier inspección del artefacto: `next build` terminó entero y solo murió el
+# postbuild, así que la carpeta tenía BUILD_ID, los cuatro manifiestos y los mismos
+# 281 MB. Todas las validaciones de este script la habrían aprobado. Lo único que la
+# cazó fue el código de salida — un dato que existe DURANTE el despliegue y se pierde
+# después. Al rotar, esa carpeta quedaba como el "rollback" designado: el sitio al que
+# volver si algo va mal sería un build cuyo postbuild nunca corrió.
+#
+# De ahí que el veredicto se ESCRIBA en el momento en que se conoce, en vez de
+# intentar deducirlo luego de los restos. Un build sin marca no es necesariamente
+# malo (puede venir de un despliegue a mano), pero tampoco está verificado, y como
+# rollback se prefiere siempre uno que sí lo esté.
+MARCA_OK=".deploy-ok"
+marcar_build_ok() {
+  local dir="$1" nombre="$2"
+  { echo "desplegado: $(date '+%Y-%m-%d %H:%M:%S')"
+    echo "commit: $(git -C "$(dirname "$0")/.." rev-parse --short HEAD 2>/dev/null || echo desconocido)"
+    echo "pipeline: build + postbuild + puntero + reinicio + verificacion"
+  } > "$dir/$nombre/$MARCA_OK" 2>/dev/null || true
+}
+
 rotar_builds() {
   local dir="$1" prefijo="$2" conservar="$3" nuevo="$4" vivo="$5"
-  local total a_borrar b
+  local total a_borrar b marca="${MARCA_OK:-.deploy-ok}"
   total=$(ls -1d "$dir/${prefijo}-"* 2>/dev/null | wc -l | tr -d ' ')
   [ "${total:-0}" -gt "$conservar" ] || return 0
   a_borrar=$(( total - conservar ))
   info "Rotando: $total builds, conservo $conservar (vivo + rollback)"
+
+  # Orden de sacrificio: primero los SIN marca de verificación (más antiguo primero),
+  # después los verificados (más antiguo primero). Así el rollback que sobrevive es uno
+  # que de verdad se probó, y no la carpeta del intento que falló.
   # macOS trae bash 3.2, sin `mapfile`: se hace con `ls` y un bucle.
-  ls -1dt "$dir/${prefijo}-"* 2>/dev/null | tail -n "$a_borrar" | while read -r d; do
+  # Los cuerpos van con `if`, no con `&&`/`||`: un `[ -f ... ] && echo` que falla en la
+  # ÚLTIMA vuelta deja el while en estado 1, `pipefail` lo propaga a la sustitución y
+  # `set -Eeuo pipefail` (línea 30) mata el despliegue entero — después de haber movido
+  # el puntero y reiniciado. Pasaba justo cuando NINGÚN build tenía marca, que es el
+  # caso normal la primera vez que se estrena esto. Un `if` sin `else` devuelve 0.
+  # Es la misma clase de fallo que la revisión ya me señaló una vez en este script;
+  # lo volví a introducir y esta vez lo cazó el test, no una ejecución en producción.
+  local sin_marca con_marca
+  sin_marca=$(ls -1dt "$dir/${prefijo}-"* 2>/dev/null | while read -r d; do
+    if [ ! -f "$d/$marca" ]; then echo "$d"; fi
+  done | tail -r) || true
+  con_marca=$(ls -1dt "$dir/${prefijo}-"* 2>/dev/null | while read -r d; do
+    if [ -f "$d/$marca" ]; then echo "$d"; fi
+  done | tail -r) || true
+
+  printf '%s\n%s\n' "$sin_marca" "$con_marca" | grep -v '^$' | while read -r d; do
+    [ "$a_borrar" -gt 0 ] || break
     b=$(basename "$d")
     if [ "$b" = "$nuevo" ] || [ "$b" = "$vivo" ]; then
       echo "    conservo $b (vivo o recién desplegado)"
       continue
     fi
-    rm -rf "$d" && echo "    borrado $b"
-  done
+    if rm -rf "$d"; then
+      [ -f "$d/$marca" ] && echo "    borrado $b" || echo "    borrado $b (sin verificar)"
+      a_borrar=$(( a_borrar - 1 ))
+    fi
+  done || true
+  return 0
 }
 
 # ─── Importable desde los tests ───────────────────────────────────────────────
@@ -375,6 +423,15 @@ fi
 # Si tocas el orden de borrado, ejecuta scripts/deploy-dev.rotacion_test.sh.
 # El comentario avisa; el test impide. Comprobado que la versión alfabética lo
 # hace fallar, así que no es decorativo.
+marcar_build_ok "$DIR" "$NUEVO"
 rotar_builds "$DIR" "$PREFIJO" "$CONSERVAR" "$NUEVO" "$VIVO"
 
+# El rollback se ofrece sobre el build que estaba vivo, pero si ESE no está verificado
+# conviene decirlo: volver a él puede ser volver a un build que nunca se comprobó.
+if [ -n "$VIVO" ] && [ -d "$DIR/$VIVO" ] && [ ! -f "$DIR/$VIVO/$MARCA_OK" ]; then
+  rojo "⚠ Ojo: $VIVO no tiene marca de verificación (se desplegó a mano o falló su postbuild)."
+  ROLLBACK_ALT=$(ls -1dt "$DIR/$PREFIJO-"*/"$MARCA_OK" 2>/dev/null | head -1 | xargs -I{} dirname {} | xargs -I{} basename {})
+  [ -n "$ROLLBACK_ALT" ] && [ "$ROLLBACK_ALT" != "$NUEVO" ] \
+    && rojo "  Verificado más reciente: $ROLLBACK_ALT"
+fi
 verde "✓ $APP desplegado. Rollback: $VAR=\"$VIVO\" en $PM2_SCRIPTS/$SCRIPT + $PM2BIN restart $PM2"

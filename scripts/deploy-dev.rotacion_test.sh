@@ -53,6 +53,26 @@ montar() {
   done
 }
 
+# Pone la marca de verificación en los builds indicados (por nombre corto).
+#   marcar <dir> <prefijo> nombre1 nombre2 ...
+#
+# CONSERVA EL MTIME DEL DIRECTORIO, y eso es el detalle que hace que este test valga.
+# Escribir un fichero DENTRO de un directorio actualiza el mtime del directorio. Sin
+# restaurarlo, marcar `a` y `b` los convertía en los más NUEVOS y dejaba `c` como el
+# más antiguo: entonces la rotación por fecha y la rotación por marca borraban `c` por
+# caminos distintos, y el caso 7 pasaba con las dos implementaciones. Verde y vacuo,
+# la segunda vez hoy que me pasa lo mismo.
+marcar() {
+  local dir="$1" prefijo="$2"; shift 2
+  local d antes
+  for n in "$@"; do
+    d="$dir/${prefijo}-${n}"
+    antes=$(stat -f '%Sm' -t '%Y%m%d%H%M' "$d")
+    echo "verificado" > "$d/.deploy-ok"
+    touch -t "$antes" "$d"
+  done
+}
+
 # Los builds empiezan por punto: `ls -1` los OCULTA. Con `-A` se ven y se excluyen
 # `.` y `..`. Este mismo despiste hizo que la primera versión del test devolviera
 # vacío siempre y que la comprobación de la trampa pasara por accidente.
@@ -153,6 +173,51 @@ if [ -d "$D/.next-chat-20260917-bandeja1" ]; then
 else
   ok "la versión alfabética borra el build nuevo — el test sí la detectaría"
 fi
+
+# ── 7 · el intento FALLIDO muere antes que un build verificado más antiguo ───
+# El caso real del 17-09: un build cuyo `next build` terminó pero cuyo postbuild
+# murió queda con BUILD_ID, los cuatro manifiestos y los mismos 281 MB. Ninguna
+# inspección del artefacto lo distingue de uno bueno, así que la rotación por fecha
+# lo conservaba como "rollback" y sacrificaba uno verificado más viejo. El veredicto
+# tiene que venir de la marca que se escribe al terminar el pipeline, no de los restos.
+D="$TMP/marca"
+montar "$D" ".next-chat" "20260917a" "20260917b" "20260917c"   # a más viejo, c más nuevo
+marcar "$D" ".next-chat" "20260917a" "20260917b"               # c es el intento fallido
+# vivo=b, nuevo=nada de esos: sobra 1 y debe morir c, aunque sea el MÁS NUEVO.
+rotar_builds "$D" ".next-chat" 2 ".next-chat-nada" ".next-chat-20260917b" >/dev/null 2>&1
+RESTO=$(quedan "$D")
+if [ "$RESTO" = ".next-chat-20260917a .next-chat-20260917b" ]; then
+  ok "sacrifica el build sin verificar antes que uno verificado más antiguo"
+else
+  falla "conservó el intento fallido como rollback" \
+        "quedan: $RESTO · esperado: a y b (muere c, que no tiene marca)"
+fi
+
+# ── 8 · con todos verificados, vuelve a mandar la fecha ─────────────────────
+# La marca decide el ORDEN de sacrificio, no sustituye al criterio de antigüedad.
+D="$TMP/marcados"
+montar "$D" ".next-chat" "20260917a" "20260917b" "20260917c"
+marcar "$D" ".next-chat" "20260917a" "20260917b" "20260917c"
+rotar_builds "$D" ".next-chat" 2 ".next-chat-20260917c" ".next-chat-20260917b" >/dev/null 2>&1
+RESTO=$(quedan "$D")
+if [ "$RESTO" = ".next-chat-20260917b .next-chat-20260917c" ]; then
+  ok "con todos verificados sigue borrando el más antiguo"
+else
+  falla "con todos verificados no respeta la antigüedad" \
+        "quedan: $RESTO · esperado: b y c (muere a)"
+fi
+
+# ── 9 · el vivo sin marca sigue protegido ───────────────────────────────────
+# Un build desplegado a mano no tiene marca, pero si está SIRVIENDO no se toca:
+# la marca ordena el sacrificio, no autoriza a tirar lo que está en producción.
+D="$TMP/vivosinmarca"
+montar "$D" ".next-chat" "20260917a" "20260917b" "20260917c"
+marcar "$D" ".next-chat" "20260917b" "20260917c"
+rotar_builds "$D" ".next-chat" 2 ".next-chat-20260917c" ".next-chat-20260917a" >/dev/null 2>&1
+case "$(quedan "$D")" in
+  *".next-chat-20260917a"*) ok "no borra el vivo aunque sea el único sin verificar" ;;
+  *) falla "borró el build VIVO por no tener marca" "quedan: $(quedan "$D")" ;;
+esac
 
 echo
 if [ "$FALLIDOS" -eq 0 ]; then
