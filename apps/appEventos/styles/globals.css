@@ -121,3 +121,9 @@ nextjs-portal {
   top: unset;
   pointer-events: none;
 }
+
+/* Color del texto de ayuda del campo del Copilot — diseño Chat_Widget.dc.html.
+   Va aquí porque `::placeholder` no se puede poner con `style` en línea. */
+input::placeholder {
+  color: #c8c8ce;
+}

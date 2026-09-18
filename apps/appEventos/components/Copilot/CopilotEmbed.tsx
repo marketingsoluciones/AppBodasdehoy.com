@@ -17,7 +17,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { useToast } from '../../hooks/useToast';
 import { useVisualViewportKeyboardInset } from '../../hooks/useVisualViewportKeyboardInset';
-import { MessageList, CopilotChatInput } from '@bodasdehoy/copilot-shared';
+import { MessageList } from '@bodasdehoy/copilot-shared';
 import type { MessageItem } from '@bodasdehoy/copilot-shared';
 import {
   sendChatMessage,
@@ -584,6 +584,7 @@ export const CopilotEmbed = ({
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [draft, setDraft] = useState('');   // texto del campo (diseño Chat_Widget.dc.html)
   const abortControllerRef = useRef<AbortController | null>(null);
   const firstMessageSentRef = useRef(false);
   const messagesRef = useRef<MessageItem[]>([]);
@@ -1256,7 +1257,7 @@ export const CopilotEmbed = ({
         </div>
       )}
 
-      {/* Input area — full LobeChat editor (CopilotChatInput); padding extra con teclado virtual móvil */}
+      {/* Campo de escritura del diseño; padding extra con teclado virtual móvil */}
       <div
         style={{
           background: '#fff',
@@ -1266,46 +1267,116 @@ export const CopilotEmbed = ({
           paddingBottom: `calc(14px + env(safe-area-inset-bottom, 0px) + ${keyboardInsetBottom}px)`,
         }}
       >
-        {/* Píldora del diseño Chat_Widget.dc.html POR FUERA; dentro sigue el editor
-            de LobeChat con su markdown, sus comandos y su botón de parar generación.
-            Decisión de JCP (18-09): el aspecto del diseño sin perder lo que ya hacía. */}
+        {/* Campo de escritura EXACTO del diseño Chat_Widget.dc.html.
+            Sustituye al editor de LobeChat por decisión de JCP tras ver la versión
+            intermedia. Se pierden markdown, comandos y el editor enriquecido; el botón
+            de parar sigue accesible porque mientras genera el mismo botón detiene. */}
         <div
           onBlur={e => { e.currentTarget.style.borderColor = '#ececef'; }}
           onFocus={e => { e.currentTarget.style.borderColor = '#EF5B94'; }}
           style={{
+            alignItems: 'center',
             background: '#fff',
             border: '1.5px solid #ececef',
             borderRadius: 999,
             boxShadow: '0 4px 16px rgba(58,58,66,.06)',
-            overflow: 'hidden',
-            padding: '2px 6px',
+            display: 'flex',
+            gap: 6,
+            padding: '6px 10px 6px 8px',
             transition: 'border-color .15s',
           }}
         >
-        <CopilotChatInput
-          generating={loading}
-          leftActions={[['history', 'clear']]}
-          chatKey={sessionId}
-          onSend={({ clearContent, getMarkdownContent }) => {
-            const content = getMarkdownContent();
-            if (content.trim()) {
-              handleSend(content);
-              clearContent();
-            }
-          }}
-          sendButtonProps={{
-            generating: loading,
-            onStop: ({ editor }) => handleStop(),
-          }}
-          onClear={() => {
-            setMessages([]);
-            clearCopilotFilter();
-          }}
-          onSearchToggle={(enabled) => {
-            // TODO: wire to pageContext search flag
-          }}
-          fileUploadEnabled={false}
-        />
+          <button
+            onMouseEnter={e => { e.currentTarget.style.background = '#faf9fb'; e.currentTarget.style.color = '#3A3A42'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#8a8a90'; }}
+            style={{
+              alignItems: 'center', background: 'none', border: 'none', borderRadius: '50%',
+              color: '#8a8a90', cursor: 'pointer', display: 'flex', flex: 'none',
+              height: 32, justifyContent: 'center', width: 32,
+            }}
+            title="Adjuntar"
+            type="button"
+          >
+            <svg fill="none" height="16" stroke="currentColor" strokeLinecap="round" strokeWidth="2" viewBox="0 0 24 24" width="16">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
+
+          <input
+            onChange={e => setDraft(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const texto = draft.trim();
+                if (texto && !loading) { handleSend(texto); setDraft(''); }
+              }
+            }}
+            placeholder="Pregunta a Copilot"
+            style={{
+              background: 'none', border: 'none', color: '#3A3A42',
+              flex: 1, font: '500 12.5px Poppins, sans-serif', minWidth: 0,
+              outline: 'none', padding: '8px 0',
+            }}
+            value={draft}
+          />
+
+          <button
+            onMouseEnter={e => { e.currentTarget.style.background = '#faf9fb'; e.currentTarget.style.color = '#3A3A42'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#6b6b72'; }}
+            style={{
+              alignItems: 'center', background: 'none', border: 'none', borderRadius: 8,
+              color: '#6b6b72', cursor: 'pointer', display: 'inline-flex', flex: 'none',
+              font: '600 11.5px Poppins, sans-serif', gap: 4, padding: '6px 8px',
+            }}
+            title="Modo Auto"
+            type="button"
+          >
+            Auto
+            <svg fill="none" height="10" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.4" viewBox="0 0 24 24" width="10">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
+
+          {draft.trim().length === 0 && !loading ? (
+            <button
+              onMouseEnter={e => { e.currentTarget.style.background = '#faf9fb'; e.currentTarget.style.color = '#3A3A42'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#8a8a90'; }}
+              style={{
+                alignItems: 'center', background: 'none', border: 'none', borderRadius: '50%',
+                color: '#8a8a90', cursor: 'pointer', display: 'flex', flex: 'none',
+                height: 32, justifyContent: 'center', width: 32,
+              }}
+              title="Dictar"
+              type="button"
+            >
+              <svg fill="none" height="15" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="15">
+                <rect height="12" rx="3" width="6" x="9" y="2" />
+                <path d="M5 10v1a7 7 0 0 0 14 0v-1M12 18v4" />
+              </svg>
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                if (loading) { handleStop(); return; }
+                const texto = draft.trim();
+                if (texto) { handleSend(texto); setDraft(''); }
+              }}
+              style={{
+                alignItems: 'center',
+                background: draft.trim().length > 0 && !loading ? '#EF5B94' : '#f2c9d9',
+                border: 'none', borderRadius: '50%',
+                boxShadow: '0 5px 14px rgba(239,91,148,.3)',
+                color: '#fff', cursor: loading ? 'pointer' : 'pointer',
+                display: 'flex', flex: 'none', height: 34, justifyContent: 'center', width: 34,
+              }}
+              title={loading ? 'Detener' : 'Enviar'}
+              type="button"
+            >
+              <svg fill="none" height="15" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" viewBox="0 0 24 24" width="15">
+                {loading ? <rect height="10" rx="1.5" width="10" x="7" y="7" /> : <><path d="M22 2L11 13" /><path d="M22 2l-7 20-4-9-9-4z" /></>}
+              </svg>
+            </button>
+          )}
         </div>
         {/* Aviso del diseño Chat_Widget.dc.html */}
         <div

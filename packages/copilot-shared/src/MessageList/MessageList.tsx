@@ -56,7 +56,7 @@ const useStyles = createStyles(({ token, css, cx }) => ({
     flex: 1;
     color: ${token.colorTextDescription};
     font-size: 14px;
-    padding: 24px 16px 32px;
+    padding: 18px 16px;   /* diseño Chat_Widget.dc.html */
     overflow-y: auto;
   `),
   loadingIndicator: cx(css`
