@@ -7,10 +7,8 @@ import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { useTypingInConv } from '@/store/bandeja/selectors';
 import { useAgentAssignmentOverrides } from '../hooks/useAgentAssignmentOverrides';
 import { Conversation } from '../hooks/useConversations';
-import { useBandejaBrand } from '../utils/brand';
 import { stripMiniMarkdown } from './MiniMarkdown';
-import { previewText } from '../utils/preview';
-import { IaModeBadge, SharedBadge } from './RowIndicators';
+import { FilaConversacion } from './FilaConversacion';
 import { useConversationActions } from '../hooks/useConversationActions';
 import { ConversationStatus, useConversationMeta } from '../hooks/useConversationMeta';
 
@@ -34,19 +32,6 @@ const formatTimestamp = (timestamp: string) => {
   return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
 };
 
-function TypingIndicator() {
-  const brand = useBandejaBrand();
-  return (
-    <span className="inline-flex items-center gap-0.5 text-xs italic" style={{ color: brand.brand }}>
-      <span>Escribiendo</span>
-      <span className="flex gap-px">
-        <span className="h-1 w-1 animate-bounce rounded-full" style={{ animationDelay: '0ms', backgroundColor: brand.brand }} />
-        <span className="h-1 w-1 animate-bounce rounded-full" style={{ animationDelay: '150ms', backgroundColor: brand.brand }} />
-        <span className="h-1 w-1 animate-bounce rounded-full" style={{ animationDelay: '300ms', backgroundColor: brand.brand }} />
-      </span>
-    </span>
-  );
-}
 
 // Colores canal (rediseño 18-jul). Solo puntos indicadores, no fondos.
 const CHANNEL_DOT: Record<string, string> = {
@@ -83,7 +68,6 @@ export function ConversationItem({
   conversation,
   isSelected,
 }: ConversationItemProps) {
-  const brand = useBandejaBrand();
   const router = useRouter();
   const { checkAuth } = useAuthCheck();
   const { development: marca, userId } = checkAuth();
@@ -178,167 +162,41 @@ export function ConversationItem({
 
   return (
     <>
-      {/* Misma fila que la bandeja principal: dos líneas y 64px. Antes esta lista iba a 95px
-          con una tercera línea de chips (canal, tipo de línea, teléfono) que dentro de un
-          canal repetía en las noventa filas lo que ya dice la cabecera. El canal lo sigue
-          diciendo el punto del avatar; el teléfono, el tooltip del nombre.
-          El botón de la fila va DEBAJO del contenido, no envolviéndolo: los indicadores son
-          botones y no pueden anidarse dentro de otro. */}
-      <div
-        className="group relative"
+      {/* La MISMA fila que el índice (F4 del informe del owner): antes eran dos componentes
+          distintos pintando lo mismo, cada arreglo había que hacerlo dos veces y el que se
+          olvidaba producía la sensación de que "los arreglos solo llegan al índice". Lo que
+          esta vista añade —menú contextual, presencia, "escribiendo…"— viaja como datos, no
+          como otro componente. */}
+      <FilaConversacion
+        datos={{
+          agente: agentName,
+          avatar: conversation.contact.name.charAt(0).toUpperCase(),
+          canalColor: channelDot,
+          canalNombre:
+            conversation.channel === 'whatsapp' && conversation.channelType
+              ? `WhatsApp · ${CHANNEL_TYPE_LABEL[conversation.channelType] ?? conversation.channelType}`
+              : (CHANNEL_NAME[conversation.channel] ?? conversation.channel),
+          compartidaCon: conversation.sharedWith,
+          conexion: conversation.channel === 'whatsapp' ? conversation.channelType : null,
+          contacto,
+          escribiendo: isTyping,
+          estado: status === 'open' ? null : status,
+          hora: formatTimestamp(conversation.lastMessage.timestamp),
+          id: conversation.id,
+          mensaje: stripMiniMarkdown(conversation.lastMessage.text),
+          mensajeMio: !conversation.lastMessage.fromUser,
+          nombre: conversation.contact.name,
+          presente: isOnline,
+          responsable: meta.assignedUserId,
+          responsableSoyYo: assignedToMe,
+          sinLeer: conversation.unreadCount,
+        }}
+        development={marca}
+        onAbrir={handleClick}
+        onCompartir={irACompartir}
         onContextMenu={handleContextMenu}
-        onMouseEnter={(e) => {
-          if (!isSelected) e.currentTarget.style.backgroundColor = 'var(--b-surface)';
-        }}
-        onMouseLeave={(e) => {
-          if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent';
-        }}
-        style={{ backgroundColor: isSelected ? 'var(--b-surface-2)' : 'transparent' }}
-      >
-        <button
-          aria-label={`Abrir conversación con ${conversation.contact.name}`}
-          className="absolute inset-0 h-full w-full"
-          onClick={handleClick}
-          type="button"
-        />
-        <div className="pointer-events-none relative flex items-center gap-2.5 px-3 py-1.5 text-left">
-          {/* Avatar con punto de canal y presencia */}
-          <div className="relative flex-shrink-0">
-            <div
-              className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold"
-              style={{ backgroundColor: 'var(--b-surface-2)', color: 'var(--b-text-1)' }}
-            >
-              {conversation.contact.name.charAt(0).toUpperCase()}
-            </div>
-            <span
-              aria-label={`Canal ${CHANNEL_NAME[conversation.channel] ?? conversation.channel}`}
-              className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full"
-              style={{ backgroundColor: channelDot, boxShadow: '0 0 0 2px var(--b-surface)' }}
-              title={
-                conversation.channel === 'whatsapp' && conversation.channelType
-                  ? `WhatsApp · ${CHANNEL_TYPE_LABEL[conversation.channelType] ?? conversation.channelType}`
-                  : (CHANNEL_NAME[conversation.channel] ?? conversation.channel)
-              }
-            />
-            {isOnline && (
-              <span
-                aria-label="En línea"
-                className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: '#22C55E', boxShadow: '0 0 0 2px var(--b-surface)' }}
-              />
-            )}
-          </div>
-
-          <div className="min-w-0 flex-1">
-            {/* Nombre + estado + hora */}
-            <div className="flex items-baseline justify-between gap-2">
-              <h3
-                className="truncate text-[13px] font-bold"
-                style={{ color: 'var(--b-text-1)' }}
-                title={contacto}
-              >
-                {conversation.contact.name}
-              </h3>
-              {status === 'pending' && (
-                <span
-                  className="flex-none rounded-full px-1.5 text-[10px] font-medium"
-                  style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}
-                >
-                  En espera
-                </span>
-              )}
-              {status === 'closed' && (
-                <span
-                  className="flex-none rounded-full px-1.5 text-[10px] font-medium"
-                  style={{ backgroundColor: 'var(--b-surface-2)', color: 'var(--b-text-2)' }}
-                >
-                  Cerrada
-                </span>
-              )}
-              {/* P0.3: el tipo de conexión decide si puedes responder libre o necesitas
-                  plantilla de pago, así que se ve sin abrir. Solo en WhatsApp. */}
-              {conversation.channel === 'whatsapp' && conversation.channelType && (
-                <span
-                  className="flex-none rounded px-1 text-[9px] font-bold uppercase tracking-wide"
-                  style={
-                    conversation.channelType === 'WEB_QR'
-                      ? { backgroundColor: 'var(--b-surface-2)', color: 'var(--b-text-2)' }
-                      : { backgroundColor: '#ECFDF5', color: '#047857' }
-                  }
-                  title={
-                    conversation.channelType === 'WEB_QR'
-                      ? 'Número vinculado por QR: puedes responder siempre, sin plantillas'
-                      : 'WhatsApp Business API (Meta): fuera de 24h solo con plantilla aprobada'
-                  }
-                >
-                  {conversation.channelType === 'WEB_QR' ? 'QR' : 'API'}
-                </span>
-              )}
-              {assignedToMe && (
-                <span
-                  className="flex-none rounded-full px-1.5 text-[10px] font-medium"
-                  style={{ backgroundColor: brand.brandBg, color: brand.brand }}
-                  title="Esta conversación está asignada a ti"
-                >
-                  Tuya
-                </span>
-              )}
-              <span className="flex-shrink-0 text-[10px]" style={{ color: 'var(--b-text-3)' }}>
-                {formatTimestamp(conversation.lastMessage.timestamp)}
-              </span>
-            </div>
-
-            {/* Mensaje + indicadores (acceso, modo de IA) + no leídos */}
-            <div className="flex items-center gap-1">
-              <div className="min-w-0 flex-1">
-                {isTyping ? (
-                  <TypingIndicator />
-                ) : (
-                  <p
-                    className="truncate text-[11.5px]"
-                    style={{
-                      color: conversation.unreadCount > 0 ? 'var(--b-text-1)' : 'var(--b-text-3)',
-                      fontWeight: conversation.unreadCount > 0 ? 500 : 400,
-                    }}
-                  >
-                    {/* "Tú:" solo si hay un mensaje que atribuir. Sin él, la fila decía
-                        "Tú: Sin mensajes" en TODAS las conversaciones — atribuyéndonos un
-                        mensaje que no existe (brief 18-09, P2.1). */}
-                    {!!conversation.lastMessage.text && !conversation.lastMessage.fromUser && (
-                      <span style={{ color: 'var(--b-text-3)' }}>Tú: </span>
-                    )}
-                    {previewText(stripMiniMarkdown(conversation.lastMessage.text))}
-                  </p>
-                )}
-              </div>
-              {agentName && (
-                <span
-                  aria-label={`Responsable: ${agentName}`}
-                  className="inline-flex max-w-[80px] flex-none items-center gap-0.5 truncate rounded-full px-1 text-[10px] font-medium"
-                  style={{ backgroundColor: brand.brandBg, color: brand.brand }}
-                  title={`Responsable: ${agentName}`}
-                >
-                  <span aria-hidden>🤖</span>
-                  <span className="truncate">{agentName}</span>
-                </span>
-              )}
-              <SharedBadge onManage={irACompartir} sharedWith={conversation.sharedWith} />
-              {marca && <IaModeBadge conversationId={conversation.id} development={marca} />}
-              {conversation.unreadCount > 0 && (
-                <span
-                  aria-label={`${conversation.unreadCount} sin leer`}
-                  className="flex-shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold text-white"
-                  style={{ backgroundColor: brand.brand, minWidth: 20 }}
-                >
-                  {conversation.unreadCount}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Context menu */}
+        seleccionada={isSelected}
+      />
       {contextMenu && (
         <div
           className="fixed z-50 w-48 rounded-lg border border-[var(--b-border)] bg-[var(--b-surface)] py-1 shadow-lg"
