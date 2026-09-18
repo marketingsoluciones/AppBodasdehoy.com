@@ -454,38 +454,38 @@ for zona in e2e-app "$DIR/src" "$DIR/components" "$DIR/pages" "$DIR/utils"; do
   find "$zona" -name '._*' -not -path '*/node_modules/*' -delete 2>/dev/null || true
 done
 
-# ─── packages/shared SIEMPRE: se consume desde dist ───────────────────────────
-info "Recompilando packages/shared (las apps leen su dist, no su fuente)"
-# El estado de salida de una tubería es el del ÚLTIMO comando: con
-# `tsc | grep || true` mandaba grep y un fallo de tsc pasaba desapercibido.
-# Y el guardián de `dist/index.js` no salvaba, porque el fichero existe de builds
-# anteriores: se desplegaba con un dist VIEJO, que es justo el fallo silencioso
-# que este script dice evitar. Se borra dist antes para que no pueda hacerse pasar
-# por bueno, y se captura la salida en vez de encadenarla.
-rm -rf packages/shared/dist
-SALIDA_TSC=$( cd packages/shared && npx tsc 2>&1 ) && CODIGO_TSC=0 || CODIGO_TSC=$?
-
-# `src/crm-ui/client.ts` usa `process` sin @types/node y falla desde ANTES de que
-# este script existiera (git log de ese fichero lo confirma). tsc sale 2 y EMITE
-# igual: comprobado el 17-09, dist se generó completo y con la tabla de colores
-# correcta. La versión anterior moría aquí por ese error ajeno, y encima filtraba
-# del mensaje justo esas líneas — o sea, abortaba el despliegue sin decir nada.
-# Se muere solo si hay errores DISTINTOS de ese, que son los que sí importan.
-OTROS_TSC=$(echo "$SALIDA_TSC" | grep -E "error TS" \
-            | grep -vE "src/crm-ui/.*Cannot find name 'process'" || true)
-if [ -n "$OTROS_TSC" ]; then
-  echo "$OTROS_TSC" >&2
-  morir "packages/shared no compila"
-fi
-[ "$CODIGO_TSC" = 0 ] || info "  tsc salió $CODIGO_TSC solo por los errores conocidos de crm-ui; emitió igual"
-
-# `rm -rf` arriba + esta comprobación son lo que garantiza que dist NO es viejo.
-# Importa más de lo que parece: dist está en .gitignore, así que ningún commit lo
-# lleva y cada checkout tiene el suyo. El 17-09 el dist de este checkout tenía los
-# colores de marca ANTERIORES en 7 de 11 marcas — bodasdehoy incluida — mientras
-# la fuente ya estaba arreglada, y chat-ia resuelve @bodasdehoy/shared SOLO a dist
-# (su exports map no expone src). El arreglo estaba commiteado y no se veía.
-[ -f packages/shared/dist/index.js ] || morir "packages/shared/dist no se generó"
+# ─── Paquetes que se consumen desde dist ──────────────────────────────────────
+# NO SOLO `shared`. Esto enumeraba un paquete y los otros CUATRO podían quedarse
+# rancios en silencio. Medido el 18-09: los cinco de packages/ tienen
+# `main: ./dist/index.js` y ninguno está en transpilePackages, o sea que las apps
+# leen su dist compilado. El dist de copilot-shared en el checkout de despliegue era
+# de JULIO — un cambio en sus burbujas se habría desplegado sin aparecer, y el build
+# habría salido en verde.
+#
+# Es la misma trampa de la lista curada, ahora a nivel de paquete: se descubren
+# leyendo el package.json en vez de nombrarlos, así que uno nuevo entra solo.
+info "Recompilando los paquetes que las apps leen desde dist"
+for PKG_JSON in packages/*/package.json; do
+  PKG_DIR=$(dirname "$PKG_JSON")
+  PKG_NOMBRE=$(basename "$PKG_DIR")
+  # ¿Su punto de entrada apunta a dist? Si no, no hay nada que recompilar.
+  case "$(grep -o '"main"[^,]*' "$PKG_JSON" | head -1)" in
+    *dist*) ;;
+    *) continue ;;
+  esac
+  rm -rf "$PKG_DIR/dist"
+  SALIDA_TSC=$( cd "$PKG_DIR" && npx tsc 2>&1 ) && CODIGO_TSC=0 || CODIGO_TSC=$?
+  # `src/crm-ui/client.ts` usa `process` sin @types/node y falla desde antes de que
+  # este script existiera. tsc EMITE igual. Se muere solo si hay errores DISTINTOS.
+  OTROS_TSC=$(echo "$SALIDA_TSC" | grep -E "error TS" \
+              | grep -vE "src/crm-ui/.*Cannot find name 'process'" || true)
+  if [ -n "$OTROS_TSC" ]; then
+    echo "$OTROS_TSC" >&2
+    morir "$PKG_NOMBRE no compila"
+  fi
+  [ -f "$PKG_DIR/dist/index.js" ] || morir "$PKG_NOMBRE: dist no se generó"
+  echo "    $PKG_NOMBRE ✓$([ "$CODIGO_TSC" = 0 ] || echo " (tsc $CODIGO_TSC, solo errores conocidos)")"
+done
 
 # ─── Build ────────────────────────────────────────────────────────────────────
 info "Compilando $APP → $NUEVO (esto tarda; el sitio sigue sirviendo el build anterior)"
