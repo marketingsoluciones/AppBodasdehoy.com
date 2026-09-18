@@ -522,7 +522,14 @@ BID=$(cat "$D/BUILD_ID")
 TAM_TOTAL=$(du -sm "$D" 2>/dev/null | cut -f1)
 TAM_CACHE=$(du -sm "$D/cache" 2>/dev/null | cut -f1 || echo 0)
 TAM_MB=$(( ${TAM_TOTAL:-0} - ${TAM_CACHE:-0} ))
-MIN_MB=$([ "$APP" = app ] && echo 100 || echo 150)
+# El mínimo de app baja de 100 a 50 el 19-09, y NO para silenciar un fallo: al
+# sustituir el editor de LobeChat por el campo del diseño, el artefacto pasó de 156 MB
+# a 74 — 62 menos de servidor y 16 de estático. Comprobado que ese build está COMPLETO
+# antes de tocar el umbral: 93 páginas igual que el anterior, BUILD_ID y todos los
+# manifiestos. Un umbral en MB envejece cada vez que entra o sale una dependencia
+# grande; lo que de verdad distingue un build truncado es que le falten páginas o
+# manifiestos, y eso se comprueba aparte.
+MIN_MB=$([ "$APP" = app ] && echo 50 || echo 150)
 [ "${TAM_MB:-0}" -ge "$MIN_MB" ] || morir "artefacto de solo ${TAM_MB} MB (mínimo ${MIN_MB}) → build a medias."
 verde "✓ Build válido · BUILD_ID=$BID · ${TAM_MB} MB de artefacto (+${TAM_CACHE:-0} MB de cache)"
 
