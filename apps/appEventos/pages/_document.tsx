@@ -9,6 +9,19 @@ export default function Document() {
   return (
     <Html lang="es">
       <Head>
+        {/* Poppins — la fuente de todos los diseños (Chat_Widget.dc.html y compañía).
+            globals.css declaraba `:root { font-family: Poppins }` desde hace tiempo pero
+            NADIE la cargaba: ni @font-face, ni next/font, ni este enlace. O sea que toda
+            la app caía a la fuente por defecto del navegador salvo que el usuario tuviera
+            Poppins instalada en su equipo, cosa que en un Mac no pasa. Los pesos son los
+            que usan los diseños: 400 normal, 500 cuerpo, 600 semi, 700 títulos. */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+
         {/* PWA Manifest */}
         <link rel="manifest" href="/manifest.json" />
 

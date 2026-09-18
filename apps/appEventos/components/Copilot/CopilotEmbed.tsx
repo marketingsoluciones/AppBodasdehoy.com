@@ -1028,51 +1028,45 @@ export const CopilotEmbed = ({
       }}
     >
       <div
-        style={{
-          textAlign: 'center',
-          padding: '28px 20px 22px',
-          borderRadius: 16,
-          background: 'linear-gradient(145deg, #fff5f9 0%, #ffffff 45%, #fdf2f8 100%)',
-          border: '1px solid #fce7f3',
-          boxShadow: '0 1px 3px rgba(236, 72, 153, 0.08), 0 8px 24px rgba(17, 24, 39, 0.06)',
-        }}
-      >
-        <div
           style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 52,
-            height: 52,
-            marginBottom: 14,
-            borderRadius: 14,
-            background: 'linear-gradient(135deg, #fce7f3, #fff)',
-            border: '1px solid #fbcfe8',
-            fontSize: 26,
-            lineHeight: 1,
-          }}
-          aria-hidden
-        >
-          ✨
-        </div>
-        <h3
-          style={{
-            margin: '0 0 6px',
-            fontSize: 18,
-            fontWeight: 700,
-            letterSpacing: '-0.02em',
-            color: '#111827',
-            lineHeight: 1.25,
+            // Diseño Chat_Widget.dc.html: el estado vacío va sobre el blanco del
+            // widget, sin tarjeta, sin borde y sin sombra.
+            padding: '26px 8px 8px',
+            textAlign: 'center',
           }}
         >
-          Copilot IA
-        </h3>
-        <p style={{ margin: '0 0 6px', fontSize: 14, fontWeight: 500, color: '#4b5563', lineHeight: 1.45 }}>
-          {eventName ? `Evento: ${eventName}` : 'Tu asistente de bodas inteligente'}
-        </p>
-        <p style={{ margin: '0 0 18px', fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
-          Pregunta por invitados, presupuesto, mesas o servicios. También puedes escribir abajo.
-        </p>
+          <span
+            aria-hidden
+            style={{
+              alignItems: 'center',
+              background: 'linear-gradient(135deg,#FDF0F6,#FCE7F0)',
+              border: '1px solid #F8CFE2',
+              borderRadius: 16,
+              display: 'inline-flex',
+              height: 52,
+              justifyContent: 'center',
+              marginBottom: 14,
+              width: 52,
+            }}
+          >
+            <svg height="26" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.2" viewBox="0 0 24 24" width="26">
+              <defs>
+                <linearGradient id="cpg-vacio" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0" stopColor="#F8A8C8" />
+                  <stop offset="1" stopColor="#D83E7C" />
+                </linearGradient>
+              </defs>
+              <path d="M11.5 3.5C12 8 13.8 9.8 18.2 10.2 13.8 10.7 12 12.5 11.5 17 11 12.5 9.2 10.7 4.8 10.2 9.2 9.8 11 8 11.5 3.5z" fill="url(#cpg-vacio)" stroke="url(#cpg-vacio)" />
+              <path d="M18.5 14.5C18.8 17 19.8 18 22.2 18.2 19.8 18.5 18.8 19.5 18.5 22 18.2 19.5 17.2 18.5 14.8 18.2 17.2 18 18.2 17 18.5 14.5z" fill="url(#cpg-vacio)" stroke="url(#cpg-vacio)" />
+            </svg>
+          </span>
+          <div style={{ color: '#3A3A42', font: '700 17px Poppins, sans-serif' }}>Copilot IA</div>
+          <p style={{ color: '#3A3A42', font: '600 13px Poppins, sans-serif', margin: '6px 0 0' }}>
+            {eventName ? `Evento: ${eventName}` : 'Tu asistente de bodas inteligente'}
+          </p>
+          <p style={{ color: '#8a8a90', font: '500 12px/1.6 Poppins, sans-serif', margin: '8px auto 0', maxWidth: 290 }}>
+            Pregunta por invitados, presupuesto, mesas o servicios. También puedes escribir abajo.
+          </p>
         {/* BUG-15 (informe QA 21-jun): "PRUEBA CON" sin chips proactivos quedaba huérfano
             (label sin lista). Movemos el label DENTRO del bloque de chips para que solo
             aparezca cuando hay algo que mostrar. */}
@@ -1109,42 +1103,50 @@ export const CopilotEmbed = ({
           if (!suggestions || suggestions.length === 0) return null;
           return (
             <>
-              <p style={{ margin: '0 0 10px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9ca3af' }}>
+              <p
+                style={{
+                  color: '#a0a0a8',
+                  font: '700 10px Poppins, sans-serif',
+                  letterSpacing: '.1em',
+                  margin: '0 0 8px',
+                  padding: '0 2px',
+                  textTransform: 'uppercase',
+                }}
+              >
                 Prueba con
               </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'stretch' }}>
+              <div style={{ alignItems: 'stretch', display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {suggestions.map(q => (
-            <button
-              key={q}
-              type="button"
-              onClick={() => handleSend(q)}
-              style={{
-                background: '#ffffff',
-                border: '1px solid #e5e7eb',
-                borderRadius: 10,
-                padding: '10px 14px',
-                fontSize: 13,
-                fontWeight: 500,
-                color: '#1f2937',
-                cursor: 'pointer',
-                textAlign: 'left',
-                lineHeight: 1.4,
-                transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = '#fdf2f8';
-                e.currentTarget.style.borderColor = '#f472b6';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(236, 72, 153, 0.12)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = '#ffffff';
-                e.currentTarget.style.borderColor = '#e5e7eb';
-                e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04)';
-              }}
-            >
-              {q}
-            </button>
+                  <button
+                    key={q}
+                    onClick={() => handleSend(q)}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = '#FDF3F7';
+                      e.currentTarget.style.borderColor = '#f0aecb';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = '#faf9fb';
+                      e.currentTarget.style.borderColor = '#ececef';
+                    }}
+                    style={{
+                      alignItems: 'center',
+                      background: '#faf9fb',
+                      border: '1px solid #ececef',
+                      borderRadius: 13,
+                      color: '#3A3A42',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      font: '500 12px Poppins, sans-serif',
+                      gap: 10,
+                      padding: '11px 14px',
+                      textAlign: 'left',
+                      transition: 'background .15s, border-color .15s',
+                      width: '100%',
+                    }}
+                    type="button"
+                  >
+                    {q}
+                  </button>
                 ))}
               </div>
             </>
@@ -1257,7 +1259,7 @@ export const CopilotEmbed = ({
       {/* Input area — full LobeChat editor (CopilotChatInput); padding extra con teclado virtual móvil */}
       <div
         style={{
-          borderTop: '1px solid #e8e8e8',
+          borderTop: '1px solid #f0f0f2',
           background: '#fff',
           flexShrink: 0,
           paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + ${keyboardInsetBottom}px)`,
@@ -1287,6 +1289,18 @@ export const CopilotEmbed = ({
           }}
           fileUploadEnabled={false}
         />
+        {/* Aviso del diseño Chat_Widget.dc.html */}
+        <div
+          style={{
+            color: '#c8c8ce',
+            font: '500 9.5px Poppins, sans-serif',
+            marginTop: 8,
+            paddingBottom: 6,
+            textAlign: 'center',
+          }}
+        >
+          Copilot puede cometer errores · Verifica los datos importantes
+        </div>
       </div>
     </div>
   );

@@ -21,9 +21,34 @@ const CopilotEmbed = dynamic(
   { ssr: false },
 );
 import { resolveChatOrigin } from '@bodasdehoy/shared/utils';
+
+/* ── Medidas del diseño Chat_Widget.dc.html ────────────────────────────────
+   Se definen aquí una sola vez para que los cuatro botones de la cabecera no
+   se separen entre sí, que es como acaban divergiendo estas cosas. */
+const BTN_CABECERA: React.CSSProperties = {
+  alignItems: 'center',
+  background: 'none',
+  border: 'none',
+  borderRadius: 9,
+  color: '#8a8a90',
+  cursor: 'pointer',
+  display: 'flex',
+  flex: 'none',
+  height: 30,
+  justifyContent: 'center',
+  width: 30,
+};
+const hoverBtn = (e: React.MouseEvent<HTMLElement>, dentro: boolean) => {
+  e.currentTarget.style.background = dentro ? '#faf9fb' : 'none';
+  e.currentTarget.style.color = dentro ? '#3A3A42' : '#8a8a90';
+};
+const hoverCerrar = (e: React.MouseEvent<HTMLElement>, dentro: boolean) => {
+  e.currentTarget.style.background = dentro ? '#FBE4EF' : 'none';
+  e.currentTarget.style.color = dentro ? '#D83E7C' : '#8a8a90';
+};
+
 import {
   IoClose,
-  IoSparkles,
   IoOpenOutline,
   IoTimeOutline,
   IoChatbubbleOutline,
@@ -444,10 +469,25 @@ const ChatSidebarDirect: FC<ChatSidebarDirectProps> = ({ forceOverlay, overlayBr
         <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden overscroll-y-contain">
 
           {/* ── Header ─────────────────────────────────────────────────── */}
-          <div className="flex items-center px-2 py-1.5 sm:px-3 border-b border-gray-200 bg-white [color-scheme:light] flex-shrink-0 gap-1">
+          <div
+            className="flex items-center flex-shrink-0"
+            style={{ background: '#fff', borderBottom: '1px solid #f0f0f2', gap: 10, padding: '14px 16px' }}
+          >
 
             {/* Sparkles */}
-            <IoSparkles className="text-primary text-base shrink-0 mr-0.5" aria-hidden />
+            {/* Chispa de marca — degradado exacto del diseño (Chat_Widget.dc.html) */}
+            <span aria-hidden style={{ alignItems: 'center', display: 'flex', flex: 'none', height: 32, justifyContent: 'center', width: 32 }}>
+              <svg height="17" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.2" viewBox="0 0 24 24" width="17">
+                <defs>
+                  <linearGradient id="cpg-header" x1="0" x2="1" y1="0" y2="1">
+                    <stop offset="0" stopColor="#F8A8C8" />
+                    <stop offset="1" stopColor="#D83E7C" />
+                  </linearGradient>
+                </defs>
+                <path d="M11.5 3.5C12 8 13.8 9.8 18.2 10.2 13.8 10.7 12 12.5 11.5 17 11 12.5 9.2 10.7 4.8 10.2 9.2 9.8 11 8 11.5 3.5z" fill="url(#cpg-header)" stroke="url(#cpg-header)" />
+                <path d="M18.5 14.5C18.8 17 19.8 18 22.2 18.2 19.8 18.5 18.8 19.5 18.5 22 18.2 19.5 17.2 18.5 14.8 18.2 17.2 18 18.2 17 18.5 14.5z" fill="url(#cpg-header)" stroke="url(#cpg-header)" />
+              </svg>
+            </span>
 
             {/* Título editable — click para renombrar */}
             <div className="flex-1 min-w-0">
@@ -474,7 +514,8 @@ const ChatSidebarDirect: FC<ChatSidebarDirectProps> = ({ forceOverlay, overlayBr
                   type="button"
                   id="copilot-sidebar-title"
                   onClick={handleStartEditLabel}
-                  className="w-full text-left text-sm font-medium text-gray-800 truncate leading-snug hover:text-primary transition-colors px-1 py-0.5 rounded hover:bg-gray-50"
+                  className="w-full text-left truncate rounded"
+                  style={{ color: '#3A3A42', font: '700 14px Poppins, sans-serif', padding: '2px 0' }}
                   title="Clic para renombrar"
                 >
                   {truncateLabel(activeSessionLabel)}
@@ -487,7 +528,10 @@ const ChatSidebarDirect: FC<ChatSidebarDirectProps> = ({ forceOverlay, overlayBr
               <button
                 type="button"
                 onClick={() => setDropdownOpen(v => !v)}
-                className={`p-1.5 rounded-lg transition-colors touch-manipulation inline-flex items-center justify-center ${dropdownOpen ? 'bg-base text-primary' : 'hover:bg-gray-100 text-gray-500'}`}
+                style={{ ...BTN_CABECERA, background: dropdownOpen ? '#FCE7F0' : 'none',
+                  color: dropdownOpen ? '#D83E7C' : '#8a8a90' }}
+                onMouseEnter={e => { if (!dropdownOpen) hoverBtn(e, true); }}
+                onMouseLeave={e => { if (!dropdownOpen) hoverBtn(e, false); }}
                 title="Historial de conversaciones"
                 aria-haspopup="listbox"
                 aria-expanded={dropdownOpen}
@@ -546,7 +590,9 @@ const ChatSidebarDirect: FC<ChatSidebarDirectProps> = ({ forceOverlay, overlayBr
             <button
               type="button"
               onClick={handleNewSession}
-              className="relative p-1.5 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation inline-flex items-center justify-center shrink-0 text-gray-500"
+              style={BTN_CABECERA}
+              onMouseEnter={e => hoverBtn(e, true)}
+              onMouseLeave={e => hoverBtn(e, false)}
               title="Nueva conversación"
             >
               <IoChatbubbleOutline className="w-4 h-4" />
@@ -557,7 +603,9 @@ const ChatSidebarDirect: FC<ChatSidebarDirectProps> = ({ forceOverlay, overlayBr
             <button
               type="button"
               onClick={handleOpenInNewTab}
-              className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation inline-flex items-center justify-center shrink-0"
+              style={{ ...BTN_CABECERA }}
+              onMouseEnter={e => hoverBtn(e, true)}
+              onMouseLeave={e => hoverBtn(e, false)}
               title="Abrir completo"
             >
               <IoOpenOutline className="text-gray-500 w-4 h-4" />
@@ -567,7 +615,9 @@ const ChatSidebarDirect: FC<ChatSidebarDirectProps> = ({ forceOverlay, overlayBr
             <button
               type="button"
               onClick={closeSidebar}
-              className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation inline-flex items-center justify-center shrink-0"
+              style={BTN_CABECERA}
+              onMouseEnter={e => hoverCerrar(e, true)}
+              onMouseLeave={e => hoverCerrar(e, false)}
               title="Cerrar"
             >
               <IoClose className="text-gray-500 w-4 h-4" />
@@ -578,16 +628,21 @@ const ChatSidebarDirect: FC<ChatSidebarDirectProps> = ({ forceOverlay, overlayBr
               Coherencia UI ↔ contexto: deja claro de qué evento habla el Copilot.
               En la lista de eventos (CTX-B) no hay evento único → "todos tus eventos". */}
           {authReady && !isGuest && (
-            <div className="flex items-center gap-1.5 px-3 py-1 border-b border-gray-100 bg-gray-50 text-[11px] text-gray-500 flex-shrink-0">
-              <span aria-hidden>{isEventListRoute ? '🗂️' : '📅'}</span>
+            <div
+              className="flex items-center flex-shrink-0"
+              style={{ background: '#faf9fb', borderBottom: '1px solid #f0f0f2', gap: 8, padding: '8px 16px' }}
+            >
+              <svg aria-hidden fill="none" height="13" stroke="#E8B94A" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="13">
+                <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              </svg>
               {isEventListRoute ? (
-                <span className="truncate">Contexto: todos tus eventos</span>
+                <span className="truncate" style={{ color: '#6b6b72', font: '500 11px Poppins, sans-serif' }}>Contexto: todos tus eventos</span>
               ) : eventNameForContext ? (
-                <span className="truncate">
-                  Contexto: <span className="font-medium text-gray-700">{eventNameForContext}</span>
+                <span className="truncate" style={{ color: '#6b6b72', font: '500 11px Poppins, sans-serif' }}>
+                  Contexto: <span style={{ color: '#3A3A42', fontWeight: 600 }}>{eventNameForContext}</span>
                 </span>
               ) : (
-                <span className="truncate">Sin evento seleccionado</span>
+                <span className="truncate" style={{ color: '#6b6b72', font: '500 11px Poppins, sans-serif' }}>Sin evento seleccionado</span>
               )}
             </div>
           )}
