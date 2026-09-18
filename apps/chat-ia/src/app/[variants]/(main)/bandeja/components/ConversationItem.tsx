@@ -50,10 +50,10 @@ function TypingIndicator() {
 
 // Colores canal (rediseño 18-jul). Solo puntos indicadores, no fondos.
 const CHANNEL_DOT: Record<string, string> = {
-  email: '#84848F',
+  email: 'var(--b-text-2)',
   facebook: '#1877F2',
   instagram: '#E1306C',
-  sms: '#84848F',
+  sms: 'var(--b-text-2)',
   telegram: '#2AABEE',
   web: '#6B4EFF',
   whatsapp: '#25D366',
@@ -152,7 +152,7 @@ export function ConversationItem({
     }
   };
 
-  const channelDot = CHANNEL_DOT[conversation.channel] ?? '#84848F';
+  const channelDot = CHANNEL_DOT[conversation.channel] ?? 'var(--b-text-2)';
   // Responsable (agente IA) visible EN LA FILA — hallazgo QA 31-ago: "no se ve quién lleva
   // cada conversación". El dato ya llega (api-ia lo espeja); el override optimista cubre los
   // ~120s de caché tras asignar. Suscripción por id → re-render al asignar desde la cabecera.
@@ -188,12 +188,12 @@ export function ConversationItem({
         className="group relative"
         onContextMenu={handleContextMenu}
         onMouseEnter={(e) => {
-          if (!isSelected) e.currentTarget.style.backgroundColor = '#FCFCFD';
+          if (!isSelected) e.currentTarget.style.backgroundColor = 'var(--b-surface)';
         }}
         onMouseLeave={(e) => {
           if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent';
         }}
-        style={{ backgroundColor: isSelected ? '#F2F1F6' : 'transparent' }}
+        style={{ backgroundColor: isSelected ? 'var(--b-surface-2)' : 'transparent' }}
       >
         <button
           aria-label={`Abrir conversación con ${conversation.contact.name}`}
@@ -206,14 +206,14 @@ export function ConversationItem({
           <div className="relative flex-shrink-0">
             <div
               className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold"
-              style={{ backgroundColor: '#F2F1F6', color: '#1C1C22' }}
+              style={{ backgroundColor: 'var(--b-surface-2)', color: 'var(--b-text-1)' }}
             >
               {conversation.contact.name.charAt(0).toUpperCase()}
             </div>
             <span
               aria-label={`Canal ${CHANNEL_NAME[conversation.channel] ?? conversation.channel}`}
               className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full"
-              style={{ backgroundColor: channelDot, boxShadow: '0 0 0 2px #FFFFFF' }}
+              style={{ backgroundColor: channelDot, boxShadow: '0 0 0 2px var(--b-surface)' }}
               title={
                 conversation.channel === 'whatsapp' && conversation.channelType
                   ? `WhatsApp · ${CHANNEL_TYPE_LABEL[conversation.channelType] ?? conversation.channelType}`
@@ -224,7 +224,7 @@ export function ConversationItem({
               <span
                 aria-label="En línea"
                 className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: '#22C55E', boxShadow: '0 0 0 2px #FFFFFF' }}
+                style={{ backgroundColor: '#22C55E', boxShadow: '0 0 0 2px var(--b-surface)' }}
               />
             )}
           </div>
@@ -234,7 +234,7 @@ export function ConversationItem({
             <div className="flex items-baseline justify-between gap-2">
               <h3
                 className="truncate text-[13px] font-bold"
-                style={{ color: '#262131' }}
+                style={{ color: 'var(--b-text-1)' }}
                 title={contacto}
               >
                 {conversation.contact.name}
@@ -250,7 +250,7 @@ export function ConversationItem({
               {status === 'closed' && (
                 <span
                   className="flex-none rounded-full px-1.5 text-[10px] font-medium"
-                  style={{ backgroundColor: '#F2F1F6', color: '#84848F' }}
+                  style={{ backgroundColor: 'var(--b-surface-2)', color: 'var(--b-text-2)' }}
                 >
                   Cerrada
                 </span>
@@ -262,7 +262,7 @@ export function ConversationItem({
                   className="flex-none rounded px-1 text-[9px] font-bold uppercase tracking-wide"
                   style={
                     conversation.channelType === 'WEB_QR'
-                      ? { backgroundColor: '#F4F4F6', color: '#6B6B76' }
+                      ? { backgroundColor: 'var(--b-surface-2)', color: 'var(--b-text-2)' }
                       : { backgroundColor: '#ECFDF5', color: '#047857' }
                   }
                   title={
@@ -283,7 +283,7 @@ export function ConversationItem({
                   Tuya
                 </span>
               )}
-              <span className="flex-shrink-0 text-[10px]" style={{ color: '#A8A3B5' }}>
+              <span className="flex-shrink-0 text-[10px]" style={{ color: 'var(--b-text-3)' }}>
                 {formatTimestamp(conversation.lastMessage.timestamp)}
               </span>
             </div>
@@ -297,7 +297,7 @@ export function ConversationItem({
                   <p
                     className="truncate text-[11.5px]"
                     style={{
-                      color: conversation.unreadCount > 0 ? '#1C1C22' : '#8B8698',
+                      color: conversation.unreadCount > 0 ? 'var(--b-text-1)' : 'var(--b-text-3)',
                       fontWeight: conversation.unreadCount > 0 ? 500 : 400,
                     }}
                   >
@@ -305,7 +305,7 @@ export function ConversationItem({
                         "Tú: Sin mensajes" en TODAS las conversaciones — atribuyéndonos un
                         mensaje que no existe (brief 18-09, P2.1). */}
                     {!!conversation.lastMessage.text && !conversation.lastMessage.fromUser && (
-                      <span style={{ color: '#9A9AA6' }}>Tú: </span>
+                      <span style={{ color: 'var(--b-text-3)' }}>Tú: </span>
                     )}
                     {previewText(stripMiniMarkdown(conversation.lastMessage.text))}
                   </p>
@@ -341,14 +341,14 @@ export function ConversationItem({
       {/* Context menu */}
       {contextMenu && (
         <div
-          className="fixed z-50 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+          className="fixed z-50 w-48 rounded-lg border border-[var(--b-border)] bg-[var(--b-surface)] py-1 shadow-lg"
           onMouseDown={(e) => e.stopPropagation()}
           ref={menuRef}
           style={{ left: contextMenu.x, top: contextMenu.y }}
         >
           <button
             aria-label="Archivar conversación"
-            className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+            className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-[var(--b-text-2)] hover:bg-[var(--b-surface-2)]"
             onClick={() => handleMenuAction('archive')}
             type="button"
           >
@@ -356,16 +356,16 @@ export function ConversationItem({
           </button>
           <button
             aria-label={conversationMuted ? 'Activar sonido' : 'Silenciar conversación'}
-            className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+            className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-[var(--b-text-2)] hover:bg-[var(--b-surface-2)]"
             onClick={() => handleMenuAction('mute')}
             type="button"
           >
             {conversationMuted ? '🔔 Activar sonido' : '🔇 Silenciar'}
-            <span className="ml-auto text-[10px]" style={{ color: '#9A9AA6' }}>
+            <span className="ml-auto text-[10px]" style={{ color: 'var(--b-text-3)' }}>
               solo aquí
             </span>
           </button>
-          <div className="my-1 h-px bg-gray-100" />
+          <div className="my-1 h-px bg-[var(--b-surface-2)]" />
           <button
             aria-label="Eliminar conversación"
             className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"

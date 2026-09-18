@@ -116,27 +116,27 @@ export default function MessagesLayout({ children }: MessagesLayoutProps) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
         <div
-          className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200"
+          className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--b-border)]"
           style={{ borderTopColor: brand.brand }}
         />
         {/* QA 14-ago: el texto anterior ("necesita una sesión iniciada") se leía como shell
             de visitante durante la resolución de sesión de un usuario YA logueado. Texto
             neutro de carga: aplica igual a "cargando" y a "comprobando". */}
-        <div className="text-sm font-medium text-gray-600">Cargando tu bandeja…</div>
+        <div className="text-sm font-medium text-[var(--b-text-2)]">Cargando tu bandeja…</div>
       </div>
     );
   }
 
   if (isGuest && graceElapsed && !localJwtPresent) {
     return (
-      <div className="flex h-full items-center justify-center bg-white px-6">
+      <div className="flex h-full items-center justify-center bg-[var(--b-surface)] px-6">
         <div className="w-full max-w-sm text-center">
           <div
-            className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-gray-200"
+            className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-[var(--b-border)]"
             style={{ borderTopColor: brand.brand }}
           />
-          <div className="mt-4 text-sm font-semibold text-gray-900">Acceso requerido</div>
-          <div className="mt-1 text-xs text-gray-500">Redirigiendo a login…</div>
+          <div className="mt-4 text-sm font-semibold text-[var(--b-text-1)]">Acceso requerido</div>
+          <div className="mt-1 text-xs text-[var(--b-text-3)]">Redirigiendo a login…</div>
           <button
             className="mt-4 rounded-lg px-4 py-2 text-xs font-semibold text-white"
             onClick={() => router.push('/login?redirect=/bandeja')}
@@ -154,7 +154,7 @@ export default function MessagesLayout({ children }: MessagesLayoutProps) {
   // contenedor (antes se quedaba en ~910px dejando franja vacía a la derecha en
   // desktop ancho, porque la raíz no forzaba el ancho del padre).
   return (
-    <div className="flex h-full w-full flex-1 flex-col overflow-hidden bg-white">
+    <div className="flex h-full w-full flex-1 flex-col overflow-hidden bg-[var(--b-surface)]">
       <div className="flex flex-1 overflow-hidden">
         {/* H3 (QA re-run 21-ago): MessagesRail (Conversaciones/Bandeja/Agentes/Notificaciones)
             RETIRADO — era un 2º rail vertical (solo desktop ≥1024px) que DUPLICABA el rail

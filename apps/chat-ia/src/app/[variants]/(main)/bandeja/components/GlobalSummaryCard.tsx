@@ -58,7 +58,7 @@ export function GlobalSummaryCard({ convUnread }: { convUnread: number }) {
   if (stats.length === 0) return null;
 
   return (
-    <div className="no-scrollbar flex items-center gap-3 overflow-x-auto border-b border-gray-100 px-3 py-1.5">
+    <div className="no-scrollbar flex items-center gap-3 overflow-x-auto border-b border-[var(--b-border)] px-3 py-1.5">
       <span
         aria-hidden="true"
         className="flex-none text-[11px] text-brand"
@@ -69,10 +69,10 @@ export function GlobalSummaryCard({ convUnread }: { convUnread: number }) {
       {stats.map((s) => (
         <span className="flex flex-none items-baseline gap-1" key={s.label}>
           <span aria-hidden="true" className="text-[11px]">{s.icon}</span>
-          <span className="text-[13px] font-bold" style={{ color: '#1C1C22' }}>
+          <span className="text-[13px] font-bold" style={{ color: 'var(--b-text-1)' }}>
             {s.value}
           </span>
-          <span className="text-[11px]" style={{ color: '#84848F' }}>
+          <span className="text-[11px]" style={{ color: 'var(--b-text-2)' }}>
             {s.label}
           </span>
         </span>

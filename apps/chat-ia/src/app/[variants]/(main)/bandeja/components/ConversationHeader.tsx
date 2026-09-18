@@ -255,8 +255,8 @@ export function ConversationHeader({
     // Mientras carga la lista y dentro de la gracia: spinner mínimo.
     if (convListLoading || !graceExpired) {
       return (
-        <div className="flex items-center justify-between border-b border-gray-200 bg-white p-4">
-          <div className="flex items-center gap-2 text-sm text-gray-500">
+        <div className="flex items-center justify-between border-b border-[var(--b-border)] bg-[var(--b-surface)] p-4">
+          <div className="flex items-center gap-2 text-sm text-[var(--b-text-3)]">
             <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-gray-300 border-t-purple-500" />
             <span>Cargando…</span>
           </div>
@@ -270,11 +270,11 @@ export function ConversationHeader({
     // Antes se filtraba "No disponible en la lista de wa-69d8…". Copy neutral + amable.
     // El estado solo-lectura (banner + compositor) lo pinta la página del hilo.
     return (
-      <div className="flex items-center justify-between border-b border-gray-200 bg-white p-4">
+      <div className="flex items-center justify-between border-b border-[var(--b-border)] bg-[var(--b-surface)] p-4">
         <div className="flex min-w-0 items-center gap-3">
           <button
             aria-label="Volver a la bandeja"
-            className="flex h-9 w-9 flex-none items-center justify-center rounded-md text-gray-700 transition-colors hover:bg-gray-100"
+            className="flex h-9 w-9 flex-none items-center justify-center rounded-md text-[var(--b-text-2)] transition-colors hover:bg-[var(--b-surface-2)]"
             onClick={() => router.push('/bandeja')}
             title="Volver a la bandeja"
             type="button"
@@ -292,12 +292,12 @@ export function ConversationHeader({
               <path d="m15 18-6-6 6-6" />
             </svg>
           </button>
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-gray-200 text-sm font-semibold text-gray-500">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-gray-200 text-sm font-semibold text-[var(--b-text-3)]">
             ⚠
           </div>
           <div className="min-w-0">
-            <h2 className="truncate font-semibold text-gray-700">Conversación anterior</h2>
-            <p className="truncate text-xs text-gray-500">
+            <h2 className="truncate font-semibold text-[var(--b-text-2)]">Conversación anterior</h2>
+            <p className="truncate text-xs text-[var(--b-text-3)]">
               El historial sigue disponible. Conexión no activa.
             </p>
           </div>
@@ -312,7 +312,7 @@ export function ConversationHeader({
   const isOnline = minutesAgo < 5;
 
   return (
-    <div style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid #EDEDF0' }}>
+    <div style={{ backgroundColor: 'var(--b-surface)', borderBottom: '1px solid var(--b-border)' }}>
       <div className="flex items-center justify-between gap-3 px-4 py-3">
         {/* Left: Contact Info */}
         <div className="flex min-w-0 items-center gap-3">
@@ -322,9 +322,9 @@ export function ConversationHeader({
             aria-label="Volver a la bandeja"
             className="flex h-9 w-9 flex-none items-center justify-center rounded-md transition-colors"
             onClick={() => router.push('/bandeja')}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F2F1F6')}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--b-surface-2)')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-            style={{ color: '#1C1C22' }}
+            style={{ color: 'var(--b-text-1)' }}
             title="Volver a la bandeja"
             type="button"
           >
@@ -345,7 +345,7 @@ export function ConversationHeader({
           <div className="relative flex-shrink-0">
             <div
               className="flex h-10 w-10 items-center justify-center rounded-full text-base font-semibold"
-              style={{ backgroundColor: '#F2F1F6', color: '#1C1C22' }}
+              style={{ backgroundColor: 'var(--b-surface-2)', color: 'var(--b-text-1)' }}
             >
               {conversation.contact.name.charAt(0).toUpperCase()}
             </div>
@@ -353,7 +353,7 @@ export function ConversationHeader({
               <span
                 aria-label="En línea"
                 className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: '#22C55E', boxShadow: '0 0 0 2px #FFFFFF' }}
+                style={{ backgroundColor: '#22C55E', boxShadow: '0 0 0 2px var(--b-surface)' }}
               />
             )}
           </div>
@@ -361,7 +361,7 @@ export function ConversationHeader({
           {/* Info: nombre + ChannelBadge (preservado) + IaLevelPicker (preservado) */}
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="truncate text-sm font-semibold" style={{ color: '#1C1C22' }}>
+              <h2 className="truncate text-sm font-semibold" style={{ color: 'var(--b-text-1)' }}>
                 {conversation.contact.name}
               </h2>
               <ChannelBadge channel={conversation.channel} size="sm" />
@@ -379,7 +379,7 @@ export function ConversationHeader({
               )}
             </div>
             <div className="mt-0.5 flex items-center gap-1.5">
-              <p className="truncate text-xs" style={{ color: '#84848F' }}>
+              <p className="truncate text-xs" style={{ color: 'var(--b-text-2)' }}>
                 {isOnline
                   ? 'En línea'
                   : conversation.contact.phone ||
@@ -421,9 +421,9 @@ export function ConversationHeader({
                     disabled={assigningAgent}
                     onChange={(e) => void handleAssignAgent(e.target.value)}
                     style={{
-                      backgroundColor: agentId ? brand.brandBg : '#F2F1F6',
+                      backgroundColor: agentId ? brand.brandBg : 'var(--b-surface-2)',
                       border: 'none',
-                      color: agentId ? brand.brand : '#84848F',
+                      color: agentId ? brand.brand : 'var(--b-text-2)',
                       cursor: assigningAgent ? 'wait' : 'pointer',
                     }}
                     title={agentName ? `Responsable: ${agentName}` : 'Sin responsable asignado'}
@@ -463,12 +463,12 @@ export function ConversationHeader({
               onChange={(e) => setStatus(e.target.value as ConversationStatus)}
               style={{
                 backgroundColor:
-                  status === 'open' ? '#FFFFFF' : status === 'pending' ? '#FEF3C7' : '#F2F1F6',
+                  status === 'open' ? 'var(--b-surface)' : status === 'pending' ? '#FEF3C7' : 'var(--b-surface-2)',
                 border: `1px solid ${
-                  status === 'open' ? '#EDEDF0' : status === 'pending' ? '#FCD34D' : '#EDEDF0'
+                  status === 'open' ? 'var(--b-border)' : status === 'pending' ? '#FCD34D' : 'var(--b-border)'
                 }`,
                 color:
-                  status === 'open' ? '#1C1C22' : status === 'pending' ? '#92400E' : '#84848F',
+                  status === 'open' ? 'var(--b-text-1)' : status === 'pending' ? '#92400E' : 'var(--b-text-2)',
               }}
               value={status}
             >
@@ -498,8 +498,8 @@ export function ConversationHeader({
               }}
               style={{
                 backgroundColor: assignedToMe ? brand.brandBg : 'transparent',
-                border: `1px solid ${assignedToMe ? brand.brandBg : '#EDEDF0'}`,
-                color: assignedToMe ? brand.brand : '#84848F',
+                border: `1px solid ${assignedToMe ? brand.brandBg : 'var(--b-border)'}`,
+                color: assignedToMe ? brand.brand : 'var(--b-text-2)',
               }}
               title={
                 assignedToMe
@@ -549,14 +549,14 @@ export function ConversationHeader({
             className="flex h-8 w-8 items-center justify-center rounded-md transition-colors"
             onClick={() => (searchOpen ? closeSearch() : setSearchOpen(true))}
             onMouseEnter={(e) => {
-              if (!searchOpen) e.currentTarget.style.backgroundColor = '#F2F1F6';
+              if (!searchOpen) e.currentTarget.style.backgroundColor = 'var(--b-surface-2)';
             }}
             onMouseLeave={(e) => {
               if (!searchOpen) e.currentTarget.style.backgroundColor = 'transparent';
             }}
             style={{
               backgroundColor: searchOpen ? brand.brandBg : 'transparent',
-              color: searchOpen ? brand.brand : '#84848F',
+              color: searchOpen ? brand.brand : 'var(--b-text-2)',
             }}
             title="Buscar en conversación (⌘K)"
             type="button"
@@ -587,14 +587,14 @@ export function ConversationHeader({
               className="flex h-8 w-8 items-center justify-center rounded-md transition-colors"
               onClick={onToggleDetails}
               onMouseEnter={(e) => {
-                if (!detailsOpen) e.currentTarget.style.backgroundColor = '#F2F1F6';
+                if (!detailsOpen) e.currentTarget.style.backgroundColor = 'var(--b-surface-2)';
               }}
               onMouseLeave={(e) => {
                 if (!detailsOpen) e.currentTarget.style.backgroundColor = 'transparent';
               }}
               style={{
                 backgroundColor: detailsOpen ? brand.brandBg : 'transparent',
-                color: detailsOpen ? brand.brand : '#84848F',
+                color: detailsOpen ? brand.brand : 'var(--b-text-2)',
               }}
               title={detailsOpen ? 'Ocultar detalles del contacto' : 'Mostrar detalles del contacto'}
               type="button"
@@ -668,14 +668,14 @@ export function ConversationHeader({
               className="flex h-8 w-8 items-center justify-center rounded-md transition-colors"
               onClick={() => setMenuOpen(!menuOpen)}
               onMouseEnter={(e) => {
-                if (!menuOpen) e.currentTarget.style.backgroundColor = '#F2F1F6';
+                if (!menuOpen) e.currentTarget.style.backgroundColor = 'var(--b-surface-2)';
               }}
               onMouseLeave={(e) => {
                 if (!menuOpen) e.currentTarget.style.backgroundColor = 'transparent';
               }}
               style={{
-                backgroundColor: menuOpen ? '#F2F1F6' : 'transparent',
-                color: menuOpen ? '#1C1C22' : '#84848F',
+                backgroundColor: menuOpen ? 'var(--b-surface-2)' : 'transparent',
+                color: menuOpen ? 'var(--b-text-1)' : 'var(--b-text-2)',
               }}
               title="Más opciones"
               type="button"
@@ -700,8 +700,8 @@ export function ConversationHeader({
                 className="absolute right-0 top-full z-10 mt-1 w-56 overflow-hidden rounded-lg py-1"
                 role="menu"
                 style={{
-                  backgroundColor: '#FFFFFF',
-                  border: '1px solid #EDEDF0',
+                  backgroundColor: 'var(--b-surface)',
+                  border: '1px solid var(--b-border)',
                   boxShadow: '0 4px 12px rgba(28,28,34,0.08)',
                 }}
               >
@@ -709,9 +709,9 @@ export function ConversationHeader({
                   className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors"
                   disabled={blocking}
                   onClick={() => handleMenuAction('block')}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F2F1F6')}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--b-surface-2)')}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                  style={{ color: isBlocked ? '#1C1C22' : '#DC2626' }}
+                  style={{ color: isBlocked ? 'var(--b-text-1)' : '#DC2626' }}
                   type="button"
                 >
                   {blocking
@@ -723,9 +723,9 @@ export function ConversationHeader({
                 <button
                   className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors"
                   onClick={() => handleMenuAction('archive')}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F2F1F6')}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--b-surface-2)')}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                  style={{ color: '#1C1C22' }}
+                  style={{ color: 'var(--b-text-1)' }}
                   type="button"
                 >
                   Archivar conversación
@@ -733,17 +733,17 @@ export function ConversationHeader({
                 <button
                   className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors"
                   onClick={() => handleMenuAction('mute')}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F2F1F6')}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--b-surface-2)')}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                  style={{ color: '#1C1C22' }}
+                  style={{ color: 'var(--b-text-1)' }}
                   type="button"
                 >
                   {conversationMuted ? 'Activar sonido' : 'Silenciar'}
-                  <span className="ml-auto text-[10px]" style={{ color: '#9A9AA6' }}>
+                  <span className="ml-auto text-[10px]" style={{ color: 'var(--b-text-3)' }}>
                     solo aquí
                   </span>
                 </button>
-                <div style={{ borderTop: '1px solid #EDEDF0', margin: '4px 0' }} />
+                <div style={{ borderTop: '1px solid var(--b-border)', margin: '4px 0' }} />
                 <button
                   className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors"
                   onClick={() => handleMenuAction('clear')}
@@ -794,13 +794,13 @@ export function ConversationHeader({
       {searchOpen && (
         <div
           className="flex items-center gap-2 px-4 py-2"
-          style={{ borderTop: '1px solid #EDEDF0' }}
+          style={{ borderTop: '1px solid var(--b-border)' }}
         >
           <svg
             aria-hidden
             fill="none"
             height="14"
-            stroke="#9A9AA6"
+            stroke="var(--b-text-3)"
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth="1.8"
@@ -815,7 +815,7 @@ export function ConversationHeader({
             onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Buscar mensajes..."
             ref={searchInputRef}
-            style={{ color: '#1C1C22' }}
+            style={{ color: 'var(--b-text-1)' }}
             type="text"
             value={searchTerm}
           />
@@ -823,7 +823,7 @@ export function ConversationHeader({
             <button
               className="text-xs transition-colors"
               onClick={closeSearch}
-              style={{ color: '#84848F' }}
+              style={{ color: 'var(--b-text-2)' }}
               type="button"
             >
               Cerrar

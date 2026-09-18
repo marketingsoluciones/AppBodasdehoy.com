@@ -60,8 +60,8 @@ export function InboxOverview({
     return (
       <div className="max-w-md">
         <div className="text-4xl">💬</div>
-        <div className="mt-3 text-sm font-semibold text-gray-800">Aún no hay conversaciones</div>
-        <div className="mt-1 text-xs text-gray-500">
+        <div className="mt-3 text-sm font-semibold text-[var(--b-text-1)]">Aún no hay conversaciones</div>
+        <div className="mt-1 text-xs text-[var(--b-text-3)]">
           Conecta un canal y los mensajes de tus clientes llegarán aquí, todos juntos.
         </div>
         {canManage ? (
@@ -74,10 +74,10 @@ export function InboxOverview({
               Conectar WhatsApp
             </button>
             <button
-              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold"
+              className="rounded-lg border border-[var(--b-border)] bg-[var(--b-surface)] px-3 py-2 text-xs font-semibold"
               onClick={onConnectOther}
               // A4 (QA 6-ago): color inline evita texto invisible en tema oscuro.
-              style={{ color: '#374151' }}
+              style={{ color: 'var(--b-text-2)' }}
               title="Instagram, Facebook, Telegram, correo o chat web"
               type="button"
             >
@@ -85,7 +85,7 @@ export function InboxOverview({
             </button>
           </div>
         ) : (
-          <div className="mt-4 text-xs text-gray-400">
+          <div className="mt-4 text-xs text-[var(--b-text-3)]">
             Contacta con soporte para activar la mensajería de tu evento.
           </div>
         )}
@@ -101,7 +101,7 @@ export function InboxOverview({
             <div className="text-[32px] font-bold leading-none text-brand">
               {esperan.length}
             </div>
-            <div className="mt-1 text-sm font-semibold text-gray-800">
+            <div className="mt-1 text-sm font-semibold text-[var(--b-text-1)]">
               {esperan.length === 1 ? 'conversación espera respuesta' : 'conversaciones esperan respuesta'}
             </div>
             {masAntigua >= 24 && (
@@ -113,34 +113,34 @@ export function InboxOverview({
         ) : (
           <>
             <div className="text-4xl">✅</div>
-            <div className="mt-2 text-sm font-semibold text-gray-800">Todo contestado</div>
-            <div className="mt-1 text-xs text-gray-500">
+            <div className="mt-2 text-sm font-semibold text-[var(--b-text-1)]">Todo contestado</div>
+            <div className="mt-1 text-xs text-[var(--b-text-3)]">
               No queda ningún mensaje sin responder.
             </div>
           </>
         )}
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-gray-200 bg-white">
-        <div className="border-b border-gray-100 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+      <div className="mt-4 overflow-hidden rounded-xl border border-[var(--b-border)] bg-[var(--b-surface)]">
+        <div className="border-b border-[var(--b-border)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--b-text-3)]">
           {esperan.length > 0 ? 'Empieza por aquí' : 'Últimas conversaciones'}
         </div>
         {lista.map((it) => (
           <button
-            className="flex w-full items-center gap-2 border-b border-gray-50 px-3 py-2 text-left last:border-0 hover:bg-gray-50"
+            className="flex w-full items-center gap-2 border-b border-gray-50 px-3 py-2 text-left last:border-0 hover:bg-[var(--b-surface-2)]"
             key={it.id}
             onClick={() => onItemClick(it)}
             type="button"
           >
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-[13px] font-semibold text-gray-800">
+              <span className="block truncate text-[13px] font-semibold text-[var(--b-text-1)]">
                 {it.name}
               </span>
-              <span className="block truncate text-[11px] text-gray-500">
+              <span className="block truncate text-[11px] text-[var(--b-text-3)]">
                 {previewText(it.preview)}
               </span>
             </span>
-            <span className="flex-none text-[11px] text-gray-400">{haceCuanto(it.timestamp)}</span>
+            <span className="flex-none text-[11px] text-[var(--b-text-3)]">{haceCuanto(it.timestamp)}</span>
           </button>
         ))}
       </div>
@@ -157,7 +157,7 @@ export function InboxOverview({
 
       {/* Qué significan los iconos de la lista. Van aquí porque es el sitio donde sobra
           espacio, y porque un icono que hay que adivinar no sirve de nada. */}
-      <div className="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-gray-400">
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-[var(--b-text-3)]">
         <span>En la lista:</span>
         <span title="Con cuánta gente del equipo está compartida">👥 acceso</span>
         {(Object.keys(IA_MODES) as Array<keyof typeof IA_MODES>).map((k) => (

@@ -134,11 +134,11 @@ export function ScopeSelector({ activeScope, onChange, events }: ScopeSelectorPr
 
       {open && (
         <div
-          className="absolute left-0 right-0 top-full z-20 mt-1 max-h-[60vh] overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg"
+          className="absolute left-0 right-0 top-full z-20 mt-1 max-h-[60vh] overflow-y-auto rounded-xl border border-[var(--b-border)] bg-[var(--b-surface)] shadow-lg"
           role="listbox"
         >
           {/* Sección Soporte */}
-          <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+          <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--b-text-3)]">
             Todo junto
           </div>
           <ScopeRow
@@ -151,15 +151,15 @@ export function ScopeSelector({ activeScope, onChange, events }: ScopeSelectorPr
           />
 
           {/* Sección Eventos */}
-          <div className="my-1 border-t border-gray-100" />
-          <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+          <div className="my-1 border-t border-[var(--b-border)]" />
+          <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--b-text-3)]">
             Eventos activos
           </div>
           {loadingEvents && (
-            <div className="px-3 py-2 text-[11px] text-gray-400">Cargando eventos…</div>
+            <div className="px-3 py-2 text-[11px] text-[var(--b-text-3)]">Cargando eventos…</div>
           )}
           {!loadingEvents && effectiveEvents.length === 0 && (
-            <div className="px-3 py-2 text-[11px] text-gray-400">
+            <div className="px-3 py-2 text-[11px] text-[var(--b-text-3)]">
               No tienes eventos activos.
             </div>
           )}
@@ -196,8 +196,8 @@ function ScopeRow({
   const isEvent = option.kind === 'event';
   return (
     <button
-      className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-[12px] transition-colors hover:bg-gray-50 ${
-        isActive ? 'bg-gray-50 font-semibold' : ''
+      className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-[12px] transition-colors hover:bg-[var(--b-surface-2)] ${
+        isActive ? 'bg-[var(--b-surface-2)] font-semibold' : ''
       }`}
       onClick={onClick}
       role="option"
@@ -210,7 +210,7 @@ function ScopeRow({
           className="inline-block h-1.5 w-1.5 rounded-full"
           style={{ backgroundColor: isEvent ? '#E11D48' : brand.brand }}
         />
-        <span className="truncate text-gray-800">{option.label}</span>
+        <span className="truncate text-[var(--b-text-1)]">{option.label}</span>
       </span>
       {option.pendingCount != null && option.pendingCount > 0 && (
         <span

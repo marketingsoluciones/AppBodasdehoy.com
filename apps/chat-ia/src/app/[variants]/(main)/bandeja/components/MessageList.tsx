@@ -176,7 +176,7 @@ export function MessageList({ channel, conversationId, searchFilter }: MessageLi
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
           <div className="mb-2 text-3xl">⏳</div>
-          <p className="text-sm text-gray-500">Cargando mensajes...</p>
+          <p className="text-sm text-[var(--b-text-3)]">Cargando mensajes...</p>
         </div>
       </div>
     );
@@ -198,11 +198,11 @@ export function MessageList({ channel, conversationId, searchFilter }: MessageLi
       <div className="flex h-full items-center justify-center p-4">
         <div className="text-center">
           <div className="mb-2 text-4xl">{searchFilter ? '🔍' : '💭'}</div>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-[var(--b-text-3)]">
             {searchFilter ? `Sin resultados para "${searchFilter}"` : 'No hay mensajes aún'}
           </p>
           {!searchFilter && (
-            <p className="mt-1 text-xs text-gray-400">
+            <p className="mt-1 text-xs text-[var(--b-text-3)]">
               Envía el primer mensaje para empezar la conversación
             </p>
           )}
@@ -215,14 +215,14 @@ export function MessageList({ channel, conversationId, searchFilter }: MessageLi
 
   return (
     <div className="relative h-full">
-      <div className="h-full overflow-auto bg-gray-50 p-4" ref={containerRef}>
+      <div className="h-full overflow-auto bg-[var(--b-surface-2)] p-4" ref={containerRef}>
         <div className="space-y-1">
           {grouped.map((item) => {
             if (item.type === 'divider') {
               return (
                 <div className="flex items-center gap-3 py-3" key={item.key}>
                   <div className="h-px flex-1 bg-gray-200" />
-                  <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-gray-500 shadow-sm">
+                  <span className="rounded-full bg-[var(--b-surface)] px-3 py-1 text-xs font-medium text-[var(--b-text-3)] shadow-sm">
                     {item.label}
                   </span>
                   <div className="h-px flex-1 bg-gray-200" />
@@ -253,7 +253,7 @@ export function MessageList({ channel, conversationId, searchFilter }: MessageLi
         >
           {newMessageCount > 0 ? (
             <>
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-bold text-blue-600">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--b-surface)] text-xs font-bold text-blue-600">
                 {newMessageCount}
               </span>
               <span>Nuevos mensajes</span>

@@ -94,3 +94,51 @@
   --text-body: 13px;
   --text-head: 14px;
 }
+
+/* ─── Paleta semántica de la bandeja ────────────────────────────────────────────
+ * La bandeja tenía 365 colores escritos a mano y 98 distintos, 30 de ellos usados UNA sola
+ * vez: no era una paleta, era acumulación —cada quien escribió el gris que le pareció—. Con
+ * el color escrito dentro de cada componente, el modo oscuro no se puede hacer: habría que
+ * editarlos uno a uno.
+ *
+ * Aquí se nombran por FUNCIÓN, no por color: en oscuro un "gris medio" deja de ser gris
+ * medio, pero sigue siendo "texto secundario". Así el tema oscuro se define una vez, aquí, y
+ * no en 28 ficheros.
+ *
+ * Los colores de ESTADO (verde WhatsApp, ámbar de aviso, rojo de error) y los de CANAL no
+ * entran: significan lo mismo en claro y en oscuro, y cambiarlos los rompería.
+ * ------------------------------------------------------------------------------ */
+:root {
+  --b-text-1: #1C1C22;   /* titulares y nombres */
+  --b-text-2: #6B6B76;   /* texto secundario, etiquetas */
+  --b-text-3: #9A9AA6;   /* apoyo: horas, contadores, marcas de agua */
+  --b-surface: #FFFFFF;  /* fondo de fila y de panel */
+  --b-surface-2: #F2F1F6;/* fondo alterno: avatar, fila seleccionada, chip apagado */
+  --b-border: #EDEDF0;   /* separadores */
+}
+
+/* `prefers-color-scheme` cubre el modo automático, que es el de fábrica y el que sigue al
+   teléfono. Los selectores de después cubren el caso de que el usuario fuerce oscuro desde
+   los ajustes de la aplicación: cada librería lo marca a su manera, así que se contemplan las
+   tres formas habituales en vez de adivinar una. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --b-text-1: #F2F1F6;
+    --b-text-2: #A8A6B3;
+    --b-text-3: #84848F;
+    --b-surface: #1A1A1F;
+    --b-surface-2: #26262D;
+    --b-border: #32323A;
+  }
+}
+
+[data-theme='dark'],
+html.dark,
+[data-prefers-color-scheme='dark'] {
+  --b-text-1: #F2F1F6;
+  --b-text-2: #A8A6B3;
+  --b-text-3: #84848F;
+  --b-surface: #1A1A1F;
+  --b-surface-2: #26262D;
+  --b-border: #32323A;
+}

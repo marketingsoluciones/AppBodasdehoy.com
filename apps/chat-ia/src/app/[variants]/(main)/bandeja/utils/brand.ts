@@ -52,8 +52,8 @@ function mix(hex: string, other: string, weight: number): string {
   return `#${to2(ch(a.r, b.r))}${to2(ch(a.g, b.g))}${to2(ch(a.b, b.b))}`;
 }
 
-const WHITE = '#ffffff';
-const BLACK = '#000000';
+const WHITE = 'var(--b-surface)';
+const BLACK = 'var(--b-text-1)';
 
 export function useBandejaBrand(): BandejaBrand {
   const development = typeof window !== 'undefined' ? getCurrentDevelopment() : undefined;

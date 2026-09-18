@@ -129,14 +129,14 @@ export function NewMessageModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose} role="presentation">
-      <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()} role="dialog">
+      <div className="w-full max-w-md rounded-2xl bg-[var(--b-surface)] p-5 shadow-xl" onClick={(e) => e.stopPropagation()} role="dialog">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-gray-900">✍️ Nuevo mensaje</h2>
-          <button aria-label="Cerrar" className="text-gray-400 hover:text-gray-600" onClick={onClose} type="button">✕</button>
+          <h2 className="text-base font-semibold text-[var(--b-text-1)]">✍️ Nuevo mensaje</h2>
+          <button aria-label="Cerrar" className="text-[var(--b-text-3)] hover:text-[var(--b-text-2)]" onClick={onClose} type="button">✕</button>
         </div>
 
         {/* Selector de RED */}
-        <div className="mb-1 text-xs font-medium text-gray-600">Red</div>
+        <div className="mb-1 text-xs font-medium text-[var(--b-text-2)]">Red</div>
         <div className="mb-1.5 flex flex-wrap gap-1.5">
           {NETWORKS.map((n) => (
             <button
@@ -144,8 +144,8 @@ export function NewMessageModal({ onClose }: { onClose: () => void }) {
                 network === n.id
                   ? 'border-violet-400 bg-violet-50 text-violet-700'
                   : n.enabled
-                    ? 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
-                    : 'cursor-not-allowed border-gray-100 bg-gray-50 text-gray-300'
+                    ? 'border-[var(--b-border)] bg-[var(--b-surface)] text-[var(--b-text-2)] hover:bg-[var(--b-surface-2)]'
+                    : 'cursor-not-allowed border-[var(--b-border)] bg-[var(--b-surface-2)] text-[var(--b-text-3)]'
               }`}
               disabled={!n.enabled}
               key={n.id}
@@ -157,14 +157,14 @@ export function NewMessageModal({ onClose }: { onClose: () => void }) {
             </button>
           ))}
         </div>
-        <p className="mb-3 text-[11px] leading-snug text-gray-400">{netHint}</p>
+        <p className="mb-3 text-[11px] leading-snug text-[var(--b-text-3)]">{netHint}</p>
 
-        <label className="mb-1 block text-xs font-medium text-gray-600" htmlFor="nm-phone">
+        <label className="mb-1 block text-xs font-medium text-[var(--b-text-2)]" htmlFor="nm-phone">
           Teléfono (con prefijo de país)
         </label>
         <input
           autoFocus
-          className="mb-3 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-400"
+          className="mb-3 w-full rounded-lg border border-[var(--b-border)] px-3 py-2 text-sm outline-none focus:border-violet-400"
           id="nm-phone"
           inputMode="tel"
           onChange={(e) => setPhone(e.target.value)}
@@ -172,11 +172,11 @@ export function NewMessageModal({ onClose }: { onClose: () => void }) {
           value={phone}
         />
 
-        <label className="mb-1 block text-xs font-medium text-gray-600" htmlFor="nm-name">
-          Nombre del contacto <span className="text-gray-400">(opcional)</span>
+        <label className="mb-1 block text-xs font-medium text-[var(--b-text-2)]" htmlFor="nm-name">
+          Nombre del contacto <span className="text-[var(--b-text-3)]">(opcional)</span>
         </label>
         <input
-          className="mb-3 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-400"
+          className="mb-3 w-full rounded-lg border border-[var(--b-border)] px-3 py-2 text-sm outline-none focus:border-violet-400"
           id="nm-name"
           onChange={(e) => setName(e.target.value)}
           placeholder="Ej. Verónica Castro"
@@ -184,7 +184,7 @@ export function NewMessageModal({ onClose }: { onClose: () => void }) {
         />
 
         {/* Toggle plantilla HSM */}
-        <label className="mb-2 flex items-center gap-2 text-xs text-gray-700">
+        <label className="mb-2 flex items-center gap-2 text-xs text-[var(--b-text-2)]">
           <input checked={useTemplate} onChange={(e) => setUseTemplate(e.target.checked)} type="checkbox" />
           El número no me ha escrito en 24h → usar plantilla aprobada (HSM)
         </label>
@@ -192,7 +192,7 @@ export function NewMessageModal({ onClose }: { onClose: () => void }) {
         {useTemplate ? (
           <div className="mb-3">
             <select
-              className="mb-2 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-400"
+              className="mb-2 w-full rounded-lg border border-[var(--b-border)] px-3 py-2 text-sm outline-none focus:border-violet-400"
               onChange={(e) => { setTemplateName(e.target.value); setTplParams([]); }}
               value={templateName}
             >
@@ -202,13 +202,13 @@ export function NewMessageModal({ onClose }: { onClose: () => void }) {
               ))}
             </select>
             {selectedTpl && (
-              <div className="rounded-lg bg-gray-50 p-2 text-[11px] text-gray-500">
+              <div className="rounded-lg bg-[var(--b-surface-2)] p-2 text-[11px] text-[var(--b-text-3)]">
                 {templateFillParams(templateBodyText(selectedTpl), tplParams) || '(sin cuerpo)'}
               </div>
             )}
             {Array.from({ length: tplNeeded }).map((_, i) => (
               <input
-                className="mt-2 w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs outline-none focus:border-violet-400"
+                className="mt-2 w-full rounded-lg border border-[var(--b-border)] px-3 py-1.5 text-xs outline-none focus:border-violet-400"
                 key={i}
                 onChange={(e) => setTplParams((p) => { const n = [...p]; n[i] = e.target.value; return n; })}
                 placeholder={`Valor {{${i + 1}}}`}
@@ -218,14 +218,14 @@ export function NewMessageModal({ onClose }: { onClose: () => void }) {
           </div>
         ) : (
           <textarea
-            className="mb-2 h-24 w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-400"
+            className="mb-2 h-24 w-full resize-none rounded-lg border border-[var(--b-border)] px-3 py-2 text-sm outline-none focus:border-violet-400"
             onChange={(e) => setText(e.target.value)}
             placeholder="Escribe el primer mensaje…"
             value={text}
           />
         )}
 
-        <p className="mb-3 text-[11px] leading-snug text-gray-400">
+        <p className="mb-3 text-[11px] leading-snug text-[var(--b-text-3)]">
           Se enviará desde el número WhatsApp del negocio. Se crea como conversación independiente
           (vinculable después a evento, invitado o cliente).
         </p>
@@ -234,9 +234,9 @@ export function NewMessageModal({ onClose }: { onClose: () => void }) {
 
         <div className="flex justify-end gap-2">
           <button
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+            className="rounded-lg border border-[var(--b-border)] bg-[var(--b-surface)] px-3 py-2 text-xs font-semibold text-[var(--b-text-2)] hover:bg-[var(--b-surface-2)]"
             onClick={onClose}
-            style={{ color: '#374151' }}
+            style={{ color: 'var(--b-text-2)' }}
             type="button"
           >
             Cancelar

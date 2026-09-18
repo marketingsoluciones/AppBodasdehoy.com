@@ -26,7 +26,7 @@ const TYPE_SHORT: Record<string, string> = {
 const STATUS_DOT: Record<string, { color: string; label: string }> = {
   ACTIVE: { color: '#22C55E', label: 'Conectado' },
   CONNECTING: { color: '#F59E0B', label: 'Conectando' },
-  DISCONNECTED: { color: '#9CA3AF', label: 'Desconectado' },
+  DISCONNECTED: { color: 'var(--b-text-3)', label: 'Desconectado' },
   ERROR: { color: '#EF4444', label: 'Error de conexión' },
 };
 
@@ -65,7 +65,7 @@ export function ChannelTypeChip({ channelParam }: { channelParam?: string }) {
   return (
     <span
       className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium"
-      style={{ backgroundColor: '#F2F1F6', color: '#4B5563' }}
+      style={{ backgroundColor: 'var(--b-surface-2)', color: 'var(--b-text-2)' }}
       title={
         dot ? `${channel.name} · ${typeLabel ?? channel.type} · ${dot.label}` : channel.name
       }

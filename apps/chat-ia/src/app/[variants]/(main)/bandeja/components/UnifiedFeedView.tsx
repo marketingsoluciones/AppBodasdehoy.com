@@ -91,18 +91,18 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
     .filter(Boolean)
     .join(' · ');
 
-  let rowBg = 'bg-white hover:bg-gray-50';
+  let rowBg = 'bg-[var(--b-surface)] hover:bg-[var(--b-surface-2)]';
   if (!item.isRead && item.kind === 'notification') rowBg = 'bg-brand-light/60 hover:bg-brand-light';
   else if (item.unreadCount > 0) rowBg = 'bg-green-50/50 hover:bg-green-50';
 
-  const avatarBg = item.kind === 'notification' ? 'bg-gray-100' : 'bg-gray-200';
+  const avatarBg = item.kind === 'notification' ? 'bg-[var(--b-surface-2)]' : 'bg-gray-200';
 
   return (
     /* El botón ocupa toda la fila por debajo del contenido, en vez de envolverlo. Los
        indicadores (acceso, modo de IA) son botones a su vez y anidarlos dentro habría dado
        HTML inválido; posicionarlos en absoluto, como estaban, los montaba encima del mensaje
        al estrechar la lista. Así el contenido fluye y solo los indicadores capturan el clic. */
-    <div className={`group relative border-b border-gray-100 last:border-0 ${rowBg}`}>
+    <div className={`group relative border-b border-[var(--b-border)] last:border-0 ${rowBg}`}>
       <button
         aria-label={`Abrir ${item.name}`}
         className="absolute inset-0 h-full w-full"
@@ -113,7 +113,7 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
       {/* Avatar con distintivo de canal (abajo-izquierda) + RSVP (abajo-derecha). */}
       <div className="relative shrink-0">
         <div
-          className={`flex h-9 w-9 items-center justify-center rounded-full ${avatarBg} text-sm font-medium text-gray-600`}
+          className={`flex h-9 w-9 items-center justify-center rounded-full ${avatarBg} text-sm font-medium text-[var(--b-text-2)]`}
         >
           {item.kind === 'notification' ? (
             <span className="text-base">{cfg.icon}</span>
@@ -157,7 +157,7 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
           <span
-            className={`truncate text-sm ${hasUnread ? 'font-semibold text-gray-900' : 'font-normal text-gray-700'}`}
+            className={`truncate text-sm ${hasUnread ? 'font-semibold text-[var(--b-text-1)]' : 'font-normal text-[var(--b-text-2)]'}`}
           >
             {item.name}
           </span>
@@ -171,7 +171,7 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
               className="shrink-0 rounded px-1 text-[9px] font-bold uppercase tracking-wide"
               style={
                 waType === 'QR'
-                  ? { backgroundColor: '#F4F4F6', color: '#6B6B76' }
+                  ? { backgroundColor: 'var(--b-surface-2)', color: 'var(--b-text-2)' }
                   : { backgroundColor: '#ECFDF5', color: '#047857' }
               }
               title={
@@ -185,16 +185,16 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
           )}
           {isOneWay && (
             <span
-              className="shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-gray-500"
+              className="shrink-0 rounded bg-[var(--b-surface-2)] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[var(--b-text-3)]"
               title="Canal informativo (newsletter/estado): no admite respuesta"
             >
               Informativo
             </span>
           )}
-          <span className="shrink-0 text-xs text-gray-400">{timeAgo(item.timestamp)}</span>
+          <span className="shrink-0 text-xs text-[var(--b-text-3)]">{timeAgo(item.timestamp)}</span>
         </div>
         <div className="flex items-center gap-1">
-          <p className="min-w-0 flex-1 truncate text-xs text-gray-500">{previewText(item.preview)}</p>
+          <p className="min-w-0 flex-1 truncate text-xs text-[var(--b-text-3)]">{previewText(item.preview)}</p>
           {item.kind === 'conversation' && item.assignedAgentName && (
             <span
               aria-label={`Responsable: ${item.assignedAgentName}`}
@@ -213,7 +213,7 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
               style={
                 item.assignedToUserId === userId
                   ? { backgroundColor: brand.brandBg, color: brand.brand }
-                  : { backgroundColor: '#F4F4F6', color: '#6B6B76' }
+                  : { backgroundColor: 'var(--b-surface-2)', color: 'var(--b-text-2)' }
               }
               title={item.assignedToUserId === userId ? 'Asignada a ti' : 'La lleva otra persona'}
             >
@@ -258,7 +258,7 @@ function FeedSkeleton() {
           <div className="h-10 w-10 animate-pulse rounded-full bg-gray-200" />
           <div className="flex-1 space-y-2">
             <div className="h-3 w-1/3 animate-pulse rounded bg-gray-200" />
-            <div className="h-3 w-2/3 animate-pulse rounded bg-gray-100" />
+            <div className="h-3 w-2/3 animate-pulse rounded bg-[var(--b-surface-2)]" />
           </div>
         </div>
       ))}
@@ -334,13 +334,13 @@ export function UnifiedFeedView({ items, loading, onItemClick, groupBy, groups }
   }, [filter, items, search]);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-white">
+    <div className="flex h-full flex-col overflow-hidden bg-[var(--b-surface)]">
       {/* Buscador y "Sin leer" en la MISMA fila (17-09). Eran dos, con el chip solo en la
           segunda, y entre la pestaña y la primera conversación se apilaban seis bloques con
           borde propio: 340px de cabecera para una lista de 64px por fila. */}
-      <div className="flex items-center gap-1.5 border-b border-gray-100 px-3 py-1.5">
+      <div className="flex items-center gap-1.5 border-b border-[var(--b-border)] px-3 py-1.5">
         <input
-          className="min-w-0 flex-1 rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs placeholder:text-gray-400 focus:border-blue-400 focus:bg-white focus:outline-none"
+          className="min-w-0 flex-1 rounded-md border border-[var(--b-border)] bg-[var(--b-surface-2)] px-2.5 py-1.5 text-xs placeholder:text-[var(--b-text-3)] focus:border-blue-400 focus:bg-[var(--b-surface)] focus:outline-none"
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar..."
           type="text"
@@ -349,7 +349,7 @@ export function UnifiedFeedView({ items, loading, onItemClick, groupBy, groups }
         {availableFilters.map((t) => (
           <button
             className={`flex-none rounded-full px-2 py-1 text-[10px] font-medium transition-colors ${
-              filter === t.key ? 'text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+              filter === t.key ? 'text-white' : 'bg-[var(--b-surface-2)] text-[var(--b-text-3)] hover:bg-gray-200'
             }`}
             key={t.key}
             onClick={() => setFilter(filter === t.key ? 'all' : t.key)}
@@ -369,8 +369,8 @@ export function UnifiedFeedView({ items, loading, onItemClick, groupBy, groups }
           <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
             <span className="text-5xl">💬</span>
             <div>
-              <p className="font-medium text-gray-700">Sin resultados</p>
-              <p className="mt-1 text-sm text-gray-400">Prueba otro filtro o cambia la búsqueda</p>
+              <p className="font-medium text-[var(--b-text-2)]">Sin resultados</p>
+              <p className="mt-1 text-sm text-[var(--b-text-3)]">Prueba otro filtro o cambia la búsqueda</p>
             </div>
             {/* Gate N29 (QA 14-09) */}
             {canManage && (
@@ -383,7 +383,7 @@ export function UnifiedFeedView({ items, loading, onItemClick, groupBy, groups }
               </button>
             )}
             {/* QA 31-ago: el CTA no decía QUÉ se puede conectar → contexto en una línea. */}
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-[var(--b-text-3)]">
               WhatsApp, Instagram, Facebook, Telegram, correo o chat web
             </p>
           </div>
@@ -397,12 +397,12 @@ export function UnifiedFeedView({ items, loading, onItemClick, groupBy, groups }
               return (
                 <div key={g.key}>
                   <div
-                    className="sticky top-0 z-[1] flex items-center gap-2 border-b border-gray-100 bg-gray-50 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide"
+                    className="sticky top-0 z-[1] flex items-center gap-2 border-b border-[var(--b-border)] bg-[var(--b-surface-2)] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide"
                     style={{ color: g.color }}
                   >
                     <span aria-hidden="true">{g.icon}</span>
                     <span>{g.label}</span>
-                    <span className="text-gray-400">{groupItems.length}</span>
+                    <span className="text-[var(--b-text-3)]">{groupItems.length}</span>
                   </div>
                   {groupItems.map((it) => (
                     <FeedItemRow item={it} key={it.id} onClick={() => onItemClick(it)} />

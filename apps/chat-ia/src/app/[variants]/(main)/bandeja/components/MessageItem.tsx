@@ -100,11 +100,11 @@ export function MessageItem({ message, compact }: MessageItemProps) {
 
   const bubbleStyle: React.CSSProperties = isFromUser
     ? {
-        // Rediseño: burbuja entrante blanca con borde sutil #EDEDF0 (antes solo
+        // Rediseño: burbuja entrante blanca con borde sutil var(--b-border) (antes solo
         // shadow-sm). Más minimalista tipo Claude/ChatGPT.
-        backgroundColor: '#FFFFFF',
-        border: '1px solid #EDEDF0',
-        color: '#1C1C22',
+        backgroundColor: 'var(--b-surface)',
+        border: '1px solid var(--b-border)',
+        color: 'var(--b-text-1)',
       }
     : isIaAutopilot
       ? { background: 'linear-gradient(135deg, #0D9488, #0891B2)', color: '#fff' }
@@ -156,7 +156,7 @@ export function MessageItem({ message, compact }: MessageItemProps) {
           className="mt-1 flex items-center justify-end gap-1 text-xs"
           style={{
             color: isFromUser
-              ? '#9A9AA6' // contact — token secundario sistema
+              ? 'var(--b-text-3)' // contact — token secundario sistema
               : 'rgba(255,255,255,0.75)', // IA/humano equipo — blanco 75%
           }}
         >
@@ -164,7 +164,7 @@ export function MessageItem({ message, compact }: MessageItemProps) {
           {message.editedAt ? (
             <span
               data-testid="message-edited-pill"
-              className={`italic ${isFromUser ? 'text-gray-400' : 'text-blue-200'}`}
+              className={`italic ${isFromUser ? 'text-[var(--b-text-3)]' : 'text-blue-200'}`}
               title={`Editado ${formatTime(message.editedAt)}`}
             >
               (editado)
@@ -183,7 +183,7 @@ export function MessageItem({ message, compact }: MessageItemProps) {
               className={`rounded px-1.5 py-0.5 text-xs transition-colors ${
                 feedback === 'positive'
                   ? 'bg-green-100 text-green-700'
-                  : 'text-gray-400 hover:bg-gray-100 hover:text-green-600'
+                  : 'text-[var(--b-text-3)] hover:bg-[var(--b-surface-2)] hover:text-green-600'
               }`}
               disabled={!!feedback}
               onClick={() => handleFeedback('positive')}
@@ -196,7 +196,7 @@ export function MessageItem({ message, compact }: MessageItemProps) {
               className={`rounded px-1.5 py-0.5 text-xs transition-colors ${
                 feedback === 'negative'
                   ? 'bg-red-100 text-red-700'
-                  : 'text-gray-400 hover:bg-gray-100 hover:text-red-600'
+                  : 'text-[var(--b-text-3)] hover:bg-[var(--b-surface-2)] hover:text-red-600'
               }`}
               disabled={!!feedback}
               onClick={() => handleFeedback('negative')}
@@ -225,7 +225,7 @@ export function MessageItem({ message, compact }: MessageItemProps) {
                 ) : (
                   <a
                     className={`flex items-center gap-2 rounded-lg p-2 ${
-                      isFromUser ? 'bg-gray-100' : 'bg-blue-700'
+                      isFromUser ? 'bg-[var(--b-surface-2)]' : 'bg-blue-700'
                     }`}
                     href={attachment.url}
                     rel="noopener noreferrer"

@@ -47,26 +47,26 @@ const SETUP_CHANNELS: Record<string, ComponentType<{ development: string }>> = {
 function MobileBackButton() {
   const router = useRouter();
   return (
-    <div className="flex items-center gap-2 border-b border-gray-200 bg-white px-2 py-1 md:hidden">
+    <div className="flex items-center gap-2 border-b border-[var(--b-border)] bg-[var(--b-surface)] px-2 py-1 md:hidden">
       <button
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100"
+        className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--b-text-2)] hover:bg-[var(--b-surface-2)]"
         onClick={() => router.push('/bandeja')}
         type="button"
       >
         ←
       </button>
-      <span className="text-sm font-medium text-gray-700">Bandeja</span>
+      <span className="text-sm font-medium text-[var(--b-text-2)]">Bandeja</span>
     </div>
   );
 }
 
 function SelectTaskEmpty() {
   return (
-    <div className="flex flex-1 items-center justify-center bg-gray-50">
+    <div className="flex flex-1 items-center justify-center bg-[var(--b-surface-2)]">
       <div className="text-center">
         <div className="mb-4 text-5xl">📋</div>
-        <h3 className="mb-2 text-lg font-semibold text-gray-700">Selecciona una tarea</h3>
-        <p className="text-sm text-gray-500">
+        <h3 className="mb-2 text-lg font-semibold text-[var(--b-text-2)]">Selecciona una tarea</h3>
+        <p className="text-sm text-[var(--b-text-3)]">
           Elige una tarea pendiente de la bandeja para ver los detalles
         </p>
       </div>
@@ -90,11 +90,11 @@ export default function ChannelPage({ params }: ChannelPageProps) {
 
   if (PENDING_BACKEND_CHANNELS.has(channel)) {
     return (
-      <div className="flex flex-1 items-center justify-center bg-gray-50">
+      <div className="flex flex-1 items-center justify-center bg-[var(--b-surface-2)]">
         <div className="max-w-sm text-center">
           <div className="mb-4 text-5xl">🚧</div>
-          <h3 className="mb-2 text-lg font-semibold text-gray-700">Canal aún no disponible</h3>
-          <p className="text-sm text-gray-500">
+          <h3 className="mb-2 text-lg font-semibold text-[var(--b-text-2)]">Canal aún no disponible</h3>
+          <p className="text-sm text-[var(--b-text-3)]">
             Estamos trabajando en este canal. Mientras tanto, usa otros canales
             disponibles desde la bandeja unificada.
           </p>
@@ -116,7 +116,7 @@ export default function ChannelPage({ params }: ChannelPageProps) {
           </div>
         </div>
         {/* Desktop: setup en panel derecho (BandejaView en el layout) */}
-        <div className="hidden flex-1 overflow-hidden bg-gray-50 md:flex">
+        <div className="hidden flex-1 overflow-hidden bg-[var(--b-surface-2)] md:flex">
           <SetupComponent development={dev} />
         </div>
       </>
@@ -170,17 +170,17 @@ export default function ChannelPage({ params }: ChannelPageProps) {
       <div className="hidden flex-1 overflow-hidden md:flex">
         <div
           className="w-[300px] shrink-0 overflow-auto"
-          style={{ borderRight: '1px solid #EDEDF0', backgroundColor: '#FFFFFF' }}
+          style={{ borderRight: '1px solid var(--b-border)', backgroundColor: 'var(--b-surface)' }}
         >
           <ConversationList channel={channel} />
         </div>
-        <div className="flex flex-1 items-center justify-center bg-gray-50">
+        <div className="flex flex-1 items-center justify-center bg-[var(--b-surface-2)]">
           <div className="text-center">
             <div className="mb-4 text-5xl">💬</div>
-            <h3 className="mb-2 text-lg font-semibold text-gray-700">
+            <h3 className="mb-2 text-lg font-semibold text-[var(--b-text-2)]">
               Selecciona una conversación
             </h3>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-[var(--b-text-3)]">
               Elige una conversación de la lista para empezar
             </p>
           </div>

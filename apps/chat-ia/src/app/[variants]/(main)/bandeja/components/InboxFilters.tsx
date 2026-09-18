@@ -6,7 +6,7 @@
  *
  * Diseño:
  *   Activo:   color propio (rsvp + canal)
- *   Inactivo: bg #F1F0F5, color #6B6678
+ *   Inactivo: bg var(--b-surface-2), color var(--b-text-2)
  *
  * Filtros RSVP solo se muestran en modo Evento (P9 Diseño: Soporte sin RSVP).
  */
@@ -77,7 +77,7 @@ const CHANNEL_OPTIONS: Array<{
   { activeBg: '#DBEAFE', activeColor: '#1E40AF', dot: '#38BDF8', label: 'Telegram', value: 'tg' },
 ];
 
-const INACTIVE_STYLE = { backgroundColor: '#F1F0F5', color: '#6B6678' };
+const INACTIVE_STYLE = { backgroundColor: 'var(--b-surface-2)', color: 'var(--b-text-2)' };
 
 export function InboxFilters({
   hideRsvp = false,
@@ -120,7 +120,7 @@ export function InboxFilters({
             {opt.icon && <span aria-hidden>{opt.icon}</span>}
             <span>{opt.label}</span>
             {typeof count === 'number' && count > 0 && (
-              <span className="ml-0.5 rounded-full bg-white/70 px-1 text-[9px] font-bold">
+              <span className="ml-0.5 rounded-full bg-[var(--b-surface)]/70 px-1 text-[9px] font-bold">
                 {count}
               </span>
             )}
@@ -153,7 +153,7 @@ export function InboxFilters({
             )}
             <span>{opt.label}</span>
             {typeof count === 'number' && count > 0 && (
-              <span className="ml-0.5 rounded-full bg-white/70 px-1 text-[9px] font-bold">
+              <span className="ml-0.5 rounded-full bg-[var(--b-surface)]/70 px-1 text-[9px] font-bold">
                 {count}
               </span>
             )}
@@ -172,7 +172,7 @@ export function InboxFilters({
        scrollbar va oculto, así que los canales que no caben —Telegram, correo, chat web—
        quedaban cortados a media palabra sin nada que indicara que hay más. Un borde que se
        desvanece es la señal de "sigue"; un corte seco se lee como un fallo de pintado. */
-    <div className="relative border-b border-gray-100">
+    <div className="relative border-b border-[var(--b-border)]">
       {/* P1.3 (brief 18-09): en un teléfono, una fila entera de pastillas de canal es media
           pantalla de "chrome" para algo que se usa de vez en cuando. En móvil se pliega
           detrás de un botón que dice cuál está puesto; en escritorio se queda desplegada,
@@ -181,7 +181,7 @@ export function InboxFilters({
         aria-expanded={abierto}
         className="flex w-full items-center justify-between px-3 py-2 text-left text-[12px] font-medium md:hidden"
         onClick={() => setAbierto((v) => !v)}
-        style={{ color: '#4b5563' }}
+        style={{ color: 'var(--b-text-2)' }}
         type="button"
       >
         <span>
@@ -233,7 +233,7 @@ export function InboxFilters({
         <a
           className="inline-flex flex-none items-center gap-1 rounded-full border border-dashed border-gray-300 px-2 py-1 text-[11px] font-medium"
           href="/settings/integrations"
-          style={{ color: '#6B6B76' }}
+          style={{ color: 'var(--b-text-2)' }}
           title="Conectar otro canal: Instagram, Facebook, Telegram, correo o chat web"
         >
           <span aria-hidden>+</span>
@@ -242,10 +242,10 @@ export function InboxFilters({
         {onToggleSpam && (
           <button
             aria-pressed={showSpam}
-            className="inline-flex flex-none items-center gap-1 rounded-full border border-gray-200 px-2 py-1 text-[11px] font-medium"
+            className="inline-flex flex-none items-center gap-1 rounded-full border border-[var(--b-border)] px-2 py-1 text-[11px] font-medium"
             onClick={onToggleSpam}
             // A4 (QA 6-ago): color inline gana al override global del tema oscuro.
-            style={{ backgroundColor: showSpam ? '#F4F4F6' : '#FFFFFF', color: '#4b5563' }}
+            style={{ backgroundColor: showSpam ? 'var(--b-surface-2)' : 'var(--b-surface)', color: 'var(--b-text-2)' }}
             title="Newsletters y estados de WhatsApp: no se pueden responder, por eso vienen ocultos"
             type="button"
           >
@@ -258,7 +258,7 @@ export function InboxFilters({
       <div
         aria-hidden
         className="pointer-events-none absolute inset-y-0 right-0 w-6"
-        style={{ background: 'linear-gradient(to right, rgba(255,255,255,0), #FFFFFF)' }}
+        style={{ background: 'linear-gradient(to right, rgba(255,255,255,0), var(--b-surface))' }}
       />
     </div>
   );

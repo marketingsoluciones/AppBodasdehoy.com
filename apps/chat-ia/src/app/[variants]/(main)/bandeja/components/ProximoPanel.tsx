@@ -120,7 +120,7 @@ export function ProximoPanel({ eventId, limite = 3 }: Props) {
   // el cliente pide algo nuevo mientras hablas con el.
   let cuerpo: React.ReactNode;
   if (loading) {
-    cuerpo = <p className="text-xs text-gray-400">Cargando…</p>;
+    cuerpo = <p className="text-xs text-[var(--b-text-3)]">Cargando…</p>;
   } else if (error) {
     // El error se dice, no se esconde tras un panel vacio: si no cargo, quien atiende tiene
     // que saber que NO esta viendo lo pendiente, en vez de creer que no hay nada.
@@ -128,7 +128,7 @@ export function ProximoPanel({ eventId, limite = 3 }: Props) {
       <p className="text-xs text-red-600">No se pudo cargar lo próximo de este evento.</p>
     );
   } else if (proximas.length === 0) {
-    cuerpo = <p className="text-xs text-gray-400">Sin tareas pendientes en el itinerario.</p>;
+    cuerpo = <p className="text-xs text-[var(--b-text-3)]">Sin tareas pendientes en el itinerario.</p>;
   } else {
     cuerpo = (
       <ul className="space-y-2">
@@ -143,10 +143,10 @@ export function ProximoPanel({ eventId, limite = 3 }: Props) {
                 }`}
               />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm text-gray-800">
+                <p className="truncate text-sm text-[var(--b-text-1)]">
                   {tarea.descripcion || 'Sin descripción'}
                 </p>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-[var(--b-text-3)]">
                   <span className={vencida ? 'font-medium text-red-600' : ''}>{cuandoTxt}</span>
                   {' · '}
                   {itinerario}
@@ -160,9 +160,9 @@ export function ProximoPanel({ eventId, limite = 3 }: Props) {
   }
 
   return (
-    <div className="border-b border-gray-100 px-4 py-3">
+    <div className="border-b border-[var(--b-border)] px-4 py-3">
       <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-xs font-semibold uppercase tracking-widest text-gray-500">Próximo</h3>
+        <h3 className="text-xs font-semibold uppercase tracking-widest text-[var(--b-text-3)]">Próximo</h3>
         {itinerarioId && (
           <button
             className="text-xs font-medium text-blue-600 hover:underline"
@@ -175,17 +175,17 @@ export function ProximoPanel({ eventId, limite = 3 }: Props) {
       </div>
 
       {abierto && (
-        <div className="mb-3 space-y-2 rounded-md bg-gray-50 p-2">
+        <div className="mb-3 space-y-2 rounded-md bg-[var(--b-surface-2)] p-2">
           <input
             aria-label="Qué hay que hacer"
-            className="w-full rounded border border-gray-200 px-2 py-1 text-sm"
+            className="w-full rounded border border-[var(--b-border)] px-2 py-1 text-sm"
             onChange={(e) => setTexto(e.target.value)}
             placeholder="Llamar para confirmar el menú…"
             value={texto}
           />
           <input
             aria-label="Cuándo"
-            className="w-full rounded border border-gray-200 px-2 py-1 text-sm"
+            className="w-full rounded border border-[var(--b-border)] px-2 py-1 text-sm"
             onChange={(e) => setFecha(e.target.value)}
             type="date"
             value={fecha}

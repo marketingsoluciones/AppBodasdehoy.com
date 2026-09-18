@@ -22,7 +22,7 @@ const PENDING_GROUPS: { color: string; icon: string; key: string; label: string 
   { color: '#A855F7', icon: '🤖', key: 'chat_ia', label: 'Asistente' },
   { color: '#F59E0B', icon: '📋', key: 'service_comment', label: 'Servicios' },
   { color: '#3B82F6', icon: '📅', key: 'itinerary_comment', label: 'Itinerario' },
-  { color: '#6B7280', icon: '🔔', key: 'notification_otra', label: 'Otras' },
+  { color: 'var(--b-text-2)', icon: '🔔', key: 'notification_otra', label: 'Otras' },
 ];
 function classifyPendingItem(item: FeedItem): string {
   if (item.kind === 'conversation') return 'conversation_externa';
@@ -291,13 +291,13 @@ export default function MessagesPage() {
         <div className="flex flex-1 overflow-hidden">
           <div
             className="flex w-full shrink-0 flex-col overflow-hidden md:w-[300px]"
-            style={{ backgroundColor: '#FFFFFF', borderRight: '1px solid #EDEDF0' }}
+            style={{ backgroundColor: 'var(--b-surface)', borderRight: '1px solid var(--b-border)' }}
           >
             {/* FASE B (14-ago): cabecera de la vista "Esperan respuesta" (?view=esperan,
                 antes /pendientes). Deja claro que es un filtro de "no leídos" y permite
                 volver a la bandeja completa sin perderse. */}
             {esperanOnly && (
-              <div className="flex items-center justify-between gap-2 border-b border-gray-100 bg-amber-50 px-3 py-2">
+              <div className="flex items-center justify-between gap-2 border-b border-[var(--b-border)] bg-amber-50 px-3 py-2">
                 <span className="text-[12px] font-semibold" style={{ color: '#92400e' }}>
                   🔴 Esperan respuesta
                 </span>
@@ -305,7 +305,7 @@ export default function MessagesPage() {
                   className="text-[11px] font-medium underline"
                   onClick={() => router.push('/bandeja')}
                   // Color inline: el repo no usa variantes dark:, evita texto invisible.
-                  style={{ color: '#4b5563' }}
+                  style={{ color: 'var(--b-text-2)' }}
                   type="button"
                 >
                   Ver toda la bandeja
@@ -316,7 +316,7 @@ export default function MessagesPage() {
                 agentDataAvailable (backend expone assignedAgentId) Y hay ?agent= activo.
                 Hoy dormido: nada enlaza a ?agent= y no hay datos de agente. */}
             {agentFilter && agentDataAvailable && (
-              <div className="flex items-center justify-between gap-2 border-b border-gray-100 bg-violet-50 px-3 py-2">
+              <div className="flex items-center justify-between gap-2 border-b border-[var(--b-border)] bg-violet-50 px-3 py-2">
                 <span className="truncate text-[12px] font-semibold" style={{ color: brand.brand }}>
                   🤖 Conversaciones de {agentFilterName ?? 'este agente'}
                 </span>
@@ -326,7 +326,7 @@ export default function MessagesPage() {
                     setAgentFilter(null);
                     router.push('/bandeja');
                   }}
-                  style={{ color: '#4b5563' }}
+                  style={{ color: 'var(--b-text-2)' }}
                   type="button"
                 >
                   Ver toda la bandeja
@@ -343,7 +343,7 @@ export default function MessagesPage() {
                     valor no se turnan, se contradicen — y quien los ve no sabe cuál manda.
                     Queda uno por nivel: el de la bandeja en la cabecera de la lista, y el de
                     cada conversación en su fila. */}
-                <div className="border-b border-gray-100 px-3 py-2">
+                <div className="border-b border-[var(--b-border)] px-3 py-2">
                   <ScopeSelector activeScope={activeScope} onChange={handleScopeChange} />
                 </div>
                 {/* G2 (auditoría 22-ago): resumen del dueño en modo Global (sin evento
@@ -380,12 +380,12 @@ export default function MessagesPage() {
           </div>
           {/* Panel principal. Oculto en móvil (la lista va full-width; al tocar una
               conversación se navega a su ruta de detalle a pantalla completa). */}
-          <div className="hidden flex-1 flex-col items-center justify-center bg-gray-50 px-6 text-center md:flex">
+          <div className="hidden flex-1 flex-col items-center justify-center bg-[var(--b-surface-2)] px-6 text-center md:flex">
             {activeTab === 'history' ? (
               <div className="max-w-md">
                 <div className="text-4xl">🔔</div>
-                <div className="mt-3 text-sm font-semibold text-gray-800">Notificaciones</div>
-                <div className="mt-1 text-xs text-gray-500">
+                <div className="mt-3 text-sm font-semibold text-[var(--b-text-1)]">Notificaciones</div>
+                <div className="mt-1 text-xs text-[var(--b-text-3)]">
                   Selecciona una notificación para ver el detalle. Las acciones se
                   enlazan al hilo de la conversación o entidad correspondiente.
                 </div>

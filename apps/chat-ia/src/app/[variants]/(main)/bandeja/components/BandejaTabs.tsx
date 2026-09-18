@@ -54,7 +54,7 @@ export function BandejaTabs({ active, counts }: BandejaTabsProps) {
          barra inferior, que en un teléfono es la navegación primaria. Dos sitios para lo
          mismo, uno encima del otro, en la pantalla donde menos espacio hay. En escritorio se
          quedan: allí no hay barra inferior. */
-      className="hidden items-center gap-1 border-b border-gray-200 bg-white px-3 py-1.5 md:flex"
+      className="hidden items-center gap-1 border-b border-[var(--b-border)] bg-[var(--b-surface)] px-3 py-1.5 md:flex"
       role="tablist"
     >
       {TAB_META.map((tab) => {
@@ -68,7 +68,7 @@ export function BandejaTabs({ active, counts }: BandejaTabsProps) {
               /* Iba en morado del prototipo (violet-50/700) en la barra más visible de la
                  pantalla, así que la bandeja saludaba con el color de otra empresa en
                  cualquier marca que no fuera esa. Owner, probando en móvil 18-09. */
-              isActive ? 'bg-brand-light text-brand' : 'text-gray-600 hover:bg-gray-50'
+              isActive ? 'bg-brand-light text-brand' : 'text-[var(--b-text-2)] hover:bg-[var(--b-surface-2)]'
             }`}
             id={`tab-${tab.id}`}
             key={tab.id}
@@ -81,7 +81,7 @@ export function BandejaTabs({ active, counts }: BandejaTabsProps) {
             {count != null && count > 0 && (
               <span
                 className={`rounded-full px-1.5 text-[9px] font-bold ${
-                  isActive ? 'bg-violet-600 text-white' : 'bg-gray-200 text-gray-700'
+                  isActive ? 'bg-violet-600 text-white' : 'bg-gray-200 text-[var(--b-text-2)]'
                 }`}
               >
                 {count > 99 ? '99+' : count}

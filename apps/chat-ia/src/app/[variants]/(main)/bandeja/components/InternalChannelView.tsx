@@ -49,11 +49,11 @@ function TasksView({ eventId }: { eventId: string }) {
   }
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden bg-gray-50">
+    <div className="flex flex-1 flex-col overflow-hidden bg-[var(--b-surface-2)]">
       <div className="flex-1 overflow-auto p-4">
         {pendientes.length > 0 && (
           <section className="mb-6">
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-gray-500">
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--b-text-3)]">
               Pendientes ({pendientes.length})
             </h3>
             <div className="space-y-2">
@@ -66,7 +66,7 @@ function TasksView({ eventId }: { eventId: string }) {
 
         {completadas.length > 0 && (
           <section>
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-gray-500">
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--b-text-3)]">
               Completadas ({completadas.length})
             </h3>
             <div className="space-y-2 opacity-60">
@@ -98,16 +98,16 @@ function TaskListRow({
   const fecha = tarea.fecha ? new Date(tarea.fecha).toLocaleDateString('es-ES') : null;
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-3">
+    <div className="rounded-lg border border-[var(--b-border)] bg-[var(--b-surface)] p-3">
       <div className="flex items-start gap-3">
         <span className="mt-0.5 text-lg">{tarea.icon ?? (done ? '✅' : '⬜')}</span>
         <div className="min-w-0 flex-1">
           <p
-            className={`text-sm font-medium ${done ? 'text-gray-500 line-through' : 'text-gray-900'}`}
+            className={`text-sm font-medium ${done ? 'text-[var(--b-text-3)] line-through' : 'text-[var(--b-text-1)]'}`}
           >
             {tarea.descripcion}
           </p>
-          <div className="mt-1 flex flex-wrap gap-2 text-xs text-gray-400">
+          <div className="mt-1 flex flex-wrap gap-2 text-xs text-[var(--b-text-3)]">
             <span>{itinerarioTitle}</span>
             {fecha && <span>📅 {fecha}</span>}
             {tarea.responsable && tarea.responsable.length > 0 && (
@@ -118,7 +118,7 @@ function TaskListRow({
             <div className="mt-1 flex flex-wrap gap-1">
               {tarea.tags.map((tag) => (
                 <span
-                  className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600"
+                  className="rounded bg-[var(--b-surface-2)] px-1.5 py-0.5 text-xs text-[var(--b-text-2)]"
                   key={tag}
                 >
                   {tag}
@@ -153,7 +153,7 @@ function ItineraryView({ eventId }: { eventId: string }) {
   }
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden bg-gray-50">
+    <div className="flex flex-1 flex-col overflow-hidden bg-[var(--b-surface-2)]">
       <div className="flex-1 overflow-auto p-4">
         <div className="space-y-4">
           {itinerarios.map((it: Itinerario) => (
@@ -172,11 +172,11 @@ function ItinerarioCard({ itinerario }: { itinerario: Itinerario }) {
   const pct = tasks.length > 0 ? Math.round((done / tasks.length) * 100) : null;
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
+    <div className="rounded-lg border border-[var(--b-border)] bg-[var(--b-surface)] p-4">
       <div className="mb-3 flex items-center justify-between">
         <div>
-          <h3 className="font-medium text-gray-900">{itinerario.title ?? 'Sin título'}</h3>
-          {itinerario.tipo && <p className="text-xs text-gray-400">{itinerario.tipo}</p>}
+          <h3 className="font-medium text-[var(--b-text-1)]">{itinerario.title ?? 'Sin título'}</h3>
+          {itinerario.tipo && <p className="text-xs text-[var(--b-text-3)]">{itinerario.tipo}</p>}
         </div>
         {pct !== null && (
           <span className="rounded-full bg-blue-500/20 px-2 py-0.5 text-xs font-medium text-blue-400">
@@ -191,18 +191,18 @@ function ItinerarioCard({ itinerario }: { itinerario: Itinerario }) {
             <div className="flex items-center gap-2" key={t._id}>
               <span className="text-sm">{isTaskDone(t) ? '✅' : '⬜'}</span>
               <span
-                className={`text-sm ${isTaskDone(t) ? 'text-gray-400 line-through' : 'text-gray-700'}`}
+                className={`text-sm ${isTaskDone(t) ? 'text-[var(--b-text-3)] line-through' : 'text-[var(--b-text-2)]'}`}
               >
                 {t.descripcion}
               </span>
             </div>
           ))}
           {tasks.length > 5 && (
-            <p className="text-xs text-gray-400">+{tasks.length - 5} tareas más</p>
+            <p className="text-xs text-[var(--b-text-3)]">+{tasks.length - 5} tareas más</p>
           )}
         </div>
       ) : (
-        <p className="text-xs text-gray-400">Sin tareas</p>
+        <p className="text-xs text-[var(--b-text-3)]">Sin tareas</p>
       )}
     </div>
   );
@@ -233,17 +233,17 @@ function ServicesView({ eventId }: { eventId: string }) {
   const pagado = presupuesto?.pagado ?? 0;
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden bg-gray-50">
+    <div className="flex flex-1 flex-col overflow-hidden bg-[var(--b-surface-2)]">
       {total > 0 && (
-        <div className="border-b border-gray-200 bg-white border border-gray-200 px-4 py-3">
+        <div className="border-b border-[var(--b-border)] bg-[var(--b-surface)] border border-[var(--b-border)] px-4 py-3">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-500">Total presupuesto</span>
-            <span className="font-semibold text-gray-900">
+            <span className="text-[var(--b-text-3)]">Total presupuesto</span>
+            <span className="font-semibold text-[var(--b-text-1)]">
               {total.toLocaleString('es-ES', { currency: 'EUR', style: 'currency' })}
             </span>
           </div>
           {pagado > 0 && (
-            <div className="mt-1 flex items-center justify-between text-xs text-gray-400">
+            <div className="mt-1 flex items-center justify-between text-xs text-[var(--b-text-3)]">
               <span>Pagado</span>
               <span className="text-green-400">
                 {pagado.toLocaleString('es-ES', { currency: 'EUR', style: 'currency' })}
@@ -269,9 +269,9 @@ function CategoriaCard({ cat }: { cat: CategoriaPresupuesto }) {
   const coste = cat.coste_final ?? cat.coste_estimado ?? 0;
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
+    <div className="rounded-lg border border-[var(--b-border)] bg-[var(--b-surface)] p-4">
       <div className="mb-2 flex items-center justify-between">
-        <h3 className="font-medium text-gray-900">{cat.nombre}</h3>
+        <h3 className="font-medium text-[var(--b-text-1)]">{cat.nombre}</h3>
         {coste > 0 && (
           <span className="text-sm font-semibold text-purple-400">
             {coste.toLocaleString('es-ES', { currency: 'EUR', style: 'currency' })}
@@ -283,9 +283,9 @@ function CategoriaCard({ cat }: { cat: CategoriaPresupuesto }) {
         <div className="space-y-1">
           {gastos.map((g) => (
             <div className="flex items-center justify-between text-xs" key={g._id}>
-              <span className="text-gray-500">{g.nombre}</span>
+              <span className="text-[var(--b-text-3)]">{g.nombre}</span>
               {(g.coste_final ?? g.coste_estimado) ? (
-                <span className="text-gray-400">
+                <span className="text-[var(--b-text-3)]">
                   {(g.coste_final ?? g.coste_estimado ?? 0).toLocaleString('es-ES', {
                     currency: 'EUR',
                     style: 'currency',
@@ -325,28 +325,28 @@ function GuestsView({ eventId }: { eventId: string }) {
   const pending = guests.filter((g) => !g.asistencia || g.asistencia === 'pendiente');
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden bg-gray-50">
+    <div className="flex flex-1 flex-col overflow-hidden bg-[var(--b-surface-2)]">
       {/* Stats bar */}
-      <div className="border-b border-gray-200 bg-white px-4 py-3">
+      <div className="border-b border-[var(--b-border)] bg-[var(--b-surface)] px-4 py-3">
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-green-500" />
-            <span className="font-medium text-gray-700">{confirmed.length}</span>
-            <span className="text-gray-400">confirmados</span>
+            <span className="font-medium text-[var(--b-text-2)]">{confirmed.length}</span>
+            <span className="text-[var(--b-text-3)]">confirmados</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-amber-400" />
-            <span className="font-medium text-gray-700">{pending.length}</span>
-            <span className="text-gray-400">pendientes</span>
+            <span className="font-medium text-[var(--b-text-2)]">{pending.length}</span>
+            <span className="text-[var(--b-text-3)]">pendientes</span>
           </div>
           {declined.length > 0 && (
             <div className="flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-red-400" />
-              <span className="font-medium text-gray-700">{declined.length}</span>
-              <span className="text-gray-400">no asisten</span>
+              <span className="font-medium text-[var(--b-text-2)]">{declined.length}</span>
+              <span className="text-[var(--b-text-3)]">no asisten</span>
             </div>
           )}
-          <span className="ml-auto text-xs text-gray-400">{guests.length} total</span>
+          <span className="ml-auto text-xs text-[var(--b-text-3)]">{guests.length} total</span>
         </div>
       </div>
 
@@ -358,16 +358,16 @@ function GuestsView({ eventId }: { eventId: string }) {
             const mesa = g.tableNameRecepcion?.title || g.nombre_mesa;
             return (
               <div
-                className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2"
+                className="flex items-center gap-3 rounded-lg border border-[var(--b-border)] bg-[var(--b-surface)] px-3 py-2"
                 key={g._id}
               >
                 <span className="shrink-0 text-lg">
                   {isConfirmed ? '✅' : isDeclined ? '❌' : '⏳'}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-gray-800">{g.nombre}</p>
+                  <p className="truncate text-sm font-medium text-[var(--b-text-1)]">{g.nombre}</p>
                   {(g.grupo_relacion || g.nombre_menu || mesa) && (
-                    <p className="truncate text-xs text-gray-400">
+                    <p className="truncate text-xs text-[var(--b-text-3)]">
                       {[g.grupo_relacion, g.nombre_menu ? `menú: ${g.nombre_menu}` : null, mesa ? `mesa: ${mesa}` : null]
                         .filter(Boolean)
                         .join(' · ')}
@@ -387,10 +387,10 @@ function GuestsView({ eventId }: { eventId: string }) {
 
 function LoadingState({ label }: { label: string }) {
   return (
-    <div className="flex flex-1 items-center justify-center bg-gray-50">
+    <div className="flex flex-1 items-center justify-center bg-[var(--b-surface-2)]">
       <div className="text-center">
         <div className="mb-2 text-3xl">⏳</div>
-        <p className="text-sm text-gray-400">{label}</p>
+        <p className="text-sm text-[var(--b-text-3)]">{label}</p>
       </div>
     </div>
   );
@@ -398,7 +398,7 @@ function LoadingState({ label }: { label: string }) {
 
 function ErrorState({ message }: { message: string }) {
   return (
-    <div className="flex flex-1 items-center justify-center bg-gray-50 p-4">
+    <div className="flex flex-1 items-center justify-center bg-[var(--b-surface-2)] p-4">
       <div className="text-center">
         <div className="mb-2 text-3xl">❌</div>
         <p className="text-sm text-red-400">{message}</p>
@@ -417,11 +417,11 @@ function EmptyState({
   title: string;
 }) {
   return (
-    <div className="flex flex-1 items-center justify-center bg-gray-50 p-4">
+    <div className="flex flex-1 items-center justify-center bg-[var(--b-surface-2)] p-4">
       <div className="text-center">
         <div className="mb-3 text-5xl">{icon}</div>
-        <p className="font-medium text-gray-700">{title}</p>
-        <p className="mt-1 text-sm text-gray-400">{description}</p>
+        <p className="font-medium text-[var(--b-text-2)]">{title}</p>
+        <p className="mt-1 text-sm text-[var(--b-text-3)]">{description}</p>
       </div>
     </div>
   );
@@ -438,8 +438,8 @@ export function InternalChannelView({ channelId }: InternalChannelViewProps) {
 
   if (!parsed) {
     return (
-      <div className="flex flex-1 items-center justify-center bg-gray-50">
-        <p className="text-gray-400">Canal no reconocido</p>
+      <div className="flex flex-1 items-center justify-center bg-[var(--b-surface-2)]">
+        <p className="text-[var(--b-text-3)]">Canal no reconocido</p>
       </div>
     );
   }
@@ -449,12 +449,12 @@ export function InternalChannelView({ channelId }: InternalChannelViewProps) {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white px-5 py-4">
+      <div className="border-b border-[var(--b-border)] bg-[var(--b-surface)] px-5 py-4">
         <div className="flex items-center gap-3">
           <span className="text-2xl">{config.icon}</span>
           <div>
             <h2 className={`text-lg font-bold ${config.color}`}>{config.label}</h2>
-            <p className="font-mono text-xs text-gray-400">evento: {parsed.eventId}</p>
+            <p className="font-mono text-xs text-[var(--b-text-3)]">evento: {parsed.eventId}</p>
           </div>
         </div>
       </div>

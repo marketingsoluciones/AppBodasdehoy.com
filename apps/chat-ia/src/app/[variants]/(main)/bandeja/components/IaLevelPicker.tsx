@@ -8,7 +8,7 @@
  *   · Autopiloto — envía inmediatamente sin aprobación (escala si baja confianza)
  *
  * Diseño tokens:
- *   Manual:     bg #F1F0F5 color #6B6678
+ *   Manual:     bg var(--b-surface-2) color var(--b-text-2)
  *   Copiloto:   bg #CCFBF1 color #0F766E border #99F6E4
  *   Autopiloto: bg #CFFAFE color #0E7490 border #A5F3FC
  *
@@ -26,8 +26,8 @@ const LEVEL_CONFIG: Record<
 > = {
   manual: {
     label: 'Manual',
-    bg: '#F1F0F5',
-    color: '#6B6678',
+    bg: 'var(--b-surface-2)',
+    color: 'var(--b-text-2)',
     border: 'transparent',
     desc: 'La IA no genera nada. Tú escribes todas las respuestas.',
   },
@@ -91,7 +91,7 @@ export function IaLevelPicker({ level, onChange, disabled = false }: IaLevelPick
 
       {open && (
         <div
-          className="absolute right-0 top-full z-20 mt-1 w-64 rounded-xl border border-gray-200 bg-white shadow-lg"
+          className="absolute right-0 top-full z-20 mt-1 w-64 rounded-xl border border-[var(--b-border)] bg-[var(--b-surface)] shadow-lg"
           role="listbox"
         >
           {(Object.keys(LEVEL_CONFIG) as IaLevel[]).map((v) => {
@@ -100,8 +100,8 @@ export function IaLevelPicker({ level, onChange, disabled = false }: IaLevelPick
             return (
               <button
                 aria-selected={isActive}
-                className={`flex w-full flex-col items-start gap-0.5 border-b border-gray-100 px-3 py-2 text-left transition-colors last:border-b-0 hover:bg-gray-50 ${
-                  isActive ? 'bg-gray-50' : ''
+                className={`flex w-full flex-col items-start gap-0.5 border-b border-[var(--b-border)] px-3 py-2 text-left transition-colors last:border-b-0 hover:bg-[var(--b-surface-2)] ${
+                  isActive ? 'bg-[var(--b-surface-2)]' : ''
                 }`}
                 key={v}
                 onClick={() => {
@@ -118,7 +118,7 @@ export function IaLevelPicker({ level, onChange, disabled = false }: IaLevelPick
                   {c.icon && <span aria-hidden>{c.icon}</span>}
                   {c.label}
                 </span>
-                <span className="mt-0.5 text-[11px] text-gray-500">{c.desc}</span>
+                <span className="mt-0.5 text-[11px] text-[var(--b-text-3)]">{c.desc}</span>
               </button>
             );
           })}

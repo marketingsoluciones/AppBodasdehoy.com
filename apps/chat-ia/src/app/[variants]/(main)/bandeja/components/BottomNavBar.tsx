@@ -51,7 +51,7 @@ export function BottomNavBar({
   return (
     <nav
       aria-label="Navegación inferior móvil"
-      className="flex items-center justify-around border-t border-gray-200 bg-white md:hidden"
+      className="flex items-center justify-around border-t border-[var(--b-border)] bg-[var(--b-surface)] md:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0)' }}
     >
       {ITEMS.map((item) => {
@@ -64,7 +64,7 @@ export function BottomNavBar({
             className="flex flex-1 flex-col items-center gap-0.5 py-2 transition-colors"
             key={item.id}
             onClick={() => handleClick(item.href)}
-            style={{ color: isActive ? brand.brand : '#6B6678' }}
+            style={{ color: isActive ? brand.brand : 'var(--b-text-2)' }}
             type="button"
           >
             <span aria-hidden className="relative text-xl">

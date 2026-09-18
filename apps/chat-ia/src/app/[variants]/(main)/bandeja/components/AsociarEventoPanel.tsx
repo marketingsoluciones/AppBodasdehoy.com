@@ -69,9 +69,9 @@ export function AsociarEventoPanel({ conversationId, development, onLinked }: Pr
   );
 
   return (
-    <div className="border-b border-gray-100 px-4 py-3">
+    <div className="border-b border-[var(--b-border)] px-4 py-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-semibold uppercase tracking-widest text-gray-500">Evento</h3>
+        <h3 className="text-xs font-semibold uppercase tracking-widest text-[var(--b-text-3)]">Evento</h3>
         <button
           className="text-xs font-medium text-blue-600 hover:underline"
           onClick={() => {
@@ -85,7 +85,7 @@ export function AsociarEventoPanel({ conversationId, development, onLinked }: Pr
       </div>
 
       {!abierto && (
-        <p className="mt-1 text-xs text-gray-400">
+        <p className="mt-1 text-xs text-[var(--b-text-3)]">
           Sin boda asociada. Asóciala para ver su itinerario y agendar aquí.
         </p>
       )}
@@ -94,15 +94,15 @@ export function AsociarEventoPanel({ conversationId, development, onLinked }: Pr
         <div className="mt-2 space-y-2">
           <input
             aria-label="Buscar evento"
-            className="w-full rounded border border-gray-200 px-2 py-1 text-sm"
+            className="w-full rounded border border-[var(--b-border)] px-2 py-1 text-sm"
             onChange={(e) => setFiltro(e.target.value)}
             placeholder="Buscar boda…"
             value={filtro}
           />
           {fallo && <p className="text-xs text-red-600">{fallo}</p>}
-          {cargando && <p className="text-xs text-gray-400">Cargando tus eventos…</p>}
+          {cargando && <p className="text-xs text-[var(--b-text-3)]">Cargando tus eventos…</p>}
           {eventos !== null && lista.length === 0 && !cargando && (
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-[var(--b-text-3)]">
               {eventos.length === 0 ? 'No tienes eventos.' : 'Ninguno coincide.'}
             </p>
           )}
@@ -110,17 +110,17 @@ export function AsociarEventoPanel({ conversationId, development, onLinked }: Pr
             {lista.map((e) => (
               <li key={e._id}>
                 <button
-                  className="flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-sm hover:bg-gray-50 disabled:opacity-50"
+                  className="flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-sm hover:bg-[var(--b-surface-2)] disabled:opacity-50"
                   disabled={vinculando !== null}
                   onClick={() => asociar(e._id)}
                   type="button"
                 >
                   <span className="min-w-0 flex-1 truncate">{e.nombre || 'Sin nombre'}</span>
                   {vinculando === e._id ? (
-                    <span className="ml-2 text-xs text-gray-400">Asociando…</span>
+                    <span className="ml-2 text-xs text-[var(--b-text-3)]">Asociando…</span>
                   ) : (
                     e.fecha && (
-                      <span className="ml-2 flex-none text-xs text-gray-400">
+                      <span className="ml-2 flex-none text-xs text-[var(--b-text-3)]">
                         {String(e.fecha).slice(0, 10)}
                       </span>
                     )

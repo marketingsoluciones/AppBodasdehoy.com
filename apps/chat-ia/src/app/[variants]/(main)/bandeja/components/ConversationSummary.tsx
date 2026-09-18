@@ -29,7 +29,7 @@ export function ConversationSummary({
   return (
     <div
       className="flex items-start gap-2 px-4 py-2"
-      style={{ backgroundColor: '#F6F4FB', borderTop: '1px solid #EDEDF0' }}
+      style={{ backgroundColor: '#F6F4FB', borderTop: '1px solid var(--b-border)' }}
     >
       <span aria-hidden="true" className="mt-0.5 text-sm">
         ✦
@@ -41,7 +41,7 @@ export function ConversationSummary({
         <MiniMarkdown
           clampLines={expanded ? undefined : 2}
           className="mt-0.5 break-words text-xs"
-          style={{ color: '#1C1C22' }}
+          style={{ color: 'var(--b-text-1)' }}
           text={summary}
         />
         <button
@@ -57,7 +57,7 @@ export function ConversationSummary({
         aria-label="Cerrar resumen"
         className="shrink-0 rounded-md px-2 py-0.5 text-[11px] font-semibold"
         onClick={onClose}
-        style={{ color: '#84848F' }}
+        style={{ color: 'var(--b-text-2)' }}
         type="button"
       >
         Cerrar

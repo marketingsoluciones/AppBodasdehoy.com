@@ -114,16 +114,16 @@ export default function ConversationPage({ params }: ConversationPageProps) {
     <>
       <div
         className="hidden w-[300px] shrink-0 overflow-auto md:block"
-        style={{ backgroundColor: '#FFFFFF', borderRight: '1px solid #EDEDF0' }}
+        style={{ backgroundColor: 'var(--b-surface)', borderRight: '1px solid var(--b-border)' }}
       >
         <ConversationList channel={channel} selectedId={conversation_id} />
       </div>
 
-      <div className="flex flex-1 flex-col" style={{ backgroundColor: '#FCFCFD' }}>
-        <div className="md:hidden flex items-center gap-2 border-b border-gray-200 bg-white px-2 py-1">
+      <div className="flex flex-1 flex-col" style={{ backgroundColor: 'var(--b-surface)' }}>
+        <div className="md:hidden flex items-center gap-2 border-b border-[var(--b-border)] bg-[var(--b-surface)] px-2 py-1">
           <button
             aria-label="Volver"
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--b-text-2)] hover:bg-[var(--b-surface-2)]"
             onClick={() => router.push('/bandeja')}
             type="button"
           >
@@ -139,7 +139,7 @@ export default function ConversationPage({ params }: ConversationPageProps) {
           {/* Botón ℹ — abre bottom sheet con sidebar info (Diseño móvil) */}
           <button
             aria-label="Información del contacto"
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--b-text-2)] hover:bg-[var(--b-surface-2)]"
             onClick={() => setInfoSheetOpen(true)}
             type="button"
           >
@@ -170,7 +170,7 @@ export default function ConversationPage({ params }: ConversationPageProps) {
           canReplyFreeText={capabilities?.canReplyFreeText}
           windowExpiresAt={capabilities?.windowExpiresAt}
         />
-        <div className="border-t border-gray-200 bg-white p-4">
+        <div className="border-t border-[var(--b-border)] bg-[var(--b-surface)] p-4">
           <MessageInput channel={channel} conversationId={conversation_id} jidType={conv?.jidType} readOnly={isChannelInactive} requiresTemplate={capsRequiresTemplate} />
         </div>
       </div>
@@ -184,7 +184,7 @@ export default function ConversationPage({ params }: ConversationPageProps) {
       {sidebarExpanded && (
         <aside
           className="hidden w-[280px] shrink-0 overflow-hidden lg:flex lg:flex-col"
-          style={{ backgroundColor: '#FFFFFF', borderLeft: '1px solid #EDEDF0' }}
+          style={{ backgroundColor: 'var(--b-surface)', borderLeft: '1px solid var(--b-border)' }}
         >
           <div className="min-h-0 flex-1 overflow-auto">
             {conv?.linkedEventId ? (

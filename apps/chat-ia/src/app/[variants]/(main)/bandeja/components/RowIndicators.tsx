@@ -48,8 +48,8 @@ export const IA_MODES: Record<IaLevel, { color: string; fondo: string; icono: st
     que: 'La IA propone la respuesta y tú la apruebas',
   },
   manual: {
-    color: '#6B6B76',
-    fondo: '#F4F4F6',
+    color: 'var(--b-text-2)',
+    fondo: 'var(--b-surface-2)',
     icono: '✋',
     nombre: 'Manual',
     que: 'La IA no interviene: escribes tú',
@@ -111,7 +111,7 @@ export function SharedBadge({
       style={
         visibilidad
           ? { backgroundColor: '#EEF2FF', color: '#4F46E5' }
-          : { color: '#9A9AA6' }
+          : { color: 'var(--b-text-3)' }
       }
       title={
         visibilidad
@@ -231,7 +231,7 @@ export function IaModeBadge({
           // la fila que tiene algo distinto y no noventa iconos idénticos con el mismo peso.
           // El `color` no basta: un emoji se pinta con sus propios colores, de ahí el filtro.
           backgroundColor: propio ? modo.fondo : 'transparent',
-          color: propio ? modo.color : '#9A9AA6',
+          color: propio ? modo.color : 'var(--b-text-3)',
           filter: propio ? undefined : 'grayscale(1)',
           opacity: propio ? 1 : 0.55,
         }}
@@ -262,7 +262,7 @@ export function IaModeBadge({
 
       {abierto && (
         <div
-          className="absolute right-0 top-[22px] z-30 w-52 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+          className="absolute right-0 top-[22px] z-30 w-52 overflow-hidden rounded-lg border border-[var(--b-border)] bg-[var(--b-surface)] py-1 shadow-lg"
           onClick={(e) => e.stopPropagation()}
           role="menu"
         >
@@ -271,7 +271,7 @@ export function IaModeBadge({
             const activo = propio && nivel === k;
             return (
               <button
-                className="flex w-full items-start gap-2 px-2.5 py-1.5 text-left hover:bg-gray-50"
+                className="flex w-full items-start gap-2 px-2.5 py-1.5 text-left hover:bg-[var(--b-surface-2)]"
                 key={k}
                 onClick={() => void cambiar(k)}
                 role="menuitem"
@@ -281,19 +281,19 @@ export function IaModeBadge({
                 <span className="min-w-0">
                   <span
                     className="block text-[12px] font-semibold"
-                    style={{ color: activo ? m.color : '#1C1C22' }}
+                    style={{ color: activo ? m.color : 'var(--b-text-1)' }}
                   >
                     {m.nombre}
                     {activo && ' ·'}
                   </span>
-                  <span className="block text-[10px] leading-tight text-gray-500">{m.que}</span>
+                  <span className="block text-[10px] leading-tight text-[var(--b-text-3)]">{m.que}</span>
                 </span>
               </button>
             );
           })}
           {propio && (
             <button
-              className="mt-0.5 block w-full border-t border-gray-100 px-2.5 py-1.5 text-left text-[11px] text-gray-500 hover:bg-gray-50"
+              className="mt-0.5 block w-full border-t border-[var(--b-border)] px-2.5 py-1.5 text-left text-[11px] text-[var(--b-text-3)] hover:bg-[var(--b-surface-2)]"
               onClick={() => void cambiar(null)}
               role="menuitem"
               type="button"

@@ -145,20 +145,20 @@ export function SharePanel({
     <div
       className="absolute right-0 top-full z-20 mt-1 w-80 rounded-lg p-3"
       style={{
-        backgroundColor: '#FFFFFF',
-        border: '1px solid #EDEDF0',
+        backgroundColor: 'var(--b-surface)',
+        border: '1px solid var(--b-border)',
         boxShadow: '0 4px 12px rgba(28,28,34,0.08)',
       }}
     >
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-sm font-semibold" style={{ color: '#1C1C22' }}>
+        <span className="text-sm font-semibold" style={{ color: 'var(--b-text-1)' }}>
           Compartir conversación
         </span>
         <button
           aria-label="Cerrar"
           className="text-xs"
           onClick={onClose}
-          style={{ color: '#84848F' }}
+          style={{ color: 'var(--b-text-2)' }}
           type="button"
         >
           Cerrar
@@ -167,7 +167,7 @@ export function SharePanel({
 
       {sharedWith.length > 0 && (
         <div className="mb-3">
-          <p className="mb-1 text-[11px] font-medium" style={{ color: '#84848F' }}>
+          <p className="mb-1 text-[11px] font-medium" style={{ color: 'var(--b-text-2)' }}>
             Con acceso
           </p>
           {sharedWith.map((s) => (
@@ -175,11 +175,11 @@ export function SharePanel({
               className="flex items-center justify-between py-1 text-xs"
               key={s.principalId ?? Math.random()}
             >
-              <span style={{ color: '#1C1C22' }}>
+              <span style={{ color: 'var(--b-text-1)' }}>
                 {s.principalType === 'team' ? '👥 ' : ''}
                 {names[s.principalId ?? ''] ?? s.principalId}
                 {s.permission ? (
-                  <span style={{ color: '#84848F' }}>
+                  <span style={{ color: 'var(--b-text-2)' }}>
                     {' '}
                     · {s.permission === 'reply' ? 'puede responder' : 'solo ver'}
                   </span>
@@ -207,8 +207,8 @@ export function SharePanel({
             onClick={() => setPermission(p.value)}
             style={{
               backgroundColor: permission === p.value ? brand.brandBg : 'transparent',
-              border: '1px solid #EDEDF0',
-              color: permission === p.value ? brand.brand : '#84848F',
+              border: '1px solid var(--b-border)',
+              color: permission === p.value ? brand.brand : 'var(--b-text-2)',
             }}
             type="button"
           >
@@ -221,13 +221,13 @@ export function SharePanel({
         className="mb-2 w-full rounded-md px-2 py-1.5 text-xs outline-none"
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Buscar persona por nombre o email"
-        style={{ border: '1px solid #EDEDF0' }}
+        style={{ border: '1px solid var(--b-border)' }}
         value={query}
       />
 
       <div className="max-h-44 overflow-y-auto">
         {options.length === 0 && (
-          <p className="py-2 text-center text-[11px]" style={{ color: '#84848F' }}>
+          <p className="py-2 text-center text-[11px]" style={{ color: 'var(--b-text-2)' }}>
             {query.trim().length >= 2 ? 'Sin resultados' : 'Escribe para buscar personas'}
           </p>
         )}
@@ -239,14 +239,14 @@ export function SharePanel({
               disabled={yaTiene || busy === c.id}
               key={`${c.type}-${c.id}`}
               onClick={() => void doShare(c)}
-              style={{ color: yaTiene ? '#84848F' : '#1C1C22' }}
+              style={{ color: yaTiene ? 'var(--b-text-2)' : 'var(--b-text-1)' }}
               type="button"
             >
               <span>
                 {c.type === 'team' ? '👥 ' : ''}
                 {c.name}
                 {c.detail ? (
-                  <span style={{ color: '#84848F' }}> · {c.detail}</span>
+                  <span style={{ color: 'var(--b-text-2)' }}> · {c.detail}</span>
                 ) : null}
               </span>
               <span style={{ color: brand.brand }}>

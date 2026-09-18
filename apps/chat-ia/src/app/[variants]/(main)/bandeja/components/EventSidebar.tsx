@@ -233,9 +233,9 @@ export function EventSidebar({
   };
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-white">
+    <div className="flex h-full flex-col overflow-hidden bg-[var(--b-surface)]">
       {/* 1. Header contacto */}
-      <div className="border-b border-gray-100 px-3 py-2">
+      <div className="border-b border-[var(--b-border)] px-3 py-2">
         <div className="flex items-center gap-2">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-rose-500 text-xs font-semibold text-white">
             {(contactName || '?')
@@ -246,11 +246,11 @@ export function EventSidebar({
               .toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-semibold text-gray-800">
+            <div className="truncate text-sm font-semibold text-[var(--b-text-1)]">
               {contactName || 'Contacto'}
             </div>
             {contactPhone && (
-              <div className="truncate text-[11px] text-gray-500">{contactPhone}</div>
+              <div className="truncate text-[11px] text-[var(--b-text-3)]">{contactPhone}</div>
             )}
           </div>
         </div>
@@ -281,8 +281,8 @@ export function EventSidebar({
       {/* Scrollable body */}
       <div className="flex-1 overflow-y-auto">
         {/* 2. RSVP */}
-        <div className="border-b border-gray-100 px-3 py-3">
-          <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+        <div className="border-b border-[var(--b-border)] px-3 py-3">
+          <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--b-text-3)]">
             RSVP
           </div>
           {rsvpError && (
@@ -314,7 +314,7 @@ export function EventSidebar({
                       : {
                           backgroundColor: '#fff',
                           borderColor: '#E6E5EC',
-                          color: '#6B6678',
+                          color: 'var(--b-text-2)',
                         }
                   }
                   type="button"
@@ -328,14 +328,14 @@ export function EventSidebar({
         </div>
 
         {/* 3. Asignación — picker user-only (api-mcp commit 926b5df, 25-jun) */}
-        <div className="relative border-b border-gray-100 px-3 py-3" ref={assignPickerRef}>
-          <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+        <div className="relative border-b border-[var(--b-border)] px-3 py-3" ref={assignPickerRef}>
+          <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--b-text-3)]">
             Asignado a
           </div>
           <button
             aria-expanded={assignPickerOpen}
             aria-haspopup="listbox"
-            className="flex w-full items-center justify-between gap-2 rounded-lg border border-gray-200 px-2 py-1.5 text-xs transition-colors hover:bg-gray-50 disabled:opacity-60"
+            className="flex w-full items-center justify-between gap-2 rounded-lg border border-[var(--b-border)] px-2 py-1.5 text-xs transition-colors hover:bg-[var(--b-surface-2)] disabled:opacity-60"
             disabled={savingAssign}
             onClick={() => setAssignPickerOpen((v) => !v)}
             type="button"
@@ -345,10 +345,10 @@ export function EventSidebar({
                 <span aria-hidden className="text-base">
                   {assignedToLocal.kind === 'team' ? '👥' : '👤'}
                 </span>
-                <span className="truncate text-gray-800">{assignedToLocal.name}</span>
+                <span className="truncate text-[var(--b-text-1)]">{assignedToLocal.name}</span>
               </span>
             ) : (
-              <span className="text-gray-500">Sin asignar</span>
+              <span className="text-[var(--b-text-3)]">Sin asignar</span>
             )}
             <span aria-hidden className="opacity-60">
               ▾
@@ -357,13 +357,13 @@ export function EventSidebar({
 
           {assignPickerOpen && (
             <div
-              className="absolute left-3 right-3 top-full z-20 mt-1 rounded-xl border border-gray-200 bg-white shadow-lg"
+              className="absolute left-3 right-3 top-full z-20 mt-1 rounded-xl border border-[var(--b-border)] bg-[var(--b-surface)] shadow-lg"
               role="listbox"
             >
               {/* Asignármela a mí — siempre primero, color verde Diseño */}
               {currentUserId && (
                 <button
-                  className="flex w-full items-center gap-2 border-b border-gray-100 px-3 py-2 text-left text-[12px] transition-colors hover:bg-gray-50"
+                  className="flex w-full items-center gap-2 border-b border-[var(--b-border)] px-3 py-2 text-left text-[12px] transition-colors hover:bg-[var(--b-surface-2)]"
                   onClick={() => {
                     void handleAssignToUser(currentUserId, 'Yo');
                     setAssignPickerOpen(false);
@@ -380,7 +380,7 @@ export function EventSidebar({
               {/* Desasignar */}
               {assignedToLocal && (
                 <button
-                  className="flex w-full items-center gap-2 border-b border-gray-100 px-3 py-2 text-left text-[12px] text-gray-700 transition-colors hover:bg-gray-50"
+                  className="flex w-full items-center gap-2 border-b border-[var(--b-border)] px-3 py-2 text-left text-[12px] text-[var(--b-text-2)] transition-colors hover:bg-[var(--b-surface-2)]"
                   onClick={() => {
                     void handleAssignToUser(null);
                     setAssignPickerOpen(false);
@@ -393,10 +393,10 @@ export function EventSidebar({
                 </button>
               )}
               {/* Lista usuarios workspace via api-mcp searchCRMUsers */}
-              <div className="border-b border-gray-100 px-2 py-1.5">
+              <div className="border-b border-[var(--b-border)] px-2 py-1.5">
                 <input
                   aria-label="Buscar usuarios"
-                  className="w-full rounded border border-gray-200 px-2 py-1 text-[11px] focus:border-violet-500 focus:outline-none"
+                  className="w-full rounded border border-[var(--b-border)] px-2 py-1 text-[11px] focus:border-violet-500 focus:outline-none"
                   onChange={(e) => setUserSearch(e.target.value)}
                   placeholder="Buscar miembros del equipo…"
                   type="text"
@@ -405,17 +405,17 @@ export function EventSidebar({
               </div>
               <div className="max-h-48 overflow-y-auto">
                 {loadingUsers && (
-                  <div className="px-3 py-2 text-[10px] text-gray-400">Cargando…</div>
+                  <div className="px-3 py-2 text-[10px] text-[var(--b-text-3)]">Cargando…</div>
                 )}
                 {!loadingUsers && userResults.length === 0 && (
-                  <div className="px-3 py-2 text-[10px] text-gray-400">
+                  <div className="px-3 py-2 text-[10px] text-[var(--b-text-3)]">
                     {userSearch ? 'Sin resultados' : 'No hay más miembros'}
                   </div>
                 )}
                 {!loadingUsers &&
                   userResults.map((u) => (
                     <button
-                      className="flex w-full items-center gap-2 border-b border-gray-100 px-3 py-2 text-left text-[12px] transition-colors hover:bg-gray-50"
+                      className="flex w-full items-center gap-2 border-b border-[var(--b-border)] px-3 py-2 text-left text-[12px] transition-colors hover:bg-[var(--b-surface-2)]"
                       key={u.user_id}
                       onClick={() => {
                         void handleAssignToUser(u.user_id, u.name);
@@ -427,9 +427,9 @@ export function EventSidebar({
                     >
                       <span aria-hidden className="text-base">👤</span>
                       <span className="min-w-0 flex-1 truncate">
-                        <span className="block truncate text-gray-800">{u.name}</span>
+                        <span className="block truncate text-[var(--b-text-1)]">{u.name}</span>
                         {u.email && (
-                          <span className="block truncate text-[10px] text-gray-500">{u.email}</span>
+                          <span className="block truncate text-[10px] text-[var(--b-text-3)]">{u.email}</span>
                         )}
                       </span>
                     </button>

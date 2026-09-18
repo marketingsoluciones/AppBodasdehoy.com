@@ -499,7 +499,7 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
               ✓ Aprobar
             </button>
             <button
-              className="rounded-md border border-violet-300 bg-white px-2 py-1 text-[11px] font-semibold text-violet-700 hover:bg-violet-100"
+              className="rounded-md border border-violet-300 bg-[var(--b-surface)] px-2 py-1 text-[11px] font-semibold text-violet-700 hover:bg-violet-100"
               onClick={handleDiscardIaDraft}
               type="button"
             >
@@ -513,21 +513,21 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
       {isOneWayChannel && (
         <div
           className="mb-1 flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-[11px] font-medium"
-          style={{ backgroundColor: '#F6F4FB', borderColor: '#E6E5EC', color: '#6B6678' }}
+          style={{ backgroundColor: '#F6F4FB', borderColor: '#E6E5EC', color: 'var(--b-text-2)' }}
         >
           <span aria-hidden>📢</span>
           <span>Canal informativo (status/newsletter): no admite respuesta externa. Solo nota interna.</span>
         </div>
       )}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1 rounded-lg bg-gray-50 p-1">
+        <div className="flex items-center gap-1 rounded-lg bg-[var(--b-surface-2)] p-1">
           <button
             className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
               isOneWayChannel
-                ? 'cursor-not-allowed text-gray-300'
+                ? 'cursor-not-allowed text-[var(--b-text-3)]'
                 : mode === 'reply'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:bg-white/60 hover:text-gray-800'
+                  ? 'bg-[var(--b-surface)] text-[var(--b-text-1)] shadow-sm'
+                  : 'text-[var(--b-text-3)] hover:bg-[var(--b-surface)]/60 hover:text-[var(--b-text-1)]'
             }`}
             disabled={isOneWayChannel}
             onClick={() => setMode('reply')}
@@ -540,7 +540,7 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
             className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
               mode === 'internal'
                 ? 'bg-amber-50 text-amber-900 shadow-sm'
-                : 'text-gray-500 hover:bg-white/60 hover:text-gray-800'
+                : 'text-[var(--b-text-3)] hover:bg-[var(--b-surface)]/60 hover:text-[var(--b-text-1)]'
             }`}
             onClick={() => setMode('internal')}
             type="button"
@@ -573,7 +573,7 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
       <div className="flex items-end gap-2">
         {/* Attach button */}
         <button
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-xl text-gray-300 cursor-not-allowed"
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-xl text-[var(--b-text-3)] cursor-not-allowed"
           disabled
           title="Adjuntar archivo (próximamente)"
           type="button"
@@ -585,7 +585,7 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
         <div className="relative">
           <button
             className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-xl transition-colors ${
-              emojiOpen ? 'bg-yellow-50 text-yellow-600' : 'text-gray-400 hover:text-gray-600'
+              emojiOpen ? 'bg-yellow-50 text-yellow-600' : 'text-[var(--b-text-3)] hover:text-[var(--b-text-2)]'
             }`}
             onClick={() => setEmojiOpen(!emojiOpen)}
             title="Emojis"
@@ -640,7 +640,7 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
       {/* SMS character counter */}
       {isSmsChannel && text.length > 0 && (
         <div className="flex justify-end px-1">
-          <span className={`text-xs ${charCount > SMS_MAX_CHARS ? 'text-orange-500' : 'text-gray-400'}`}>
+          <span className={`text-xs ${charCount > SMS_MAX_CHARS ? 'text-orange-500' : 'text-[var(--b-text-3)]'}`}>
             {charCount}/{SMS_MAX_CHARS} {smsSegments > 1 && `(${smsSegments} segmentos)`}
           </span>
         </div>

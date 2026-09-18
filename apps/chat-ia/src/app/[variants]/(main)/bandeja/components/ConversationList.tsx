@@ -42,7 +42,7 @@ function WhatsAppConversationList({ development, selectedId }: { development: st
             <div className="h-10 w-10 shrink-0 rounded-full bg-gray-200" />
             <div className="flex-1 space-y-2">
               <div className="h-3 w-1/2 rounded bg-gray-200" />
-              <div className="h-3 w-3/4 rounded bg-gray-100" />
+              <div className="h-3 w-3/4 rounded bg-[var(--b-surface-2)]" />
             </div>
           </div>
         ))}
@@ -162,28 +162,28 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
   if (loading) {
     // Rediseño A.2: skeleton simple 3 filas con tokens del sistema
     return (
-      <div className="h-full" style={{ backgroundColor: '#FFFFFF' }}>
+      <div className="h-full" style={{ backgroundColor: 'var(--b-surface)' }}>
         <div
           className="sticky top-0 z-10 px-4 py-3"
-          style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid #EDEDF0' }}
+          style={{ backgroundColor: 'var(--b-surface)', borderBottom: '1px solid var(--b-border)' }}
         >
-          <div className="h-4 w-32 rounded" style={{ backgroundColor: '#F2F1F6' }} />
-          <div className="mt-1.5 h-3 w-24 rounded" style={{ backgroundColor: '#F2F1F6' }} />
-          <div className="mt-2 h-8 w-full rounded-md" style={{ backgroundColor: '#F2F1F6' }} />
+          <div className="h-4 w-32 rounded" style={{ backgroundColor: 'var(--b-surface-2)' }} />
+          <div className="mt-1.5 h-3 w-24 rounded" style={{ backgroundColor: 'var(--b-surface-2)' }} />
+          <div className="mt-2 h-8 w-full rounded-md" style={{ backgroundColor: 'var(--b-surface-2)' }} />
         </div>
         {[1, 2, 3, 4].map((n) => (
           <div
             className="flex items-start gap-3 px-3 py-3"
             key={n}
-            style={{ borderBottom: '1px solid #EDEDF0' }}
+            style={{ borderBottom: '1px solid var(--b-border)' }}
           >
             <div
               className="h-10 w-10 flex-shrink-0 rounded-full"
-              style={{ backgroundColor: '#F2F1F6' }}
+              style={{ backgroundColor: 'var(--b-surface-2)' }}
             />
             <div className="min-w-0 flex-1 space-y-1.5">
-              <div className="h-3 w-3/5 rounded" style={{ backgroundColor: '#F2F1F6' }} />
-              <div className="h-3 w-4/5 rounded" style={{ backgroundColor: '#F2F1F6' }} />
+              <div className="h-3 w-3/5 rounded" style={{ backgroundColor: 'var(--b-surface-2)' }} />
+              <div className="h-3 w-4/5 rounded" style={{ backgroundColor: 'var(--b-surface-2)' }} />
             </div>
           </div>
         ))}
@@ -195,10 +195,10 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
     return (
       <div className="flex h-full items-center justify-center p-4">
         <div className="text-center max-w-xs">
-          <p className="text-sm font-medium" style={{ color: '#1C1C22' }}>
+          <p className="text-sm font-medium" style={{ color: 'var(--b-text-1)' }}>
             No pudimos cargar tus conversaciones
           </p>
-          <p className="mt-1 text-xs" style={{ color: '#84848F' }}>
+          <p className="mt-1 text-xs" style={{ color: 'var(--b-text-2)' }}>
             {error.message}
           </p>
         </div>
@@ -210,10 +210,10 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
     return (
       <div className="flex h-full items-center justify-center p-6">
         <div className="text-center max-w-xs">
-          <p className="text-sm font-medium" style={{ color: '#1C1C22' }}>
+          <p className="text-sm font-medium" style={{ color: 'var(--b-text-1)' }}>
             Aún no hay conversaciones
           </p>
-          <p className="mt-1 text-xs" style={{ color: '#84848F' }}>
+          <p className="mt-1 text-xs" style={{ color: 'var(--b-text-2)' }}>
             Cuando recibas mensajes aparecerán aquí.
           </p>
         </div>
@@ -222,14 +222,14 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
   }
 
   return (
-    <div className="h-full overflow-auto" style={{ backgroundColor: '#FFFFFF' }}>
+    <div className="h-full overflow-auto" style={{ backgroundColor: 'var(--b-surface)' }}>
       {/* Header rediseñado (Bloque A.2) — título "Comunicaciones" + subtítulo
           con contadores dinámicos + buscador con icono + botón sort discreto. */}
       <div
         className="sticky top-0 z-10 px-4 py-3"
         style={{
-          backgroundColor: '#FFFFFF',
-          borderBottom: '1px solid #EDEDF0',
+          backgroundColor: 'var(--b-surface)',
+          borderBottom: '1px solid var(--b-border)',
         }}
       >
         {/* Salida del canal (17-09). Al entrar en "solo WhatsApp" no había forma de volver a
@@ -259,16 +259,16 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
           <div className="min-w-0 flex-1">
             <h2
               className="truncate text-base font-semibold"
-              style={{ color: '#1C1C22', letterSpacing: '-0.01em' }}
+              style={{ color: 'var(--b-text-1)', letterSpacing: '-0.01em' }}
             >
               {tituloDelCanal(channel)}
             </h2>
-            <p className="mt-0.5 text-xs" style={{ color: '#84848F' }}>
+            <p className="mt-0.5 text-xs" style={{ color: 'var(--b-text-2)' }}>
               {conversations.length}{' '}
               {conversations.length === 1 ? 'conversación' : 'conversaciones'}
               {totalUnread > 0 && (
                 <>
-                  <span style={{ color: '#EDEDF0', margin: '0 6px' }}>·</span>
+                  <span style={{ color: 'var(--b-border)', margin: '0 6px' }}>·</span>
                   <span style={{ color: brand.brand, fontWeight: 500 }}>
                     {totalUnread} sin leer
                   </span>
@@ -293,11 +293,11 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
           <button
             className="flex-shrink-0 rounded-md px-2 py-1 text-[11px] transition-colors"
             onClick={() => setSortMode((m) => (m === 'recent' ? 'unread' : 'recent'))}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F2F1F6')}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--b-surface-2)')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
             style={{
               backgroundColor: 'transparent',
-              color: '#84848F',
+              color: 'var(--b-text-2)',
             }}
             title={
               sortMode === 'recent'
@@ -321,7 +321,7 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
             className="absolute left-2.5 top-1/2 -translate-y-1/2"
             fill="none"
             height="14"
-            stroke="#9A9AA6"
+            stroke="var(--b-text-3)"
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth="1.8"
@@ -334,19 +334,19 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
           <input
             className="w-full rounded-md py-1.5 pr-3 text-sm focus:outline-none"
             onBlur={(e) => {
-              e.currentTarget.style.backgroundColor = '#F2F1F6';
+              e.currentTarget.style.backgroundColor = 'var(--b-surface-2)';
               e.currentTarget.style.borderColor = 'transparent';
             }}
             onChange={(e) => setSearch(e.target.value)}
             onFocus={(e) => {
-              e.currentTarget.style.backgroundColor = '#FFFFFF';
+              e.currentTarget.style.backgroundColor = 'var(--b-surface)';
               e.currentTarget.style.borderColor = brand.brand;
             }}
             placeholder="Buscar conversación..."
             style={{
-              backgroundColor: '#F2F1F6',
+              backgroundColor: 'var(--b-surface-2)',
               border: '1px solid transparent',
-              color: '#1C1C22',
+              color: 'var(--b-text-1)',
               paddingLeft: '2rem',
             }}
             type="text"
@@ -356,9 +356,9 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
       </div>
 
       {/* Conversations — divide-y con color sutil del sistema */}
-      <div style={{ borderColor: '#EDEDF0' }}>
+      <div style={{ borderColor: 'var(--b-border)' }}>
         {filtered.length === 0 && search.trim() ? (
-          <div className="p-4 text-center text-sm" style={{ color: '#9A9AA6' }}>
+          <div className="p-4 text-center text-sm" style={{ color: 'var(--b-text-3)' }}>
             Sin resultados para &ldquo;{search}&rdquo;
           </div>
         ) : null}
@@ -366,7 +366,7 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
           <div
             key={conversation.id}
             style={{
-              borderTop: idx === 0 ? 'none' : '1px solid #EDEDF0',
+              borderTop: idx === 0 ? 'none' : '1px solid var(--b-border)',
             }}
           >
             <ConversationItem
@@ -425,7 +425,7 @@ function ChannelConversationList({
       <div className="h-full overflow-auto">
         {setupMap[channel] ?? (
           <div className="flex h-full items-center justify-center p-4">
-            <p className="text-sm text-gray-500">Canal no soportado: {channel}</p>
+            <p className="text-sm text-[var(--b-text-3)]">Canal no soportado: {channel}</p>
           </div>
         )}
       </div>
@@ -443,8 +443,8 @@ function EmptyStateWithChannels(_props: { onSelectChannel: (ch: string) => void 
   return (
     <div className="flex h-full flex-col items-center justify-center p-6">
       <div className="mb-3 text-5xl">💬</div>
-      <h3 className="mb-1 text-base font-semibold text-gray-700">Sin conversaciones</h3>
-      <p className="mb-5 text-center text-xs text-gray-400">
+      <h3 className="mb-1 text-base font-semibold text-[var(--b-text-2)]">Sin conversaciones</h3>
+      <p className="mb-5 text-center text-xs text-[var(--b-text-3)]">
         Configura WhatsApp, Instagram, Email y otros canales en Integraciones para recibir mensajes
       </p>
       <Link
@@ -454,7 +454,7 @@ function EmptyStateWithChannels(_props: { onSelectChannel: (ch: string) => void 
       >
         Ir a Integraciones →
       </Link>
-      <p className="mt-3 text-center text-[11px] text-gray-400">
+      <p className="mt-3 text-center text-[11px] text-[var(--b-text-3)]">
         O elige un canal en el menú de la izquierda
       </p>
     </div>
@@ -502,7 +502,7 @@ function ConversationListWithFallback({
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
           <div className="mb-2 text-3xl">⏳</div>
-          <p className="text-sm text-gray-500">Cargando conversaciones...</p>
+          <p className="text-sm text-[var(--b-text-3)]">Cargando conversaciones...</p>
         </div>
       </div>
     );

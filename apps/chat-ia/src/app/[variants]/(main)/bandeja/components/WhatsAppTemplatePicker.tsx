@@ -97,7 +97,7 @@ export function WhatsAppTemplatePicker({ onSelect, onDismiss }: WhatsAppTemplate
 
       {open && !loading && !error && templates.length > 0 && (
         <ul
-          className="mt-1 max-h-56 overflow-y-auto rounded-md border bg-white"
+          className="mt-1 max-h-56 overflow-y-auto rounded-md border bg-[var(--b-surface)]"
           role="listbox"
           style={{ borderColor: '#FCD34D' }}
         >
@@ -122,8 +122,8 @@ export function WhatsAppTemplatePicker({ onSelect, onDismiss }: WhatsAppTemplate
                   type="button"
                 >
                   <span className="flex items-center gap-1.5">
-                    <span className="font-semibold text-gray-800">{t.name}</span>
-                    <span className="text-[9px] text-gray-500">
+                    <span className="font-semibold text-[var(--b-text-1)]">{t.name}</span>
+                    <span className="text-[9px] text-[var(--b-text-3)]">
                       {t.language} · {t.category}
                     </span>
                     {nParams > 0 && (
@@ -133,7 +133,7 @@ export function WhatsAppTemplatePicker({ onSelect, onDismiss }: WhatsAppTemplate
                     )}
                   </span>
                   {preview && (
-                    <span className="line-clamp-2 text-[10px] text-gray-600">{preview}</span>
+                    <span className="line-clamp-2 text-[10px] text-[var(--b-text-2)]">{preview}</span>
                   )}
                 </button>
               </li>
@@ -143,13 +143,13 @@ export function WhatsAppTemplatePicker({ onSelect, onDismiss }: WhatsAppTemplate
       )}
 
       {paramDraft && (
-        <div className="mt-2 rounded-md border bg-white p-2 text-[11px]" style={{ borderColor: '#FCD34D' }}>
+        <div className="mt-2 rounded-md border bg-[var(--b-surface)] p-2 text-[11px]" style={{ borderColor: '#FCD34D' }}>
           <div className="mb-1 font-semibold text-amber-900">
             Rellena las {paramDraft.values.length} {paramDraft.values.length === 1 ? 'variable' : 'variables'} de "{paramDraft.template.name}"
           </div>
           {paramDraft.values.map((v, i) => (
             <label className="mb-1 block" key={i}>
-              <span className="text-[10px] text-gray-600">
+              <span className="text-[10px] text-[var(--b-text-2)]">
                 {`{{${i + 1}}}`}
               </span>
               <input
@@ -164,13 +164,13 @@ export function WhatsAppTemplatePicker({ onSelect, onDismiss }: WhatsAppTemplate
               />
             </label>
           ))}
-          <div className="mt-2 rounded bg-amber-50 p-1.5 text-[10px] text-gray-700">
+          <div className="mt-2 rounded bg-amber-50 p-1.5 text-[10px] text-[var(--b-text-2)]">
             <span className="font-semibold">Vista previa:</span>{' '}
             {templateFillParams(paramDraft.body, paramDraft.values)}
           </div>
           <div className="mt-2 flex justify-end gap-2">
             <button
-              className="rounded border border-gray-200 px-2 py-1 text-[11px] text-gray-600 hover:bg-gray-100"
+              className="rounded border border-[var(--b-border)] px-2 py-1 text-[11px] text-[var(--b-text-2)] hover:bg-[var(--b-surface-2)]"
               onClick={() => setParamDraft(null)}
               type="button"
             >

@@ -59,7 +59,7 @@ export function BottomSheet({
       />
       {/* Sheet */}
       <div
-        className="relative flex flex-col rounded-t-2xl bg-white shadow-xl"
+        className="relative flex flex-col rounded-t-2xl bg-[var(--b-surface)] shadow-xl"
         style={{ height: `${heightPct}vh` }}
       >
         {/* Drag handle visual */}
@@ -68,11 +68,11 @@ export function BottomSheet({
         </div>
         {/* Header */}
         {(title || true) && (
-          <div className="flex items-center justify-between border-b border-gray-100 px-4 pb-2">
-            <span className="text-sm font-semibold text-gray-800">{title ?? 'Detalles'}</span>
+          <div className="flex items-center justify-between border-b border-[var(--b-border)] px-4 pb-2">
+            <span className="text-sm font-semibold text-[var(--b-text-1)]">{title ?? 'Detalles'}</span>
             <button
               aria-label="Cerrar"
-              className="flex h-7 w-7 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100"
+              className="flex h-7 w-7 items-center justify-center rounded-full text-[var(--b-text-3)] hover:bg-[var(--b-surface-2)]"
               onClick={onClose}
               type="button"
             >

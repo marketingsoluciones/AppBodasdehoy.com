@@ -133,13 +133,13 @@ export function ContactConversationsPanel({
 
   if (conversations === null) {
     return (
-      <div className="px-4 py-3 text-xs text-gray-400">Cargando conversaciones del contacto…</div>
+      <div className="px-4 py-3 text-xs text-[var(--b-text-3)]">Cargando conversaciones del contacto…</div>
     );
   }
 
   if (loadError) {
     return (
-      <div className="px-4 py-3 text-xs text-gray-400">
+      <div className="px-4 py-3 text-xs text-[var(--b-text-3)]">
         No se pudieron cargar las conversaciones del contacto.
       </div>
     );
@@ -163,7 +163,7 @@ export function ContactConversationsPanel({
     return (
       <button
         className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors ${
-          isCurrent ? 'cursor-default bg-gray-100' : 'hover:bg-gray-50'
+          isCurrent ? 'cursor-default bg-[var(--b-surface-2)]' : 'hover:bg-[var(--b-surface-2)]'
         }`}
         disabled={isCurrent}
         key={c.id}
@@ -175,11 +175,11 @@ export function ContactConversationsPanel({
       >
         <ChannelBadge channel={(c.channel as any) || 'whatsapp'} size="sm" />
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-xs font-medium text-gray-700">
+          <span className="block truncate text-xs font-medium text-[var(--b-text-2)]">
             {name}
-            {isCurrent && <span className="ml-1 text-[10px] font-normal text-gray-400">· actual</span>}
+            {isCurrent && <span className="ml-1 text-[10px] font-normal text-[var(--b-text-3)]">· actual</span>}
           </span>
-          <span className="block text-[10px] text-gray-400">
+          <span className="block text-[10px] text-[var(--b-text-3)]">
             {c.messageCount ?? 0} msjs · {relativeTime(c.lastMessageAt)}
           </span>
         </span>
@@ -200,18 +200,18 @@ export function ContactConversationsPanel({
   };
 
   return (
-    <div className="border-t border-gray-100 px-2 py-3">
-      <div className="mb-2 px-2 text-[11px] font-bold uppercase tracking-wider text-gray-400">
+    <div className="border-t border-[var(--b-border)] px-2 py-3">
+      <div className="mb-2 px-2 text-[11px] font-bold uppercase tracking-wider text-[var(--b-text-3)]">
         Conversaciones de {contactName || 'este contacto'} ({conversations.length})
       </div>
 
       {conversations.length === 0 && (
-        <div className="px-2 text-xs text-gray-400">Sin más conversaciones registradas.</div>
+        <div className="px-2 text-xs text-[var(--b-text-3)]">Sin más conversaciones registradas.</div>
       )}
 
       {marca.length > 0 && (
         <div className="mb-2">
-          <div className="px-2 text-[10px] font-semibold uppercase text-gray-300">
+          <div className="px-2 text-[10px] font-semibold uppercase text-[var(--b-text-3)]">
             {/* "Marca / Soporte" era jerga interna. Lo que agrupa aquí son las
                 conversaciones que no cuelgan de ningún evento. */}
             Sin evento
@@ -222,7 +222,7 @@ export function ContactConversationsPanel({
 
       {[...porEvento.entries()].map(([eventId, list]) => (
         <div className="mb-2" key={eventId}>
-          <div className="px-2 text-[10px] font-semibold uppercase text-gray-300">
+          <div className="px-2 text-[10px] font-semibold uppercase text-[var(--b-text-3)]">
             Evento ·{eventId.slice(-6)}
           </div>
           {list.map(renderRow)}

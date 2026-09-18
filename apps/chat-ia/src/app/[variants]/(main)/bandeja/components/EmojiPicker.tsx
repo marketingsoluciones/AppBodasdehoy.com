@@ -90,11 +90,11 @@ export function EmojiPicker({ onClose, onPick }: EmojiPickerProps) {
 
   return (
     <div ref={ref}>
-        <div className="absolute bottom-12 left-0 z-10 w-80 rounded-lg border border-gray-200 bg-white shadow-lg">
+        <div className="absolute bottom-12 left-0 z-10 w-80 rounded-lg border border-[var(--b-border)] bg-[var(--b-surface)] shadow-lg">
           {/* Search */}
-          <div className="border-b border-gray-100 px-3 pt-3 pb-2">
+          <div className="border-b border-[var(--b-border)] px-3 pt-3 pb-2">
             <input
-              className="w-full rounded-md border border-gray-200 px-2.5 py-1.5 text-xs focus:border-blue-400 focus:outline-none"
+              className="w-full rounded-md border border-[var(--b-border)] px-2.5 py-1.5 text-xs focus:border-blue-400 focus:outline-none"
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar emoji..."
               type="text"
@@ -105,12 +105,12 @@ export function EmojiPicker({ onClose, onPick }: EmojiPickerProps) {
           {/* Recent emojis */}
           {!search && recents.length > 0 && (
             <div className="border-b border-gray-50 px-3 py-2">
-              <p className="mb-1 text-[10px] font-medium uppercase text-gray-400">Recientes</p>
+              <p className="mb-1 text-[10px] font-medium uppercase text-[var(--b-text-3)]">Recientes</p>
               <div className="flex flex-wrap gap-0.5">
                 {recents.map((emoji, i) => (
                   <button
                     aria-label={`Emoji ${emoji}`}
-                    className="flex h-8 w-8 items-center justify-center rounded text-lg hover:bg-gray-100"
+                    className="flex h-8 w-8 items-center justify-center rounded text-lg hover:bg-[var(--b-surface-2)]"
                     key={`recent-${i}`}
                     onClick={() => pick(emoji)}
                     type="button"
@@ -124,13 +124,13 @@ export function EmojiPicker({ onClose, onPick }: EmojiPickerProps) {
 
           {/* Category tabs */}
           {!search && (
-            <div className="flex gap-0.5 overflow-x-auto border-b border-gray-100 px-3 py-1.5">
+            <div className="flex gap-0.5 overflow-x-auto border-b border-[var(--b-border)] px-3 py-1.5">
               {Object.keys(EMOJI_CATEGORIES).map((cat) => (
                 <button
                   className={`shrink-0 rounded px-2 py-1 text-[11px] font-medium transition-colors ${
                     category === cat
                       ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-500 hover:bg-gray-100'
+                      : 'text-[var(--b-text-3)] hover:bg-[var(--b-surface-2)]'
                   }`}
                   key={cat}
                   onClick={() => setCategory(cat)}
@@ -152,7 +152,7 @@ export function EmojiPicker({ onClose, onPick }: EmojiPickerProps) {
                   .map((emoji) => (
                     <button
                       aria-label={`Emoji ${emoji}`}
-                      className="flex h-8 w-8 items-center justify-center rounded text-lg hover:bg-gray-100"
+                      className="flex h-8 w-8 items-center justify-center rounded text-lg hover:bg-[var(--b-surface-2)]"
                       key={emoji}
                       onClick={() => pick(emoji)}
                       type="button"
@@ -161,7 +161,7 @@ export function EmojiPicker({ onClose, onPick }: EmojiPickerProps) {
                     </button>
                   ))}
                 {Object.values(EMOJI_CATEGORIES).flat().filter((e) => e.includes(search)).length === 0 && (
-                  <p className="col-span-8 py-4 text-center text-xs text-gray-400">Sin resultados</p>
+                  <p className="col-span-8 py-4 text-center text-xs text-[var(--b-text-3)]">Sin resultados</p>
                 )}
               </div>
             ) : (
@@ -169,7 +169,7 @@ export function EmojiPicker({ onClose, onPick }: EmojiPickerProps) {
                 {EMOJI_CATEGORIES[category]?.map((emoji) => (
                   <button
                     aria-label={`Emoji ${emoji}`}
-                    className="flex h-8 w-8 items-center justify-center rounded text-lg hover:bg-gray-100"
+                    className="flex h-8 w-8 items-center justify-center rounded text-lg hover:bg-[var(--b-surface-2)]"
                     key={emoji}
                     onClick={() => pick(emoji)}
                     type="button"
