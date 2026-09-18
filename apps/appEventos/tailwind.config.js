@@ -36,18 +36,20 @@ module.exports = {
         basePage: "#F6F6F6",
         // OJO, esto está sin decidir (JCP, 18-09): estos cuatro tokens leen las MISMAS
         // variables que primary/secondary/tertiary, así que resuelven al color del
-        // whitelabel ACTIVO — no al color que dice su nombre. Sus respaldos son de otra
-        // marca (#6096B9 y #284C77 son de eventosorganizador) o fijos (#F4C02F,
-        // #49516F), de modo que en bodasdehoy estos 70 usos destellan AZUL antes de que
-        // la variable resuelva. No se tocan hasta saber la intención: si deben seguir a
-        // la marca, el respaldo tiene que ser el de bodasdehoy; si deben ser un color
-        // fijo, no deberían leer la variable.
-        primaryOrg: `var(--color-primary, #6096B9)`,
-        secondaryOrg: `var(--color-secondary, #284C77)`,
-        acento: `var(--color-tertiary, #F4C02F)`,
+        // whitelabel ACTIVO — no al color que dice su nombre. El owner decidió el 18-09
+        // que SIGUEN A LA MARCA, así que la lectura de la variable está bien y lo que
+        // estaba mal eran los respaldos: #6096B9 y #284C77 son de eventosorganizador, y
+        // #F4C02F / #49516F eran fijos de ninguna marca. Con ellos, estos 70 usos
+        // destellaban AZUL en bodasdehoy antes de que la variable resolviera. Ahora
+        // llevan el mismo respaldo que el token del que son alias, tres líneas más
+        // arriba: si un día se quiere un corporativo fijo, lo que hay que quitar es el
+        // `var()`, no cambiar el respaldo.
+        primaryOrg: `var(--color-primary, #EF5B94)`,
+        secondaryOrg: `var(--color-secondary, #87F3B5)`,
+        acento: `var(--color-tertiary, #FBFF4E)`,
         titelCard: "#B5B5B5",
         textGrisClaro: "#727272",
-        'azulCorporativo': `var(--color-secondary, #49516F)`
+        'azulCorporativo': `var(--color-secondary, #87F3B5)`
       },
       transitionProperty: {
         'height': 'height'
