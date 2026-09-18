@@ -58,7 +58,9 @@ export function GlobalSummaryCard({ convUnread }: { convUnread: number }) {
   if (stats.length === 0) return null;
 
   return (
-    <div className="no-scrollbar flex items-center gap-3 overflow-x-auto border-b border-[var(--b-border)] px-3 py-1.5">
+    /* Sin borde ni fila propia: desde el 19-09 vive DENTRO de la fila del ámbito, que es
+       donde tiene sentido —las dos cosas dicen "sobre qué trabajas y cuánto hay"—. */
+    <div className="no-scrollbar flex flex-none items-center gap-3 overflow-x-auto">
       {/* Aquí había un 🌐 suelto con el significado escondido en el tooltip. En la revisión
           de UX del 18-09 se leyó como un indicador de saldo: un icono sin palabra al lado no
           se interpreta, se adivina. Y encima repetía lo que dice el selector de ámbito justo

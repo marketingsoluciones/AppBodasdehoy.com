@@ -343,14 +343,20 @@ export default function MessagesPage() {
                     valor no se turnan, se contradicen — y quien los ve no sabe cuál manda.
                     Queda uno por nivel: el de la bandeja en la cabecera de la lista, y el de
                     cada conversación en su fila. */}
-                <div className="border-b border-[var(--b-border)] px-3 py-2">
-                  <ScopeSelector activeScope={activeScope} onChange={handleScopeChange} />
+                {/* BS1 del informe: la barra eran tres o cuatro alturas sin jerarquía
+                    —ámbito, resumen, filtros, buscar— apiladas antes de la primera
+                    conversación. El ámbito y el resumen dicen lo mismo ("sobre qué estás
+                    trabajando y cuánto hay"), así que van juntos: el selector manda y las
+                    cifras lo acompañan. En móvil el resumen se pliega bajo el selector, que
+                    ahí no caben los dos. */}
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-[var(--b-border)] px-3 py-2">
+                  <div className="min-w-[150px] flex-1">
+                    <ScopeSelector activeScope={activeScope} onChange={handleScopeChange} />
+                  </div>
+                  {activeScope === 'support' && !esperanOnly && !agentFilter && (
+                    <GlobalSummaryCard convUnread={convUnreadCount} />
+                  )}
                 </div>
-                {/* G2 (auditoría 22-ago): resumen del dueño en modo Global (sin evento
-                    seleccionado). Datos agregados en front (eventos + no-leídos ya en memoria). */}
-                {activeScope === 'support' && !esperanOnly && !agentFilter && (
-                  <GlobalSummaryCard convUnread={convUnreadCount} />
-                )}
                 <InboxFilters
                   channel={channelFilter}
                   hideRsvp={activeScope === 'support'}

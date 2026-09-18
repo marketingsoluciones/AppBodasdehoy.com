@@ -134,6 +134,7 @@ export default function ConversationPage({ params }: ConversationPageProps) {
               channel={channel}
               conversationId={conversation_id}
               onSearchFilter={setSearchFilter}
+              sinVolver
             />
           </div>
           {/* Botón ℹ — abre bottom sheet con sidebar info (Diseño móvil) */}

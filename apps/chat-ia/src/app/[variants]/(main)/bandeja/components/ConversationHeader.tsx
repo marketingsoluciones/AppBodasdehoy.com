@@ -32,6 +32,12 @@ interface ConversationHeaderProps {
   detailsOpen?: boolean;
   onSearchFilter?: (term: string) => void;
   onToggleDetails?: () => void;
+  /**
+   * Quien envuelve esta cabecera ya pone su propio botón de volver. En móvil, la página del
+   * hilo lo hace, y salían DOS flechas seguidas (← y ‹) — P2.2 del informe del owner. La
+   * cabecera no puede saber por sí sola si está envuelta, así que lo dice quien envuelve.
+   */
+  sinVolver?: boolean;
 }
 
 export function ConversationHeader({
@@ -40,6 +46,7 @@ export function ConversationHeader({
   onSearchFilter,
   detailsOpen,
   onToggleDetails,
+  sinVolver,
 }: ConversationHeaderProps) {
   const brand = useBandejaBrand();
   const router = useRouter();
@@ -272,7 +279,8 @@ export function ConversationHeader({
     return (
       <div className="flex items-center justify-between border-b border-[var(--b-border)] bg-[var(--b-surface)] p-4">
         <div className="flex min-w-0 items-center gap-3">
-          <button
+          {!sinVolver && (
+            <button
             aria-label="Volver a la bandeja"
             className="flex h-9 w-9 flex-none items-center justify-center rounded-md text-[var(--b-text-2)] transition-colors hover:bg-[var(--b-surface-2)]"
             onClick={() => router.push('/bandeja')}
@@ -292,6 +300,7 @@ export function ConversationHeader({
               <path d="m15 18-6-6 6-6" />
             </svg>
           </button>
+          )}
           <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-gray-200 text-sm font-semibold text-[var(--b-text-3)]">
             ⚠
           </div>
@@ -318,7 +327,8 @@ export function ConversationHeader({
         <div className="flex min-w-0 items-center gap-3">
           {/* Volver a la bandeja: feedback owner 15-09 — el botón solo en móvil dejaba
               sin salida al panel de detalle en desktop (ventana estrecha, deep link). */}
-          <button
+          {!sinVolver && (
+            <button
             aria-label="Volver a la bandeja"
             className="flex h-9 w-9 flex-none items-center justify-center rounded-md transition-colors"
             onClick={() => router.push('/bandeja')}
@@ -341,6 +351,7 @@ export function ConversationHeader({
               <path d="m15 18-6-6 6-6" />
             </svg>
           </button>
+          )}
           {/* Avatar 40x40 con presence + punto canal */}
           <div className="relative flex-shrink-0">
             <div
