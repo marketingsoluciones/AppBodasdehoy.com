@@ -59,13 +59,10 @@ export function GlobalSummaryCard({ convUnread }: { convUnread: number }) {
 
   return (
     <div className="no-scrollbar flex items-center gap-3 overflow-x-auto border-b border-[var(--b-border)] px-3 py-1.5">
-      <span
-        aria-hidden="true"
-        className="flex-none text-[11px] text-brand"
-        title="Resumen de todas tus bodas"
-      >
-        🌐
-      </span>
+      {/* Aquí había un 🌐 suelto con el significado escondido en el tooltip. En la revisión
+          de UX del 18-09 se leyó como un indicador de saldo: un icono sin palabra al lado no
+          se interpreta, se adivina. Y encima repetía lo que dice el selector de ámbito justo
+          encima ("Todas tus bodas"), así que sobra. */}
       {stats.map((s) => (
         <span className="flex flex-none items-baseline gap-1" key={s.label}>
           <span aria-hidden="true" className="text-[11px]">{s.icon}</span>

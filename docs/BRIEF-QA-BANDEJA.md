@@ -74,7 +74,7 @@ La bandeja debe pintar el color de la marca activa, nunca uno fijo. Los colores 
 
 | Qué | Estado |
 |---|---|
-| **Tema oscuro: la bandeja no lo soporta.** La app sigue el tema del teléfono (`themeMode: auto`) y la bandeja está pintada en claro con 331 colores fijos y 329 clases claras en 28 ficheros. En un teléfono en oscuro se mezcla | Medido. Pendiente de decisión: forzar claro (rápido) o hacerla adaptable (trabajo grande) |
+| Tema oscuro | **Resuelto el 18-09** con una paleta semántica: 159 colores a mano y 342 clases claras pasaron a seis nombres por función, con los valores oscuros en un solo fichero. Los de ESTADO y CANAL (verde WhatsApp, ámbar, rojo) se quedan fijos a propósito. **Sí hace falta probarlo**: poner el teléfono en oscuro y entrar |
 | El modo de IA por conversación en WhatsApp no se puede fijar: el backend devuelve error y todas heredan el de la bandeja | Petición P11 al backend |
 | El aviso de "has llegado al límite de tu plan" no salta | Módulo hecho y probado, falta llamarlo |
 | Sección de entradas y lista de regalos: maquetas sin servidor | Aparcado para la segunda versión |
@@ -85,4 +85,11 @@ La bandeja debe pintar el color de la marca activa, nunca uno fijo. Los colores 
 - Icono de dar acceso visible en pantallas táctiles (antes necesitaba ratón: invisible en móvil).
 - Pestañas de arriba en color de marca (antes, morado del prototipo).
 - Los ✓ dejaron de afirmar entregas y lecturas que nadie había confirmado.
+- La ventana de 24h y las plantillas de pago solo se aplican ya a WhatsApp API (antes
+  bloqueaban también el QR, y daban por caducada toda conversación sin mensajes entrantes).
+- Cada fila dice si es API o QR, que es lo que decide si se puede responder libremente.
+- Un solo control de modo de IA por nivel (había dos editando lo mismo).
+- Filtros plegados en móvil, con una puerta para conectar otro canal.
+- Quién lleva cada conversación, visible en la fila.
+- Los indicadores de fila tienen 42px de área táctil aunque se vean de 18.
 - Los mensajes que llegan en tiempo real dejaron de atribuirse al revés.
