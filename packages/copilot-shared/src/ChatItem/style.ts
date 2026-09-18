@@ -1,5 +1,4 @@
 import { createStyles } from 'antd-style';
-import { rgba } from 'polished';
 
 export const useStyles = createStyles(
   (
@@ -24,14 +23,22 @@ export const useStyles = createStyles(
       variant?: 'bubble' | 'docs';
     },
   ) => {
-    const blockStylish = css`
-      padding-block: 8px;
-      padding-inline: 12px;
-      border: 1px solid ${rgba(token.colorBorderSecondary, 0.66)};
-      border-radius: ${token.borderRadiusLG}px;
+  // Medidas del diseño Chat_Widget.dc.html. La burbuja no lleva borde —se distingue
+  // por el fondo— y las esquinas son asimétricas según quién habla: la punta apunta
+  // al emisor (abajo-derecha en las propias, abajo-izquierda en las del asistente).
+  const esPropia = placement === 'right';
+  const blockStylish = css`
+    max-width: 85%;
+    padding-block: 10px;
+    padding-inline: 14px;
+    border: none;
+    border-radius: ${esPropia ? '14px 14px 4px 14px' : '14px 14px 14px 4px'};
 
-      background-color: ${token.colorBgContainer};
-    `;
+    font: 500 12.5px/1.6 Poppins, sans-serif;
+    color: ${esPropia ? '#fff' : '#3A3A42'};
+
+    background-color: ${esPropia ? '#EF5B94' : '#faf9fb'};
+  `;
 
     const rawStylish = css`
       padding-block-start: ${title ? 0 : '6px'};

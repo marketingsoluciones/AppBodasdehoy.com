@@ -121,3 +121,22 @@ nextjs-portal {
   top: unset;
   pointer-events: none;
 }
+
+/* Color del texto de ayuda del campo del Copilot — diseño Chat_Widget.dc.html.
+   Va aquí porque `::placeholder` no se puede poner con `style` en línea. */
+input::placeholder {
+  color: #c8c8ce;
+}
+
+/* Animaciones del diseño Chat_Widget_v2.dc.html */
+@keyframes copilot-fadein {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes copilot-blink {
+  0%, 80%, 100% { opacity: .25; }
+  40% { opacity: 1; }
+}
+/* La lista de mensajes del Copilot no muestra barra de desplazamiento. */
+.copilot-no-scrollbar::-webkit-scrollbar { display: none; }
+.copilot-no-scrollbar { scrollbar-width: none; }
