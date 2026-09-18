@@ -136,6 +136,11 @@
   }
 }
 
+/* La fuente de verdad: el tema REAL de la aplicación, que la bandeja marca en su contenedor
+   (`data-b-theme`). La consulta de medios de arriba es solo el respaldo del primer pintado,
+   antes de que React hidrate; en cuanto lo hace, manda esto. Se mantienen también los dos
+   selectores habituales de las librerías por si algún día el tema se marca más arriba. */
+[data-b-theme='dark'],
 [data-theme='dark'],
 html.dark,
 [data-prefers-color-scheme='dark'] {
@@ -145,4 +150,16 @@ html.dark,
   --b-surface: #1A1A1F;
   --b-surface-2: #26262D;
   --b-border: #32323A;
+}
+
+/* Claro EXPLÍCITO gana a la preferencia del sistema: teléfono en oscuro + app forzada en
+   claro debe verse claro. Sin esto, la consulta de medios de arriba dejaría la bandeja
+   oscura dentro de una aplicación clara. */
+[data-b-theme='light'] {
+  --b-text-1: #1C1C22;
+  --b-text-2: #6B6B76;
+  --b-text-3: #6C6C76;
+  --b-surface: #FFFFFF;
+  --b-surface-2: #F2F1F6;
+  --b-border: #EDEDF0;
 }

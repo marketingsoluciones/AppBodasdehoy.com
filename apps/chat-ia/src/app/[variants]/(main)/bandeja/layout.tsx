@@ -1,5 +1,6 @@
 'use client';
 
+import { useThemeMode } from 'antd-style';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useEffect, useState } from 'react';
 
@@ -69,6 +70,9 @@ function MobileBottomNav() {
 }
 
 export default function MessagesLayout({ children }: MessagesLayoutProps) {
+  // 'dark' | 'light' ya resuelto: con el tema en automático, la librería lo deriva del
+  // sistema; con uno forzado, manda el ajuste del usuario.
+  const { appearance } = useThemeMode();
   const brand = useBandejaBrand();
   const router = useRouter();
   const isLoaded = useUserStore(authSelectors.isLoaded);
@@ -154,7 +158,16 @@ export default function MessagesLayout({ children }: MessagesLayoutProps) {
   // contenedor (antes se quedaba en ~910px dejando franja vacía a la derecha en
   // desktop ancho, porque la raíz no forzaba el ancho del padre).
   return (
-    <div className="flex h-full w-full flex-1 flex-col overflow-hidden bg-[var(--b-surface)]">
+    /* `data-b-theme` ata la paleta de la bandeja al tema REAL de la aplicación, no a la
+       preferencia del sistema. La diferencia importa en un caso concreto: alguien con el
+       teléfono en oscuro que fuerza el modo claro en los ajustes. Con solo la consulta de
+       medios, la bandeja se habría puesto oscura y el resto de la app claro — el mismo
+       problema que veníamos a arreglar, del revés. La consulta de medios se queda en
+       tailwind.css como respaldo para el primer pintado, antes de que hidrate React. */
+    <div
+      className="flex h-full w-full flex-1 flex-col overflow-hidden bg-[var(--b-surface)]"
+      data-b-theme={appearance}
+    >
       <div className="flex flex-1 overflow-hidden">
         {/* H3 (QA re-run 21-ago): MessagesRail (Conversaciones/Bandeja/Agentes/Notificaciones)
             RETIRADO — era un 2º rail vertical (solo desktop ≥1024px) que DUPLICABA el rail
