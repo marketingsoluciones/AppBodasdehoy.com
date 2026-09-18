@@ -67,8 +67,16 @@ function nivelDeLaBandeja(development: string): Promise<IaLevel | null> {
   return p;
 }
 
+/**
+ * 18px de alto se ven bien y NO se tocan bien: la guía de accesibilidad pide 44px de área
+ * táctil y un dedo no tiene la puntería de un ratón (P2.2 del brief, 18-09). El truco es
+ * separar lo que se ve de lo que se toca: la pastilla sigue midiendo 18px, pero el relleno
+ * invisible (`p-3 -m-3`) le da 42px de zona sensible sin mover un píxel el diseño. En
+ * escritorio no estorba porque el margen negativo devuelve el espacio.
+ */
 const PASTILLA =
-  'pointer-events-auto inline-flex h-[18px] flex-none items-center gap-0.5 rounded-full px-1 text-[10px] font-semibold leading-none transition-colors';
+  'pointer-events-auto inline-flex h-[18px] flex-none items-center gap-0.5 rounded-full px-1 text-[10px] font-semibold leading-none transition-colors ' +
+  '[@media(hover:none)]:p-3 [@media(hover:none)]:-m-3 [@media(hover:none)]:h-auto [@media(hover:none)]:min-h-[42px] [@media(hover:none)]:box-content';
 
 export function SharedBadge({
   onManage,

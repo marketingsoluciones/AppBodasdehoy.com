@@ -28,6 +28,10 @@ export interface FeedItem {
    *  hay valor; hasta entonces quedan dormidos. */
   assignedAgentId?: string | null;
   assignedAgentName?: string | null;
+  /** Responsable HUMANO (P1.4 del brief): quién lleva la conversación. Lo trae el modelo
+   *  (`assignedToUserId`) y la fila no lo enseñaba, así que "quién la lleva" solo se sabía
+   *  abriendo una por una. */
+  assignedToUserId?: string | null;
   channelKind: ChannelKind | 'notification';
   /** Short label for multi-channel disambiguation (e.g. "Sv", "IG") */
   channelLabel?: string;
@@ -300,6 +304,7 @@ export function useUnifiedFeed(maxItems = 200): {
       linkedEventId: conv.linkedEventId,
       name: conv.name,
       notificationId: null,
+      assignedToUserId: conv.assignedToUserId ?? null,
       sharedWith: conv.sharedWith,
       preview: conv.lastMessage,
       // FASE B v2.0 — api-mcp commit 7d52fec (25-jun) expone guestStatus.

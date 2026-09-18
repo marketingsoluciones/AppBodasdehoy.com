@@ -67,8 +67,9 @@ function initials(name: string): string {
 // ─── FeedItemRow ─────────────────────────────────────────────────────────────
 
 function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void }) {
+  const brand = useBandejaBrand();
   const router = useRouter();
-  const { development } = getUserContext();
+  const { development, userId } = getUserContext();
   const channelKey = item.channelKind as string;
   const cfg = FEED_CHANNEL_CONFIG[channelKey] ?? FEED_CHANNEL_CONFIG.web;
   const hasUnread = item.unreadCount > 0 || !item.isRead;
@@ -202,6 +203,21 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
             >
               <span aria-hidden="true">🤖</span>
               <span className="truncate">{item.assignedAgentName}</span>
+            </span>
+          )}
+          {/* P1.4: quién la lleva, sin abrirla. "Tuya" cuando eres tú; las iniciales del
+              responsable cuando es otra persona. Antes esto solo se veía dentro. */}
+          {item.kind === 'conversation' && item.assignedToUserId && (
+            <span
+              className="flex-none rounded-full px-1.5 text-[10px] font-semibold"
+              style={
+                item.assignedToUserId === userId
+                  ? { backgroundColor: brand.brandBg, color: brand.brand }
+                  : { backgroundColor: '#F4F4F6', color: '#6B6B76' }
+              }
+              title={item.assignedToUserId === userId ? 'Asignada a ti' : 'La lleva otra persona'}
+            >
+              {item.assignedToUserId === userId ? 'Tuya' : '·'}
             </span>
           )}
           {item.kind === 'conversation' && (

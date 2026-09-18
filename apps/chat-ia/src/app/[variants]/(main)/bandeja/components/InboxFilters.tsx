@@ -10,7 +10,7 @@
  *
  * Filtros RSVP solo se muestran en modo Evento (P9 Diseño: Soporte sin RSVP).
  */
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { useBandejaBrand } from '../utils/brand';
 
@@ -94,6 +94,8 @@ export function InboxFilters({
   showSpam = false,
 }: InboxFiltersProps) {
   const brand = useBandejaBrand();
+  // Plegado en móvil; en escritorio la clase md:flex manda y esto da igual.
+  const [abierto, setAbierto] = useState(false);
   // Los filtros de MARCA del config estático (#EDE9FE/#5B21B6, ej. "Todos"/"Todo"/"Web")
   // se resuelven a la paleta del whitelabel. Los SEMÁNTICOS (RSVP ámbar/verde/rojo,
   // canal WA/IG/TG) conservan su color fijo.
@@ -171,7 +173,30 @@ export function InboxFilters({
        quedaban cortados a media palabra sin nada que indicara que hay más. Un borde que se
        desvanece es la señal de "sigue"; un corte seco se lee como un fallo de pintado. */
     <div className="relative border-b border-gray-100">
-      <div className="no-scrollbar flex items-center gap-1 overflow-x-auto px-3 py-1.5">
+      {/* P1.3 (brief 18-09): en un teléfono, una fila entera de pastillas de canal es media
+          pantalla de "chrome" para algo que se usa de vez en cuando. En móvil se pliega
+          detrás de un botón que dice cuál está puesto; en escritorio se queda desplegada,
+          que ahí el ancho sobra. */}
+      <button
+        aria-expanded={abierto}
+        className="flex w-full items-center justify-between px-3 py-2 text-left text-[12px] font-medium md:hidden"
+        onClick={() => setAbierto((v) => !v)}
+        style={{ color: '#4b5563' }}
+        type="button"
+      >
+        <span>
+          Filtros
+          {channel !== 'all' && (
+            <span className="ml-1 font-semibold" style={{ color: brand.brand }}>
+              · {CHANNEL_OPTIONS.find((o) => o.value === channel)?.label ?? channel}
+            </span>
+          )}
+        </span>
+        <span aria-hidden>{abierto ? '▴' : '▾'}</span>
+      </button>
+      <div
+        className={`no-scrollbar ${abierto ? 'flex' : 'hidden'} items-center gap-1 overflow-x-auto px-3 py-1.5 md:flex`}
+      >
       {!hideRsvp && <span className="flex flex-none items-center gap-1">{rsvpRow}</span>}
       <span className="flex flex-none items-center gap-1">{channelRow}</span>
       <span className="flex flex-none items-center gap-1">
@@ -203,6 +228,17 @@ export function InboxFilters({
             )}
           </button>
         )}
+        {/* P1.3: no había ninguna forma visible de conectar otro canal desde la bandeja.
+            La gestión vive en Configuración › Integraciones; esto es solo la puerta. */}
+        <a
+          className="inline-flex flex-none items-center gap-1 rounded-full border border-dashed border-gray-300 px-2 py-1 text-[11px] font-medium"
+          href="/settings/integrations"
+          style={{ color: '#6B6B76' }}
+          title="Conectar otro canal: Instagram, Facebook, Telegram, correo o chat web"
+        >
+          <span aria-hidden>+</span>
+          <span>Canal</span>
+        </a>
         {onToggleSpam && (
           <button
             aria-pressed={showSpam}
