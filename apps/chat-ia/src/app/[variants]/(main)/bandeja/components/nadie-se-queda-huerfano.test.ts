@@ -56,8 +56,20 @@ describe('ningún fichero de la bandeja se queda huérfano', () => {
     const huerfanos = propios.filter((f) => {
       const nombre = f.split('/').pop()!.replace(/\.tsx?$/, '');
       if (ENTRADAS.has(nombre) || ES_BARRIL(nombre)) return false;
-      // `from '<lo que sea>/nombre'` en cualquier otro fichero del proyecto.
-      const patron = new RegExp(`from\\s+['"][^'"]*/${nombre}['"]`);
+      /*
+       * Las CUATRO formas de traerse un fichero, no solo la que se me ocurrió primero:
+       *   import { X } from './X'      · la normal
+       *   dynamic(() => import('./X')) · la de Next para lo que no va en el primer paquete
+       *   import './X'                 · por efecto secundario (polyfills, css)
+       *   require('./X')               · la vieja
+       * Mirar solo la primera daba por muertos ficheros vivos: al llevar esta prueba a
+       * appEventos, CopilotEmbed —1.295 líneas, el chat IA integrado— salió como huérfano
+       * porque se carga con `dynamic`. Un detector que enumera sintaxis se equivoca en la
+       * que no enumeró, y aquí equivocarse significa borrar código vivo.
+       */
+      const patron = new RegExp(
+        `(from|import|require)\\s*\\(?\\s*['"][^'"]*/${nombre}['"]`,
+      );
       for (const [otro, texto] of contenido) {
         if (otro !== f && patron.test(texto)) return false;
       }
