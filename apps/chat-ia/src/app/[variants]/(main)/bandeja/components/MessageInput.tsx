@@ -236,10 +236,20 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
     currentConv?.channelType,
   );
   const [waTemplateDismissed, setWaTemplateDismissed] = useState(false);
+  /**
+   * Panel de plantillas: se abre desde el propio compositor, no aparece solo tapándolo.
+   * Owner, ronda 3: "cuando Meta obliga a plantilla, no poner un banner bloqueante en el
+   * composer; integrar el selector dentro del editor". Un aviso que tapa el sitio donde se
+   * escribe convierte una limitación en un muro: el operador ve que no puede escribir, pero
+   * no ve qué SÍ puede hacer.
+   */
+  const [plantillasAbierto, setPlantillasAbierto] = useState(false);
   // HD-01: OR con la capability del backend (requiresTemplate) — verdad autoritativa sobre
   // la heurística local de ventana 24h.
-  const showTemplatePicker =
-    (waWindowExpired || !!requiresTemplate) && !waTemplateDismissed && mode === 'reply';
+  /** La conversación EXIGE plantilla para responder (ventana de Meta cerrada). */
+  const exigePlantilla = (waWindowExpired || !!requiresTemplate) && mode === 'reply';
+  /** El panel está desplegado: porque hace falta y aún no se ha cerrado, o porque se pidió. */
+  const showTemplatePicker = plantillasAbierto || (exigePlantilla && !waTemplateDismissed);
 
   // M1 drafts api-ia (24-jun): sincroniza el texto del modo 'reply' con backend
   // (TTL 24h, cross-device). Si el backend devuelve un draft existente al
@@ -405,10 +415,34 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
         className="space-y-1"
         style={readOnly ? { opacity: 0.45, pointerEvents: 'none' } : undefined}
       >
-      {/* P5 Diseño — Picker plantillas HSM cuando ventana 24h WA expira */}
+      {/* Una línea explicando por qué hace falta plantilla, solo cuando hace falta y cuando el
+          panel está cerrado. Antes esto era un cartel ámbar de tres líneas que ocupaba el
+          sitio del editor; el dato es el mismo y cabe en un renglón. */}
+      {exigePlantilla && !showTemplatePicker && (
+        <div
+          className="mb-1 flex items-center justify-between gap-2 rounded-md px-2 py-1 text-[11px]"
+          style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}
+        >
+          <span>
+            Han pasado 24h desde el último mensaje del contacto: Meta solo permite responder con
+            una plantilla aprobada.
+          </span>
+          <button
+            className="flex-none rounded px-1.5 py-0.5 text-[11px] font-semibold"
+            onClick={() => setPlantillasAbierto(true)}
+            style={{ backgroundColor: '#92400E', color: '#FFFFFF' }}
+            type="button"
+          >
+            Elegir plantilla
+          </button>
+        </div>
+      )}
       {showTemplatePicker && (
         <WhatsAppTemplatePicker
-          onDismiss={() => setWaTemplateDismissed(true)}
+          onDismiss={() => {
+            setWaTemplateDismissed(true);
+            setPlantillasAbierto(false);
+          }}
           onSelect={(tpl, body) => {
             if (body) setText(body);
             // 15-jul: guardar template pendiente. El próximo send usará el
@@ -580,6 +614,38 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
         >
           📎
         </button>
+
+        {/* Plantillas, dentro del editor y no como alerta que lo tapa. Solo en WhatsApp:
+            en los demás canales no existen las plantillas de Meta. Cuando la ventana está
+            cerrada se marca en color de aviso para que se vea que es el camino, no un extra. */}
+        {channel === 'whatsapp' && (
+          <button
+            aria-expanded={showTemplatePicker}
+            aria-label={
+              exigePlantilla
+                ? 'Elegir plantilla aprobada (la ventana de 24h está cerrada)'
+                : 'Elegir una plantilla aprobada'
+            }
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-xl transition-colors"
+            onClick={() => {
+              setPlantillasAbierto((v) => !v);
+              setWaTemplateDismissed(false);
+            }}
+            style={
+              exigePlantilla
+                ? { backgroundColor: '#FEF3C7', color: '#92400E' }
+                : { color: 'var(--b-text-3)' }
+            }
+            title={
+              exigePlantilla
+                ? 'Han pasado más de 24h desde el último mensaje del contacto: Meta solo permite responder con una plantilla aprobada'
+                : 'Plantillas aprobadas'
+            }
+            type="button"
+          >
+            📋
+          </button>
+        )}
 
         {/* Emoji picker */}
         <div className="relative">

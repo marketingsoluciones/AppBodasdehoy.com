@@ -41,28 +41,32 @@ export function WhatsAppTemplatePicker({ onSelect, onDismiss }: WhatsAppTemplate
   } | null>(null);
 
   return (
+    /* Panel del compositor, no alerta. Antes esto era un bloque ámbar con borde que se
+       plantaba encima del editor y anunciaba lo que NO se puede hacer ("ventana expirada",
+       "sólo puedes enviar plantillas"). El operador veía el muro antes que la salida. Ahora
+       es una lista que se abre desde el propio compositor y dice lo que SÍ se puede hacer;
+       el motivo queda en una línea, no en un cartel. (Owner, ronda 3.) */
     <div
-      className="mb-2 flex flex-col gap-1 rounded-lg border px-3 py-2"
-      style={{ backgroundColor: '#FEF6E7', borderColor: '#F59E0B' }}
+      aria-label="Plantillas aprobadas"
+      className="mb-2 flex flex-col gap-1 rounded-lg border border-[var(--b-border)] px-3 py-2"
       role="region"
-      aria-label="Ventana 24h WhatsApp expirada"
+      style={{ backgroundColor: 'var(--b-surface)' }}
     >
       <div className="flex items-start gap-2">
-        <span aria-hidden className="text-lg">⏰</span>
         <div className="flex-1">
-          <div className="text-xs font-semibold" style={{ color: '#92400E' }}>
-            Ventana 24h expirada
+          <div className="text-xs font-semibold" style={{ color: 'var(--b-text-1)' }}>
+            Plantillas aprobadas
           </div>
-          <div className="text-[11px]" style={{ color: '#78350F' }}>
-            Sólo puedes enviar plantillas HSM aprobadas por Meta.
+          <div className="text-[11px]" style={{ color: 'var(--b-text-2)' }}>
+            Elige una y podrás editar sus huecos antes de enviarla.
           </div>
         </div>
         {onDismiss && (
           <button
-            aria-label="Cerrar aviso"
+            aria-label="Cerrar plantillas"
             className="text-xs"
             onClick={onDismiss}
-            style={{ color: '#92400E' }}
+            style={{ color: 'var(--b-text-3)' }}
             type="button"
           >
             ✕
