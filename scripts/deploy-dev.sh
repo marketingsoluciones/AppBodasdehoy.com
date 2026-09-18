@@ -473,7 +473,13 @@ for PKG_JSON in packages/*/package.json; do
     *dist*) ;;
     *) continue ;;
   esac
-  rm -rf "$PKG_DIR/dist"
+  # También el registro incremental. `copilot-shared` tiene `composite: true`, y con
+  # eso tsc se guía por tsconfig.tsbuildinfo: si se borra dist pero no el registro,
+  # cree que ya está todo emitido y solo recompila los ficheros cambiados. El
+  # resultado es un dist PARCIAL — medido el 18-09: 1 carpeta en vez de 45 ficheros,
+  # sin index.js, y tsc saliendo con código 0 y cero errores. Sin borrar esto, un
+  # `rm -rf dist` deja el paquete peor que antes y sin que nada se queje.
+  rm -rf "$PKG_DIR/dist" "$PKG_DIR"/*.tsbuildinfo
   SALIDA_TSC=$( cd "$PKG_DIR" && npx tsc 2>&1 ) && CODIGO_TSC=0 || CODIGO_TSC=$?
   # `src/crm-ui/client.ts` usa `process` sin @types/node y falla desde antes de que
   # este script existiera. tsc EMITE igual. Se muere solo si hay errores DISTINTOS.
