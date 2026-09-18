@@ -419,6 +419,20 @@ export default function MessagesPage() {
           </div>
         </div>
       </div>
+      {/* Escribir a alguien nuevo, desde el MÓVIL. El único sitio desde el que se podía abrir
+          era el panel de la derecha, que está oculto por debajo de md: en un teléfono no había
+          forma de empezar una conversación, ni por WhatsApp ni por nada. Lo encontró el owner
+          probando en su teléfono el 18-09. Botón flotante, solo en móvil, sobre la lista. */}
+      {canManage && activeTab === 'inbox' && (
+        <button
+          aria-label="Escribir un mensaje nuevo"
+          className="fixed bottom-20 right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-2xl text-white shadow-lg md:hidden"
+          onClick={() => setShowNewMessage(true)}
+          type="button"
+        >
+          <span aria-hidden>✍️</span>
+        </button>
+      )}
       {showNewMessage && <NewMessageModal onClose={() => setShowNewMessage(false)} />}
     </>
   );

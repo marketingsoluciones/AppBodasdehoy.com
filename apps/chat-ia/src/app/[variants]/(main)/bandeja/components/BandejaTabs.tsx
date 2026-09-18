@@ -61,7 +61,10 @@ export function BandejaTabs({ active, counts }: BandejaTabsProps) {
             aria-controls={`tab-panel-${tab.id}`}
             aria-selected={isActive}
             className={`relative flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-              isActive ? 'bg-violet-50 text-violet-700' : 'text-gray-600 hover:bg-gray-50'
+              /* Iba en morado del prototipo (violet-50/700) en la barra más visible de la
+                 pantalla, así que la bandeja saludaba con el color de otra empresa en
+                 cualquier marca que no fuera esa. Owner, probando en móvil 18-09. */
+              isActive ? 'bg-brand-light text-brand' : 'text-gray-600 hover:bg-gray-50'
             }`}
             id={`tab-${tab.id}`}
             key={tab.id}

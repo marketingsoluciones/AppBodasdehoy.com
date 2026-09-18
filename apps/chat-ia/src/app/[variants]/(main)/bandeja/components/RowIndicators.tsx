@@ -87,7 +87,15 @@ export function SharedBadge({
   return (
     <button
       aria-label={visibilidad ? visibilidad.title : 'Dar acceso a alguien del equipo'}
-      className={`${PASTILLA} ${visibilidad ? '' : 'opacity-0 focus:opacity-100 group-hover:opacity-60'}`}
+      /* En un móvil NO HAY HOVER: con `group-hover` el icono de dar acceso no aparecía
+         nunca y desde el teléfono no había forma de compartir una conversación. En pantallas
+         táctiles se ve siempre, atenuado; con ratón sigue apareciendo al pasar por encima.
+         (Fallo mío, encontrado por el owner probando en el teléfono el 18-09.) */
+      className={`${PASTILLA} ${
+        visibilidad
+          ? ''
+          : 'opacity-40 focus:opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-60'
+      }`}
       onClick={(e) => {
         e.stopPropagation();
         onManage?.();
