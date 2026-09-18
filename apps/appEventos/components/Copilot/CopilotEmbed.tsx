@@ -17,7 +17,6 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { useToast } from '../../hooks/useToast';
 import { useVisualViewportKeyboardInset } from '../../hooks/useVisualViewportKeyboardInset';
-import { MessageList } from '@bodasdehoy/copilot-shared';
 import type { MessageItem } from '@bodasdehoy/copilot-shared';
 import {
   sendChatMessage,
@@ -554,13 +553,69 @@ function lsLoadMsgs(sessionId: string): MessageItem[] | null {
       ...m,
       avatar: m.role === 'user' ? { title: 'Tú', avatar: '👤', backgroundColor: '#f3f4f6' } : { title: 'Copilot', avatar: '✨', backgroundColor: '#FF1493' },
       loading: false,
-      // JSON serializa Date → string; restaurar como Date para que MessageList llame .getTime()
+      // JSON serializa Date → string; restaurar como Date para que el orden por fecha funcione
       createdAt: m.createdAt ? new Date(m.createdAt) : undefined,
     }));
   } catch { return null; }
 }
 
 // ── Componente principal ─────────────────────────────────────────────────────
+
+/* ── Piezas del diseño Chat_Widget_v2.dc.html ──────────────────────────────────
+   Los mensajes ya no son burbujas simétricas: los propios llevan fondo rosa claro
+   y un «Enviado» debajo; los del asistente NO llevan burbuja — van con avatar a la
+   izquierda, el texto en plano y una fila de acciones. */
+
+/** Icono de la sugerencia, elegido por lo que pregunta. Trazos del diseño v2. */
+const iconoSugerencia = (texto: string) => {
+  const t = texto.toLowerCase();
+  const paths =
+    t.includes('invitad') || t.includes('confirmad')
+      ? ['M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', 'M4 21c0-3.9 3.6-6 8-6s8 2.1 8 6']
+      : t.includes('presupuesto') || t.includes('gast') || t.includes('pago')
+        ? ['M3 6h18v12H3z', 'M3 10h18']
+        : t.includes('tarea') || t.includes('pendiente')
+          ? ['M9 11l3 3 8-8', 'M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9']
+          : ['M12 3a9 9 0 1 0 9 9', 'M12 7v5l3 2', 'M17 3h5v5'];
+  return (
+    <span style={{ color: '#EF5B94', display: 'flex', flex: 'none' }}>
+      <svg fill="none" height="14" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="14">
+        {paths.map(d => <path d={d} key={d} />)}
+      </svg>
+    </span>
+  );
+};
+
+const ChispaAvatar = () => (
+  <span
+    style={{
+      alignItems: 'center', background: '#FCE7F0', borderRadius: '50%',
+      display: 'flex', flex: 'none', height: 26, justifyContent: 'center', width: 26,
+    }}
+  >
+    <svg fill="#EF5B94" height="12" stroke="#EF5B94" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24" width="12">
+      <path d="M11.5 3.5C12 8 13.8 9.8 18.2 10.2 13.8 10.7 12 12.5 11.5 17 11 12.5 9.2 10.7 4.8 10.2 9.2 9.8 11 8 11.5 3.5z" />
+    </svg>
+  </span>
+);
+
+const BotonAccion = ({ children, onClick, title }: { children: React.ReactNode; onClick?: () => void; title: string }) => (
+  <button
+    onClick={onClick}
+    onMouseEnter={e => { e.currentTarget.style.background = '#faf9fb'; e.currentTarget.style.color = '#6b6b72'; }}
+    onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#b8b8be'; }}
+    style={{
+      alignItems: 'center', background: 'none', border: 'none', borderRadius: 8,
+      color: '#b8b8be', cursor: 'pointer', display: 'flex', height: 26,
+      justifyContent: 'center', width: 26,
+    }}
+    title={title}
+    type="button"
+  >
+    {children}
+  </button>
+);
+
 
 export const CopilotEmbed = ({
   userId,
@@ -1018,14 +1073,13 @@ export const CopilotEmbed = ({
   const emptyState = useMemo(() => (
     <div
       style={{
-        flex: 1,
-        minHeight: 0,
-        width: '100%',
-        maxWidth: 440,
-        margin: '0 auto',
-        padding: '20px 12px 24px',
-        overflowY: 'auto',
+        // Vive DENTRO del contenedor con scroll de la lista, así que aquí no hace
+        // falta ni flex ni overflow: solo centrarse y no pasarse de ancho.
+        animation: 'copilot-fadein .3s ease',
         boxSizing: 'border-box',
+        margin: '0 auto',
+        maxWidth: 440,
+        width: '100%',
       }}
     >
       <div
@@ -1146,6 +1200,7 @@ export const CopilotEmbed = ({
                     }}
                     type="button"
                   >
+                    {iconoSugerencia(q)}
                     {q}
                   </button>
                 ))}
@@ -1177,14 +1232,95 @@ export const CopilotEmbed = ({
 
       {/* Banner eliminado — el historial es accesible desde el icono reloj del header */}
 
-      {/* Lista de mensajes */}
-      <div ref={messageListRef} style={{ flex: 1, overflow: 'hidden' }}>
-        <MessageList
-          messages={messagesWithActions}
-          autoScroll
-          loading={loadingHistory}
-          emptyState={emptyState}
-        />
+      {/* Lista de mensajes — diseño Chat_Widget_v2.dc.html.
+          Ya no se usa MessageList: la v2 no son burbujas simétricas. Los mensajes
+          propios llevan fondo rosa claro con «Enviado» debajo; los del asistente van
+          SIN burbuja, con avatar a la izquierda y una fila de acciones. */}
+      <div
+        className="copilot-no-scrollbar"
+        ref={messageListRef}
+        style={{
+          display: 'flex', flex: 1, flexDirection: 'column', gap: 12,
+          minHeight: 0, overflowY: 'auto', padding: '18px 16px',
+        }}
+      >
+        {messagesWithActions.length === 0 && !loading ? emptyState : null}
+
+        {messagesWithActions.map(msg => {
+          const esPropio = msg.role === 'user';
+          const texto = (msg.message as string) || '';
+          if (esPropio) {
+            return (
+              <div key={msg.id} style={{ alignItems: 'flex-end', animation: 'copilot-fadein .25s ease', display: 'flex', flexDirection: 'column' }}>
+                <div
+                  style={{
+                    background: '#FCE7F0', borderRadius: '16px 16px 4px 16px', color: '#3A3A42',
+                    font: '500 12.5px/1.6 Poppins, sans-serif', maxWidth: '85%',
+                    padding: '10px 15px', whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                  }}
+                >
+                  {texto}
+                </div>
+                <span style={{ alignItems: 'center', color: '#b8b8be', display: 'inline-flex', font: '500 10px Poppins, sans-serif', gap: 4, marginTop: 4 }}>
+                  <svg fill="none" height="9" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.6" viewBox="0 0 24 24" width="9">
+                    <path d="M20 6L9 17l-5-5" />
+                  </svg>
+                  Enviado
+                </span>
+              </div>
+            );
+          }
+          return (
+            <div key={msg.id} style={{ animation: 'copilot-fadein .25s ease', display: 'flex', gap: 9 }}>
+              <span style={{ marginTop: 2 }}><ChispaAvatar /></span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                {msg.aboveMessage}
+                <div style={{ color: '#3A3A42', font: '500 12.5px/1.7 Poppins, sans-serif', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                  {texto}
+                </div>
+                {msg.belowMessage}
+                {!msg.loading && texto ? (
+                  <div style={{ display: 'flex', gap: 2, marginTop: 7 }}>
+                    <BotonAccion onClick={() => navigator.clipboard?.writeText(texto)} title="Copiar">
+                      <svg fill="none" height="12" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="12">
+                        <rect height="11" rx="2" width="11" x="9" y="9" />
+                        <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+                      </svg>
+                    </BotonAccion>
+                    <BotonAccion title="Me gusta">
+                      <svg fill="none" height="12" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="12">
+                        <path d="M7 10v12M15 5.9L14 10h5.8a2 2 0 0 1 1.9 2.6l-2.2 7A2 2 0 0 1 17.6 21H7V10l4.4-7.2a2 2 0 0 1 3.6 3.1z" />
+                      </svg>
+                    </BotonAccion>
+                    <BotonAccion title="Regenerar">
+                      <svg fill="none" height="12" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="12">
+                        <path d="M21 12a9 9 0 1 1-2.6-6.4" />
+                        <path d="M21 3v6h-6" />
+                      </svg>
+                    </BotonAccion>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          );
+        })}
+
+        {loading ? (
+          <div style={{ display: 'flex', gap: 9 }}>
+            <ChispaAvatar />
+            <div style={{ alignItems: 'center', display: 'flex', gap: 5 }}>
+              {[0, 0.2, 0.4].map(d => (
+                <span
+                  key={d}
+                  style={{
+                    animation: `copilot-blink 1.2s ${d}s infinite`, background: '#EF5B94',
+                    borderRadius: '50%', height: 6, width: 6,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {/* Confirmación pendiente */}
