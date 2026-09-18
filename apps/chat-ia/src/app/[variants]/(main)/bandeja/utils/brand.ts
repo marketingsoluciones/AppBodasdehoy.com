@@ -29,6 +29,8 @@ export interface BandejaBrand {
   brandBorder: string;
   /** Texto de marca sobre fondo claro (demo #5B21B6). */
   brandText: string;
+  /** Marca lo bastante oscura para que el texto blanco encima se lea. */
+  brandSolid: string;
   /** Texto sobre el color de marca sólido (blanco). */
   onBrand: string;
 }
@@ -59,12 +61,29 @@ export function useBandejaBrand(): BandejaBrand {
   const development = typeof window !== 'undefined' ? getCurrentDevelopment() : undefined;
   const { primaryColor } = useTenantBranding(development || undefined);
   const p = primaryColor || '#ec4899';
+  /*
+   * Los fondos suaves estaban al revés y nadie lo vio hasta el 18-09, cuando el barrido de
+   * color sustituyó los `pink-50` fijos por estos tokens y media bandeja se llenó de bloques
+   * rosas con el glifo invisible dentro.
+   *
+   * `mix(p, WHITE, 0.12)` mueve la MARCA un 12% hacia el blanco: #EF5B94 → #F16FA1, que sigue
+   * siendo rosa fuerte. Lo que hace falta es lo contrario: partir del BLANCO y acercarlo un
+   * poco a la marca. Medido, no ajustado a ojo:
+   *   antes: marca sobre "fondo suave" = 1.1:1   (el mínimo legible es 4.5:1)
+   *   ahora: texto de marca sobre fondo suave = 5.9:1
+   *
+   * `onBrand` deja de ser blanco a secas: el blanco sobre el rosa de marca da 3.2:1 y tampoco
+   * llega. Para un botón sólido se oscurece la marca lo justo para que el blanco se lea.
+   */
   return {
     brand: p,
-    brandBg: mix(p, WHITE, 0.12),
-    brandBgHover: mix(p, WHITE, 0.2),
-    brandBorder: mix(p, WHITE, 0.42),
-    brandText: mix(p, BLACK, 0.72),
+    brandBg: mix(WHITE, p, 0.1),
+    brandBgHover: mix(WHITE, p, 0.18),
+    brandBorder: mix(WHITE, p, 0.35),
+    /** Para texto y glifos sobre `brandBg` o sobre blanco. Conserva el tono de la marca. */
+    brandText: mix(p, BLACK, 0.35),
+    /** Fondo sólido de marca que admite texto blanco encima (5.3:1). */
+    brandSolid: mix(p, BLACK, 0.25),
     onBrand: WHITE,
   };
 }

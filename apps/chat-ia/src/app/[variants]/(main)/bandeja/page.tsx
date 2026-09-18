@@ -412,7 +412,7 @@ export default function MessagesPage() {
       {canManage && activeTab === 'inbox' && (
         <button
           aria-label="Escribir un mensaje nuevo"
-          className="fixed bottom-20 right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-2xl text-white shadow-lg md:hidden"
+          className="fixed bottom-20 right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-brand-solid text-2xl text-white shadow-lg md:hidden"
           onClick={() => setShowNewMessage(true)}
           type="button"
         >
