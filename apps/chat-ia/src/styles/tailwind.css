@@ -111,7 +111,11 @@
 :root {
   --b-text-1: #1C1C22;   /* titulares y nombres */
   --b-text-2: #6B6B76;   /* texto secundario, etiquetas */
-  --b-text-3: #9A9AA6;   /* apoyo: horas, contadores, marcas de agua */
+  /* Era #9A9AA6 y daba 2.8:1 sobre blanco, cuando el mínimo legible para texto normal es
+     4.5:1 (WCAG AA). Ese gris lo lleva la hora de cada conversación y los contadores: se
+     "veía" pero no se leía a pleno sol ni con la vista cansada. Medido, no ajustado a ojo:
+     #6C6C76 da 5.2:1 sobre blanco y 4.6:1 sobre el fondo alterno. */
+  --b-text-3: #6C6C76;   /* apoyo: horas, contadores, marcas de agua */
   --b-surface: #FFFFFF;  /* fondo de fila y de panel */
   --b-surface-2: #F2F1F6;/* fondo alterno: avatar, fila seleccionada, chip apagado */
   --b-border: #EDEDF0;   /* separadores */
@@ -125,7 +129,7 @@
   :root {
     --b-text-1: #F2F1F6;
     --b-text-2: #A8A6B3;
-    --b-text-3: #84848F;
+    --b-text-3: #9A9AA6; /* 6.2:1 y 5.4:1; con #84848F se quedaba en 4.1 sobre el alterno */
     --b-surface: #1A1A1F;
     --b-surface-2: #26262D;
     --b-border: #32323A;
@@ -137,7 +141,7 @@ html.dark,
 [data-prefers-color-scheme='dark'] {
   --b-text-1: #F2F1F6;
   --b-text-2: #A8A6B3;
-  --b-text-3: #84848F;
+  --b-text-3: #9A9AA6;
   --b-surface: #1A1A1F;
   --b-surface-2: #26262D;
   --b-border: #32323A;
