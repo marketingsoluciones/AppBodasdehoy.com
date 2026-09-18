@@ -10,7 +10,7 @@ import { useCanManageMessaging } from '@/hooks/useCanManageMessaging';
 
 import { getUserContext } from '../utils/auth';
 import { formatPhone } from '../utils/jid';
-import { IaModeBadge, SharedBadge } from './RowIndicators';
+import { FilaConversacion } from './FilaConversacion';
 import { previewText } from '../utils/preview';
 
 // ─── Config ──────────────────────────────────────────────────────────────────
@@ -19,6 +19,17 @@ import { previewText } from '../utils/preview';
 // WhatsApp es de WhatsApp. No entran en la campaña de whitelabel; cambiarlos por el color de
 // la marca haría que los canales dejaran de distinguirse de un vistazo. Todo lo demás en esta
 // carpeta sí debe salir de `useBandejaBrand`.
+/** Color del punto de canal, el mismo que usa la lista por canal. */
+const CHANNEL_DOT_FEED: Record<string, string> = {
+  email: '#84848F',
+  facebook: '#1877F2',
+  instagram: '#E1306C',
+  sms: '#84848F',
+  telegram: '#2AABEE',
+  web: '#6B4EFF',
+  whatsapp: '#25D366',
+};
+
 const FEED_CHANNEL_CONFIG: Record<string, { bg: string; icon: string; label: string }> = {
   email: { bg: 'bg-gray-500', icon: '📧', label: '@' },
   facebook: { bg: 'bg-blue-600', icon: '📘', label: 'FB' },
@@ -33,10 +44,6 @@ const FEED_CHANNEL_CONFIG: Record<string, { bg: string; icon: string; label: str
 // (Meta+QR se ven igual, como pidió el owner 2-sep) y añadimos una etiqueta discreta para
 // saber por qué línea entró. WEB_QR = número personal vinculado por QR (sin ventana 24h);
 // WAB = Meta Business API (ventana 24h + plantillas).
-const WA_TYPE_LABEL: Record<string, string> = {
-  WAB: 'Meta API',
-  WEB_QR: 'QR',
-};
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -67,184 +74,75 @@ function initials(name: string): string {
 // ─── FeedItemRow ─────────────────────────────────────────────────────────────
 
 function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void }) {
-  const brand = useBandejaBrand();
   const router = useRouter();
   const { development, userId } = getUserContext();
-  const channelKey = item.channelKind as string;
-  const cfg = FEED_CHANNEL_CONFIG[channelKey] ?? FEED_CHANNEL_CONFIG.web;
-  const hasUnread = item.unreadCount > 0 || !item.isRead;
-  // ISSUE-002 (dogfood 20-ago): items newsletter/broadcast (status de WhatsApp, canales
-  // informativos) NO admiten respuesta — al abrirlos el composer solo deja "nota interna".
-  // Antes parecían conversaciones WA normales en la lista → el operador abría a ciegas.
-  const isOneWay = item.jidType === 'newsletter' || item.jidType === 'broadcast';
-  // Tipo de línea y número: ya no ocupan un chip en la fila (el owner: "ocupa mucho espacio,
-  // aporta poco valor"). El canal lo dice el distintivo del avatar; el detalle, su tooltip.
-  const waType =
-    item.channelKind === 'whatsapp' && item.channelType
-      ? (WA_TYPE_LABEL[item.channelType] ?? item.channelType)
-      : null;
-  const detalleCanal = [
-    cfg.label,
-    waType ? (waType === 'QR' ? 'número vinculado por QR' : 'Meta Business API') : null,
-    item.lineLabel ? `línea ${formatPhone(String(item.lineLabel))}` : null,
-  ]
-    .filter(Boolean)
-    .join(' · ');
+  const cfg = FEED_CHANNEL_CONFIG[(item.channelKind as string)] ?? FEED_CHANNEL_CONFIG.web;
 
-  let rowBg = 'bg-[var(--b-surface)] hover:bg-[var(--b-surface-2)]';
-  if (!item.isRead && item.kind === 'notification') rowBg = 'bg-brand-light/60 hover:bg-brand-light';
-  else if (item.unreadCount > 0) rowBg = 'bg-green-50/50 hover:bg-green-50';
-
-  const avatarBg = item.kind === 'notification' ? 'bg-[var(--b-surface-2)]' : 'bg-gray-200';
-
-  return (
-    /* El botón ocupa toda la fila por debajo del contenido, en vez de envolverlo. Los
-       indicadores (acceso, modo de IA) son botones a su vez y anidarlos dentro habría dado
-       HTML inválido; posicionarlos en absoluto, como estaban, los montaba encima del mensaje
-       al estrechar la lista. Así el contenido fluye y solo los indicadores capturan el clic. */
-    <div className={`group relative border-b border-[var(--b-border)] last:border-0 ${rowBg}`}>
+  // Las notificaciones no son conversaciones: no tienen canal, ni acceso, ni modo de IA.
+  // Se quedan con su propia fila, mucho más simple.
+  if (item.kind === 'notification') {
+    const noLeida = !item.isRead;
+    return (
       <button
-        aria-label={`Abrir ${item.name}`}
-        className="absolute inset-0 h-full w-full"
+        className={`flex w-full items-center gap-2.5 border-b border-[var(--b-border)] px-3 py-2 text-left last:border-0 ${
+          noLeida ? 'bg-brand-light/60' : 'bg-[var(--b-surface)] hover:bg-[var(--b-surface-2)]'
+        }`}
         onClick={onClick}
         type="button"
-      />
-      <div className="pointer-events-none relative flex items-center gap-2.5 px-3 py-2 text-left">
-      {/* Avatar con distintivo de canal (abajo-izquierda) + RSVP (abajo-derecha). */}
-      <div className="relative shrink-0">
-        <div
-          className={`flex h-9 w-9 items-center justify-center rounded-full ${avatarBg} text-sm font-medium text-[var(--b-text-2)]`}
-        >
-          {item.kind === 'notification' ? (
-            <span className="text-base">{cfg.icon}</span>
-          ) : (
-            <span>{initials(item.name)}</span>
-          )}
+      >
+        <div className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-[var(--b-surface-2)] text-base">
+          {cfg.icon}
         </div>
-        {item.kind !== 'notification' && (
-          <span
-            aria-label={`Canal ${detalleCanal}`}
-            className={`absolute -bottom-0.5 -left-0.5 flex h-4 min-w-4 items-center justify-center rounded px-0.5 text-[9px] font-bold text-white ${cfg.bg}`}
-            title={detalleCanal}
-          >
-            {/* Siempre el canal ("W", "IG", "@"), nunca los dígitos de la línea: en las
-                capturas salía "349" en cada avatar y no significa nada para quien atiende.
-                La línea concreta sigue en el tooltip, que es donde se consulta. */}
-            {cfg.label}
-          </span>
-        )}
-        {item.rsvpStatus && (
-          <span
-            aria-label={`RSVP ${item.rsvpStatus}`}
-            className="absolute -bottom-0.5 -right-0.5 flex h-[15px] w-[15px] items-center justify-center rounded-full text-[10px] font-bold text-white"
-            style={{
-              backgroundColor:
-                item.rsvpStatus === 'confirmed' ? '#22C55E' :
-                item.rsvpStatus === 'pending' ? '#F59E0B' : '#F43F5E',
-            }}
-            title={
-              item.rsvpStatus === 'confirmed' ? 'Confirmado' :
-              item.rsvpStatus === 'pending' ? 'Pendiente' : 'Declinado'
-            }
-          >
-            {item.rsvpStatus === 'confirmed' ? '✓' :
-              item.rsvpStatus === 'pending' ? '⏳' : '✕'}
-          </span>
-        )}
-      </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline justify-between gap-2">
+            <span
+              className={`truncate text-sm ${noLeida ? 'font-semibold' : 'font-normal'}`}
+              style={{ color: noLeida ? 'var(--b-text-1)' : 'var(--b-text-2)' }}
+            >
+              {item.name}
+            </span>
+            <span className="flex-none text-xs" style={{ color: 'var(--b-text-3)' }}>
+              {timeAgo(item.timestamp)}
+            </span>
+          </div>
+          <p className="truncate text-xs" style={{ color: 'var(--b-text-3)' }}>
+            {previewText(item.preview)}
+          </p>
+        </div>
+        {noLeida && <span className="block h-2 w-2 flex-none rounded-full bg-brand" />}
+      </button>
+    );
+  }
 
-      {/* Contenido: dos líneas fijas. Nombre y hora arriba; mensaje e indicadores abajo. */}
-      <div className="min-w-0 flex-1">
-        <div className="flex items-baseline justify-between gap-2">
-          <span
-            className={`truncate text-sm ${hasUnread ? 'font-semibold text-[var(--b-text-1)]' : 'font-normal text-[var(--b-text-2)]'}`}
-          >
-            {item.name}
-          </span>
-          {/* P0.3 (brief 18-09): API y QR no se comportan igual —la ventana de 24h y las
-              plantillas de pago son solo de la API de Meta—, así que hay que distinguirlos
-              ANTES de abrir. El 17-09 quité de aquí un chip que ponía "QR ·3622": los cuatro
-              dígitos de la línea no significaban nada, pero el tipo sí. Vuelve dicho en
-              palabras y solo en WhatsApp, que es donde cambia algo. */}
-          {waType && (
-            <span
-              className="shrink-0 rounded px-1 text-[9px] font-bold uppercase tracking-wide"
-              style={
-                waType === 'QR'
-                  ? { backgroundColor: 'var(--b-surface-2)', color: 'var(--b-text-2)' }
-                  : { backgroundColor: '#ECFDF5', color: '#047857' }
-              }
-              title={
-                waType === 'QR'
-                  ? 'Número vinculado por QR: puedes responder siempre, sin plantillas'
-                  : 'WhatsApp Business API (Meta): fuera de 24h solo se puede responder con plantilla aprobada'
-              }
-            >
-              {waType === 'QR' ? 'QR' : 'API'}
-            </span>
-          )}
-          {isOneWay && (
-            <span
-              className="shrink-0 rounded bg-[var(--b-surface-2)] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[var(--b-text-3)]"
-              title="Canal informativo (newsletter/estado): no admite respuesta"
-            >
-              Informativo
-            </span>
-          )}
-          <span className="shrink-0 text-xs text-[var(--b-text-3)]">{timeAgo(item.timestamp)}</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <p className="min-w-0 flex-1 truncate text-xs text-[var(--b-text-3)]">{previewText(item.preview)}</p>
-          {item.kind === 'conversation' && item.assignedAgentName && (
-            <span
-              aria-label={`Responsable: ${item.assignedAgentName}`}
-              className="inline-flex max-w-[80px] flex-none items-center gap-0.5 truncate rounded-full bg-violet-50 px-1 text-[10px] font-medium text-violet-600"
-              title={`Responsable: ${item.assignedAgentName}`}
-            >
-              <span aria-hidden="true">🤖</span>
-              <span className="truncate">{item.assignedAgentName}</span>
-            </span>
-          )}
-          {/* P1.4: quién la lleva, sin abrirla. "Tuya" cuando eres tú; las iniciales del
-              responsable cuando es otra persona. Antes esto solo se veía dentro. */}
-          {item.kind === 'conversation' && item.assignedToUserId && (
-            <span
-              className="flex-none rounded-full px-1.5 text-[10px] font-semibold"
-              style={
-                item.assignedToUserId === userId
-                  ? { backgroundColor: brand.brandBg, color: brand.brand }
-                  : { backgroundColor: 'var(--b-surface-2)', color: 'var(--b-text-2)' }
-              }
-              title={item.assignedToUserId === userId ? 'Asignada a ti' : 'La lleva otra persona'}
-            >
-              {item.assignedToUserId === userId ? 'Tuya' : '·'}
-            </span>
-          )}
-          {item.kind === 'conversation' && (
-            <>
-              <SharedBadge
-                onManage={() => router.push(`/bandeja/conversacion/${item.id}?compartir=1`)}
-                sharedWith={item.sharedWith}
-              />
-              {development && <IaModeBadge conversationId={item.id} development={development} />}
-            </>
-          )}
-        </div>
-      </div>
+  const waType =
+    item.channelKind === 'whatsapp' && item.channelType ? item.channelType : null;
 
-      {hasUnread && (
-        <div className="shrink-0">
-          {item.kind === 'notification' ? (
-            <span className="block h-2 w-2 rounded-full bg-brand" />
-          ) : (
-            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-green-500 px-1 text-[10px] font-bold text-white">
-              {item.unreadCount > 99 ? '99+' : item.unreadCount}
-            </span>
-          )}
-        </div>
-      )}
-      </div>
-    </div>
+  return (
+    <FilaConversacion
+      datos={{
+        agente: item.assignedAgentName,
+        avatar: initials(item.name),
+        canalColor: CHANNEL_DOT_FEED[item.channelKind as string] ?? '#84848F',
+        canalNombre: [cfg.label, item.lineLabel ? `línea ${formatPhone(String(item.lineLabel))}` : null]
+          .filter(Boolean)
+          .join(' · '),
+        compartidaCon: item.sharedWith,
+        conexion: waType,
+        hora: timeAgo(item.timestamp),
+        id: item.id,
+        informativo: item.jidType === 'newsletter' || item.jidType === 'broadcast',
+        mensaje: item.preview ?? '',
+        nombre: item.name,
+        responsable: item.assignedToUserId,
+        responsableSoyYo: !!userId && item.assignedToUserId === userId,
+        rsvp: item.rsvpStatus,
+        sinLeer: item.unreadCount ?? 0,
+      }}
+      development={development}
+      fondo={item.unreadCount > 0 ? 'var(--b-surface-2)' : undefined}
+      onAbrir={onClick}
+      onCompartir={() => router.push(`/bandeja/conversacion/${item.id}?compartir=1`)}
+    />
   );
 }
 
