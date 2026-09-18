@@ -72,7 +72,39 @@ export class MCPClient {
     this.development = development;
   }
 
-  private async request<T>(body: string): Promise<GraphQLResponse<T>> {
+  /**
+   * Un 502 de api-mcp no es un error de programación: es el servicio reiniciándose o una
+   * pasarela con un mal momento, y suele durar menos de un segundo. Hasta el 18-09 la primera
+   * respuesta mala tiraba la llamada entera y la pantalla se quedaba con "Cargando mensajes…"
+   * para siempre — el owner lo reportó como lentitud y como "no funciona".
+   *
+   * Se reintenta hasta dos veces con espera creciente, y SOLO en los fallos que tiene sentido
+   * reintentar: red caída y 5xx. Un 401 o un 400 se devuelven de inmediato, porque reintentar
+   * un error de permisos o de consulta solo retrasa el mensaje de error.
+   */
+  private async request<T>(body: string, intento = 0): Promise<GraphQLResponse<T>> {
+    const MAX_REINTENTOS = 2;
+    try {
+      return await this.peticion<T>(body);
+    } catch (error) {
+      const reintentable =
+        error instanceof Error &&
+        (error.message.includes('no-JSON (5') ||
+          error.message.includes('fetch failed') ||
+          error.message.includes('ECONNRESET') ||
+          error.message.includes('ETIMEDOUT') ||
+          error.name === 'TypeError');
+      if (!reintentable || intento >= MAX_REINTENTOS) throw error;
+      const espera = 300 * 2 ** intento; // 300ms, 600ms
+      console.warn(
+        `⏳ [MCP] Reintento ${intento + 1}/${MAX_REINTENTOS} en ${espera}ms — ${error.message.slice(0, 80)}`,
+      );
+      await new Promise((r) => setTimeout(r, espera));
+      return this.request<T>(body, intento + 1);
+    }
+  }
+
+  private async peticion<T>(body: string): Promise<GraphQLResponse<T>> {
     const token = readToken();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
