@@ -12,7 +12,7 @@ import { IA_MODES } from './RowIndicators';
  * conversaciones al lado. Owner 17-09: «la pantalla central no se entiende, no aporta valor,
  * debemos ser más ingeniosos». Es la mitad de la pantalla explicando el nombre del producto.
  *
- * El color de marca va en clases (`bg-brand`, `text-brand`), no con el hook: los tokens de
+ * El color de marca va en clases (`bg-brand`, `text-brand-text`), no con el hook: los tokens de
  * tailwind.css ya derivan del color del tenant, se leen en el markup y no obligan a montar un
  * hook para pintar un botón. Acuerdo con el otro frente, 17-09.
  *
@@ -67,7 +67,7 @@ export function InboxOverview({
         {canManage ? (
           <div className="mt-4 flex items-center justify-center gap-2">
             <button
-              className="rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white"
+              className="rounded-lg bg-brand-solid px-3 py-2 text-xs font-semibold text-white"
               onClick={onConnectWhatsApp}
               type="button"
             >
@@ -98,7 +98,7 @@ export function InboxOverview({
       <div className="text-center">
         {esperan.length > 0 ? (
           <>
-            <div className="text-[32px] font-bold leading-none text-brand">
+            <div className="text-[32px] font-bold leading-none text-brand-text">
               {esperan.length}
             </div>
             <div className="mt-1 text-sm font-semibold text-[var(--b-text-1)]">
@@ -147,7 +147,7 @@ export function InboxOverview({
 
       <div className="mt-3 flex items-center justify-center gap-2">
         <button
-          className="rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white"
+          className="rounded-lg bg-brand-solid px-3 py-2 text-xs font-semibold text-white"
           onClick={onNewMessage}
           type="button"
         >

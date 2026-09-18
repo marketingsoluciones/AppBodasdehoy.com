@@ -68,7 +68,7 @@ export function BandejaTabs({ active, counts }: BandejaTabsProps) {
               /* Iba en morado del prototipo (violet-50/700) en la barra más visible de la
                  pantalla, así que la bandeja saludaba con el color de otra empresa en
                  cualquier marca que no fuera esa. Owner, probando en móvil 18-09. */
-              isActive ? 'bg-brand-light text-brand' : 'text-[var(--b-text-2)] hover:bg-[var(--b-surface-2)]'
+              isActive ? 'bg-brand-light text-brand-text' : 'text-[var(--b-text-2)] hover:bg-[var(--b-surface-2)]'
             }`}
             id={`tab-${tab.id}`}
             key={tab.id}

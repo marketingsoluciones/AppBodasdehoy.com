@@ -25,6 +25,17 @@
      quedó sin efecto en 5 sitios — el botón dejaba de responder al ratón. Un 15% de
      negro reproduce el salto de -500 a -600 sin fijar un hex. */
   --color-brand-dark: color-mix(in srgb, var(--color-primary, #EF5B94) 85%, black);
+  /*
+   * El rosa de marca es CLARO: blanco encima da 3.2:1 y el mínimo legible es 4.5:1. Así que
+   * un botón sólido de marca con texto blanco no se lee — y con el barrido de color del 18-09
+   * esos botones se multiplicaron. Estos dos tonos existen para eso, medidos:
+   *   brand-solid  → fondo sólido que admite blanco encima      (5.3:1)
+   *   brand-text   → texto y glifos de marca sobre fondo claro  (6.6:1 sobre blanco)
+   * `--color-brand` se queda tal cual para superficies grandes y adornos, donde el contraste
+   * no decide si algo se lee.
+   */
+  --color-brand-solid: color-mix(in srgb, var(--color-primary, #EF5B94) 75%, black);
+  --color-brand-text: color-mix(in srgb, var(--color-primary, #EF5B94) 65%, black);
   --color-event-rosa: #E11D48;
   --color-event-light: #FFF6F7;
   --color-event-border: #FBD0D7;

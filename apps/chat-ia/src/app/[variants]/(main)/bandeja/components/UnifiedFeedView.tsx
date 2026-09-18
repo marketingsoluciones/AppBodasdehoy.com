@@ -375,7 +375,7 @@ export function UnifiedFeedView({ items, loading, onItemClick, groupBy, groups }
             {/* Gate N29 (QA 14-09) */}
             {canManage && (
               <button
-                className="mt-2 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-dark"
+                className="mt-2 rounded-lg bg-brand-solid px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-dark"
                 onClick={() => router.push('/settings/integrations')}
                 type="button"
               >
