@@ -4,6 +4,7 @@
  * ✅ OPTIMIZADO: Cache en memoria + timeout reducido para SSR rápido
  */
 
+import { developments } from '@bodasdehoy/shared/types';
 import { cookies } from 'next/headers';
 
 import { normalizeBrandingUrls } from '@/utils/normalizeMediaUrl';
@@ -11,7 +12,14 @@ import { normalizeBrandingUrls } from '@/utils/normalizeMediaUrl';
 // ✅ CACHE EN MEMORIA para evitar múltiples fetch durante SSR
 const brandingCache: Map<string, { data: ServerBranding; timestamp: number }> = new Map();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
-const FETCH_TIMEOUT = 2000; // 2 segundos (aumentado de 1s para evitar timeouts)
+/**
+ * 2s se quedaban cortos: el log de chat-dev acumula 21 fallos de red agrupados en los
+ * arranques, y este aviso salta ahí (18-09). En un arranque en frío, con la máquina cargada,
+ * dos segundos para una llamada de red que decide los colores de toda la aplicación es muy
+ * justo. 5s solo alarga el peor caso, porque el resultado se cachea 5 minutos y el camino
+ * normal responde en milisegundos.
+ */
+const FETCH_TIMEOUT = 5000;
 
 // ✅ CACHE ESTÁTICO: Cargar branding desde archivo local primero
 let staticBrandingCache: Record<string, ServerBranding> | null = null;
@@ -166,10 +174,31 @@ export async function getDeveloperBranding(developer?: string): Promise<ServerBr
     console.warn('⚠️ Error cargando static branding:', error);
   }
 
-  // Fallback por defecto
+  /*
+   * El respaldo salía en #667eea/#764ba2 — un morado azulado QUE NO ES DE NINGUNA MARCA. Y
+   * este respaldo no es teórico: cuando la llamada de branding no contesta a tiempo, la
+   * aplicación ENTERA se pinta con estos colores. O sea que un timeout de red se veía como
+   * "la app no respeta los colores de mi marca", que es justo lo que reportó el owner.
+   *
+   * Ahora el respaldo sale de la tabla de marcas compartida —la misma fuente única que usa
+   * appEventos—, así que si la red falla se pinta el color CORRECTO de esa marca en vez de
+   * uno inventado. Solo si la marca no está en la tabla queda el neutro.
+   */
+  // La tabla es un ARRAY de marcas, no un objeto indexado por clave: buscarla por su
+  // `development`. Escrito como índice —`developments[dev]`— habría devuelto undefined
+  // SIEMPRE y el respaldo habría seguido siendo el morado de antes, sin que nada fallara.
+  const marca = Array.isArray(developments)
+    ? (
+        developments as Array<{
+          development?: string;
+          name?: string;
+          theme?: { primaryColor?: string; secondaryColor?: string };
+        }>
+      ).find((m) => m?.development === dev || m?.name === dev)
+    : undefined;
   const defaultBranding: ServerBranding = {
-    color_primary: '#667eea',
-    color_secondary: '#764ba2',
+    color_primary: marca?.theme?.primaryColor ?? '#667eea',
+    color_secondary: marca?.theme?.secondaryColor ?? '#764ba2',
     description: `Asistente de eventos para ${dev}`,
     developer: dev,
     name: dev.charAt(0).toUpperCase() + dev.slice(1),
@@ -229,7 +258,11 @@ export async function getDeveloperBranding(developer?: string): Promise<ServerBr
       clearTimeout(timeoutId);
 
       if (fetchError.name === 'AbortError') {
-        console.warn('⚠️ Timeout (2s) al obtener branding, usando fallback');
+        // Decir QUÉ pasó, no solo que hay fallback: "usando fallback" se lee como "esta
+        // marca no tiene branding" cuando en realidad es "no me dio tiempo a preguntarlo".
+        console.warn(
+          `⚠️ Branding de "${dev}": la petición no contestó en ${FETCH_TIMEOUT}ms. Se usan los colores de la tabla de marcas, no los del servidor.`,
+        );
       } else {
         console.warn('⚠️ Error en fetch de branding:', fetchError?.message || fetchError);
       }
