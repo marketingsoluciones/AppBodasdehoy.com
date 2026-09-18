@@ -1259,12 +1259,29 @@ export const CopilotEmbed = ({
       {/* Input area — full LobeChat editor (CopilotChatInput); padding extra con teclado virtual móvil */}
       <div
         style={{
-          borderTop: '1px solid #f0f0f2',
           background: '#fff',
+          borderTop: '1px solid #f0f0f2',
           flexShrink: 0,
-          paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + ${keyboardInsetBottom}px)`,
+          padding: '12px 14px 14px',
+          paddingBottom: `calc(14px + env(safe-area-inset-bottom, 0px) + ${keyboardInsetBottom}px)`,
         }}
       >
+        {/* Píldora del diseño Chat_Widget.dc.html POR FUERA; dentro sigue el editor
+            de LobeChat con su markdown, sus comandos y su botón de parar generación.
+            Decisión de JCP (18-09): el aspecto del diseño sin perder lo que ya hacía. */}
+        <div
+          onBlur={e => { e.currentTarget.style.borderColor = '#ececef'; }}
+          onFocus={e => { e.currentTarget.style.borderColor = '#EF5B94'; }}
+          style={{
+            background: '#fff',
+            border: '1.5px solid #ececef',
+            borderRadius: 999,
+            boxShadow: '0 4px 16px rgba(58,58,66,.06)',
+            overflow: 'hidden',
+            padding: '2px 6px',
+            transition: 'border-color .15s',
+          }}
+        >
         <CopilotChatInput
           generating={loading}
           leftActions={[['history', 'clear']]}
@@ -1289,6 +1306,7 @@ export const CopilotEmbed = ({
           }}
           fileUploadEnabled={false}
         />
+        </div>
         {/* Aviso del diseño Chat_Widget.dc.html */}
         <div
           style={{
