@@ -160,6 +160,28 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
           >
             {item.name}
           </span>
+          {/* P0.3 (brief 18-09): API y QR no se comportan igual —la ventana de 24h y las
+              plantillas de pago son solo de la API de Meta—, así que hay que distinguirlos
+              ANTES de abrir. El 17-09 quité de aquí un chip que ponía "QR ·3622": los cuatro
+              dígitos de la línea no significaban nada, pero el tipo sí. Vuelve dicho en
+              palabras y solo en WhatsApp, que es donde cambia algo. */}
+          {waType && (
+            <span
+              className="shrink-0 rounded px-1 text-[9px] font-bold uppercase tracking-wide"
+              style={
+                waType === 'QR'
+                  ? { backgroundColor: '#F4F4F6', color: '#6B6B76' }
+                  : { backgroundColor: '#ECFDF5', color: '#047857' }
+              }
+              title={
+                waType === 'QR'
+                  ? 'Número vinculado por QR: puedes responder siempre, sin plantillas'
+                  : 'WhatsApp Business API (Meta): fuera de 24h solo se puede responder con plantilla aprobada'
+              }
+            >
+              {waType === 'QR' ? 'QR' : 'API'}
+            </span>
+          )}
           {isOneWay && (
             <span
               className="shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-gray-500"

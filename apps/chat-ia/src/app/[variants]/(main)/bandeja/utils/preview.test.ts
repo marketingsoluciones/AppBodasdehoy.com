@@ -33,8 +33,8 @@ describe('previewText', () => {
 
   it('nunca usa el nombre del canal como si fuera el mensaje', () => {
     // Antes la fila ponía "Tú: WhatsApp", que no dice nada de la conversación.
-    expect(previewText('', undefined)).toBe('Sin mensajes');
-    expect(previewText('   ', undefined)).toBe('Sin mensajes');
+    expect(previewText('', undefined)).toBe('Sin mensajes aún');
+    expect(previewText('   ', undefined)).toBe('Sin mensajes aún');
   });
 
   it('respeta el texto real cuando existe', () => {

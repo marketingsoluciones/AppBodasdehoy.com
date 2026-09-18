@@ -231,6 +231,9 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
   const waWindowExpired = isWhatsAppWindowExpired(
     currentConv?.channel,
     currentConv?.lastInboundAt,
+    // El tipo de conexión decide: la ventana de 24h es de Meta, no de WhatsApp. Ya viene en
+    // el modelo ('WAB' | 'WEB_QR'); antes no se le pasaba y se bloqueaba también el QR.
+    currentConv?.channelType,
   );
   const [waTemplateDismissed, setWaTemplateDismissed] = useState(false);
   // HD-01: OR con la capability del backend (requiresTemplate) — verdad autoritativa sobre

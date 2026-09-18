@@ -50,7 +50,11 @@ export function BandejaTabs({ active, counts }: BandejaTabsProps) {
 
   return (
     <div
-      className="flex items-center gap-1 border-b border-gray-200 bg-white px-3 py-1.5"
+      /* Ocultas en móvil (P1.2 del brief): "Bandeja" y "Notificaciones" están también en la
+         barra inferior, que en un teléfono es la navegación primaria. Dos sitios para lo
+         mismo, uno encima del otro, en la pantalla donde menos espacio hay. En escritorio se
+         quedan: allí no hay barra inferior. */
+      className="hidden items-center gap-1 border-b border-gray-200 bg-white px-3 py-1.5 md:flex"
       role="tablist"
     >
       {TAB_META.map((tab) => {

@@ -255,6 +255,25 @@ export function ConversationItem({
                   Cerrada
                 </span>
               )}
+              {/* P0.3: el tipo de conexión decide si puedes responder libre o necesitas
+                  plantilla de pago, así que se ve sin abrir. Solo en WhatsApp. */}
+              {conversation.channel === 'whatsapp' && conversation.channelType && (
+                <span
+                  className="flex-none rounded px-1 text-[9px] font-bold uppercase tracking-wide"
+                  style={
+                    conversation.channelType === 'WEB_QR'
+                      ? { backgroundColor: '#F4F4F6', color: '#6B6B76' }
+                      : { backgroundColor: '#ECFDF5', color: '#047857' }
+                  }
+                  title={
+                    conversation.channelType === 'WEB_QR'
+                      ? 'Número vinculado por QR: puedes responder siempre, sin plantillas'
+                      : 'WhatsApp Business API (Meta): fuera de 24h solo con plantilla aprobada'
+                  }
+                >
+                  {conversation.channelType === 'WEB_QR' ? 'QR' : 'API'}
+                </span>
+              )}
               {assignedToMe && (
                 <span
                   className="flex-none rounded-full px-1.5 text-[10px] font-medium"
@@ -282,7 +301,10 @@ export function ConversationItem({
                       fontWeight: conversation.unreadCount > 0 ? 500 : 400,
                     }}
                   >
-                    {!conversation.lastMessage.fromUser && (
+                    {/* "Tú:" solo si hay un mensaje que atribuir. Sin él, la fila decía
+                        "Tú: Sin mensajes" en TODAS las conversaciones — atribuyéndonos un
+                        mensaje que no existe (brief 18-09, P2.1). */}
+                    {!!conversation.lastMessage.text && !conversation.lastMessage.fromUser && (
                       <span style={{ color: '#9A9AA6' }}>Tú: </span>
                     )}
                     {previewText(stripMiniMarkdown(conversation.lastMessage.text))}

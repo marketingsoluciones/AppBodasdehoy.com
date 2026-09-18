@@ -5,15 +5,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { BandejaTabs, useActiveBandejaTab } from './components/BandejaTabs';
 import { GlobalSummaryCard } from './components/GlobalSummaryCard';
-import { IaLevelPicker } from './components/IaLevelPicker';
 import { InboxOverview } from './components/InboxOverview';
 import { InboxFilters, type ChannelFilter, type RsvpFilter } from './components/InboxFilters';
 import { NewMessageModal } from './components/NewMessageModal';
 import { ScopeSelector, type ScopeId } from './components/ScopeSelector';
 import { UnifiedFeedView } from './components/UnifiedFeedView';
 import { useBandejaBrand } from './utils/brand';
-import { getUserContext } from './utils/auth';
-import { useIaLevel } from './hooks/useIaLevel';
 import { type FeedItem, useUnifiedFeed } from './hooks/useUnifiedFeed';
 import { useCanManageMessaging } from '@/hooks/useCanManageMessaging';
 
@@ -44,10 +41,6 @@ function classifyPendingItem(item: FeedItem): string {
 // aquí no hace falta un segundo gate — sería inalcanzable.
 export default function MessagesPage() {
   const brand = useBandejaBrand();
-  // Modo de IA por defecto de la bandeja. El hook mueve la interfaz al instante y revierte
-  // si el servidor rechaza, así que un 401 no se traga en silencio.
-  const { development: marca } = getUserContext();
-  const { change: cambiarIa, level: iaLevel } = useIaLevel(marca || 'bodasdehoy');
   const canManage = useCanManageMessaging();
   const router = useRouter();
   const activeTab = useActiveBandejaTab();
@@ -344,21 +337,14 @@ export default function MessagesPage() {
                 el feed es plano (notificaciones) sin scope ni filtros canal/RSVP. */}
             {activeTab === 'inbox' && (
               <>
-                {/* Ámbito y modo de IA de LA BANDEJA, juntos: los dos dicen "sobre qué
-                    estás trabajando". El modo vivía en la cabecera de cada conversación,
-                    donde parecía el modo de esa conversación y cambiaba el de las noventa
-                    (17-09); aquí no hay ambigüedad posible, porque lo que se ve es la lista
-                    entera. El de cada conversación se cambia en su propia fila. */}
-                <div className="flex items-center gap-2 border-b border-gray-100 px-3 py-2">
-                  <div className="min-w-0 flex-1">
-                    <ScopeSelector activeScope={activeScope} onChange={handleScopeChange} />
-                  </div>
-                  <div
-                    className="flex-none"
-                    title="Modo de IA que heredan las conversaciones sin uno propio"
-                  >
-                    <IaLevelPicker level={iaLevel} onChange={(next) => void cambiarIa(next)} />
-                  </div>
+                {/* Solo el ámbito. El selector de modo de IA estuvo aquí unas horas el
+                    18-09 y era el TERCER sitio desde el que se editaba lo mismo: había otro
+                    en la cabecera de la lista por canal. Dos controles que editan el mismo
+                    valor no se turnan, se contradicen — y quien los ve no sabe cuál manda.
+                    Queda uno por nivel: el de la bandeja en la cabecera de la lista, y el de
+                    cada conversación en su fila. */}
+                <div className="border-b border-gray-100 px-3 py-2">
+                  <ScopeSelector activeScope={activeScope} onChange={handleScopeChange} />
                 </div>
                 {/* G2 (auditoría 22-ago): resumen del dueño en modo Global (sin evento
                     seleccionado). Datos agregados en front (eventos + no-leídos ya en memoria). */}

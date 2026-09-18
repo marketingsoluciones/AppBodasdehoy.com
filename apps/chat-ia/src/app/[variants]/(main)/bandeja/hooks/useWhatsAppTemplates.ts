@@ -147,13 +147,36 @@ export function useWhatsAppTemplates(enabled: boolean = true) {
   return { templates, loading, error };
 }
 
-/** Es WhatsApp y la ventana de 24h ha expirado (último inbound > 24h). */
+/**
+ * ¿Esta conversación obliga a usar plantilla de pago para responder?
+ *
+ * La ventana de 24h y las plantillas HSM son una regla de **WhatsApp Cloud API (Meta)**, no de
+ * WhatsApp. Un número vinculado por QR (Baileys) no tiene ventana: se responde siempre. Hasta
+ * el 18-09 esta función miraba solo `channel === 'whatsapp'`, así que bloqueaba también las
+ * conversaciones de QR y ofrecía "seleccionar plantilla aprobada por Meta" en un canal donde
+ * Meta no interviene.
+ *
+ * Y tenía un segundo fallo peor en la práctica: `sin inbound previo → ventana cerrada`. Una
+ * conversación que aún no ha recibido nada —todas las nuevas, y todas las de un entorno de
+ * pruebas— se daba por caducada, así que el operador veía el bloqueo desde el primer momento.
+ * Sin inbound no hay ventana abierta, pero tampoco hay ventana CERRADA: no se puede afirmar.
+ * El dato autoritativo es `requiresTemplate`, que manda el backend (capabilities); esta
+ * heurística solo adelanta el caso evidente.
+ *
+ * `channelType`: 'WAB' = Meta Business API · 'WEB_QR' = número vinculado por QR.
+ */
 export function isWhatsAppWindowExpired(
   channel: string | undefined,
   lastInboundAt: string | null | undefined,
+  channelType?: string | null,
 ): boolean {
   if (channel !== 'whatsapp') return false;
-  if (!lastInboundAt) return true; // sin inbound previo → ventana cerrada por defecto
+  // QR/Baileys no tiene ventana de 24h ni plantillas: nunca bloquea.
+  if (channelType === 'WEB_QR') return false;
+  // Sin tipo conocido no se asume que sea API: bloquear por si acaso es peor que no bloquear,
+  // porque impide responder en canales donde se puede.
+  if (channelType !== 'WAB') return false;
+  if (!lastInboundAt) return false; // no consta inbound: no se puede afirmar que esté cerrada
   const last = new Date(lastInboundAt).getTime();
   if (Number.isNaN(last)) return false;
   const diffMs = Date.now() - last;

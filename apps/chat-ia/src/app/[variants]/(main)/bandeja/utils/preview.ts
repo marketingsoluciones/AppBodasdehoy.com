@@ -37,7 +37,9 @@ export function previewText(
       return '📍 Ubicación';
     }
     default: {
-      return 'Sin mensajes';
+      // "Sin mensajes aún": lo de antes ("Sin mensajes") se leía como un estado permanente
+      // y aparecía en toda conversación recién creada (brief 18-09, P2.1).
+      return 'Sin mensajes aún';
     }
   }
 }
