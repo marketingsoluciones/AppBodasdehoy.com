@@ -18,12 +18,12 @@ export default function IntegracionesLayout({ children }: { children: ReactNode 
           >
             Ajustes generales
           </Link>
-          <span className="rounded-lg bg-white px-3 py-2 font-medium text-pink-600 shadow-sm ring-1 ring-gray-100">
+          <span className="rounded-lg bg-white px-3 py-2 font-medium text-brand shadow-sm ring-1 ring-gray-100">
             Integraciones
           </span>
           <Link
             className="rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-200/80"
-            href="/messages"
+            href="/bandeja"
           >
             Mensajes
           </Link>

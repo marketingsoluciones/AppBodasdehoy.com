@@ -9,6 +9,7 @@ import { aiChatService } from '@/services/aiChat';
 import { chatService } from '@/services/chat';
 import { messageService } from '@/services/message';
 import { agentChatConfigSelectors } from '@/store/agent/selectors';
+import { useSessionStore } from '@/store/session';
 import { UploadFileItem } from '@/types/files/upload';
 
 import { useChatStore } from '../../../../store';
@@ -71,6 +72,8 @@ beforeEach(() => {
 
   // Setup default spies that most tests need
   spyOnMessageService();
+  // This suite exercises the send flow, not the background session PATCH.
+  vi.spyOn(useSessionStore.getState(), 'triggerSessionUpdate').mockImplementation(async () => {});
 
   // Setup common mock methods that most V2 tests need
   act(() => {
@@ -132,6 +135,14 @@ describe('generateAIChatV2 actions', () => {
     });
 
     describe('message creation', () => {
+      it('captures the draft before clearing the editor', async () => {
+        const getJSONState = vi.fn(() => ({ text: 'QA draft' }));
+        const clearContent = vi.fn();
+        act(() => useChatStore.setState({ mainInputEditor: { getJSONState, clearContent } as any }));
+        await act(async () => { await useChatStore.getState().sendMessageInServer({ message: 'QA draft' }); });
+        expect(getJSONState.mock.invocationCallOrder[0]).toBeLessThan(clearContent.mock.invocationCallOrder[0]);
+      });
+
       it('should create user message and trigger AI processing', async () => {
         const { result } = renderHook(() => useChatStore());
 
@@ -291,21 +302,20 @@ describe('generateAIChatV2 actions', () => {
         expect(result.current.internal_execAgentRuntime).not.toHaveBeenCalled();
       });
 
-      it('should handle message creation errors gracefully', async () => {
+      it('should degrade to a local response when persistence fails (never block the assistant)', async () => {
         const { result } = renderHook(() => useChatStore());
         vi.spyOn(aiChatService, 'sendMessageInServer').mockRejectedValue(
           new Error('create message error'),
         );
 
         await act(async () => {
-          try {
-            await result.current.sendMessage({ message: TEST_CONTENT.USER_MESSAGE });
-          } catch {
-            // Expected to throw
-          }
+          await result.current.sendMessage({ message: TEST_CONTENT.USER_MESSAGE });
         });
 
-        expect(result.current.internal_execAgentRuntime).not.toHaveBeenCalled();
+        // P0 (27-jul): un fallo de guardado (p.ej. inbox sin sesión api-mcp → 422) NO debe
+        // impedir la respuesta. sendMessageInServer degrada a mensajes locales y el runtime
+        // IGUAL se ejecuta para que el asistente responda.
+        expect(result.current.internal_execAgentRuntime).toHaveBeenCalled();
       });
     });
 
@@ -395,10 +405,9 @@ describe('generateAIChatV2 actions', () => {
   });
 
   describe('error handling', () => {
-    it('should set error message when sendMessageInServer throws a regular error', async () => {
+    it('should degrade to a local response (not surface a banner) when sendMessageInServer throws a regular error', async () => {
       const { result } = renderHook(() => useChatStore());
-      const errorMessage = 'Network error';
-      const mockError = new TRPCClientError(errorMessage);
+      const mockError = new TRPCClientError('Network error');
       (mockError as any).data = { code: 'BAD_REQUEST' };
 
       vi.spyOn(aiChatService, 'sendMessageInServer').mockRejectedValue(mockError);
@@ -408,9 +417,12 @@ describe('generateAIChatV2 actions', () => {
       });
 
       const operationKey = messageMapKey(TEST_IDS.SESSION_ID, TEST_IDS.TOPIC_ID);
-      expect(result.current.mainSendMessageOperations[operationKey]?.inputSendErrorMsg).toBe(
-        errorMessage,
-      );
+      // Nuevo contrato (P0 27-jul): un error de persistencia NO bloquea ni muestra banner de
+      // error; se degrada a respuesta local. El asistente responde y no se setea inputSendErrorMsg.
+      expect(
+        result.current.mainSendMessageOperations[operationKey]?.inputSendErrorMsg,
+      ).toBeUndefined();
+      expect(result.current.internal_execAgentRuntime).toHaveBeenCalled();
     });
 
     it('should not set error message when receiving a cancel signal', async () => {

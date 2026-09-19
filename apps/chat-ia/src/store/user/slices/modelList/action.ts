@@ -6,7 +6,7 @@ import type {
   UserModelProviderConfig,
 } from '@lobechat/types';
 import { produce } from 'immer';
-import { ModelProvider } from 'model-bank';
+import { ModelProvider } from '@lobechat/types';
 import useSWR, { SWRResponse } from 'swr';
 import type { StateCreator } from 'zustand/vanilla';
 

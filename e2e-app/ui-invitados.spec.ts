@@ -26,7 +26,7 @@
 
 import { test, expect, Page } from '@playwright/test';
 import { TEST_URLS } from './fixtures';
-import { clearSession, waitForAppReady, loginAndSelectEventByName } from './helpers';
+import { clearSession, waitForAppReady, loginAndSelectEventByName, navigateToModule } from './helpers';
 import { ISABEL_RAUL_EVENT, TEST_USERS } from './fixtures/isabel-raul-event';
 import { queryEvent } from './lib/api';
 
@@ -107,8 +107,8 @@ test.beforeAll(async ({ browser }) => {
         return false;
       });
       if (!clicked) {
-        // Fallback: goto directo (funciona en app-test)
-        await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 30_000 }).catch(() => {});
+        // Fallback: usar navigateToModule (click en menú lateral) simulando usuario real
+        await navigateToModule(page, 'invitados').catch(() => {});
       }
       await page.waitForURL('**/invitados**', { timeout: 10_000 }).catch(() => {});
     }
@@ -1116,7 +1116,8 @@ test.describe.serial('C-01 — Invitados: persistencia real en DB', () => {
     if (clickedNav) {
       await page.waitForURL('**/invitados**', { timeout: 15_000 }).catch(() => {});
     } else {
-      await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+      // Fallback: usar navigateToModule (click en menú lateral) simulando usuario real
+      await navigateToModule(page, 'invitados');
     }
     await waitForAppReady(page, 15_000);
     await delay(1_000);

@@ -1,5 +1,5 @@
 
-import { FC, useState } from "react"
+import { FC, useEffect, useState } from "react"
 import ClickAwayListener from "react-click-away-listener"
 import { LiaIdCardSolid } from "react-icons/lia";
 import { HiOutlineViewList } from "react-icons/hi";
@@ -17,6 +17,15 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
   const { t } = useTranslation();
   const [show, setShow] = useState<boolean>(false)
   const [isAllowed, ht] = useAllowed()
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   const pathname = window?.location?.pathname;
 
@@ -26,23 +35,18 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
       icon: <LiaIdCardSolid className="w-5 h-5" />,
       title: t("card")
     },
-    /*     {
-          value: "extraTable", // Vista de tabla personalizada
-          icon: <HiOutlineViewList className="w-5 h-5" />,
-          title: t("NuevaTabla") // Traducción para la nueva opción
-        }, */
-    {
-      value: "newTable", // Vista de tabla personalizada
+    ...(!isMobile ? [{
+      value: "newTable",
       icon: <HiOutlineViewList className="w-5 h-5" />,
-      title: t("board") // Traducción para la nueva opción
-    },
-    {
-      value: "boardView", // Nueva vista de tablero Kanban
+      title: t("board")
+    }] : []),
+    ...(!isMobile ? [{
+      value: "boardView",
       icon: <TbLayoutKanban className="w-5 h-5" />,
-      title: t("kanban") // Traducción para vista kanban
-    },
+      title: t("kanban")
+    }] : []),
   ];
- 
+
   if (pathname === "/itinerario") {
     options = [
       {
@@ -50,11 +54,11 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
         icon: <LiaIdCardSolid className="w-5 h-5" />,
         title: t("card")
       },
-      {
+      ...(!isMobile ? [{
         value: "table",
         icon: <HiOutlineViewList className="w-5 h-5" />,
         title: t("board")
-      },
+      }] : []),
       {
         value: "schema",
         icon: <TbSchema className="w-5 h-5" />,

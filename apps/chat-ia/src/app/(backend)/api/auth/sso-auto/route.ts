@@ -1,8 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
+import { resolveServerMcpGraphqlUrl } from '@/const/mcpEndpoints';
+
 export const runtime = 'nodejs';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || 'https://api-ia.bodasdehoy.com';
+const BACKEND_URL = resolveServerBackendOrigin();
+const MCP_GRAPHQL_URL = resolveServerMcpGraphqlUrl();
+
+/**
+ * BUG QA #2 (30-jun): `next start -H 0.0.0.0` hace que `request.url` sea
+ * `https://0.0.0.0:3210/...` cuando estamos detrás de cloudflared tunnel.
+ * `new URL('/login', request.url)` propaga ese host inválido al header
+ * `Location` → el navegador lo recibe y trata de cargar 0.0.0.0:3210.
+ *
+ * Reconstruimos la base usando X-Forwarded-Host (Cloudflare) / Host header,
+ * que SÍ tienen el dominio real (chat-dev.bodasdehoy.com).
+ */
+function buildPublicUrl(request: NextRequest, pathname: string): URL {
+  const xfHost = request.headers.get('x-forwarded-host');
+  const host = xfHost || request.headers.get('host') || new URL(request.url).host;
+  const xfProto = request.headers.get('x-forwarded-proto');
+  const proto = xfProto || (host.includes('localhost') ? 'http' : 'https');
+  return new URL(pathname, `${proto}://${host}`);
+}
 
 // Dominios permitidos para redirect (misma lista que login/page.tsx)
 const ALLOWED_REDIRECT_HOSTS = [
@@ -10,7 +31,21 @@ const ALLOWED_REDIRECT_HOSTS = [
   'editor.bodasdehoy.com', 'app-test.bodasdehoy.com', 'chat-test.bodasdehoy.com',
   'memories-test.bodasdehoy.com', 'app-dev.bodasdehoy.com', 'chat-dev.bodasdehoy.com',
   'memories-dev.bodasdehoy.com', 'localhost',
+  'app.eventosorganizador.com', 'chat.eventosorganizador.com', 'memories.eventosorganizador.com',
+  'editor.eventosorganizador.com', 'app-test.eventosorganizador.com', 'chat-test.eventosorganizador.com',
+  'memories-test.eventosorganizador.com', 'app-dev.eventosorganizador.com',
+  'chat-dev.eventosorganizador.com', 'memories-dev.eventosorganizador.com',
 ];
+
+function getCrossAppCookieDomain(request: NextRequest): string | undefined {
+  const forwarded = request.headers.get('x-forwarded-host');
+  const rawHost = forwarded || request.headers.get('host') || new URL(request.url).hostname;
+  const hostname = rawHost.split(':')[0].toLowerCase();
+  if (!/^[\d.a-z-]+$/.test(hostname)) return undefined;
+  if (hostname === 'localhost' || /^(?:\d+\.){3}\d+$/.test(hostname)) return undefined;
+  const parts = hostname.split('.');
+  return parts.length >= 2 ? `.${parts.slice(-2).join('.')}` : undefined;
+}
 
 function isSafeRedirect(urlStr: string): boolean {
   try {
@@ -34,34 +69,44 @@ export async function GET(request: NextRequest) {
 
   // Sin cookie SSO → redirigir al login normal para mostrar formulario
   if (!ssoToken) {
-    return NextResponse.redirect(new URL('/login', request.url), 307);
+    return NextResponse.redirect(buildPublicUrl(request, '/login'), 307);
   }
 
   const urlParams = new URL(request.url).searchParams;
   const development = urlParams.get('developer') || 'bodasdehoy';
   const redirectAfterLogin = urlParams.get('redirect');
-  const safeRedirect = redirectAfterLogin && isSafeRedirect(redirectAfterLogin) ? redirectAfterLogin : '/chat';
+  const safeRedirect = redirectAfterLogin && isSafeRedirect(redirectAfterLogin) ? redirectAfterLogin : '/asistente';
+
+  // BUG-CW-N14 (informe QA 23-jun 5ª ronda): /messages directo se quedaba
+  // colgado >20s sin timeout. El fetch a firebase-login no tenía AbortController
+  // → si el backend cuelga, el spinner dura indefinidamente. Fix: 5s timeout
+  // + fallback explícito a /login con mensaje al usuario.
+  const TIMEOUT_MS = 5000;
+  const abortController = new AbortController();
+  const timeoutId = setTimeout(() => abortController.abort(), TIMEOUT_MS);
 
   try {
     const response = await fetch(`${BACKEND_URL}/api/auth/firebase-login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         development,
         device: request.headers.get('user-agent') || 'sso-auto',
         fingerprint: 'sso-auto-server',
         firebaseIdToken: ssoToken,
       }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+      signal: abortController.signal,
     });
+    clearTimeout(timeoutId);
 
     const data = await response.json().catch(() => null);
     console.log(`[sso-auto] status=${response.status} | success=${data?.success} | user_id=${data?.user_id || 'NULL'}`);
 
     if (!data?.success) {
       // Token inválido/expirado → redirigir al login + limpiar cookie para evitar bucle infinito
-      const resp = NextResponse.redirect(new URL('/login', request.url), 307);
+      const resp = NextResponse.redirect(buildPublicUrl(request, '/login'), 307);
       resp.cookies.set('idTokenV0.1.0', '', {
-        domain: '.bodasdehoy.com',
+        ...(getCrossAppCookieDomain(request) ? { domain: getCrossAppCookieDomain(request) } : {}),
         expires: new Date(0),
         path: '/',
         sameSite: 'lax',
@@ -69,9 +114,69 @@ export async function GET(request: NextRequest) {
       return resp;
     }
 
-    const userId = data.user_id || data.email || '';
+    // FIX α v2 QA #34 (29-jun): el fallback `data.user_id || data.email` metía
+    // email como userId cuando backend NO devolvía user_id (caso save-user-config
+    // 502/503). Resultado: dev-user-config.userId=email → TRPC ctx → MessageModel
+    // recibía email donde la columna user_id espera UUID → INSERT fallaba.
+    //
+    // Fix: si backend NO devuelve user_id, EXTRAER uid del JWT Firebase
+    // (ssoToken, payload.sub o payload.user_id). NUNCA caer a email.
+    //
+    // FIX N15 (auditoría QA 14-09): decodificamos el payload del JWT Firebase UNA
+    // vez y de ahí salen uid + email + name. Antes el SSO no tocaba
+    // user_email/user_display_name/user_uid → la sesión nueva heredaba la
+    // identidad del usuario anterior en localStorage (PII cruzada + cuota
+    // resuelta contra la cuenta equivocada).
+    let fbPayload: Record<string, any> | null = null;
+    try {
+      // JWT payload está en el 2º segmento (separado por puntos), base64url-encoded
+      const payloadB64 = ssoToken.split('.')[1];
+      if (payloadB64) {
+        const padded = payloadB64.padEnd(payloadB64.length + (4 - payloadB64.length % 4) % 4, '=');
+        fbPayload = JSON.parse(Buffer.from(padded, 'base64').toString('utf-8'));
+      }
+    } catch (e) {
+      console.warn('[sso-auto] No se pudo decodificar el JWT firebase:', (e as Error)?.message);
+    }
+    // Firebase ID token usa `user_id` o `sub` para el uid
+    let userId = data.user_id || fbPayload?.user_id || fbPayload?.sub || '';
+    // Último fallback: SOLO si no hay manera de obtener uid, usar email
+    // (mejor login degradado que crash total). Loguear para diagnóstico.
+    if (!userId) {
+      userId = data.email || '';
+      if (userId) console.warn('[sso-auto] FALLBACK email como userId — INSERT messages fallará:', userId);
+    }
     const token = data.token || data.jwt_token || '';
-    const email = data.email || '';
+    // email/name SIEMPRE del Firebase token (fuente de verdad de la sesión),
+    // nunca de valores cacheados del cliente ni de data.email sin validar.
+    const email = fbPayload?.email || data.email || '';
+    const displayName = fbPayload?.name || '';
+    const photoUrl = fbPayload?.picture || '';
+    const cookieDomain = getCrossAppCookieDomain(request);
+    const cookieDomainAttribute = cookieDomain ? `; domain=${cookieDomain}` : '';
+
+    // BUG QA #4 (30-jun, refactor 4-jul): chat-dev login NO generaba
+    // sessionBodas → SSO chat→app no funcionaba. Replicamos la llamada a
+    // mutation auth(idToken) de api-mcp. Extraído a services/mcpAuth.ts
+    // para evitar drift con firebase-auth/index.ts (login directo).
+    let sessionBodas = '';
+    try {
+      const { callMcpAuthMutation } = await import('@/services/mcpAuth');
+      const result = await callMcpAuthMutation(ssoToken, development, {
+        timeoutMs: 5000,
+        graphqlUrl: MCP_GRAPHQL_URL,
+      });
+      sessionBodas = result.sessionCookie || '';
+      if (!sessionBodas) {
+        console.warn(
+          '[sso-auto] mutation auth NO devolvió sessionCookie:',
+          result.errorMessage,
+          result.traceId ? `[${result.traceId}]` : '',
+        );
+      }
+    } catch (e: any) {
+      console.warn('[sso-auto] mutation auth(idToken) falló:', e?.message);
+    }
 
     const config = {
       developer: development,
@@ -83,10 +188,20 @@ export async function GET(request: NextRequest) {
       user_id: userId,
       user_type: 'registered',
     };
-    const configJson = JSON.stringify(config);
+    // JSON dentro de <script>: JSON.stringify NO escapa "</script>", y `name` viene
+    // del claim editable por el propio usuario → escapamos '<' (auditoría 15-09).
+    const js = (value: unknown) => JSON.stringify(value ?? '').replaceAll('<', '\\u003c');
+    const configJson = js(config);
+    // Cookie sessionBodas cross-subdomain de la marca actual — 30 días.
+    // Si la mutación falló, queda vacío y NO seteamos cookie inválida.
+    const sessionBodasCookieScript = sessionBodas
+      ? `document.cookie = 'sessionBodas=' + ${JSON.stringify(encodeURIComponent(sessionBodas))} + '; path=/${cookieDomainAttribute}; max-age=' + (30 * 24 * 60 * 60) + '; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');`
+      : `console.warn('[sso-auto] sessionBodas vacío — SSO chat→app no disponible esta sesión');`;
 
-    // Retornar HTML con script que setea localStorage y redirige a /chat
-    // Esto ejecuta inmediatamente sin necesidad de React/hydration
+    // FIX N15 (auditoría QA 14-09): purgar la identidad del usuario anterior
+    // ANTES de escribir la nueva. El SSO entraba sin logout previo y los valores
+    // user_email/user_display_name/user_uid del login anterior sobrevivían →
+    // la sesión nueva mostraba nombre/email/plan de OTRO usuario.
     const html = `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><title>Iniciando sesión...</title></head>
@@ -94,12 +209,29 @@ export async function GET(request: NextRequest) {
 <script>
 try {
   var cfg = ${configJson};
+  // Purgar identidad anterior (N15) — incluida la marca activa, que si no
+  // sobrevive al cambio de cuenta y la sesión nueva arranca en el tenant del anterior.
+  localStorage.removeItem('user_email');
+  localStorage.removeItem('user_display_name');
+  localStorage.removeItem('user_uid');
+  localStorage.removeItem('user_photo_url');
+  localStorage.removeItem('current_development');
+  // Escribir identidad de ESTA sesión, derivada del JWT Firebase server-side.
+  // (Auditoría 15-09: el merge dejó un bloque duplicado que reescribía uid/email y
+  //  hacía removeItem de user_display_name JUSTO DESPUÉS de escribirlo → el nombre
+  //  del JWT nunca sobrevivía. Un solo bloque, en orden.)
+  localStorage.setItem('user_uid', ${js(userId)});
+  localStorage.setItem('user_email', ${js(email)});
+  if (${js(displayName)}) localStorage.setItem('user_display_name', ${js(displayName)});
+  if (${js(photoUrl)}) localStorage.setItem('user_photo_url', ${js(photoUrl)});
+  localStorage.setItem('current_development', ${js(development)});
   localStorage.setItem('dev-user-config', JSON.stringify(cfg));
-  localStorage.setItem('jwt_token', ${JSON.stringify(token)});
-  localStorage.setItem('api2_jwt_token', ${JSON.stringify(token)});
+  localStorage.setItem('jwt_token', ${js(token)});
+  localStorage.setItem('mcp_jwt_token', ${js(token)});
   document.cookie = 'dev-user-config=' + encodeURIComponent(JSON.stringify(cfg)) + '; path=/; max-age=' + (30 * 24 * 60 * 60) + '; SameSite=Lax';
+  ${sessionBodasCookieScript}
 } catch(e) {}
-window.location.replace(${JSON.stringify(safeRedirect)});
+window.location.replace(${js(safeRedirect)});
 </script>
 <p>Iniciando sesión...</p>
 </body>
@@ -110,8 +242,12 @@ window.location.replace(${JSON.stringify(safeRedirect)});
       status: 200,
     });
   } catch (error: any) {
-    console.error('[sso-auto] Error:', error.message);
-    // Cualquier error → redirigir al login para que muestre formulario
-    return NextResponse.redirect(new URL('/login', request.url), 307);
+    clearTimeout(timeoutId);
+    const isTimeout = error?.name === 'AbortError';
+    console.error('[sso-auto] Error:', isTimeout ? `TIMEOUT después de ${TIMEOUT_MS}ms` : error.message);
+    // Timeout o error de red → redirigir al login con flag para mostrar mensaje
+    const loginUrl = buildPublicUrl(request, '/login');
+    if (isTimeout) loginUrl.searchParams.set('sso_timeout', '1');
+    return NextResponse.redirect(loginUrl, 307);
   }
 }

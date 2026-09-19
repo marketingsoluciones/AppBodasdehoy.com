@@ -1,12 +1,7 @@
-import { isDesktop } from '@/const/version';
+import { ApiIaChatGroupService } from './apiIa';
 
-import { ClientService } from './client';
-import { ServerService } from './server';
-
-const clientService =
-  process.env.NEXT_PUBLIC_CLIENT_DB === 'pglite' ? new ClientService() : new ServerService();
-
-export const chatGroupService =
-  process.env.NEXT_PUBLIC_SERVICE_MODE === 'server' || isDesktop
-    ? new ServerService()
-    : clientService;
+// CAPA 2 PASO C 2026-06-05 — opción (c) según api-ia (msg 07:50, 08:47, 09:40):
+// chatGroup híbrido: sessions del grupo en api-mcp via /chat/session-groups,
+// order/role agentes en userConfig.chatGroups[].
+// Eliminado ternary tRPC/pglite — server.ts/client.ts borrados.
+export const chatGroupService = new ApiIaChatGroupService();

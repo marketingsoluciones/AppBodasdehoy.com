@@ -73,7 +73,7 @@ El copilot está funcionando correctamente pero muestra "guide.defaultMessage" p
 ```
 1. Abrir: http://127.0.0.1:8080/login
 2. Email: bodasdehoy.com@gmail.com
-3. Password: lorca2012M*+
+3. Password: «definida en .env.e2e.dev.local — nunca en el repo»
 4. Verificar: Cookie sessionBodas creada
 ```
 

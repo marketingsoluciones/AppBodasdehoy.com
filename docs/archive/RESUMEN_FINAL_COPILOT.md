@@ -24,7 +24,7 @@
 ```
 URL: http://127.0.0.1:8080
 Login: bodasdehoy.com@gmail.com
-Password: lorca2012M*+
+Password: «definida en .env.e2e.dev.local — nunca en el repo»
 ```
 
 ### 2. Abrir el Copilot

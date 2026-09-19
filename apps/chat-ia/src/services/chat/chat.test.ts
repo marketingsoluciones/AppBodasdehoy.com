@@ -117,7 +117,7 @@ describe('ChatService', () => {
               identifier: 'plugin2',
               manifest: {
                 identifier: 'plugin2',
-                api: [{ name: 'api2' }],
+                api: [{ name: 'mcp' }],
                 type: 'standalone',
               } as LobeChatPluginManifest,
               type: 'plugin',

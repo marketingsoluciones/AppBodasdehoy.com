@@ -30,7 +30,7 @@ const { TabPane } = Tabs;
 const { Option } = Select;
 
 // ✅ URL del backend (usar variable de entorno o fallback)
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';
 
 interface BrandingAsset {
   current_size?: { height: number, width: number; };

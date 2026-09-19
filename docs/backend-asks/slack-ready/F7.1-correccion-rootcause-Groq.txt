@@ -1,0 +1,149 @@
+DE: COORD-AppEventos
+PARA: API-IA
+DRI: api_ia_oncall
+CANAL: #coordinacion
+HILO: 1778170638.897419
+ASUNTO: 🛑 CORRIGIENDO F7 — la causa real del 502 es Groq routing, NO key mismatch
+
+
+Disculpas, en F7 (ts 1780757745) di un diagnóstico equivocado.
+Tras hacer SMOKE CORRECTO (sin provider/model, auto-routing), el
+log de api3-ia muestra la causa real, y es distinta:
+
+
+═══════════════════════════════════════════════════════════
+TRAZA DEL SMOKE CORRECTO (sin provider/model, auto)
+═══════════════════════════════════════════════════════════
+
+Jun 06 14:56:39  whitelabel_config: resolviendo bodasdehoy desde MCP
+Jun 06 14:56:40  mcp_graphql_client: ✅ provider=groq, hasKey=True
+Jun 06 14:56:40  whitelabel_config: ✅ provider=groq,
+                  model=llama-3.3-70b-versatile
+
+   (hasta aquí TODO PERFECTO — auto-routing OK, Groq resuelto)
+
+Jun 06 14:56:40  services.ai.providers.openai:
+                  🤖 "OpenAI chat request: llama-3.3-70b-versatile"
+                  ← ojo: USA EL CLIENTE OpenAI con modelo Groq
+
+Jun 06 14:56:40  httpx: POST https://api.openai.com/v1/chat/completions
+                  ← MANDA A api.openai.com con la key gsk_… de Groq
+
+Jun 06 14:56:40  OpenAI 401: "Incorrect API key provided: gsk_..."
+
+Jun 06 14:56:40  rest_chat_handler:
+                  ❌ /chat/structured error (groq/llama-3.3-70b-versatile)
+
+Jun 06 14:56:40  /chat/structured 502 Bad Gateway
+
+
+═══════════════════════════════════════════════════════════
+ANÁLISIS DEL CÓDIGO (vía SSH a /opt/backend)
+═══════════════════════════════════════════════════════════
+
+services/ai/providers/openai.py:7
+   from openai import OpenAI, AsyncOpenAI
+
+services/ai/providers/openai.py:18-26
+   class OpenAIClient:
+       def __init__(self, api_key: str):
+           self.client = AsyncOpenAI(api_key=api_key)
+           # ← NO acepta base_url; default api.openai.com/v1
+
+→ El cliente OpenAI se está usando TAMBIÉN para Groq (la API de Groq
+  es OpenAI-compatible), pero NO se está apuntando al base_url de Groq
+  (https://api.groq.com/openai/v1). Por eso la key gsk_ va a
+  api.openai.com y OpenAI la rechaza con 401.
+
+
+═══════════════════════════════════════════════════════════
+FIX (cualquiera de los 2 funciona)
+═══════════════════════════════════════════════════════════
+
+Opción A — OpenAIClient acepta base_url:
+   class OpenAIClient:
+       def __init__(self, api_key: str, base_url: Optional[str] = None):
+           kwargs = {"api_key": api_key}
+           if base_url:
+               kwargs["base_url"] = base_url
+           self.client = AsyncOpenAI(**kwargs)
+
+   Y donde se instancia (rest_chat_handler.py):
+       base_url = None
+       if provider == "groq":
+           base_url = "https://api.groq.com/openai/v1"
+       elif provider == "openrouter":
+           base_url = "https://openrouter.ai/api/v1"
+       client = OpenAIClient(api_key=key, base_url=base_url)
+
+Opción B — GroqClient dedicado:
+   class GroqClient(OpenAIClient):
+       def __init__(self, api_key: str):
+           super().__init__(api_key)
+           self.client = AsyncOpenAI(
+               api_key=api_key,
+               base_url="https://api.groq.com/openai/v1"
+           )
+
+   Y un factory que devuelva el cliente correcto según provider.
+
+Opción A es 1 línea y resuelve también openrouter, deepseek, etc.
+(todos OpenAI-compatible con base_url propio).
+
+
+═══════════════════════════════════════════════════════════
+BONUS — mejor manejo de errores en openai.py:90
+═══════════════════════════════════════════════════════════
+
+   File "/opt/backend/services/ai/providers/openai.py", line 90:
+   raise Exception(f"API key inválida: {e}")
+
+   → FastAPI no maneja Exception genérica → 502 opaco
+
+Cambiar a:
+   from fastapi import HTTPException
+   raise HTTPException(status_code=401, detail=f"API key inválida: {e}")
+
+→ Así el cliente ve 401 (auth error) en vez de 502 (servicio caído).
+
+
+═══════════════════════════════════════════════════════════
+QUÉ NO ERA (corrigiendo F7)
+═══════════════════════════════════════════════════════════
+
+  ❌ NO es key mismatch (whitelabel resuelve perfecto)
+  ❌ NO es falta multi-provider en whitelabel
+  ❌ NO es fallback a .env (eso es de /webapi/models, otro flujo)
+  ✅ ES routing: cliente OpenAI llamado para Groq sin cambiar base_url
+
+
+═══════════════════════════════════════════════════════════
+SOBRE EL NameError /webapi/models (Bug #2 de F7)
+═══════════════════════════════════════════════════════════
+
+Sigue en pie tal cual F7 lo planteó:
+   NameError: name 'request' is not defined.
+   File con headers=request.headers, sin Request en la firma.
+
+Sospecho que es image_ai_router.py (varios call-sites con
+headers=request.headers en grep), pero solo el log puntual
+del request fallido lo confirma. ¿Podéis ver vuestra última
+edición del handler de /webapi/models/{provider}?
+
+
+═══════════════════════════════════════════════════════════
+RESUMEN ACCIONABLE PARA VOSOTROS
+═══════════════════════════════════════════════════════════
+
+  1. base_url configurable en OpenAIClient (5 líneas)
+     → desbloquea TODOS los providers OpenAI-compatible:
+       groq, openrouter, deepseek, together, fireworks…
+
+  2. HTTPException(401) en vez de Exception
+     → 502 desaparece, cliente recibe error claro
+
+  3. Localizar handler de /webapi/models con NameError + fix
+
+Disculpas otra vez por el F7 mal diagnosticado. SSH read-only.
+
+DRI: coord_appeventos

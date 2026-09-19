@@ -49,7 +49,7 @@ Resumen de **dónde** puede aparecer el 502 y **qué revisar** en cada caso.
 
 - `curl -I https://api-ia.bodasdehoy.com` (y si tienes healthcheck, ese endpoint).
 - Logs del Copilot: buscan `[502]`; indican si el fallo es conexión, timeout o respuesta 502 del backend.
-- Variables de entorno: `PYTHON_BACKEND_URL` / `NEXT_PUBLIC_BACKEND_URL` → deben apuntar a `https://api-ia.bodasdehoy.com` (o al backend correcto). **No** usar `127.0.0.1:8030` en despliegue.
+- Variables de entorno: `API_IA_URL` / `NEXT_PUBLIC_API_IA_URL` → deben apuntar a `https://api-ia.bodasdehoy.com` (o al backend correcto). **No** usar `127.0.0.1:8030` en despliegue.
 
 **Código relevante:**
 
@@ -67,13 +67,13 @@ Resumen de **dónde** puede aparecer el 502 y **qué revisar** en cada caso.
 **Corrección aplicada:**
 
 - `identify-user` y `login-with-jwt` usan:
-  - `PYTHON_BACKEND_URL` o `NEXT_PUBLIC_BACKEND_URL`, o
+  - `API_IA_URL` o `NEXT_PUBLIC_API_IA_URL`, o
   - fallback `https://api-ia.bodasdehoy.com`.
 - Se eliminó el fallback a `127.0.0.1:8030` en despliegue.
 
 **Qué revisar:**
 
-- Que `PYTHON_BACKEND_URL` (o `NEXT_PUBLIC_BACKEND_URL`) esté definido y sea `https://api-ia.bodasdehoy.com` en el entorno donde corre el Copilot.
+- Que `API_IA_URL` (o `NEXT_PUBLIC_API_IA_URL`) esté definido y sea `https://api-ia.bodasdehoy.com` en el entorno donde corre el Copilot.
 - Logs de esas rutas: si ves `ECONNREFUSED` o `fetch failed`, el backend no está alcanzable.
 
 ---
@@ -109,7 +109,7 @@ curl -s -o /dev/null -w "%{http_code}" https://api-ia.bodasdehoy.com/webapi/chat
 | Problema | Revisar |
 |----------|--------|
 | 502 al cargar chat-test | DNS, Cloudflare, servidor Copilot (Next.js) |
-| 502 al enviar mensaje | api-ia operativo, `PYTHON_BACKEND_URL`, logs `[502]` |
+| 502 al enviar mensaje | api-ia operativo, `API_IA_URL`, logs `[502]` |
 | 502 en identify-user / login | Misma URL de backend; sin `127.0.0.1:8030` en prod |
 | 502 genérico | Logs del Copilot y de api-ia; Cloudflare si aplica |
 

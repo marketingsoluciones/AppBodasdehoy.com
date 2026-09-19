@@ -749,28 +749,35 @@ const AlbumDetailPage = memo(() => {
       message.warning('No hay fotos para descargar');
       return;
     }
+    if (!userId) return;
 
-    message.loading({ content: 'Preparando descarga...', key: 'download' });
+    message.loading({ content: 'Preparando ZIP del álbum…', duration: 0, key: 'download' });
 
-    // Descargar todas las fotos una por una
-    // TODO: Implementar descarga ZIP en backend
+    // ZIP en backend (api-ia): POST prepara el archivo y devuelve { download_url }
+    // (/api/memories/zip-downloads/{token}) que se abre a través del proxy /api/memories.
     try {
-      for (const media of currentAlbumMedia) {
-        const link = document.createElement('a');
-        link.href = media.originalUrl;
-        link.download = media.caption || `foto-${media._id}`;
-        link.target = '_blank';
-        document.body.append(link);
-        link.click();
-        link.remove();
-        // Pequeño delay para no saturar
-        await new Promise<void>(resolve => setTimeout(() => resolve(), 100));
+      const res = await fetch(
+        `/api/memories/albums/${albumId}/zip?user_id=${encodeURIComponent(userId)}&development=${encodeURIComponent(development)}`,
+        { method: 'POST' },
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.download_url) {
+        throw new Error(data.detail || `HTTP ${res.status}`);
       }
-      message.success({ content: 'Descarga iniciada', key: 'download' });
-    } catch {
-      message.error({ content: 'Error al descargar', key: 'download' });
+      const link = document.createElement('a');
+      link.href = data.download_url;
+      link.download = `${currentAlbum?.title || 'album'}.zip`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      message.success({ content: 'Descarga del ZIP iniciada', key: 'download' });
+    } catch (error: any) {
+      message.error({
+        content: `No se pudo preparar el ZIP: ${error?.message || 'error desconocido'}`,
+        key: 'download',
+      });
     }
-  }, [currentAlbumMedia]);
+  }, [currentAlbumMedia, userId, albumId, development, currentAlbum?.title]);
 
   const handleDownloadSelected = useCallback(async () => {
     if (selectedMediaIds.length === 0) {
@@ -790,7 +797,9 @@ const AlbumDetailPage = memo(() => {
         document.body.append(link);
         link.click();
         link.remove();
-        await new Promise<void>(resolve => setTimeout(() => resolve(), 100));
+        await new Promise<void>((resolve) => {
+          setTimeout(resolve, 100);
+        });
       }
       message.success({ content: `Descarga de ${selectedMediaIds.length} foto(s) iniciada`, key: 'downloadSelected' });
       setSelectedMediaIds([]);
@@ -1006,7 +1015,7 @@ const AlbumDetailPage = memo(() => {
               size="large"
               type="primary"
             >
-              Iniciar Sesion
+              Iniciar Sesión
             </Button>
             <Button
               block

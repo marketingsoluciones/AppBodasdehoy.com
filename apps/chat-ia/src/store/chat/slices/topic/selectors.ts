@@ -5,7 +5,12 @@ import { groupTopicsByTime } from '@/utils/client/topic';
 
 import { ChatStoreState } from '../../initialState';
 
-const currentTopics = (s: ChatStoreState): ChatTopic[] | undefined => s.topicMaps[s.activeId];
+// BUG-CRASH-01 (25-jun): s.activeId puede ser undefined transitoriamente en
+// hidratación pre-init; el acceso índice s.topicMaps[undefined] devuelve
+// undefined pero TS no fuerza guard, y aguas abajo se propagaba el ?? que ya
+// teníamos. Guard explícito por consistencia con el resto del fix.
+const currentTopics = (s: ChatStoreState): ChatTopic[] | undefined =>
+  s.activeId ? s.topicMaps?.[s.activeId] : undefined;
 
 const currentActiveTopic = (s: ChatStoreState): ChatTopic | undefined => {
   return currentTopics(s)?.find((topic) => topic.id === s.activeTopicId);

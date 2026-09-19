@@ -17,7 +17,7 @@ const path = require('path');
 // ─── Config ──────────────────────────────────────────────────────────────────
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:3220';
 const USER_EMAIL = process.env.USER_EMAIL || 'bodasdehoy.com@gmail.com';
-const USER_PASSWORD = process.env.USER_PASSWORD || 'lorca2012M*+';
+const USER_PASSWORD = process.env.USER_PASSWORD || (process.env.TEST_USER_PASSWORD || '');
 const SCREENSHOTS_DIR = path.join(__dirname, '..', 'test-screenshots', 'filters');
 const HEADLESS = process.env.HEADLESS === '1';
 

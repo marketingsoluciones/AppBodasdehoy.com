@@ -4,7 +4,7 @@ import { CreditCard, Loader2, Lock, X } from 'lucide-react';
 import { memo, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
-import { BalanceCheck } from '@/services/api2/wallet';
+import { BalanceCheck } from '@/services/mcpApi/wallet';
 
 export interface RechargeModalProps {
   allowDebtMode?: boolean;
@@ -51,7 +51,17 @@ const RechargeModal = memo<RechargeModalProps>(({ isOpen, onClose, balanceCheck,
       const result = await onRecharge(finalAmount);
 
       if (!result.success) {
-        const errorMsg = result.error || 'Error al crear sesión de pago';
+        // BUG QA 10-jul #7: React #31 "Objects are not valid as a React child".
+        // Si el backend devuelve `error_message` como objeto (ej. GraphQL wrapper),
+        // el render `{error}` en línea 252 crasheaba la app. Normalizar SIEMPRE
+        // a string antes de setState.
+        const rawErr: unknown = result.error;
+        const errorMsg =
+          typeof rawErr === 'string'
+            ? rawErr
+            : rawErr
+              ? JSON.stringify(rawErr)
+              : 'Error al crear sesión de pago';
         console.error('❌ [RechargeModal] Error:', errorMsg);
         setError(errorMsg);
         setLoading(false);
@@ -98,7 +108,7 @@ const RechargeModal = memo<RechargeModalProps>(({ isOpen, onClose, balanceCheck,
         {/* Header */}
         <Flexbox horizontal justify="space-between" style={{ marginBottom: 20 }}>
           <Flexbox align="center" gap={8} horizontal>
-            <CreditCard size={24} style={{ color: '#667eea' }} />
+            <CreditCard size={24} style={{ color: '#F7628C' }} />
             <h2 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>Recargar Wallet</h2>
           </Flexbox>
           <button
@@ -185,7 +195,7 @@ const RechargeModal = memo<RechargeModalProps>(({ isOpen, onClose, balanceCheck,
                 style={{
                   background:
                     selectedAmount === amount && !customAmount
-                      ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                      ? 'linear-gradient(135deg, #F7628C 0%, #D6497A 100%)'
                       : 'var(--lobe-color-fill-tertiary, #f5f5f5)',
                   border: 'none',
                   borderRadius: 8,
@@ -278,7 +288,7 @@ const RechargeModal = memo<RechargeModalProps>(({ isOpen, onClose, balanceCheck,
               background:
                 loading || finalAmount < 5
                   ? '#d1d5db'
-                  : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  : 'linear-gradient(135deg, #F7628C 0%, #D6497A 100%)',
               border: 'none',
               borderRadius: 8,
               color: 'white',

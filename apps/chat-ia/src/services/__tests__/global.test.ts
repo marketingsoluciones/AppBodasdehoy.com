@@ -78,7 +78,7 @@ describe('GlobalService', () => {
         serverConfig: { enabledOAuthSSO: true },
         serverFeatureFlags: {},
       } as GlobalRuntimeConfig;
-      vi.spyOn(lambdaClient.config.getGlobalConfig, 'query').mockResolvedValue(mockConfig);
+      vi.spyOn((lambdaClient as any).config.getGlobalConfig, 'query').mockResolvedValue(mockConfig);
 
       // Act
       const config = await globalService.getGlobalConfig();
@@ -89,7 +89,7 @@ describe('GlobalService', () => {
 
     it('should return the defaultAgentConfig when fetch is successful', async () => {
       // Arrange
-      vi.spyOn(lambdaClient.config.getDefaultAgentConfig, 'query').mockResolvedValue({
+      vi.spyOn((lambdaClient as any).config.getDefaultAgentConfig, 'query').mockResolvedValue({
         model: 'gemini-pro',
       });
 

@@ -8,13 +8,13 @@ Estas son las **dos cuentas** que se usan en los tests E2E. Quedan guardadas aqu
 
 | Cuenta | Email | Contraseña | Uso |
 |--------|--------|------------|-----|
-| **Principal (U1)** | `bodasdehoy.com@gmail.com` | `lorca2012M*+` | Login app-test, Copilot, filtros, CRUD, etc. |
+| **Principal (U1)** | `bodasdehoy.com@gmail.com` | `«definida en .env.e2e.dev.local — nunca en el repo»` | Login app-test, Copilot, filtros, CRUD, etc. |
 | **Secundaria (U2)** | `test-usuario2@bodasdehoy.com` | `TestBodas2024!` | Tests de 2 usuarios, pareja, auth, chat 2 usuarios. |
 
 - **Variables de entorno:** U1 = `TEST_USER_EMAIL` / `TEST_USER_PASSWORD`; U2 = `TEST_USER2_EMAIL` / `TEST_USER2_PASSWORD`.
 - **En código:** `TEST_CREDENTIALS` y `TEST_CREDENTIALS_U2` en `e2e-app/fixtures.ts`.
 
-**Nota clave U1:** En algunos scripts de `package.json` se usa `lorca2012M*.` (con **punto** final). Si un test de login falla, probar con la de fixtures (`lorca2012M*+`) o la del script (`lorca2012M*.`).
+**Nota clave U1:** En algunos scripts de `package.json` se usa `«definida en .env.e2e.dev.local — nunca en el repo»` (con **punto** final). Si un test de login falla, probar con la de fixtures (`«definida en .env.e2e.dev.local — nunca en el repo»`) o la del script (`«definida en .env.e2e.dev.local — nunca en el repo»`).
 
 Para usar **otra cuenta** sin tocar el código:
 
@@ -100,5 +100,5 @@ Para ejecutar sin pausas (solo assertions): `E2E_WAIT_FOR_VISUAL_CONFIRMATION=0 
 ## Resumen
 
 - **Requisito:** que los subdominios **app-test** y **chat-test** estén corriendo (túnel o despliegue). Con ellos activos, estos E2E han funcionado bien.
-- **Usuario/clave:** definidos en `e2e-app/fixtures.ts` (email: `bodasdehoy.com@gmail.com`, password: `lorca2012M*+`). Override con `TEST_USER_EMAIL` y `TEST_USER_PASSWORD`.
+- **Usuario/clave:** definidos en `e2e-app/fixtures.ts` (email: `bodasdehoy.com@gmail.com`, password: `«definida en .env.e2e.dev.local — nunca en el repo»`). Override con `TEST_USER_EMAIL` y `TEST_USER_PASSWORD`.
 - **Tests que han funcionado:** smoke, home, login, redirect (varios passed); smoke de preguntas-filtros; filter-view; flujo visual Copilot (`test:e2e:app:visual`). Para que pasen más tests (preguntas al Copilot, filtros con evento, flujo visual) la cuenta debe tener al menos un evento en app-test (el visual usa por defecto el evento "Raúl Isabel" si existe).

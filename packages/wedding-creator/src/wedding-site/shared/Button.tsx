@@ -1,4 +1,3 @@
-// @ts-nocheck — styled-jsx jsx prop (declaración global no alcanza este scope)
 'use client';
 
 /**

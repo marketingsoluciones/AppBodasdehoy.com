@@ -37,7 +37,7 @@ describe('AssistantAction', () => {
       const mockCategories = [{ id: 'cat-1', name: 'Custom Category' }];
 
       vi.spyOn(discoverService, 'getAssistantCategories').mockResolvedValue(mockCategories as any);
-      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('zh-CN');
+      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('es-ES');
 
       const params = { filter: 'popular' } as any;
       const { result } = renderHook(() => useStore.getState().useAssistantCategories(params));
@@ -79,7 +79,7 @@ describe('AssistantAction', () => {
       };
 
       vi.spyOn(discoverService, 'getAssistantDetail').mockResolvedValue(mockDetail as any);
-      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('zh-CN');
+      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('es-ES');
 
       const params = { identifier: 'test-assistant' };
       const { result } = renderHook(() => useStore.getState().useAssistantDetail(params));
@@ -140,7 +140,7 @@ describe('AssistantAction', () => {
       };
 
       vi.spyOn(discoverService, 'getAssistantList').mockResolvedValue(mockList as any);
-      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('zh-CN');
+      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('es-ES');
 
       const params = { page: 2, pageSize: 10, category: 'productivity' } as any;
       const { result } = renderHook(() => useStore.getState().useAssistantList(params));

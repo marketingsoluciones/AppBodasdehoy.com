@@ -100,8 +100,9 @@ export const ModalTemplates: FC<props> = ({ action, use, optionSelect }) => {
       {modal.state && <SimpleDeleteConfirmation
         loading={false}
         setModal={setModal}
+        title={modal.title}
         handleDelete={handleDelete}
-        message={<p className="text-azulCorporativo mx-8 text-center capitalize" > Estas seguro de borrar <span className='font-semibold'>{modal.title}</span></p>}
+        message={t('warningdeletetemplate', 'Si borras esta plantilla no la podrás recuperar.')}
       />}
       {folders.map((elem, idx) => (
         <div key={idx} className={`w-full ${use === "edit" ? "h-1/2" : "h-full"} flex flex-col rounded-md border-[1px]`}>

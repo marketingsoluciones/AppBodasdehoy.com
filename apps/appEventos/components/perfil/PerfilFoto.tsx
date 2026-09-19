@@ -7,7 +7,7 @@ import { image } from "../../utils/Interfaces";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { LoadingItem } from "../Loading";
 import { useTranslation } from 'react-i18next';
-import { convertHeicIfNeeded, validateFile } from "@bodasdehoy/shared/upload";
+import { convertHeicIfNeeded, validateFile, withRetry } from "@bodasdehoy/shared/upload";
 
 export const PerfilFoto = () => {
     const { t } = useTranslation();
@@ -50,20 +50,30 @@ const ImageProfile: FC = () => {
             // HEIC conversion
             file = await convertHeicIfNeeded(file);
 
-            const result: Partial<image> = await fetchApiBodas(
-                {
-                    query: queries.singleUpload,
-                    variables: { file, use: "profile" },
+            // Upload perfil: endpoint dedicado api-mcp uploadProfileImage (commit 9fcea06).
+            // Sin eventId, identifica por userId.
+            // withRetry: red móvil intermitente → 2 reintentos con backoff exponencial.
+            const result: any = await withRetry(
+                () => fetchApiBodas({
+                    query: queries.uploadProfileImage,
+                    variables: {
+                        file,
+                        development: config?.development || 'bodasdehoy',
+                        userId: user?.uid || '',
+                        category: "profile",
+                    },
                     type: "formData",
                     development: config?.development
-                }
+                }),
+                { maxRetries: 2, initialDelay: 1000, backoffMultiplier: 2 }
             )
-
-            if (result?.i640 && auth?.currentUser) {
-                await updateProfile(auth.currentUser, {
-                    photoURL: createURL(result.i640)
-                })
-                setUser(old => ({ ...old, photoURL: createURL(result.i640) }))
+            const url = result?.file?.publicUrls?.optimized400w
+                ?? result?.file?.publicUrls?.optimized800w
+                ?? result?.file?.publicUrls?.original
+                ?? null
+            if (url && auth?.currentUser) {
+                await updateProfile(auth.currentUser, { photoURL: createURL(url) })
+                setUser(old => ({ ...old, photoURL: createURL(url) }))
             }
             toast("success", t("imagesuccessfully"))
             setLoading(false)

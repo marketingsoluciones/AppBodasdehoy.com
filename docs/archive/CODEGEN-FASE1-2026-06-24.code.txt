@@ -1,0 +1,142 @@
+═══════════════════════════════════════════════════════════════════════════════
+GRAPHQL CODEGEN — FASE 1 PREPARADA
+Fecha: 2026-06-24
+Autorizado por: api-mcp (23-jun, SDL público 200 OK 632KB)
+═══════════════════════════════════════════════════════════════════════════════
+
+ESTADO: CONFIGURACIÓN LISTA, deps por instalar (decisión user)
+
+═══════════════════════════════════════════════════════════════════════════════
+LO QUE YA ESTÁ HECHO
+═══════════════════════════════════════════════════════════════════════════════
+
+1. SDL endpoint VERIFICADO:
+   $ curl -s -I https://api-mcp.eventosorganizador.com/graphql/schema.graphql
+   → HTTP 200, content-type: text/plain, 632KB (27388 líneas)
+   → SHA256 primeros 12 chars: 97846d29fbab
+
+2. apps/chat-ia/codegen.yml CREADO
+   · Schema: live de api-mcp (regenerar cuando backend cambie)
+   · Documents: src/services/mcpApi/**/*.ts (excluye *.test.ts)
+   · Output: src/generated/graphql.ts
+   · Plugins: typescript + typescript-operations
+   · Scalar map: DateTime→string, JSON→Record<string,any>, Upload→File, ID→string
+
+3. apps/chat-ia/.gitignore ACTUALIZADO
+   · src/generated/ excluido (regenerable, no se commitea)
+
+═══════════════════════════════════════════════════════════════════════════════
+LO QUE FALTA — DECISIÓN USER
+═══════════════════════════════════════════════════════════════════════════════
+
+INSTALAR DEPS (cuando se quiera arrancar):
+  cd apps/chat-ia
+  pnpm add -D \
+    @graphql-codegen/cli \
+    @graphql-codegen/typescript \
+    @graphql-codegen/typescript-operations
+
+AÑADIR SCRIPT al package.json de chat-ia:
+  {
+    "scripts": {
+      ...
+      "codegen": "graphql-codegen --config codegen.yml",
+      "codegen:check": "graphql-codegen --config codegen.yml --check"
+    }
+  }
+
+PRIMERA GENERACIÓN:
+  cd apps/chat-ia
+  pnpm codegen
+  → produce src/generated/graphql.ts con todos los tipos.
+
+═══════════════════════════════════════════════════════════════════════════════
+INTEGRACIÓN PROGRESIVA EN LOS 22 ARCHIVOS DE src/services/mcpApi
+═══════════════════════════════════════════════════════════════════════════════
+
+ANTES (ejemplo notifications.ts):
+
+  const GET_NOTIFICATIONS = `
+    query GetNotifications($filters: NotificationFilters, ...) { ... }
+  `;
+  const data = await mcpClient.query<{
+    getNotifications: { notifications: any[]; success: boolean; ... };
+  }>(GET_NOTIFICATIONS, { filters, pagination });
+
+DESPUÉS (con codegen):
+
+  import type { GetNotificationsResult, GetNotificationsVariables } from '@/generated/graphql';
+  const data = await mcpClient.query<GetNotificationsResult, GetNotificationsVariables>(
+    GET_NOTIFICATIONS,
+    { filters, pagination }
+  );
+  // Auto-completado en data.getNotifications.notifications[].id, .type, etc.
+  // Si el backend retira un campo, el typecheck falla en tiempo de PR.
+
+═══════════════════════════════════════════════════════════════════════════════
+CI — DETECTAR BREAKING CHANGES BACKEND ANTES DE MERGE
+═══════════════════════════════════════════════════════════════════════════════
+
+Añadir job en .github/workflows/codegen-check.yml (o similar):
+
+  name: GraphQL Codegen Check
+  on:
+    pull_request:
+      paths:
+        - 'apps/chat-ia/src/services/mcpApi/**'
+        - 'apps/chat-ia/codegen.yml'
+
+  jobs:
+    codegen:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - run: pnpm install
+        - run: cd apps/chat-ia && pnpm codegen --check
+          # Falla si el SDL actual NO matchea con los documents.
+
+═══════════════════════════════════════════════════════════════════════════════
+FASE 2 — MIGRAR appEventos (sesión futura, NO en este alcance)
+═══════════════════════════════════════════════════════════════════════════════
+
+· appEventos usa MCP_ADAPTERS (apiMcpAdapter.ts) para traducir queries
+  legacy del front a canonical de api-mcp.
+· Migración progresiva: una query a la vez de MCP_ADAPTERS → canonical
+  directa con tipos codegen.
+· Retirar las entradas del adapter conforme se migren.
+
+Trabajo estimado: 5-8 horas (32 entries actualmente en MCP_ADAPTERS,
+no todas requieren migración).
+
+═══════════════════════════════════════════════════════════════════════════════
+PINNED SDL POR HASH (futuro)
+═══════════════════════════════════════════════════════════════════════════════
+
+api-mcp confirma que sirven SDL pinneada por SHA256:
+  /graphql/schema-<sha256>.graphql
+
+Pero el endpoint estable aún no está publicado. Cuando esté:
+  · Cambiar la URL del schema en codegen.yml.
+  · CI fija un hash por commit del backend (más reproducible).
+  · Re-genera cuando se actualiza manualmente el hash.
+
+═══════════════════════════════════════════════════════════════════════════════
+COSTE ESTIMADO
+═══════════════════════════════════════════════════════════════════════════════
+
+  · Output: ~1-3 MB de tipos TS (tu mensaje original lo señalaba).
+  · Impacto en bundle: 0 (los tipos se borran en tsc, no entran al JS).
+  · Impacto en build: +30-60s (codegen pre-build).
+  · Impacto en LSP/typecheck: +5-15s primera vez (después cache).
+
+  Beneficio: ~40% menos bugs de contrato según mensaje api-mcp.
+
+═══════════════════════════════════════════════════════════════════════════════
+DECISIÓN PENDIENTE
+═══════════════════════════════════════════════════════════════════════════════
+
+¿Instalo deps y genero tipos AHORA, o lo dejo para próxima sesión?
+Si dices "sí, instala" → pnpm add + pnpm codegen + verifico tipos generados.
+Si dices "espera" → la config queda lista para mañana.
+
+═══════════════════════════════════════════════════════════════════════════════

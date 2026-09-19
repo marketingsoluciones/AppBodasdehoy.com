@@ -61,7 +61,7 @@ https://chat-test.bodasdehoy.com
 
 ### 3. Intentar Login
 - Con Google
-- Con email/password: bodasdehoy.com@gmail.com / lorca2012M*+
+- Con email/password: bodasdehoy.com@gmail.com / «definida en .env.e2e.dev.local — nunca en el repo»
 
 ### 4. Verificar en Console (F12)
 ```javascript

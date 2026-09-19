@@ -11,6 +11,10 @@
 
 import React from 'react';
 
+import { developments as sharedDevelopments } from '@bodasdehoy/shared/types';
+
+import { deriveBrandColors } from './brandTheme';
+
 export interface DevelopmentConfig {
   api: {
     backendUrl: string;
@@ -30,78 +34,48 @@ export interface DevelopmentConfig {
 }
 
 /**
- * Configuraciones de developments disponibles
+ * Overrides de colores específicos por tenant (resto usa shared theme).
+ * El color de marca sale SIEMPRE del paquete compartido (theme.primaryColor);
+ * secundario y acento se derivan de él en brandTheme.ts.
  */
-export const DEVELOPMENTS_CONFIG: Record<string, DevelopmentConfig> = {
-  annloevents: {
-    api: {
-      backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030',
-      graphqlEndpoint: 'https://api2.eventosorganizador.com/graphql',
-    },
-    colors: {
-      accent: '#06b6d4',
-      background: '#ffffff',
-      primary: '#ec4899',
-      secondary: '#8b5cf6',
-      text: '#1a202c',
-    },
-    corsOrigin: ['https://annloevents.com', 'https://www.annloevents.com'],
-    development: 'annloevents',
-    domain: 'https://annloevents.com',
-    name: 'Annlo Events',
-  },
-  bodasdehoy: {
-    api: {
-      backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030',
-      graphqlEndpoint: 'https://api2.eventosorganizador.com/graphql',
-    },
-    colors: {
-      accent: '#ff69b4',
-      background: '#ffffff',
-      primary: '#667eea',
-      secondary: '#764ba2',
-      text: '#1a202c',
-    },
-    corsOrigin: ['https://bodasdehoy.com', 'https://www.bodasdehoy.com'],
-    development: 'bodasdehoy',
-    domain: 'https://bodasdehoy.com',
-    name: 'Bodas de Hoy',
-  },
-  champagneevents: {
-    api: {
-      backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030',
-      graphqlEndpoint: 'https://api2.eventosorganizador.com/graphql',
-    },
-    colors: {
-      accent: '#eab308',
-      background: '#ffffff',
-      primary: '#f59e0b',
-      secondary: '#d97706',
-      text: '#1a202c',
-    },
-    corsOrigin: ['https://champagneevents.com', 'https://www.champagneevents.com'],
-    development: 'champagneevents',
-    domain: 'https://champagneevents.com',
-    name: 'Champagne Events',
-  },
-  eventosorganizador: {
-    api: {
-      backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030',
-      graphqlEndpoint: 'https://api2.eventosorganizador.com/graphql',
-    },
-    colors: {
-      accent: '#f59e0b',
-      background: '#ffffff',
-      primary: '#7c3aed',
-      secondary: '#db2777',
-      text: '#1a202c',
-    },
-    corsOrigin: ['https://eventosorganizador.com', 'https://www.eventosorganizador.com'],
-    development: 'eventosorganizador',
-    domain: 'https://eventosorganizador.com',
-    name: 'Eventos Organizador',
-  },
-};
+
+const DEFAULT_API_BACKEND = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';
+const DEFAULT_GRAPHQL = 'https://api-mcp.eventosorganizador.com';
+
+/**
+ * Configuraciones de developments disponibles — generado dinámicamente
+ * desde @bodasdehoy/shared/types developments (fuente única de verdad, 11 tenants).
+ * Shape adaptado a las necesidades chat-ia (api + colors + corsOrigin).
+ */
+export const DEVELOPMENTS_CONFIG: Record<string, DevelopmentConfig> = Object.fromEntries(
+  sharedDevelopments.map((dev) => {
+    const root = dev.domain.replace(/^\./, ''); // ".bodasdehoy.com" → "bodasdehoy.com"
+    const httpsRoot = `https://${root}`;
+    // Unificación 15-09: una sola entrada (el primario compartido) y el resto derivado,
+    // para que todas las marcas queden coherentes y no solo la que tuviera override.
+    const brand = deriveBrandColors(dev.theme?.primaryColor ?? '#667eea');
+    return [
+      dev.development,
+      {
+        api: {
+          backendUrl: DEFAULT_API_BACKEND,
+          graphqlEndpoint: DEFAULT_GRAPHQL,
+        },
+        colors: {
+          accent: brand.accent,
+          background: dev.theme?.baseColor ?? '#ffffff',
+          primary: brand.primary,
+          secondary: brand.secondary,
+          text: '#1a202c',
+        },
+        corsOrigin: [httpsRoot, `https://www.${root}`],
+        development: dev.development,
+        domain: httpsRoot,
+        name: dev.headTitle ?? dev.name,
+      },
+    ];
+  }),
+);
 
 /**
  * Mapping de dominios a developments
@@ -136,7 +110,7 @@ const DOMAIN_TO_DEVELOPMENT: Record<string, string> = {
   
 
 
-'champagneevents.com': 'champagneevents',
+'champagne-events.com.mx': 'champagne-events',
   
 
 
@@ -163,9 +137,6 @@ const DOMAIN_TO_DEVELOPMENT: Record<string, string> = {
   
 
 'eventosorganizador.com': 'eventosorganizador',
-  
-
-'chat.bodasdehoy.com': 'bodasdehoy',
 
 // Legacy
 'iachat.bodasdehoy.com': 'bodasdehoy',
@@ -195,7 +166,7 @@ const DOMAIN_TO_DEVELOPMENT: Record<string, string> = {
 'www.bodasdehoy.com': 'bodasdehoy',
 
   
-  'www.champagneevents.com': 'champagneevents',
+  'www.champagne-events.com.mx': 'champagne-events',
   'www.eventosorganizador.com': 'eventosorganizador',
 };
 
@@ -237,7 +208,7 @@ export function detectDevelopmentFromURL(): string | null {
   const PARENT_DOMAIN_MAP: Record<string, string> = {
     'annloevents.com': 'annloevents',
     'bodasdehoy.com': 'bodasdehoy',
-    'champagneevents.com': 'champagneevents',
+    'champagne-events.com.mx': 'champagne-events',
     'eventosorganizador.com': 'eventosorganizador',
   };
   for (const [parentDomain, dev] of Object.entries(PARENT_DOMAIN_MAP)) {

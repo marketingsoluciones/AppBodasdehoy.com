@@ -2,7 +2,7 @@ import { TRPCLink, createTRPCClient, httpBatchLink } from '@trpc/client';
 import { createTRPCReact } from '@trpc/react-query';
 import { observable } from '@trpc/server/observable';
 import debug from 'debug';
-import { ModelProvider } from 'model-bank';
+import { ModelProvider } from '@lobechat/types';
 import superjson from 'superjson';
 
 import { isDesktop } from '@/const/version';

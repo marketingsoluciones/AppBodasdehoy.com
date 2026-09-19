@@ -1,4 +1,5 @@
 import { Form, Formik } from "formik";
+import { formikValidateUx } from "../Forms/formikValidateUx";
 import { useToast } from "../../hooks/useToast";
 import * as Yup from "yup"
 import InputField from "../Forms/InputField";
@@ -42,6 +43,7 @@ export const Email = () => {
       <div className="flex flex-col justify-center items-center space-y-5 w-full font-display px-10 md:px-0">
         <p className="text-xl text-primaryOrg">{t("createasmany")}</p>
         <Formik
+      {...formikValidateUx}
           initialValues={initialValues}
           onSubmit={handleSubmit}
           validationSchema={validation}

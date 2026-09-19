@@ -1,15 +1,9 @@
-import { isDesktop } from '@/const/version';
+import { ApiIaUserService } from './apiIa';
 
-import { ClientService as DeprecatedService } from './_deprecated';
-import { ClientService } from './client';
-import { ServerService } from './server';
+// CAPA 2 PASO C 2026-06-05: user 100% vía api-ia REST.
+// Eliminado ternary tRPC/drizzle/pglite — server.ts, client.ts, _deprecated.ts borrados.
+// Métodos SSO/registration sin endpoint api-ia equivalente devuelven stubs neutros
+// (ver apiIa.ts). Pregunta 3.2 abierta a backend para decidir endpoint vs deprecar.
 
-const clientService =
-  process.env.NEXT_PUBLIC_CLIENT_DB === 'pglite' ? new ClientService() : new DeprecatedService();
-
-export const userService =
-  process.env.NEXT_PUBLIC_SERVICE_MODE === 'server' || isDesktop
-    ? new ServerService()
-    : clientService;
-
-export const userClientService = clientService;
+export const userService = new ApiIaUserService();
+export const userClientService = userService;

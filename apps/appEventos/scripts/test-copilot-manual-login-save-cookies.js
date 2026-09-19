@@ -31,7 +31,7 @@ async function waitForLogin(page, context) {
   console.log('=' .repeat(70));
   console.log('\n1️⃣  Ve a la ventana de FIREFOX que se abrió');
   console.log('2️⃣  Ingresa tu email: bodasdehoy.com@gmail.com');
-  console.log('3️⃣  Ingresa tu contraseña: lorca2012M*+');
+  console.log('3️⃣  Ingresa tu contraseña: [definida en TEST_USER_PASSWORD]');
   console.log('4️⃣  Haz clic en el botón "Continuar" o "Iniciar sesión"');
   console.log('5️⃣  Espera a que cargue la página principal');
   console.log('\n💡 El script detectará automáticamente cuando estés autenticado');

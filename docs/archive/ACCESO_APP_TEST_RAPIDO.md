@@ -69,7 +69,7 @@ Una vez configurado el /etc/hosts, puedes acceder desde:
 ## 🧪 Qué Probar
 
 1. **Login de Firebase**
-   - Haz login con Google o con: bodasdehoy.com@gmail.com / lorca2012M*+
+   - Haz login con Google o con: bodasdehoy.com@gmail.com / «definida en .env.e2e.dev.local — nunca en el repo»
    - Verifica que funcione correctamente
 
 2. **Performance**

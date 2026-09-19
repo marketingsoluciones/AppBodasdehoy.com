@@ -138,7 +138,10 @@ const SvgWrapper: React.FC<SvgWrapperProps> = ({
         ...style
       }}
     >
-      {React.cloneElement(children, svgProps)}
+      {/* Guard: si children no es un React element válido (icono undefined/roto), NO
+          reventar con cloneElement ("The argument must be a React element, but you
+          passed undefined"). Degradar mostrando vacío. */}
+      {React.isValidElement(children) ? React.cloneElement(children, svgProps) : null}
     </div>
   );
 };

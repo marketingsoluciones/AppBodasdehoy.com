@@ -2,6 +2,23 @@
 
 import { useCallback, useMemo } from 'react';
 
+// BUG-CW-N23 (QA1 informe 23-jun, 7+ warns en <1s): useAuthCheck es un hook
+// que MUCHOS componentes consumen (sidebar, badge, captation, copilot, etc.).
+// En la primera hidratación todos llaman checkAuth() simultáneamente y cada
+// llamada disparaba 1 warn → spam de consola (que QA2 confundió con bloqueo
+// de Firebase API). Dedupe a nivel módulo: emitir cada warn UNA vez por
+// ventana de 60s. Reset en cada cambio de estado real (logout, login).
+const __warnedOnce: Record<string, number> = {};
+const warnOnce = (key: string, msg: string) => {
+  if (typeof window === 'undefined') return;
+  const now = Date.now();
+  const last = __warnedOnce[key] ?? 0;
+  if (now - last < 60_000) return;
+  __warnedOnce[key] = now;
+  // eslint-disable-next-line no-console
+  console.warn(msg);
+};
+
 export interface DevUserConfig {
   development?: string;
   email?: string;
@@ -67,23 +84,56 @@ export const useAuthCheck = () => {
   const checkJwtValidity = useCallback((): boolean => {
     if (typeof window === 'undefined') return false;
 
+    const isLikelyJwt = (t: string) => t.split('.').length === 3;
+    const decodeJwtExpMs = (t: string): number | null => {
+      try {
+        if (!isLikelyJwt(t)) return null;
+        if (typeof atob !== 'function') return null;
+        const payload = JSON.parse(atob(t.split('.')[1].replaceAll('-', '+').replaceAll('_', '/')));
+        const exp = payload?.exp;
+        if (!exp || typeof exp !== 'number') return null;
+        return exp * 1000;
+      } catch {
+        return null;
+      }
+    };
+
     // Buscar JWT en las diferentes ubicaciones
-    const jwtToken = localStorage.getItem('api2_jwt_token') ||
-                     localStorage.getItem('jwt_token') ||
-                     getUserConfig()?.token;
+    let jwtToken =
+      localStorage.getItem('jwt_token') ||
+      localStorage.getItem('mcp_jwt_token') ||
+      localStorage.getItem('mcp_jwt_token') ||
+      getUserConfig()?.token;
 
-    if (!jwtToken) return false;
-
-    // Verificar expiración si existe
-    const expiresAt = localStorage.getItem('api2_jwt_expires_at');
-    if (expiresAt) {
-      const expiration = new Date(expiresAt);
-      if (expiration <= new Date()) {
-        console.warn('⚠️ JWT token expirado');
-        return false;
+    if (!jwtToken) {
+      const cache = localStorage.getItem('jwt_token_cache');
+      if (cache) {
+        try {
+          const parsed = JSON.parse(cache) as { expiry?: number; token?: string };
+          if (parsed?.token && parsed?.expiry && Date.now() < parsed.expiry) {
+            jwtToken = parsed.token;
+          }
+        } catch {}
       }
     }
 
+    if (!jwtToken) return false;
+    if (!isLikelyJwt(jwtToken)) return false;
+
+    // Verificar expiración si existe
+    const expiresAt =
+      localStorage.getItem('mcp_jwt_expires_at') || localStorage.getItem('api2_jwt_expires_at');
+    if (expiresAt) {
+      const expiration = new Date(expiresAt);
+      if (expiration <= new Date()) {
+        warnOnce('jwt-expired', '⚠️ JWT token expirado');
+        return false;
+      }
+      return true;
+    }
+
+    const expMs = decodeJwtExpMs(jwtToken);
+    if (expMs && expMs <= Date.now()) return false;
     return true;
   }, [getUserConfig]);
 
@@ -105,11 +155,24 @@ export const useAuthCheck = () => {
 
     const hasValidJwt = checkJwtValidity();
 
-    // Usuario identificado pero sin JWT válido = necesita re-login
-    const needsRelogin = isAuthenticated && !hasValidJwt;
+    // BUG-1 QA (23-jul): el banner "Tu cuenta ha caducado" se mostraba a usuarios
+    // que NUNCA iniciaron sesión. "Caducado/expirado" solo es correcto si EXISTIÓ
+    // un token que ahora es inválido. Si no hay NINGÚN token (nunca hubo sesión de
+    // chat), no es un re-login: es un estado no-autenticado → no alarmar con "caducado".
+    const hasAnyToken =
+      typeof window !== 'undefined' &&
+      !!(
+        localStorage.getItem('jwt_token') ||
+        localStorage.getItem('mcp_jwt_token') ||
+        config?.token ||
+        localStorage.getItem('jwt_token_cache')
+      );
+
+    // Usuario identificado + TENÍA token (ahora inválido/expirado) = necesita re-login.
+    const needsRelogin = isAuthenticated && !hasValidJwt && hasAnyToken;
 
     if (needsRelogin) {
-      console.warn('⚠️ Usuario identificado pero sin JWT válido - necesita re-login');
+      warnOnce('needs-relogin', '⚠️ Usuario identificado pero sin JWT válido - necesita re-login');
     }
 
     return {
@@ -230,7 +293,9 @@ export const useAuthCheck = () => {
     if (typeof window === 'undefined') return;
 
     // Limpiar tokens expirados/inválidos
-    localStorage.removeItem('api2_jwt_token');
+    localStorage.removeItem('mcp_jwt_token');
+    localStorage.removeItem('mcp_jwt_expires_at');
+    localStorage.removeItem('mcp_jwt_token');
     localStorage.removeItem('api2_jwt_expires_at');
     localStorage.removeItem('jwt_token');
 

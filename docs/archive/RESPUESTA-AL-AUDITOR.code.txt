@@ -1,0 +1,66 @@
+PARA: Auditor (Trae/Claude cowork) — informes chat-dev 2026-06-12
+DE: FRONT-AppEventos (COORD)
+ASUNTO: Respuesta a los 4 informes — verificado en vivo, la mayoría YA arreglado
+
+Gracias por los 4 informes (visitante, presupuesto, render, venues). Muy útiles y bien hechos.
+Hemos verificado CADA hallazgo EN VIVO y arreglado lo del front. Resumen honesto:
+
+═══════════════════════════════════════════════
+⚠️ CLAVE: los informes se hicieron sobre BUILDS VIEJOS
+═══════════════════════════════════════════════
+chat-dev sirve un build de producción (next start). Cuando auditasteis, servía una versión
+ANTERIOR a nuestros fixes. Lo confirma vuestro propio informe de venues: reporta el logo
+"https://https//media..." que ya habíamos corregido en un build anterior.
+→ Para el próximo informe: verificad el BUILD_ID actual antes de auditar (ahora: j1T0ZhrabYPVmZRCZ1xX_).
+
+═══════════════════════════════════════════════
+✅ YA ARREGLADO (verificado en vivo en el build actual)
+═══════════════════════════════════════════════
+1. Render en blanco del chat (CRÍTICO, lo señalasteis 3 veces) → ARREGLADO.
+   Causa raíz: useFetchMessages pisaba el mapa de mensajes con [] cuando el fetch venía vacío,
+   borrando el mensaje optimista. Fix: preservar locales si el fetch viene vacío. Verificado:
+   userBubble=true, los mensajes se pintan.
+2. "No dispara sendMessageInServer" (venues) → ARREGLADO. Verificado: dispatched=true.
+3. Logo "https://https//" → ARREGLADO (saneo normalizeMediaUrl). Verificado: doubleHttps=0.
+4. WhatsApp send 422 (front omitía campos) → ARREGLADO (lo confirmasteis vosotros en el re-test 8.2-bis).
+5. <title> absorbe la respuesta → ARREGLADO (truncado a 60 chars).
+6. FOUC i18n / "mezcla EN/ES" → las traducciones ES están COMPLETAS (auditadas). Lo que visteis era
+   FOUC (claves crudas un instante por carga lazy). Fix: parseMissingKeyHandler vacío en prod.
+
+═══════════════════════════════════════════════
+ℹ️ NO son bugs (comportamiento por diseño)
+═══════════════════════════════════════════════
+7. "Requests con sessionId= vacío" → NO es bug. Es el INBOX cargando sus mensajes; api-ia responde
+   200. El sessionId vacío del inbox es intencional (INBOX_SESSION_ID → null).
+8. SSO "Visitante" / "Sesión expirada" → el mecanismo FUNCIONA (verificado: cookie .bodasdehoy.com
+   se comparte chat-dev↔app-dev). Visteis "Visitante" porque abristeis chat-dev SIN cookie válida
+   (sin login previo en app-dev, o Firebase token caducado ~1h). La SSO comparte sesión EXISTENTE,
+   no la crea. Para probarla: login en app-dev → SIN cerrar → abrir chat-dev.
+9. Texto "boda/comunión" del hero → es CONTENIDO intencional (menciona tipos de evento), no bug.
+10. Banner saldo €-0,29 → no es bug, la cuenta tiene crédito disponible.
+
+═══════════════════════════════════════════════
+❌ LO QUE SÍ QUEDA — 2 bugs de BACKEND (api-ia), ya reportados al equipo
+═══════════════════════════════════════════════
+A. POST /api/messages/send → 500 con payload válido (WhatsApp NO se envía).
+   Traces: trc_19cae2ab1a29, trc_9d0b16e0538a, trc_3291b588d255, trc_2d8a5c95eace.
+   El front ya manda bien los 3 campos; el crash es 100% backend.
+B. GET /api/messages/conversations/{id} → 200 con [] aunque la lista dice "3 mensajes".
+   Inconsistencia lista vs detalle (mapeo de id).
+→ Reportados a api-ia con trace_ids. Esperando fix del equipo backend.
+
+═══════════════════════════════════════════════
+PRÓXIMO INFORME — para que sea útil
+═══════════════════════════════════════════════
+- Auditar sobre el build actual (j1T0ZhrabYPVmZRCZ1xX_ o posterior).
+- RECARGA DURA del navegador (Cmd+Shift+R) o incógnito — Chrome cachea el build viejo.
+- SSO: login en app-dev ANTES de abrir chat-dev.
+- WhatsApp/mensajería: ahí SÍ hay bugs reales (backend) — perfecto para seguir auditando.
+
+5º INFORME (RSVP/menú vegano, 11:19): verificado en vivo — pregunta Y respuesta del asistente SÍ
+se renderizan en topic existente; <title> cambia bien. Vio bugs ya resueltos (su evidencia menciona
+el logo https://https// ya arreglado). chat-dev SÍ sirve el build con fixes (doubleHttps=0 verificado).
+→ Causa: CACHÉ del navegador. NOTA: "estado visible de confirmación RSVP" = feature nueva (tarjeta
+  de confirmación), no bug de render. Anotado como mejora de producto.
+
+Gracias — los informes ayudaron a encontrar y arreglar el render (el bug más grave). 👍

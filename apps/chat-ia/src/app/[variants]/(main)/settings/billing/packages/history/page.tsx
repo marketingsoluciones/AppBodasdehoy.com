@@ -26,7 +26,7 @@ const useStyles = createStyles(({ css, token }) => ({
     gap: 8px;
   `,
   summaryCard: css`
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #F7628C 0%, #D6497A 100%);
     border-radius: 12px;
     color: white;
     padding: 24px;

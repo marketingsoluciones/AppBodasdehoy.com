@@ -1,0 +1,124 @@
+# SPRINT-L 2026-05-21: E2E suite Playwright Test + scripts smoke.
+# Pattern actualizado (post sesión autónoma A→K):
+#  - prod build (next start) en vez de dev (chunks lazy + webkit incompatible)
+#  - storageState reuse (skip login en specs)
+#  - 3 usuarios Firebase reales (super-admin + collaborator + invited)
+#  - webkit por defecto (memoria proyecto)
+#
+# Required secrets (Settings → Secrets → Actions):
+#  E2E_FIREBASE_API_KEY, E2E_FIREBASE_AUTH_DOMAIN, E2E_FIREBASE_PROJECT_ID,
+#  E2E_FIREBASE_STORAGE_BUCKET, E2E_FIREBASE_MESSAGING_SENDER_ID, E2E_FIREBASE_APP_ID,
+#  E2E_TEST_USER_EMAIL, E2E_TEST_USER_PASSWORD,
+#  E2E_TEST_USER2_EMAIL, E2E_TEST_USER2_PASSWORD,
+#  E2E_TEST_USER3_EMAIL, E2E_TEST_USER3_PASSWORD
+name: E2E — chat-ia
+
+on:
+  push:
+    branches: [dev, master]
+    paths:
+      - 'apps/chat-ia/src/**'
+      - 'apps/chat-ia/e2e/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+  pull_request:
+    branches: [dev, master]
+    paths:
+      - 'apps/chat-ia/src/**'
+      - 'apps/chat-ia/e2e/**'
+      - 'packages/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: Playwright Test (webkit prod build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright webkit
+        working-directory: apps/chat-ia/e2e
+        run: pnpm exec playwright install webkit --with-deps
+
+      - name: Create .env.local con secretos Firebase + test users
+        working-directory: apps/chat-ia
+        run: |
+          cat > .env.local <<EOF
+          NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.E2E_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ secrets.E2E_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ secrets.E2E_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ secrets.E2E_FIREBASE_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.E2E_FIREBASE_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.E2E_FIREBASE_APP_ID }}
+          NEXT_PUBLIC_API_IA_URL=https://api-ia.bodasdehoy.com
+          NEXT_PUBLIC_DEVELOPMENT=bodasdehoy
+          TEST_USER_EMAIL=${{ secrets.E2E_TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD=${{ secrets.E2E_TEST_USER_PASSWORD }}
+          TEST_USER2_EMAIL=${{ secrets.E2E_TEST_USER2_EMAIL }}
+          TEST_USER2_PASSWORD=${{ secrets.E2E_TEST_USER2_PASSWORD }}
+          TEST_USER3_EMAIL=${{ secrets.E2E_TEST_USER3_EMAIL }}
+          TEST_USER3_PASSWORD=${{ secrets.E2E_TEST_USER3_PASSWORD }}
+          EOF
+          echo ".env.local creado ($(wc -l < .env.local) líneas)"
+
+      - name: Build chat-ia (prod) — fallback resilience webkit
+        working-directory: apps/chat-ia
+        env:
+          NODE_OPTIONS: '--max-old-space-size=16384'
+        run: pnpm exec next build --no-lint
+
+      - name: Start chat-ia prod server :3210
+        working-directory: apps/chat-ia
+        run: |
+          pnpm exec next start -p 3210 -H 0.0.0.0 &
+          for i in {1..60}; do
+            if curl -sf http://localhost:3210/ > /dev/null; then
+              echo "✓ prod ready"
+              break
+            fi
+            sleep 2
+          done
+          curl -sf http://localhost:3210/ > /dev/null || (echo "❌ prod no responde"; exit 1)
+
+      - name: Save storage states (login 3 users Firebase)
+        working-directory: apps/chat-ia/e2e
+        run: pnpm exec tsx save-storage-states.ts
+
+      - name: Run Playwright Test suite
+        working-directory: apps/chat-ia/e2e
+        run: pnpm exec playwright test --reporter=list,github
+
+      - name: Run smoke scripts (auth-state + memories + crud)
+        if: success() || failure()
+        working-directory: apps/chat-ia/e2e
+        run: |
+          pnpm exec tsx smoke-auth-state.ts
+          pnpm exec tsx smoke-crud-session.ts
+          pnpm exec tsx smoke-memories.ts
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.sha }}
+          path: |
+            apps/chat-ia/e2e/playwright-report/
+            apps/chat-ia/e2e/test-results/
+          retention-days: 14

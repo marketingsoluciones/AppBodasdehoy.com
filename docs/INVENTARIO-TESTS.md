@@ -25,6 +25,10 @@ Documento de referencia: **qué tests existen**, **qué datos necesitan**, **qu�
 
 ## 1. Resumen ejecutivo
 
+**Sanity check (config):**
+
+- `pnpm lint:env:endpoints` valida que los `.env*.example` usan variables canónicas (`API_IA_URL`, `API_MCP_GRAPHQL_URL`) y no duplican/mezclan legacy.
+
 | Área | Herramienta | Archivos | Datos / requisitos principales |
 |------|-------------|----------|--------------------------------|
 | **E2E (Playwright)** | Playwright | 29 specs en `e2e-app/` | BASE_URL, TEST_USER_EMAIL, TEST_USER_PASSWORD, VPN para app-test |
@@ -78,7 +82,7 @@ Documento de referencia: **qué tests existen**, **qué datos necesitan**, **qu�
 |----------|-------------------------------|-----|
 | **BASE_URL** | `http://127.0.0.1:8080` (local) o `https://app-test.bodasdehoy.com` | URL de la app de eventos |
 | **TEST_USER_EMAIL** | `bodasdehoy.com@gmail.com` (en fixtures) | Usuario Firebase de prueba |
-| **TEST_USER_PASSWORD** | `lorca2012M*.` (en fixtures) | Contraseña del usuario de prueba |
+| **TEST_USER_PASSWORD** | `«definida en .env.e2e.dev.local — nunca en el repo»` (en fixtures) | Contraseña del usuario de prueba |
 
 #### Opcionales
 
@@ -98,7 +102,7 @@ Documento de referencia: **qué tests existen**, **qué datos necesitan**, **qu�
 
 #### Fixtures E2E (`e2e-app/fixtures.ts`)
 
-- **TEST_CREDENTIALS**: email y password (env o por defecto bodasdehoy.com@gmail.com / lorca2012M*.)
+- **TEST_CREDENTIALS**: email y password (env o por defecto bodasdehoy.com@gmail.com / «definida en .env.e2e.dev.local — nunca en el repo»)
 - **TEST_GUEST**: nombre `E2E Test YYYYMMDD`, email `e2e-test-YYYYMMDD@bodasdehoy-test.com`, teléfono
 - **TEST_BUDGET_ITEM**: descripción `E2E Partida YYYYMMDD`, importe `250`
 - **TEST_TASK**: descripción, prioridad alta
@@ -162,7 +166,7 @@ Documento de referencia: **qué tests existen**, **qué datos necesitan**, **qu�
 - **API copilot/chat**: fixture **`__fixtures__/copilot.ts`**:
   - `CHAT_REQUEST_BODY_REAL`: body real (messages, stream, metadata con userId, development, sessionId, eventId, pageContext).
   - Formas de respuesta API2 y api-ia: `API2_GET_CHAT_MESSAGES_RESPONSE`, `SSE_EVENT_CARD_REAL`, `SSE_USAGE_REAL`, `SSE_REASONING_REAL`, `SSE_TOOL_RESULT_UI_ACTION_REAL`, `SSE_TEXT_DELTA_REAL`.
-- Variables de entorno en tests: `ENABLE_COPILOT_FALLBACK`, `OPENAI_API_KEY`, `PYTHON_BACKEND_URL` (por defecto `https://api-ia.bodasdehoy.com`).
+- Variables de entorno en tests: `ENABLE_COPILOT_FALLBACK`, `OPENAI_API_KEY`, `API_IA_URL` (por defecto `https://api-ia.bodasdehoy.com`).
 
 ### 3.3 Qué hay que hacer para correr tests appEventos
 

@@ -78,7 +78,7 @@ const COMMANDS_FILE = "/tmp/browser-commands.txt";
             const inputs = await page.$$("input");
             if (inputs.length >= 2) {
               await inputs[0].fill("bodasdehoy.com@gmail.com");
-              await inputs[1].fill("lorca2012M*+");
+              await inputs[1].fill((process.env.TEST_USER_PASSWORD || ''));
               const btns = await page.$$("button");
               if (btns.length > 0) await btns[btns.length-1].click();
               console.log("  Login enviado");

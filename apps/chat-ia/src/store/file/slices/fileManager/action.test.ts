@@ -552,14 +552,14 @@ describe('FileManagerActions', () => {
       });
 
       expect(toggleSpy).not.toHaveBeenCalled();
-      expect(lambdaClient.file.removeFileAsyncTask.mutate).not.toHaveBeenCalled();
+      expect((lambdaClient as any).file.removeFileAsyncTask.mutate).not.toHaveBeenCalled();
     });
 
     it('should remove old task and create new embedding task', async () => {
       const { result } = renderHook(() => useStore());
 
       const toggleSpy = vi.spyOn(result.current, 'toggleEmbeddingIds');
-      vi.mocked(lambdaClient.file.removeFileAsyncTask.mutate).mockResolvedValue(undefined as any);
+      vi.mocked((lambdaClient as any).file.removeFileAsyncTask.mutate).mockResolvedValue(undefined as any);
       const createTaskSpy = vi
         .spyOn(ragService, 'createEmbeddingChunksTask')
         .mockResolvedValue(undefined as any);
@@ -570,7 +570,7 @@ describe('FileManagerActions', () => {
       });
 
       expect(toggleSpy).toHaveBeenCalledWith(['file-1']);
-      expect(lambdaClient.file.removeFileAsyncTask.mutate).toHaveBeenCalledWith({
+      expect((lambdaClient as any).file.removeFileAsyncTask.mutate).toHaveBeenCalledWith({
         id: 'file-1',
         type: 'embedding',
       });
@@ -808,7 +808,7 @@ describe('FileManagerActions', () => {
 
       renderHook(() => result.current.useFetchFileItem(undefined));
 
-      expect(lambdaClient.file.getFileItemById.query).not.toHaveBeenCalled();
+      expect((lambdaClient as any).file.getFileItemById.query).not.toHaveBeenCalled();
     });
 
     it('should fetch file item when id is provided', async () => {
@@ -828,7 +828,7 @@ describe('FileManagerActions', () => {
         url: 'http://example.com/test.txt',
       };
 
-      vi.mocked(lambdaClient.file.getFileItemById.query).mockResolvedValue(mockFile);
+      vi.mocked((lambdaClient as any).file.getFileItemById.query).mockResolvedValue(mockFile);
 
       const { result: swrResult } = renderHook(() => result.current.useFetchFileItem('file-1'));
 
@@ -871,7 +871,7 @@ describe('FileManagerActions', () => {
         },
       ];
 
-      vi.mocked(lambdaClient.file.getFiles.query).mockResolvedValue(mockFiles);
+      vi.mocked((lambdaClient as any).file.getFiles.query).mockResolvedValue(mockFiles);
 
       const params = { category: 'all' as any };
       const { result: swrResult } = renderHook(() => result.current.useFetchFileManage(params));
@@ -900,7 +900,7 @@ describe('FileManagerActions', () => {
         },
       ];
 
-      vi.mocked(lambdaClient.file.getFiles.query).mockResolvedValue(mockFiles);
+      vi.mocked((lambdaClient as any).file.getFiles.query).mockResolvedValue(mockFiles);
 
       // Use a unique category to avoid SWR dedupingInterval (500ms) cache collision with the previous test
       const params = { category: 'image' as any };

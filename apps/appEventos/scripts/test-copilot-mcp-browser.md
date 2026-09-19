@@ -57,7 +57,7 @@ Abrir en MCP Browser: https://app-test.bodasdehoy.com/login
 
 **Credenciales:**
 - Email: `bodasdehoy.com@gmail.com`
-- Password: `lorca2012M*+`
+- Password: `«definida en .env.e2e.dev.local — nunca en el repo»`
 
 **Verificar:**
 1. El overlay "Un momento, por favor" desaparece (debe tomar 2-3 segundos)

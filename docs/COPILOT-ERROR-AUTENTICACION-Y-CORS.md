@@ -48,7 +48,7 @@ Cambios de código:
   En el navegador se usa `backendUrl = ''` para pedir `/api/config/{developer}` al Copilot.
 
 - **`apps/copilot/src/store/chat/slices/externalChat/action.ts`**  
-  En el navegador se usa `BACKEND_URL = ''` para `save-user-config` contra el Copilot.
+  En el navegador se usa `API_IA_URL = ''` para `save-user-config` contra el Copilot.
 
 - **`apps/copilot/src/libs/graphql/client.ts`**  
   En el navegador se usa endpoint `/api/graphql` (mismo origen).

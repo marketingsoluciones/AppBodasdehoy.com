@@ -25,6 +25,8 @@ import { useUserStore } from '@/store/user';
 import { userGeneralSettingsSelectors } from '@/store/user/selectors';
 import { GlobalStyle } from '@/styles';
 import { setCookie } from '@/utils/client/cookie';
+import { getCurrentDevelopmentConfig } from '@/utils/developmentDetector';
+import { nearestLobePalette } from '@/utils/brandTheme';
 
 const useStyles = createStyles(({ css, token }) => ({
   app: css`
@@ -118,13 +120,38 @@ const AppTheme = memo<AppThemeProps>(
       setCookie(LOBE_THEME_NEUTRAL_COLOR, neutralColor);
     }, [neutralColor]);
 
+    // Color de marca del tenant (paquete compartido). Solo se aplica cuando el usuario NO ha
+    // elegido un color propio en ajustes.
+    const brandColors = getCurrentDevelopmentConfig().colors;
+    const brandPrimary = brandColors.primary;
+
+    // Unificación 15-09: antd recibía el hex de marca pero lobe-ui se quedaba con el primario
+    // por defecto de LobeChat, así que media pantalla iba con el color del tenant y media no.
+    // `customTheme.primaryColor` de lobe-ui solo admite una de sus doce paletas con nombre,
+    // nunca un hex: mapeamos la marca a la más próxima por tono.
+    const brandPalette = nearestLobePalette(brandPrimary) as typeof defaultPrimaryColor;
+
+    // Mismo contrato de variables que appEventos (_app.tsx publica estas cinco desde
+    // config.theme y su tailwind.config las consume). Usar los MISMOS nombres permite que
+    // un componente o un CSS de app-dev funcione aquí sin tocarlo, que es justo lo que
+    // faltaba para que las dos apps se vean iguales en una misma marca.
+    useEffect(() => {
+      if (typeof document === 'undefined') return;
+      const root = document.documentElement;
+      root.style.setProperty('--color-primary', brandColors.primary);
+      root.style.setProperty('--color-secondary', brandColors.secondary);
+      root.style.setProperty('--color-tertiary', brandColors.accent);
+      root.style.setProperty('--color-base', brandColors.background);
+      root.style.setProperty('--color-scroll', brandColors.secondary);
+    }, [brandColors]);
+
     return (
       <ThemeProvider
         appearance={themeMode !== 'auto' ? themeMode : undefined}
         className={cx(styles.app, styles.scrollbar, styles.scrollbarPolyfill)}
         customTheme={{
           neutralColor: neutralColor ?? defaultNeutralColor,
-          primaryColor: primaryColor ?? defaultPrimaryColor,
+          primaryColor: primaryColor ?? brandPalette ?? defaultPrimaryColor,
         }}
         defaultAppearance={defaultAppearance}
         onAppearanceChange={(appearance) => {
@@ -135,6 +162,7 @@ const AppTheme = memo<AppThemeProps>(
         theme={{
           cssVar: true,
           token: {
+            colorPrimary: primaryColor ? undefined : brandPrimary,
             fontFamily: customFontFamily ? `${customFontFamily},${theme.fontFamily}` : undefined,
             motion: animationMode !== 'disabled',
             motionUnit: animationMode === 'agile' ? 0.05 : 0.1,

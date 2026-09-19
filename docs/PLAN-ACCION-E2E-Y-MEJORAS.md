@@ -186,7 +186,7 @@ Usuario edita tarea (ItineraryPanel.handleUpdate)
 | Campo | Valor |
 |---|---|
 | App email | `bodasdehoy.com@gmail.com` |
-| App password | `lorca2012M*.` |
+| App password | `«definida en .env.e2e.dev.local — nunca en el repo»` |
 | BASE_URL test | `https://app-test.bodasdehoy.com` |
 | CHAT_URL test | `https://chat-test.bodasdehoy.com` |
 

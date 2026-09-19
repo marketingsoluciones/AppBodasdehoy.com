@@ -18,7 +18,7 @@ ingress:
   - hostname: app-dev.bodasdehoy.com
     service: http://127.0.0.1:3220
   - hostname: chat-dev.bodasdehoy.com
-    service: http://192.168.1.48:3210
+    service: http://127.0.0.1:3210
   - hostname: memories-dev.bodasdehoy.com
     service: http://127.0.0.1:3240
   - hostname: editor-dev.bodasdehoy.com
@@ -30,6 +30,8 @@ ingress:
     service: http://164.92.81.153:8030
   - hostname: api-ia.eventosorganizador.com
     service: http://164.92.81.153:8030
+  - hostname: api3-ia.eventosorganizador.com
+    service: http://159.69.180.113:8030
   - hostname: backend-chat-test.bodasdehoy.com
     service: http://164.92.81.153:8030
   - hostname: backend-chat-test.eventosorganizador.com

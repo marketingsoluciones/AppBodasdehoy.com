@@ -1,9 +1,9 @@
-import { createContext, useState, useContext, useEffect, Dispatch, SetStateAction } from "react";
+import { createContext, useState, useContext, useEffect, useRef, Dispatch, SetStateAction } from "react";
 import { EditDefaultState, Event, filterGuest, planSpace } from "../utils/Interfaces";
 import { EventsGroupContextProvider } from "./EventsGroupContext";
-import { getAllFilterGuest } from "../utils/Funciones";
+import { getAllFilterGuest, readCache, writeCache } from "../utils/Funciones";
 import { AuthContextProvider } from "./AuthContext";
-import { fetchApiEventos, queries } from "../utils/Fetching";
+import { fetchApiEventos, fetchApiBodas, queries } from "../utils/Fetching";
 
 interface idxGroupEvent {
   idx: number
@@ -69,7 +69,46 @@ export let GlobalCurrency = ""
 
 
 const EventProvider = ({ children }: { children: React.ReactNode }) => {
-  const [event, setEvent] = useState<Event | null>(null);
+  const [event, setEventRaw] = useState<Event | null>(null);
+
+  // BUG-12 (informe QA 21-jun): handlers como handleClickCard llamaban setEvent(data)
+  // directamente y NO persistían appEventos_activeEventId → al navegar a /mesas, /presupuesto
+  // o cualquier módulo que lo lee del localStorage, seguían viendo el evento ANTERIOR.
+  // Wrapper: cualquier setEvent actualiza el localStorage en una sola fuente de verdad.
+  const setEvent: typeof setEventRaw = (updater) => {
+    setEventRaw((prev) => {
+      const next = typeof updater === 'function' ? (updater as (p: Event | null) => Event)(prev) : (updater as Event)
+      try {
+        if (typeof window !== 'undefined') {
+          const prevId = prev?._id
+          if (next?._id) {
+            localStorage.setItem('appEventos_activeEventId', next._id)
+          } else {
+            localStorage.removeItem('appEventos_activeEventId')
+          }
+          // CTX-C · X1 (plan consolidado 2026-07-20): además del localStorage
+          // mismo-origen, propagamos el evento activo por cookie con Domain=
+          // .bodasdehoy.com para que chat-ia (subdominio distinto) abierto en
+          // otra pestaña pueda leerlo. En localhost se omite Domain (el
+          // navegador rechaza cookies con dominio .bodasdehoy.com).
+          const isProd = !!process.env.NEXT_PUBLIC_PRODUCTION
+          const domainAttr = isProd ? '; Domain=.bodasdehoy.com' : ''
+          if (next?._id) {
+            const maxAge = 60 * 60 * 24 * 30 // 30 días
+            document.cookie = `bodas_active_event=${encodeURIComponent(next._id)}; Path=/; SameSite=Lax; Max-Age=${maxAge}${domainAttr}`
+          } else {
+            document.cookie = `bodas_active_event=; Path=/; SameSite=Lax; Max-Age=0${domainAttr}`
+          }
+          if (prevId !== next?._id) {
+            window.dispatchEvent(new CustomEvent('appEventos:activeEventChanged', {
+              detail: { eventId: next?._id, prevEventId: prevId }
+            }))
+          }
+        }
+      } catch { /* localStorage may throw in private mode */ }
+      return next
+    })
+  }
   const [invitadoCero, setInvitadoCero] = useState<string | null>(null);
   const [valir, setValir] = useState<boolean | null>(false);
   const [idxGroupEvent, setIdxGroupEvent] = useState<idxGroupEvent | null>({ idx: 0, isActiveStateSwiper: 0, event_id: null });
@@ -82,10 +121,79 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
   const [planSpaceSelect, setPlanSpaceSelect] = useState<string>("")
   const { config } = AuthContextProvider()
 
+  // BUG-H-03/H-05 + BUG-12 (informe QA 22-jun): el evento actual se quedaba con
+  // el último cacheado aunque appEventos_activeEventId hubiese cambiado (Home →
+  // /invitados → notificaciones mostraban evento incorrecto). Escuchamos cambios
+  // del localStorage (storage event entre pestañas + custom event mismo tab) y
+  // re-seleccionamos el evento si discrepa.
+  //
+  // BUG-CW-01 (informe QA 22-jun noche): la versión anterior tenía [event?._id,
+  // eventsGroup] en deps → cada setEvent re-montaba el listener → re-ejecutaba
+  // sync() → loop infinito (RangeError "Maximum call stack size exceeded").
+  // Fix: leer event/eventsGroup vía ref (no recompilar el listener) +
+  // dependencias VACÍAS para que el listener se monte UNA SOLA VEZ.
+  const eventRef = useRef(event)
+  const eventsGroupRef = useRef(eventsGroup)
+  useEffect(() => { eventRef.current = event }, [event])
+  useEffect(() => { eventsGroupRef.current = eventsGroup }, [eventsGroup])
+
+  // X2(d) · plan consolidado 2026-07-20 (sprint γ). Publica la lista compacta
+  // de eventos del usuario en cookie `bodas_available_events` con Domain=
+  // .bodasdehoy.com para que chat-ia pueda ofrecer un picker al usuario cuando
+  // la IA no puede resolver el evento (o cuando el usuario abre el chip del
+  // header). Formato compacto: [{i, n}] con nombre truncado a 40 chars y
+  // limitado a los 20 eventos más recientes para caber en el ~4KB de cookie.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const isProd = !!process.env.NEXT_PUBLIC_PRODUCTION
+      const domainAttr = isProd ? '; Domain=.bodasdehoy.com' : ''
+      if (!eventsGroup || eventsGroup.length === 0) {
+        document.cookie = `bodas_available_events=; Path=/; SameSite=Lax; Max-Age=0${domainAttr}`
+        return
+      }
+      const compact = eventsGroup
+        .slice(0, 20)
+        .map((e: any) => ({ i: e?._id, n: String(e?.nombre || '').slice(0, 40) }))
+        .filter((e: any) => e.i)
+      const payload = encodeURIComponent(JSON.stringify(compact))
+      const maxAge = 60 * 60 * 24 * 30 // 30 días
+      document.cookie = `bodas_available_events=${payload}; Path=/; SameSite=Lax; Max-Age=${maxAge}${domainAttr}`
+    } catch { /* nunca romper la UI por telemetría */ }
+  }, [eventsGroup])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const sync = () => {
+      const stored = localStorage.getItem('appEventos_activeEventId')
+      if (!stored) return
+      const currentEvent = eventRef.current
+      const currentGroup = eventsGroupRef.current
+      if (currentEvent?._id === stored) return
+      if (!currentGroup?.length) return
+      const found = currentGroup.find(e => e._id === stored)
+      if (found && found._id !== currentEvent?._id) {
+        setEventRaw(found)
+      }
+    }
+    window.addEventListener('storage', sync)
+    window.addEventListener('appEventos:activeEventChanged', sync as EventListener)
+    return () => {
+      window.removeEventListener('storage', sync)
+      window.removeEventListener('appEventos:activeEventChanged', sync as EventListener)
+    }
+  }, [])
+
   // Capturar eventos del cumulo y seleccionar uno
   useEffect(() => {
     if (eventsGroup && eventsGroup.length === 0) {
-      setEvent(null);
+      // IMPORTANTE: usar setEventRaw (NO el wrapper setEvent). Un eventsGroup vacío
+      // suele ser TRANSITORIO (refetch / socket / navegación); si usáramos setEvent,
+      // borraría appEventos_activeEventId (la elección explícita del usuario) y al
+      // recargar la lista la re-selección caería a user.eventSelected (BD, a menudo
+      // desactualizada) → el evento "volvía" a otro. Limpiamos solo el evento activo
+      // en memoria; la elección persistida se conserva para restaurarla al recargar.
+      setEventRaw(null);
       setValir(false); // Permitir re-selección cuando eventsGroup vuelva a cargar
     }
     if (eventsGroup?.length > 0) {
@@ -95,9 +203,16 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
           const eventsGroupSort = [...eventsPendientes].sort((a: any, b: any) => {
             return b.fecha_creacion - a.fecha_creacion
           })
-          let eventSelected = eventsGroupSort?.find(elem => elem._id === user?.eventSelected)
-          if (!eventSelected && user?.eventSelected) {
-            eventSelected = eventsGroup.find(elem => elem._id === user?.eventSelected)
+          // PRIORIDAD: user.eventSelected (la elección EXPLÍCITA persistida en BD — la
+          // MISMA que marca la insignia "SELECCIONADO" en Mis eventos, y la que fija tanto
+          // CREAR como ELEGIR un evento). localStorage es solo caché de sesión y puede
+          // quedar rezagado: al crear un evento se actualiza user.eventSelected pero NO
+          // localStorage → antes el Resumen mostraba un evento distinto al SELECCIONADO.
+          // Fallback: localStorage > 1º pendiente > 1º.
+          const savedEventId = typeof window !== 'undefined' ? localStorage.getItem('appEventos_activeEventId') : null
+          let eventSelected = user?.eventSelected ? eventsGroup.find(elem => elem._id === user?.eventSelected) : null
+          if (!eventSelected && savedEventId) {
+            eventSelected = eventsGroup.find(elem => elem._id === savedEventId)
           }
           if (!eventSelected && eventsGroupSort?.length) {
             eventSelected = eventsGroupSort[0]
@@ -109,52 +224,80 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
             if (!eventSelected?.timeZone) {
               const defaultTimeZone = config?.timeZone || "UTC";
               eventSelected.timeZone = defaultTimeZone;
-              fetchApiEventos({
+              fetchApiBodas({
                 query: queries.eventUpdate,
-                variables: { idEvento: eventSelected?._id, variable: "timeZone", value: defaultTimeZone },
+                variables: { idEvento: eventSelected?._id, input: { timeZone: defaultTimeZone } },
                 token: null
-              })
+              }).catch(() => {})
             }
             setEvent({ ...eventSelected });
+            if (typeof window !== 'undefined') localStorage.setItem('appEventos_activeEventId', eventSelected._id)
           }
         } else {
           let eventSelected = eventsGroup[0]
           if (!eventSelected?.timeZone) {
             const defaultTimeZone = config?.timeZone || "UTC";
             eventSelected.timeZone = defaultTimeZone;
-            fetchApiEventos({
+            fetchApiBodas({
               query: queries.eventUpdate,
-              variables: { idEvento: eventSelected?._id, variable: "timeZone", value: defaultTimeZone },
+              variables: { idEvento: eventSelected?._id, input: { timeZone: defaultTimeZone } },
               token: null
-            })
+            }).catch(() => {})
           }
           setEvent({ ...eventSelected });
+          if (typeof window !== 'undefined') localStorage.setItem('appEventos_activeEventId', eventSelected._id)
         }
         eventsGroup[0] && setValir(true)
-      } else if (user?.eventSelected && (!event?._id || user.eventSelected !== event?._id)) {
-        // user.eventSelected llegó tarde (API async) o cambió en otra pestaña → re-seleccionar
-        setValir(false);
+      } else {
+        // Re-seleccionar si: (a) no hay evento activo; (b) el evento activo se desvía de la
+        // elección guardada en localStorage; o (c) user.eventSelected (la insignia
+        // "SELECCIONADO", que fijan crear/elegir evento) apunta a un evento VÁLIDO distinto
+        // del activo → reconcilia el caso en que el Resumen mostraba un evento distinto al
+        // seleccionado. La re-selección prioriza user.eventSelected, así que converge sin bucle.
+        const savedEventId = typeof window !== 'undefined' ? localStorage.getItem('appEventos_activeEventId') : null
+        const mismatchSaved = !!savedEventId && !!event?._id && savedEventId !== event._id
+        const mismatchUser = !!user?.eventSelected && !!event?._id && user.eventSelected !== event._id
+          && eventsGroup.some((e: any) => e?._id === user?.eventSelected)
+        if (!event?._id || mismatchSaved || mismatchUser) {
+          setValir(false);
+        }
       }
     }
   }, [eventsGroup, valir, user?.eventSelected]);
 
   useEffect(() => {
-    setPlanSpaceActive(event?.planSpace?.find(elem => elem?._id === planSpaceSelect))
-    console.log("seteado planSpaceActive")
+    const found = event?.planSpace?.find(elem => elem?._id === planSpaceSelect)
+    setPlanSpaceActive(found)
+    // Robustez: si el id seleccionado no corresponde a ningún plano (id vacío o plano
+    // borrado) pero SÍ existen planos, auto-seleccionar el primero para no dejar el lienzo
+    // en blanco. Si no hay planos, no hace nada (se muestra el mensaje "No hay plano cargado").
+    if (!found && (event?.planSpace?.length ?? 0) > 0 && planSpaceSelect !== event.planSpace[0]?._id) {
+      setPlanSpaceSelect(event.planSpace[0]._id)
+    }
   }, [event?.planSpace, planSpaceSelect])
 
   useEffect(() => {
     // Solo ejecutar cuando hay un event._id válido
     if (!event?._id) return;
 
+    // Cache TTL 5 min: getPlanSpaceSelect devuelve el id del plan space
+    // activo. Cambia poco, se llama en cada cambio de evento.
+    const cacheKey = `planSpaceSelect_${event._id}`
+    const cached = readCache<string>(cacheKey, 5 * 60 * 1000)
+    if (cached !== null) {
+      setPlanSpaceSelect(cached || event?.planSpace?.[0]?._id || '')
+      return
+    }
+
     fetchApiEventos({
       query: queries.getPlanSpaceSelect,
       variables: {
         evento_id: event._id,
-        isOwner: user?.uid === event?.usuario_id
       },
     }).then(res => {
-      setPlanSpaceSelect(res ? res as string : event?.planSpace[0]?._id)
+      const id = res ? (res as string) : (event?.planSpace?.[0]?._id || '')
+      setPlanSpaceSelect(id)
+      if (typeof id === 'string') writeCache(cacheKey, id)
     }).catch(err => {
       console.log("[EventContext] Error getting planSpaceSelect:", err)
     })
@@ -181,4 +324,6 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 const EventContextProvider = () => useContext(EventContext)
+
+export default EventContext;
 export { EventContextProvider, EventProvider };

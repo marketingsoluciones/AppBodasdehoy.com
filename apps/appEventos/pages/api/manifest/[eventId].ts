@@ -1,10 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { fetchApiEventosServer } from '../../../utils/Fetching';
 
+// BUG-5 (informe QA 21-jun): queryenEvento_id es legacy apiapp retirado. api-mcp usa
+// getEventoById(id:ID!).
 const QUERY = `
-  query ($var_1: String) {
-    queryenEvento_id(var_1: $var_1) {
-      _id nombre tipo imgEvento { i800 }
+  query ($eventId: ID!) {
+    getEventoById(id: $eventId) {
+      _id nombre tipo imgEventoUrl
     }
   }
 `;
@@ -17,13 +19,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let iconUrl = '/logo.png';
 
   try {
-    const data = await fetchApiEventosServer({ query: QUERY, variables: { var_1: eventId } });
-    const ev = Array.isArray(data?.queryenEvento_id) ? data.queryenEvento_id[0] : data?.queryenEvento_id;
+    const data = await fetchApiEventosServer({ query: QUERY, variables: { eventId } });
+    const ev = data?.getEventoById;
     if (ev) {
       eventName = ev.nombre ?? eventName;
       eventType = ev.tipo ?? eventType;
-      if (ev.imgEvento?.i800) {
-        iconUrl = `https://apiapp.bodasdehoy.com/${ev.imgEvento.i800}`;
+      if (ev.imgEventoUrl) {
+        iconUrl = ev.imgEventoUrl;
       }
     }
   } catch { /* usa defaults */ }

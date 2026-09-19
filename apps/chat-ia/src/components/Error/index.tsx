@@ -2,7 +2,7 @@
 
 import { Button, FluentEmoji } from '@lobehub/ui';
 import Link from 'next/link';
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
 import { MAX_WIDTH } from '@/const/layoutTokens';
@@ -15,7 +15,7 @@ interface ErrorCaptureProps {
   reset: () => void;
 }
 
-const ErrorCapture = memo<ErrorCaptureProps>(({ reset }) => {
+const ErrorCapture = memo<ErrorCaptureProps>(({ error, reset }) => {
   // ✅ Usar hook seguro con fallbacks explícitos en español
   const { t } = useSafeTranslation('error');
 
@@ -24,6 +24,10 @@ const ErrorCapture = memo<ErrorCaptureProps>(({ reset }) => {
   const desc = t('error.desc', 'Inténtalo de nuevo más tarde, o regresa al mundo conocido');
   const retryText = t('error.retry', 'Reintentar');
   const backHomeText = t('error.backHome', 'Volver a la página de inicio');
+
+  useEffect(() => {
+    console.error(error);
+  }, [error]);
 
   return (
     <Flexbox align={'center'} justify={'center'} style={{ minHeight: '100%', width: '100%' }}>
@@ -45,6 +49,23 @@ const ErrorCapture = memo<ErrorCaptureProps>(({ reset }) => {
         {title}
       </h2>
       <p style={{ marginBottom: '2em' }}>{desc}</p>
+      {process.env.NODE_ENV === 'development' && (
+        <pre
+          style={{
+            marginBottom: '2em',
+            maxWidth: 900,
+            opacity: 0.8,
+            overflow: 'auto',
+            padding: 12,
+            textAlign: 'left',
+            whiteSpace: 'pre-wrap',
+            width: 'min(900px, 92vw)',
+          }}
+        >
+          {String(error?.message || 'Unknown error')}
+          {error?.digest ? `\n\ndigest: ${error.digest}` : ''}
+        </pre>
+      )}
       <Flexbox gap={12} horizontal style={{ marginBottom: '1em' }}>
         <Button onClick={() => reset()}>{retryText}</Button>
         <Link href="/">

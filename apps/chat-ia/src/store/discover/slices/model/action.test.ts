@@ -77,7 +77,7 @@ describe('ModelAction', () => {
       };
 
       vi.spyOn(discoverService, 'getModelDetail').mockResolvedValue(mockDetail as any);
-      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('zh-CN');
+      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('es-ES');
 
       const params = { identifier: 'gpt-4' };
       const { result } = renderHook(() => useStore.getState().useModelDetail(params));
@@ -153,7 +153,7 @@ describe('ModelAction', () => {
       };
 
       vi.spyOn(discoverService, 'getModelList').mockResolvedValue(mockList as any);
-      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('zh-CN');
+      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('es-ES');
 
       const params = { page: 2, pageSize: 10, category: 'llm' } as any;
       const { result } = renderHook(() => useStore.getState().useModelList(params));
@@ -216,7 +216,7 @@ describe('ModelAction', () => {
       };
 
       vi.spyOn(discoverService, 'getModelList').mockResolvedValue(mockList as any);
-      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('ja-JP');
+      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('es-ES');
 
       const { result } = renderHook(() => useStore.getState().useModelList());
 

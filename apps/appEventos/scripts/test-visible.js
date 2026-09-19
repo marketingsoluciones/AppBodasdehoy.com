@@ -54,7 +54,7 @@ const { chromium } = require("playwright");
 
       // Password
       await inputs[1].click();
-      await page.keyboard.type('lorca2012M*+', { delay: 30 });
+      await page.keyboard.type((process.env.TEST_USER_PASSWORD || ''), { delay: 30 });
       await page.waitForTimeout(500);
 
       console.log("4. Buscando botón de login...");

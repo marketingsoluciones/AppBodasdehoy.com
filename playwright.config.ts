@@ -1,5 +1,43 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
 import { defineConfig, devices } from '@playwright/test';
 import { TEST_URLS, E2E_ENV } from './e2e-app/fixtures';
+
+/**
+ * Carga automática de credenciales E2E desde .env.e2e.{env} (gitignored).
+ * Evita tener que pasar TEST_USER_EMAIL/PASSWORD por línea de comando en cada batería.
+ * Las vars ya presentes en process.env (CLI) tienen prioridad y NO se sobrescriben.
+ * Sin dependencias: parser propio (dotenv no está instalado).
+ */
+function loadE2EEnv(): void {
+  const env = process.env.E2E_ENV || 'dev';
+  // `.env.e2e.<env>.local` incluido (15-09): es el nombre al que apunta la documentación
+  // tras sacar las credenciales del repo; los tres están en .gitignore.
+  for (const file of [`.env.e2e.${env}`, `.env.e2e.${env}.local`, '.env.e2e.local']) {
+    try {
+      const content = readFileSync(resolve(process.cwd(), file), 'utf8');
+      for (const rawLine of content.split('\n')) {
+        const line = rawLine.trim();
+        if (!line || line.startsWith('#')) continue;
+        const eq = line.indexOf('=');
+        if (eq < 0) continue;
+        const key = line.slice(0, eq).trim();
+        let val = line.slice(eq + 1).trim();
+        if (
+          (val.startsWith('"') && val.endsWith('"')) ||
+          (val.startsWith("'") && val.endsWith("'"))
+        ) {
+          val = val.slice(1, -1);
+        }
+        if (key && process.env[key] === undefined) process.env[key] = val;
+      }
+    } catch {
+      // archivo ausente → ignorar (en CI las vars vienen del entorno)
+    }
+  }
+}
+loadE2EEnv();
 
 /**
  * E2E — Playwright (y uso con MCP).
@@ -24,7 +62,8 @@ const useSystemChrome = process.env.USE_SYSTEM_CHROME === '1';
 const browserName = process.env.PLAYWRIGHT_BROWSER || 'webkit';
 const isCI = process.env.CI === 'true' || process.env.CI === '1';
 const headed = process.env.E2E_HEADED === '1' || process.env.E2E_HEADED === 'true';
-const headless = isCI && !headed;
+const forceHeadless = process.env.E2E_HEADLESS === '1' || process.env.E2E_HEADLESS === 'true';
+const headless = forceHeadless || (isCI && !headed);
 
 const project = browserName === 'firefox'
   ? { name: 'firefox', use: { ...devices['Desktop Firefox'] } }
@@ -34,6 +73,11 @@ const project = browserName === 'firefox'
 
 export default defineConfig({
   testDir: './e2e-app',
+  // macOS deja un gemelo AppleDouble (`._nombre.spec.ts`) por cada fichero al
+  // copiar entre volúmenes, y el glob por defecto los recoge: el runner muere
+  // con `SyntaxError: Unexpected character` antes de ejecutar un solo test, sin
+  // pista de la causa. Pasó el 15-09 al crear un spec nuevo (había 139 latentes).
+  testIgnore: ['**/._*'],
   globalSetup: './e2e-app/globalSetup.ts',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,

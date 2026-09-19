@@ -12,7 +12,8 @@ import { useDevelopment } from '@/utils/developmentDetector';
 import { VenueVisualizerItem } from '@/types/tool/venueVisualizer';
 
 import VenueItem from './Item';
-import { exportVenuePdf } from './VenuePdf';
+// SPRINT-V 2026-05-20: exportVenuePdf usa @react-pdf/renderer (~400KB).
+// Import dynamic dentro del handler — solo carga al click "Generate PDF".
 
 function getEventNameFromStorage(): string | undefined {
   if (typeof window === 'undefined') return undefined;
@@ -43,6 +44,7 @@ const VenueVisualizerRender = memo<BuiltinRenderProps<VenueVisualizerItem[]>>(
       setExporting(true);
       try {
         const eventName = getEventNameFromStorage();
+        const { exportVenuePdf } = await import('./VenuePdf');
         await exportVenuePdf(content, eventName);
       } catch {
         // Silently ignore export errors
@@ -56,8 +58,9 @@ const VenueVisualizerRender = memo<BuiltinRenderProps<VenueVisualizerItem[]>>(
     const hasGenerated = content.some((item) => item.generatedUrl);
 
     return (
-      <Flexbox gap={12}>
+      <Flexbox data-testid="tool-render-venue-visualizer" gap={12}>
         <div
+          data-testid="venue-grid"
           style={{
             display: 'grid',
             gap: 12,
@@ -65,11 +68,9 @@ const VenueVisualizerRender = memo<BuiltinRenderProps<VenueVisualizerItem[]>>(
           }}
         >
           {content.map((item, index) => (
-            <VenueItem
-              key={`${item.style}-${item.roomType}-${index}`}
-              messageId={messageId}
-              {...item}
-            />
+            <div data-testid="venue-card" key={`${item.style}-${item.roomType}-${index}`}>
+              <VenueItem messageId={messageId} {...item} />
+            </div>
           ))}
         </div>
 

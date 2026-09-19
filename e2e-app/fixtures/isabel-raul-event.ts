@@ -47,14 +47,14 @@ export const ISABEL_RAUL_EVENT = {
  * Usuarios de prueba y sus roles en el sistema
  *
  * Cada email tiene un rol distinto para testear permisos.
- * Password compartida: lorca2012M*+
+ * Password compartida: [definida en TEST_USER_PASSWORD]
  */
 export const TEST_USERS = {
   // Organizador principal — ve todos sus 44 eventos (43 originales + Carlos Carrillo añadido 2026-04-08)
   // NOTA: bodasdehoy.com@gmail.com y jcc@bodasdehoy.com comparten Firebase UID upSETrmXc7ZnsIhrjDjbHd7u2up1
   organizador: {
     email: 'bodasdehoy.com@gmail.com',
-    password: 'lorca2012M*+',
+    password: (process.env.TEST_USER_PASSWORD || ''),
     role: 'creator',
     firebaseUid: 'upSETrmXc7ZnsIhrjDjbHd7u2up1',
     eventosCount: 44,
@@ -64,7 +64,7 @@ export const TEST_USERS = {
   // Colaborador 1 — organizador de su propia boda (BODA DE PILAR), NO colaborador de Isabel & Raúl
   colaborador1: {
     email: 'jcc@recargaexpress.com',
-    password: 'lorca2012M*+',
+    password: (process.env.TEST_USER_PASSWORD || ''),
     role: 'creator',                // rol en su propio evento
     propioEvento: 'BODA DE PILAR',
     canSeeIsabelRaul: false,        // no tiene acceso a Isabel & Raúl
@@ -75,7 +75,7 @@ export const TEST_USERS = {
   // Al acceder a "Boda Isabel & Raúl" → role_detector FIX: guest→invited_guest (email válido + no owner)
   colaborador2: {
     email: 'jcc@bodasdehoy.com',
-    password: 'lorca2012M*+',
+    password: (process.env.TEST_USER_PASSWORD || ''),
     role: 'creator',                // CREATOR de su propio evento "Email pruebas"
     propioEvento: 'Email pruebas',
     propioEventoId: '69838b14e3550784e116b682',
@@ -88,11 +88,11 @@ export const TEST_USERS = {
   // Verificado 2026-04-08: getAllUserRelatedEventsByEmail → 2 eventos propios:
   //   "Juan Carlos" (673bb4d879a9e6767609ea51) PENDIENTE
   //   "Jhj"         (65e1a4c6f9d4cf50e203bcb9) ARCHIVADO
-  // Password: madrid2012M*+  (distinta de la familia jcc@*)
+  // Password: [definida en el entorno]  (distinta de la familia jcc@*)
   // Usar para tests de CREATOR sin consumir cuota de la cuenta principal (44 eventos).
   carlosCarrillo: {
     email: 'carlos.carrillo@recargaexpress.com',
-    password: 'madrid2012M*+',
+    password: '',
     role: 'creator',
     eventos: [
       { id: '673bb4d879a9e6767609ea51', nombre: 'Juan Carlos', estatus: 'PENDIENTE' },
@@ -108,10 +108,10 @@ export const TEST_USERS = {
   // Setup completo 2026-04-08 (sin intervención manual):
   //   1. Añadido a invitados de "Boda Isabel & Raúl" vía agregarInvitado ✅
   //   2. Cuenta Firebase creada vía REST API ✅
-  //      UID: XVPdnN2mYhfX2fl86k7qFQ2Uj963  |  password: madrid2012M*+
+  //      UID: XVPdnN2mYhfX2fl86k7qFQ2Uj963  |  password: [definida en el entorno]
   carlosCarrilloInvitado: {
     email: 'carlos.carrillo@marketingsoluciones.com',
-    password: 'madrid2012M*+',
+    password: '',
     role: 'invited_guest',
     firebaseUid: 'XVPdnN2mYhfX2fl86k7qFQ2Uj963',
     eventoInvitado: 'Boda Isabel & Raúl',
@@ -124,14 +124,14 @@ export const TEST_USERS = {
   // jcc@marketingsoluciones.com — COLLABORATOR en evento "Juan Carlos"
   // Setup completo 2026-04-08 (sin intervención manual):
   //   1. Cuenta Firebase creada vía REST API ✅
-  //      UID: BQaCmwIYxwgZRqPYzcbXkSRIWoT2  |  password: madrid2012M*+
+  //      UID: BQaCmwIYxwgZRqPYzcbXkSRIWoT2  |  password: [definida en el entorno]
   //   2. Compartido como COLLABORATOR en "Juan Carlos" (673bb4d8) ✅
   //      Propietario: carlos.carrillo@recargaexpress.com (UID: OMkxtxExEgZHvVJVW249uZHq5eR2)
   //   ⚠️  PENDIENTE: el colaborador debe ACEPTAR la invitación desde el email
   //       (llega a carlos.carrillo@recargaexpress.com — inbox que agrega @marketingsoluciones.com)
   jccColaborador: {
     email: 'jcc@marketingsoluciones.com',
-    password: 'madrid2012M*+',
+    password: '',
     role: 'collaborator',
     firebaseUid: 'BQaCmwIYxwgZRqPYzcbXkSRIWoT2',
     eventoCompartido: 'Juan Carlos',

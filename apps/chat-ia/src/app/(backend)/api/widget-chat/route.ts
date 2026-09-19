@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
 export const runtime = 'nodejs';
 export const maxDuration = 300;
 
 const WIDGET_MSG_LIMIT = 10;
 
 const getApiIaUrl = (): string =>
-  process.env.PYTHON_BACKEND_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  'https://api-ia.bodasdehoy.com';
+  resolveServerBackendOrigin();
 
 /**
  * POST /api/widget-chat

@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { useChatStore } from '@/store/chat';
 import { resolveDisplayBrandName } from '@/utils/brandingDisplay';
 import { resolveActiveDeveloperForBranding } from '@/utils/developmentDetector';
+import { normalizeBrandingUrls } from '@/utils/normalizeMediaUrl';
 
 export interface DeveloperBrandingColors {
   accent: string;
@@ -104,7 +105,10 @@ export const useDeveloperBranding = (): UseDeveloperBrandingResult => {
           if (!res.ok) throw new Error(`Error fetching branding: ${res.statusText}`);
           return res.json() as Promise<DeveloperBranding>;
         })
-        .then((data) => {
+        .then((raw) => {
+          // Saneo defensivo: api-ia devuelve URLs con protocolo duplicado (https://https://...).
+          // Normalizamos logo/favicon/icons/etc. antes de cachear. Ver utils/normalizeMediaUrl.
+          const data = normalizeBrandingUrls(raw);
           brandingCache.set(developer, data);
           return data;
         })

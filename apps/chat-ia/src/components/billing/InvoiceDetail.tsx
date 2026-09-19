@@ -8,7 +8,7 @@ import { memo, useEffect } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
 import { useBilling } from '@/hooks/useBilling';
-import { INVOICE_STATUS_LABELS } from '@/services/api2/invoices';
+import { INVOICE_STATUS_LABELS } from '@/services/mcpApi/invoices';
 
 const useStyles = createStyles(({ css, token }) => ({
   actionButton: css`

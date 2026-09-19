@@ -103,10 +103,13 @@ describe('UserAvatar', () => {
       });
 
       render(<UserAvatar />);
+      // Tras refactor DEVELOPMENTS_CONFIG dinámico desde @bodasdehoy/shared (commit 4f362863),
+      // getDeveloperDisplayName('bodasdehoy') devuelve el headTitle completo del whitelabel.
+      // Iniciales 'BB' = primera+última palabra alfabética ("Bodas" + "Bodas").
       expect(
-        screen.getByRole('img', { name: 'Visitante · Bodas de Hoy' }),
+        screen.getByRole('img', { name: 'Visitante · Bodas de hoy - Organizador de Bodas' }),
       ).toBeInTheDocument();
-      expect(screen.getByText('BH')).toBeInTheDocument();
+      expect(screen.getByText('BB')).toBeInTheDocument();
     });
   });
 
@@ -119,10 +122,13 @@ describe('UserAvatar', () => {
       });
 
       render(<UserAvatar />);
+      // Tras refactor DEVELOPMENTS_CONFIG dinámico desde @bodasdehoy/shared (commit 4f362863),
+      // getDeveloperDisplayName('bodasdehoy') devuelve el headTitle completo del whitelabel.
+      // Iniciales 'BB' = primera+última palabra alfabética ("Bodas" + "Bodas").
       expect(
-        screen.getByRole('img', { name: 'Visitante · Bodas de Hoy' }),
+        screen.getByRole('img', { name: 'Visitante · Bodas de hoy - Organizador de Bodas' }),
       ).toBeInTheDocument();
-      expect(screen.getByText('BH')).toBeInTheDocument();
+      expect(screen.getByText('BB')).toBeInTheDocument();
     });
   });
 });

@@ -192,23 +192,43 @@ El login unificado está en **chat-ia** (`apps/chat-ia/src/app/[variants]/(auth)
 
 | Entorno | appEventos | chat-ia |
 |---------|------------|---------|
-| **Local** | `http://localhost:8080` | `http://localhost:3210` |
+| **Local** | `http://localhost:3220` | `http://localhost:3210` |
 | **Test** | `https://app-test.bodasdehoy.com` | `https://chat-test.bodasdehoy.com` |
-| **Producción** | `https://organizador.bodasdehoy.com` | `https://chat.bodasdehoy.com` |
+| **Producción** | `https://app.bodasdehoy.com` | `https://chat.bodasdehoy.com` |
 
 ---
 
 ## Reglas de Desarrollo
 
+### packages/shared se consume desde `dist`, no desde su código fuente
+
+Las cuatro apps importan `@bodasdehoy/shared` **solo** desde `packages/shared/dist` (su
+`exports` no expone `src`, y appEventos lo sacó de `transpilePackages`). Y `dist` está en
+`.gitignore`, así que no viaja en ningún commit: cada copia del repo tiene el suyo.
+
+**Si tocas `packages/shared`, recompílalo** (`cd packages/shared && npx tsc`). Sin eso tu
+cambio no existe para las apps aunque el commit esté hecho, y nada avisa: compila sin errores
+y en pantalla sigue lo viejo. Pasó el 17-09-2026 — la tabla única de color de marca llevaba
+horas commiteada mientras chat seguía pintando el rosa antiguo en 7 de las 11 marcas.
+
+Ojo al diagnosticar: como las cuatro apps leen el mismo `dist`, un `dist` rancio las falsea a
+todas a la vez y de forma coherente, así que no hay dos pantallas que comparar. La divergencia
+no es entre apps: es entre copias del repo.
+
 ### Package Manager
 - **pnpm** para dependencias (`pnpm install`, `pnpm add`)
-- **bun** para ejecutar scripts (`bun run dev`, `bunx vitest`)
+- **npm/npx** para ejecutar scripts (`npm run dev`, `npx vitest`). **bun no está instalado en
+  esta máquina** (comprobado 17-09-2026: `which bun` y `which bunx`, vacíos los dos), así que
+  cualquier instrucción con `bun`/`bunx` falla con `command not found`. El único script del
+  monorepo que dependía de bun era `chat-ia > build-migrate-db`, y ya usa npm.
 - Node.js >= 20.0.0
 
 ### Testing
 - **E2E**: Playwright con **webkit** (NUNCA Chromium)
-- **Unit**: Vitest — `bunx vitest run --silent='passed-only' '[pattern]'`
-- **Nunca** ejecutar `bun run test` sin filtro (tarda ~10min)
+- **Unit**: Vitest — `npx vitest run --silent='passed-only' '[pattern]'`
+  (con `--maxWorkers=1 --minWorkers=1` si la máquina va cargada: si no, saltan timeouts que
+  parecen fallos del código y no lo son)
+- **Nunca** ejecutar `npm run test` sin filtro (tarda ~10min)
 
 ### Git
 - Prefijo gitmoji en commits
@@ -224,6 +244,31 @@ pnpm build:production   # Build de todas las apps
 pnpm test:e2e:app:smoke # E2E smoke test
 pnpm verificar:entornos # Verificar app-test y chat-test
 ```
+
+### Verificación obligatoria post-cambios
+
+**ANTES de declarar una tarea como completa, SIEMPRE ejecutar estos pasos de verificación:**
+
+1. **Verificar que la app afectada compila/responde** (si el dev server está corriendo):
+   - appEventos: `curl -s -o /dev/null -w "%{http_code}" http://localhost:3220/`
+   - chat-ia: `curl -s -o /dev/null -w "%{http_code}" http://localhost:3210/`
+   - memories-web: `curl -s -o /dev/null -w "%{http_code}" http://localhost:3240/`
+   - editor-web: `curl -s -o /dev/null -w "%{http_code}" http://localhost:3230/`
+   - Si responde 200 → OK. Si responde 500 o no responde → hay un build error, investigar y corregir antes de reportar.
+
+2. **Si modifiqué archivos .tsx/.ts/.jsx/.js**: revisar visualmente que no quedó JSX mal cerrado, imports rotos o errores de sintaxis obvios.
+
+3. **Si modifiqué chat-ia**: ejecutar tests unitarios relacionados:
+   ```bash
+   cd apps/chat-ia && npx vitest run --silent='passed-only'
+   ```
+
+4. **Si el dev server NO está corriendo**: al menos verificar sintaxis con ESLint en los archivos editados:
+   ```bash
+   npx eslint <archivo-modificado>
+   ```
+
+5. **Nunca declarar "listo" o "terminado" sin haber pasado estos checks.** Si algo falla, corregirlo primero.
 
 ---
 

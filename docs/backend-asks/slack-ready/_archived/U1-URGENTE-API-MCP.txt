@@ -1,0 +1,87 @@
+DE: COORD-AppEventos
+PARA: API-MCP
+DRI: api_mcp_oncall
+CANAL: #coordinacion · workspace eventosorganizador.slack.com
+HILO: 1778170638.897419
+ASUNTO: ⏰ URGENTE — lo que necesito YA de api-mcp para desbloquear el front
+
+
+Necesito 3 cosas vuestras lo antes posible para no quedarme bloqueado.
+Por prioridad de impacto:
+
+
+═══════════════════════════════════════════════════════════
+🔴 [1] HOY — Thread publicado en origin/dev (ETA 1-2h vuestra)
+═══════════════════════════════════════════════════════════
+
+Ya confirmasteis los 4 ajustes al contrato. Solo necesito:
+
+  a) Confirmar el patrón uppercase/lowercase (idéntico a role):
+       schema api-mcp     → MAYÚSCULAS (CONTINUATION, STANDALONE, etc.)
+       api-ia ↔ api-mcp   → MAYÚSCULAS
+       api-ia ↔ front     → minúsculas (api-ia uppercasea/lowercasea)
+     Ya documentado en memory/project_contrato_role_chat_persistencia.md.
+     ¿OK? Sí/no en 1 línea.
+
+  b) Push origin/dev cuando esté verde.
+
+  c) Notificar a api-ia en este hilo (CC api-ia para que arranquen
+     el proxy REST en paralelo).
+
+IMPACTO: desbloquea Fase 4 del front. Yo ya tengo
+services/thread/apiIa.ts pre-escrito (commit 887c2ccd) — solo activo
+flag y smoke. ~30 min de mi lado tras vuestra señal.
+
+
+═══════════════════════════════════════════════════════════
+🔴 [2] MAÑANA 06-jun — updateTasksOrder publicado
+═══════════════════════════════════════════════════════════
+
+Anunciasteis ETA mañana. Última Cat C antes de apagar apiapp.
+
+Cuando esté en prod, decidme:
+  - Nombre exacto de la mutation
+  - Shape de args (probablemente: evento_id: ID!, itinerario_id: ID!,
+    task_ids: [ID!]!)
+  - Shape de respuesta (¿TaskResponse o ItinerarioResponse?)
+
+IMPACTO: añado op 11 al smoke + drag&drop UX de tareas.
+        Apagamos apiapp el viernes.
+
+
+═══════════════════════════════════════════════════════════
+🟡 [3] CUANDO PODÁIS (no bloqueante, pero ya os pasamos)
+═══════════════════════════════════════════════════════════
+
+Los 3 bugs front del mensaje 7 (auditoría Fetching.ts):
+
+  a) getUsers — añadir getUsersByIds(uids: [ID!]!): [User] con shape
+     de perfil (displayName, photoURL, phoneNumber).
+     Bloquea: avatares/nombres en SocketControlator + Compartir.
+
+  b) getAllBusinesses — definir input types searchCriteriaBusiness y
+     sortCriteriaBusiness, o decirme que el front filtre client-side.
+
+  c) (Opcional) borraPago aceptar categoria_id opcional para
+     coherencia con actualizarGastoPresupuesto.
+
+
+═══════════════════════════════════════════════════════════
+LO QUE NO OS PIDO HOY (sé que estáis con otras cosas)
+═══════════════════════════════════════════════════════════
+
+  - Healthcheck /health real (vuestro roadmap)
+  - PM2 health_check_url (mañana, vuestro roadmap)
+  - Alerta Slack MongoNotConnectedError (próx. semana, vuestro roadmap)
+
+
+═══════════════════════════════════════════════════════════
+🎯 LO QUE NECESITO HOY EN 1 RESPUESTA SLACK
+═══════════════════════════════════════════════════════════
+
+  [1.a] ¿Aplicáis patrón uppercase/lowercase como role?  → SÍ/NO
+  [1.b] ¿Cuándo push origin/dev con Thread?              → hora
+  [2]   ¿ETA exacta updateTasksOrder mañana?              → mañana mañana/tarde
+
+
+DRI: coord_appeventos — esperando 3 líneas para desbloquear todo.

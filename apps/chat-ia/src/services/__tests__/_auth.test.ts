@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react';
-import { ModelProvider } from 'model-bank';
+import { ModelProvider } from '@lobechat/types';
 import { describe, expect, it, vi } from 'vitest';
 
 import { useUserStore } from '@/store/user';
@@ -9,7 +9,7 @@ import {
   UserModelProviderConfig,
 } from '@/types/user/settings';
 
-import { getProviderAuthPayload } from '../_auth';
+import { createHeaderWithAuth, getProviderAuthPayload } from '../_auth';
 
 // Mock data for different providers
 const mockZhiPuAPIKey = 'zhipu-api-key';
@@ -192,5 +192,19 @@ describe('getProviderAuthPayload', () => {
   it('should return an empty object or throw an error for an unknown provider', () => {
     const payload = getProviderAuthPayload('UnknownProvider', {});
     expect(payload).toEqual({});
+  });
+});
+
+
+describe('createHeaderWithAuth', () => {
+  it('propaga api2_jwt_token como Authorization para el flujo de IA', async () => {
+    const jwt = 'eyJcanonical.payload.signature';
+    localStorage.clear();
+    localStorage.setItem('api2_jwt_token', jwt);
+    localStorage.setItem('api2_jwt_expires_at', new Date('2099-01-01').toISOString());
+
+    const headers = (await createHeaderWithAuth()) as Record<string, string>;
+
+    expect(headers.Authorization).toBe(`Bearer ${jwt}`);
   });
 });

@@ -20,6 +20,7 @@
  */
 
 import React, { useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } from 'react';
+import { Markdown } from '@lobehub/ui';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   MobileTabs,
@@ -37,6 +38,10 @@ import {
   type WeddingChangeAction,
 } from '@/services/weddingChatService';
 import { getCurrentEventId } from '@/services/storage-r2';
+import { crearTareaEnItinerario, editarTareaCampo, eliminarTareaDeItinerario } from '@/services/mcpApi/tasks';
+
+import { useEventSeed } from './useEventSeed';
+import { WeddingEventPicker } from './WeddingEventPicker';
 import { FeatureGate } from '@/components/FeatureGate';
 
 
@@ -63,6 +68,15 @@ const PublishModal = lazy(() =>
     return import('@bodasdehoy/wedding-creator').then(m => ({ default: m.PublishModal }));
   })
 );
+
+// Selector de fotos desde los álbumes/Momentos del evento (fuente real de fotos).
+// Lazy: arrastra @bodasdehoy/memories (~276K) → solo se carga al abrir el picker.
+const AlbumPicker = lazy(() => import('./AlbumPicker'));
+
+// Un id de agenda que corresponde a una TAREA real del itinerario (sembrada desde la app)
+// es un _id de Mongo; los añadidos en la web llevan prefijo temporal (event-/seed-) y aún
+// no tienen tarea en la app → solo se sincronizan al crearlos, no al re-editarlos.
+const isRealTaskId = (id?: string) => !!id && !id.startsWith('event-') && !id.startsWith('seed-');
 
 type ViewMode = 'desktop' | 'tablet' | 'mobile';
 
@@ -198,7 +212,7 @@ function WeddingCreatorContent() {
   const legacyHook = useWeddingWeb({ autoSave: true });
   const activeHook = graphQLHook || legacyHook;
 
-  const wedding = activeHook.wedding || legacyHook.wedding || {
+  const rawWedding = activeHook.wedding || legacyHook.wedding || {
     couple: { partner1: { name: '' }, partner2: { name: '' } },
     createdAt: '1970-01-01T00:00:00.000Z',
     date: { date: '1970-01-01T00:00:00.000Z' },
@@ -211,35 +225,195 @@ function WeddingCreatorContent() {
     updatedAt: '1970-01-01T00:00:00.000Z',
   };
 
+  // P1 (QA 23-ago): si el evento seleccionado NO tiene wedding-web configurada, getWeddingWeb
+  // devuelve vacío → el editor mostraba "Nombre 1 & Nombre 2". Sembramos pareja + fecha desde
+  // los datos REALES del evento (getEventoById) para que el editor refleje la boda elegida.
+  // Solo se aplica cuando NO hay pareja real cargada (no pisa datos ya guardados en la web).
+  const eventSeed = useEventSeed(eventId);
+  const hasRealCouple = !!(rawWedding as any)?.couple?.partner1?.name?.trim();
+  // Sección de agenda ("Programa del día") sembrada desde el itinerario del evento
+  // (itinerarios_array → ScheduleEvent[]). Solo si el evento trae itinerario y el editor está
+  // vacío (no pisa una agenda ya guardada en la web).
+  // any[]: la sección se pasa al renderer del paquete; evitamos fricción de tipos con
+  // los literales (type:'schedule'/'other') sin renunciar a la validación en runtime.
+  const seededSections: any[] =
+    eventSeed?.schedule?.length && !hasRealCouple
+      ? [
+          {
+            data: {
+              events: eventSeed.schedule.map((s, i) => ({
+                description: undefined,
+                // id = _id REAL de la tarea (para editar/borrar la tarea correcta en la app).
+                // Solo caemos a seed-i si el backend no trajo _id (esas no se sincronizan).
+                id: s.id || `seed-${i}`,
+                location: s.location,
+                time: s.time || '',
+                title: s.title,
+                type: 'other',
+              })),
+              title: 'Programa del día',
+            },
+            enabled: true,
+            order: 1,
+            type: 'schedule',
+          },
+        ]
+      : [];
+  const wedding =
+    !hasRealCouple && eventSeed
+      ? {
+          ...rawWedding,
+          couple: {
+            partner1: { name: eventSeed.coupleNames[0] },
+            partner2: { name: eventSeed.coupleNames[1] },
+          },
+          date: { ...(rawWedding as any).date, date: eventSeed.date || (rawWedding as any)?.date?.date },
+          sections: [...seededSections, ...(((rawWedding as any).sections as any[]) || [])],
+        }
+      : rawWedding;
+
   const isDirty = activeHook.isDirty ?? legacyHook.isDirty ?? false;
   const isSaving = activeHook.isSaving ?? legacyHook.isSaving ?? false;
   const weddingLoading = activeHook.isLoading ?? legacyHook.isLoading ?? false;
 
-  const updateCouple = graphQLHook?.updateCoupleLocal || legacyHook.updateCouple;
-  const updateDate = legacyHook.updateDate;
-  const updatePalette = graphQLHook?.updatePalette || legacyHook.updatePalette;
-  const updateHero = graphQLHook?.updateHero || legacyHook.updateHero;
-  const toggleSection = graphQLHook?.toggleSection || legacyHook.toggleSection;
-  const _applyAIChanges = graphQLHook?.applyAIChanges || legacyHook.applyAIChanges;
+  // 4-sep — CONSISTENCIA del editor directo: hay que EDITAR el mismo hook que RENDERIZA.
+  // `wedding` sale de graphQL SOLO si graphQLHook tiene datos (localWedding/weddingWeb);
+  // si no, cae a legacy (ver rawWedding). Antes los editores de sección/agenda/fecha iban
+  // SIEMPRE a legacy → con web guardada (render graphQL) no se reflejaban. Ahora cada
+  // editor apunta al hook que realmente pinta la web. Los editores locales de graphQL
+  // (updateSectionLocal, etc.) hacen no-op si localWedding es null, por eso NO basta con
+  // `graphQLHook?.x || legacy`: gateamos por graphQLRenders.
+  const graphQLRenders = !!graphQLHook?.wedding;
+  const updateCouple = graphQLRenders ? graphQLHook!.updateCoupleLocal : legacyHook.updateCouple;
+  const updateDate = graphQLRenders ? graphQLHook!.updateDateLocal : legacyHook.updateDate;
+  const updatePalette = graphQLRenders ? graphQLHook!.updatePalette : legacyHook.updatePalette;
+  const updateHero = graphQLRenders ? graphQLHook!.updateHero : legacyHook.updateHero;
+  const toggleSection = graphQLRenders ? graphQLHook!.toggleSection : legacyHook.toggleSection;
+  const updateSection = graphQLRenders ? graphQLHook!.updateSectionLocal : legacyHook.updateSection;
+  const _applyAIChanges = graphQLRenders ? graphQLHook!.applyAIChanges : legacyHook.applyAIChanges;
   const _saveWedding = legacyHook.saveWedding;
 
+  // ── Escritura de vuelta al ITINERARIO del evento (modelo A: el backend enforce permisos).
+  // Cuando la agenda viene de un evento (eventSeed.itinerarioId), los cambios se escriben
+  // TAMBIÉN en el itinerario real vía api-mcp. Si el backend rechaza (p.ej. sin permiso) →
+  // avisamos "pide permiso" (no duplicamos la lógica de permisos, que es crítica/NO-TOCAR).
+  const [itinerarioWarning, setItinerarioWarning] = useState<string | null>(null);
+  const scheduleTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const reportItinerarioError = useCallback((err?: string) => {
+    setItinerarioWarning(
+      err && /permis|autor|allow|denied|forbidden/i.test(err)
+        ? 'No tienes permiso para editar el itinerario de este evento. Pídeselo al organizador para que la agenda se guarde en la app.'
+        : `No se pudo guardar el cambio en el itinerario del evento${err ? ` (${err})` : ''}.`,
+    );
+  }, []);
+
   const addScheduleEvent = useCallback((event: Omit<import('@bodasdehoy/wedding-creator').ScheduleEvent, 'id'>) => {
-    legacyHook.addScheduleEvent?.(event);
-  }, [legacyHook]);
+    (graphQLRenders ? graphQLHook!.addScheduleEventLocal : legacyHook.addScheduleEvent)?.(event);
+    const itId = eventSeed?.itinerarioId;
+    if (eventId && eventId !== 'dummy' && itId) {
+      crearTareaEnItinerario(eventId, itId, {
+        descripcion: event.title || 'Nuevo momento',
+        ...(event.time ? { hora: event.time } : {}),
+      }).then((r) => { if (!r.ok) reportItinerarioError(r.error); });
+    }
+  }, [graphQLRenders, graphQLHook, legacyHook, eventId, eventSeed, reportItinerarioError]);
 
-  const updateScheduleEvent = useCallback((eventId: string, updates: Partial<import('@bodasdehoy/wedding-creator').ScheduleEvent>) => {
-    legacyHook.updateScheduleEvent?.(eventId, updates);
-  }, [legacyHook]);
+  const updateScheduleEvent = useCallback((schedEventId: string, updates: Partial<import('@bodasdehoy/wedding-creator').ScheduleEvent>) => {
+    (graphQLRenders ? graphQLHook!.updateScheduleEventLocal : legacyHook.updateScheduleEvent)?.(schedEventId, updates);
+    const itId = eventSeed?.itinerarioId;
+    if (!(eventId && eventId !== 'dummy' && itId && isRealTaskId(schedEventId))) return;
+    // Debounce por tarea+campo: el onChange dispara en cada tecla → no spamear api-mcp.
+    const fire = (field: string, value: string) => {
+      const key = `${schedEventId}:${field}`;
+      clearTimeout(scheduleTimersRef.current[key]);
+      scheduleTimersRef.current[key] = setTimeout(() => {
+        editarTareaCampo(eventId, itId, schedEventId, field, value).then((r) => { if (!r.ok) reportItinerarioError(r.error); });
+      }, 600);
+    };
+    if (typeof updates.title === 'string') fire('descripcion', updates.title);
+    if (typeof updates.time === 'string') fire('hora', updates.time);
+  }, [graphQLRenders, graphQLHook, legacyHook, eventId, eventSeed, reportItinerarioError]);
 
-  const deleteScheduleEvent = useCallback((eventId: string) => {
-    legacyHook.deleteScheduleEvent?.(eventId);
-  }, [legacyHook]);
+  const deleteScheduleEvent = useCallback((schedEventId: string) => {
+    (graphQLRenders ? graphQLHook!.deleteScheduleEventLocal : legacyHook.deleteScheduleEvent)?.(schedEventId);
+    const itId = eventSeed?.itinerarioId;
+    if (eventId && eventId !== 'dummy' && itId && isRealTaskId(schedEventId)) {
+      eliminarTareaDeItinerario(eventId, itId, schedEventId).then((r) => { if (!r.ok) reportItinerarioError(r.error); });
+    }
+  }, [graphQLRenders, graphQLHook, legacyHook, eventId, eventSeed, reportItinerarioError]);
 
   // UI State
   const [viewMode, setViewMode] = useState<ViewMode>('desktop');
   const [mobileTab, setMobileTab] = useState<MobileTabType>('chat');
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [publishedSubdomain, setPublishedSubdomain] = useState<string | undefined>(undefined);
+  // P0 constructor de webs (2-sep): copiar el enlace de la web publicada DIRECTO desde la barra,
+  // sin abrir el modal ("no tenía proceso de copiar el subdominio").
+  const [copiedLink, setCopiedLink] = useState(false);
+  // P1 constructor de webs (2-sep): edición DIRECTA de los campos base (nombres + fecha) sin
+  // tener que chatear con la IA ("el editor es difícil/básico"). Usa los MISMOS métodos que ya
+  // llama la IA (updateCouple/updateDate) → misma persistencia, 0 backend nuevo.
+  const [showEditPanel, setShowEditPanel] = useState(false);
+  // P1 constructor de webs (4-sep): estado de subida de fotos de la galería (spinner + deshabilitar).
+  const [galleryUploading, setGalleryUploading] = useState(false);
+  // Picker de fotos desde el álbum del evento (la fuente REAL de fotos son los Momentos).
+  const [showAlbumPicker, setShowAlbumPicker] = useState(false);
+  // Sube ficheros de imagen al endpoint existente /api/upload (public/uploads/wedding) y devuelve
+  // URLs absolutas (origin + ruta) para que funcionen también en la web publicada (otro subdominio).
+  const uploadGalleryFiles = useCallback(
+    async (files: FileList | null): Promise<Array<{ id: string; url: string }>> => {
+      if (!files || files.length === 0) return [];
+      const out: Array<{ id: string; url: string }> = [];
+      for (const file of Array.from(files)) {
+        try {
+          const fd = new FormData();
+          fd.append('file', file);
+          fd.append('type', 'wedding-gallery');
+          const res = await fetch('/api/upload', { body: fd, method: 'POST' });
+          const json = await res.json();
+          if (json?.success && json.url) {
+            const abs = String(json.url).startsWith('http')
+              ? json.url
+              : `${typeof window !== 'undefined' ? window.location.origin : ''}${json.url}`;
+            out.push({ id: `p-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, url: abs });
+          }
+        } catch {
+          // una foto que falla no debe abortar el resto del lote
+        }
+      }
+      return out;
+    },
+    [],
+  );
+  // Añade a la galería las fotos elegidas en el álbum del evento (append a las existentes).
+  const handleAddAlbumPhotos = useCallback(
+    (picked: Array<{ caption?: string; id: string; thumbnail?: string; url: string }>) => {
+      const cur =
+        ((wedding.sections?.find((x) => x.type === 'gallery')?.data as
+          | { photos?: Array<{ caption?: string; id: string; thumbnail?: string; url: string }> }
+          | undefined)?.photos) ?? [];
+      updateSection?.('gallery', { photos: [...cur, ...picked] } as any);
+    },
+    [wedding, updateSection],
+  );
+  const copyPublicLink = useCallback(async () => {
+    if (!publishedSubdomain) return;
+    const url = `https://${publishedSubdomain}.bodasdehoy.com`;
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.append(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch { /* sin fallback disponible */ }
+      ta.remove();
+    }
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 1800);
+  }, [publishedSubdomain]);
 
   const [messages, setMessages] = useState<Message[]>([{
     content: '¡Hola! 👋 Soy tu asistente para crear webs de eventos y bodas.\n\n' +
@@ -584,7 +758,7 @@ function WeddingCreatorContent() {
               <div className="flex items-center gap-3">
                 <button
                   className="text-gray-500 hover:text-gray-700 transition-colors"
-                  onClick={() => router.push('/chat')}
+                  onClick={() => router.push('/asistente')}
                   title="Volver al inicio"
                   type="button"
                 >
@@ -592,7 +766,22 @@ function WeddingCreatorContent() {
                     <path d="M19 12H5M12 19l-7-7 7-7" />
                   </svg>
                 </button>
-                <h1 className="text-lg font-semibold">Editor de Eventos & Bodas</h1>
+                {/* En móvil el título se apretaba en 5 líneas y cortaba "Guardado" (QA responsive
+                    3-sep). Se oculta bajo sm (las pestañas Chat/Vista Previa ya dan contexto) y no
+                    envuelve; así el selector de evento y el indicador de guardado respiran. */}
+                <h1 className="hidden whitespace-nowrap text-lg font-semibold sm:block">Editor de Eventos & Bodas</h1>
+                {/* Selector de evento (gap QA 22-ago): elegir QUÉ boda edita la web pública.
+                    Reutiliza el flujo eventId existente (useWeddingWebGraphQL) — sin él, el
+                    editor caía a la plantilla dummy. Con buscador (owner tiene 50+ eventos). */}
+                <WeddingEventPicker
+                  eventId={eventId}
+                  onSelect={(id) => {
+                    setEventId(id);
+                    if (typeof window !== 'undefined') {
+                      window.history.replaceState({}, '', `?eventId=${encodeURIComponent(id)}`);
+                    }
+                  }}
+                />
                 {/* Auto-save indicator */}
                 {isSaving && (
                   <span className="ml-2 text-xs text-gray-400 animate-pulse">Guardando...</span>
@@ -618,12 +807,12 @@ function WeddingCreatorContent() {
                   </span>
                 )}
                 <button
-                  className="rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200"
+                  className="shrink-0 rounded-md bg-gray-100 px-2.5 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200 sm:px-3"
                   onClick={() => window.location.reload()}
                   title="Reiniciar editor"
                   type="button"
                 >
-                  🔄 Reiniciar
+                  🔄<span className="hidden sm:inline"> Reiniciar</span>
                 </button>
               </div>
             </div>
@@ -648,7 +837,14 @@ function WeddingCreatorContent() {
                             : 'bg-gray-100 text-gray-800'
                         }`}
                       >
-                        <div className="whitespace-pre-wrap text-sm">{message.content}</div>
+                        {/* UX-04 (QA 8-ago): renderizar markdown en las respuestas del
+                            asistente (antes salía **texto** literal). El mensaje del user
+                            se queda como texto plano. */}
+                        {message.role === 'user' ? (
+                          <div className="whitespace-pre-wrap text-sm">{message.content}</div>
+                        ) : (
+                          <Markdown fontSize={13}>{message.content}</Markdown>
+                        )}
                       </div>
                     )}
                   </div>
@@ -735,6 +931,22 @@ function WeddingCreatorContent() {
               </div>
 
               <div className="flex items-center gap-2">
+                <button
+                  className={`flex items-center gap-1 rounded border px-3 py-1 text-sm transition-colors ${
+                    showEditPanel
+                      ? 'border-blue-600 bg-blue-50 text-blue-700'
+                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                  onClick={() => setShowEditPanel((v) => !v)}
+                  title="Editar nombres y fecha directamente"
+                  type="button"
+                >
+                  <svg fill="none" height="16" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" width="16">
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                  <span className="hidden sm:inline">Editar</span>
+                </button>
                 <select
                   className="rounded border border-gray-300 px-2 py-1 text-sm"
                   onChange={(e) => updatePalette(e.target.value as PaletteType)}
@@ -766,6 +978,26 @@ function WeddingCreatorContent() {
                   </span>
                 </button>
 
+                {publishedSubdomain && (
+                  <button
+                    className={`flex items-center gap-1 rounded border px-3 py-1 text-sm transition-colors ${
+                      copiedLink
+                        ? 'border-green-600 bg-green-50 text-green-700'
+                        : 'border-green-600 text-green-700 hover:bg-green-50'
+                    }`}
+                    onClick={copyPublicLink}
+                    title={`Copiar https://${publishedSubdomain}.bodasdehoy.com`}
+                    type="button"
+                  >
+                    {copiedLink ? (
+                      <svg fill="none" height="16" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" width="16"><path d="M20 6L9 17l-5-5" /></svg>
+                    ) : (
+                      <svg fill="none" height="16" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" width="16"><rect height="13" rx="2" ry="2" width="13" x="9" y="9" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" /></svg>
+                    )}
+                    <span className="hidden sm:inline">{copiedLink ? '¡Copiado!' : 'Copiar enlace'}</span>
+                  </button>
+                )}
+
                 <button
                   className="flex items-center gap-1 rounded bg-gray-600 px-3 py-1 text-sm text-white hover:bg-gray-700"
                   onClick={() => window.open(`/wedding/${wedding.slug || 'preview'}`, '_blank')}
@@ -780,6 +1012,462 @@ function WeddingCreatorContent() {
                 </button>
               </div>
             </div>
+
+            {/* Panel de edición DIRECTA (P1): nombres + fecha sin chatear. */}
+            {showEditPanel && (
+              <div className="border-b border-gray-300 bg-white px-4 py-3">
+                <div className="mx-auto flex max-w-3xl flex-wrap items-end gap-3">
+                  <label className="flex flex-1 flex-col gap-1 text-xs font-medium text-gray-600" style={{ minWidth: 140 }}>
+                    Nombre 1
+                    <input
+                      className="rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-800"
+                      onChange={(e) => updateCouple('partner1', e.target.value)}
+                      placeholder="Ej. María"
+                      type="text"
+                      value={wedding.couple?.partner1?.name ?? ''}
+                    />
+                  </label>
+                  <label className="flex flex-1 flex-col gap-1 text-xs font-medium text-gray-600" style={{ minWidth: 140 }}>
+                    Nombre 2
+                    <input
+                      className="rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-800"
+                      onChange={(e) => updateCouple('partner2', e.target.value)}
+                      placeholder="Ej. Juan"
+                      type="text"
+                      value={wedding.couple?.partner2?.name ?? ''}
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1 text-xs font-medium text-gray-600">
+                    Fecha del evento
+                    <input
+                      className="rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-800"
+                      onChange={(e) => updateDate(e.target.value)}
+                      type="date"
+                      value={String(wedding.date?.date ?? '').slice(0, 10)}
+                    />
+                  </label>
+                  <label className="flex flex-1 flex-col gap-1 text-xs font-medium text-gray-600" style={{ minWidth: 160 }}>
+                    Mensaje de portada
+                    <input
+                      className="rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-800"
+                      onChange={(e) => updateHero({ ...wedding.hero, subtitle: e.target.value })}
+                      placeholder="Ej. ¡Nos casamos!"
+                      type="text"
+                      value={wedding.hero?.subtitle ?? ''}
+                    />
+                  </label>
+                  <label className="flex items-center gap-2 pb-2 text-xs font-medium text-gray-600">
+                    <input
+                      checked={!!wedding.hero?.showCountdown}
+                      onChange={(e) => updateHero({ ...wedding.hero, showCountdown: e.target.checked })}
+                      type="checkbox"
+                    />
+                    Cuenta atrás
+                  </label>
+                  <span className="pb-1.5 text-xs text-gray-400">
+                    Se guarda solo · también puedes pedírselo al asistente
+                  </span>
+                </div>
+                {/* Fila 2: activar/desactivar secciones directamente (toggleSection). */}
+                <div className="mx-auto mt-3 flex max-w-3xl flex-wrap items-center gap-2">
+                  <span className="text-xs font-medium text-gray-500">Secciones:</span>
+                  {([
+                    { label: 'Agenda', type: 'schedule' },
+                    { label: 'Ubicación', type: 'location' },
+                    { label: 'Galería', type: 'gallery' },
+                    { label: 'Confirmación', type: 'rsvp' },
+                    { label: 'Regalos', type: 'registry' },
+                    { label: 'Info', type: 'info' },
+                  ] as Array<{ label: string; type: SectionType }>).map((s) => {
+                    const on = wedding.sections?.find((x) => x.type === s.type)?.enabled ?? false;
+                    return (
+                      <button
+                        className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                          on
+                            ? 'border-blue-600 bg-blue-50 text-blue-700'
+                            : 'border-gray-300 text-gray-500 hover:bg-gray-50'
+                        }`}
+                        key={s.type}
+                        onClick={() => toggleSection(s.type, !on)}
+                        type="button"
+                      >
+                        {on ? '✓ ' : ''}{s.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {/* Editor de AGENDA (solo si la sección está activa): eventos con hora + título. */}
+                {wedding.sections?.find((x) => x.type === 'schedule')?.enabled && (() => {
+                  const events =
+                    ((wedding.sections?.find((x) => x.type === 'schedule')?.data as
+                      | { events?: Array<{ id: string; time?: string; title?: string }> }
+                      | undefined)?.events) ?? [];
+                  return (
+                    <div className="mx-auto mt-3 max-w-3xl border-t border-gray-100 pt-3">
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-xs font-semibold text-gray-600">📅 Agenda del evento</span>
+                        <button
+                          className="rounded border border-blue-600 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50"
+                          onClick={() => addScheduleEvent({ time: '12:00', title: 'Nuevo momento', type: 'other' })}
+                          type="button"
+                        >
+                          + Añadir
+                        </button>
+                      </div>
+                      {eventSeed?.itinerarioId ? (
+                        <div className="mb-2 text-[11px] text-gray-400">
+                          Los cambios de la agenda se guardan también en el itinerario del evento.
+                        </div>
+                      ) : null}
+                      {itinerarioWarning && (
+                        <div className="mb-2 flex items-start justify-between gap-2 rounded border border-amber-300 bg-amber-50 px-2 py-1.5 text-[11px] text-amber-800">
+                          <span>⚠️ {itinerarioWarning}</span>
+                          <button
+                            aria-label="Cerrar aviso"
+                            className="shrink-0 rounded px-1 text-amber-700 hover:bg-amber-100"
+                            onClick={() => setItinerarioWarning(null)}
+                            type="button"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      )}
+                      <div className="flex flex-col gap-1.5">
+                        {events.length === 0 && (
+                          <span className="text-xs text-gray-400">Sin eventos aún · pulsa «+ Añadir»</span>
+                        )}
+                        {events.map((ev) => (
+                          <div className="flex items-center gap-2" key={ev.id}>
+                            <input
+                              className="w-20 rounded border border-gray-300 px-2 py-1 text-xs"
+                              onChange={(e) => updateScheduleEvent(ev.id, { time: e.target.value })}
+                              placeholder="12:00"
+                              type="text"
+                              value={ev.time ?? ''}
+                            />
+                            <input
+                              className="flex-1 rounded border border-gray-300 px-2 py-1 text-xs"
+                              onChange={(e) => updateScheduleEvent(ev.id, { title: e.target.value })}
+                              placeholder="Ej. Ceremonia"
+                              type="text"
+                              value={ev.title ?? ''}
+                            />
+                            <button
+                              aria-label="Eliminar evento"
+                              className="rounded px-2 py-1 text-xs text-red-500 hover:bg-red-50"
+                              onClick={() => deleteScheduleEvent(ev.id)}
+                              type="button"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+                {/* Editor de UBICACIÓN (solo si la sección está activa): lugar + dirección. */}
+                {wedding.sections?.find((x) => x.type === 'location')?.enabled && (() => {
+                  const loc = wedding.sections?.find((x) => x.type === 'location')?.data as
+                    | { venues?: Array<{ address?: string; id: string; name?: string }> }
+                    | undefined;
+                  const venues = loc?.venues ?? [];
+                  const primary = venues[0];
+                  const setVenue = (patch: { address?: string; name?: string }) => {
+                    const base = primary ?? { address: '', id: `v-${Date.now()}`, name: '', type: 'both' };
+                    const next = [{ ...base, ...patch }, ...venues.slice(1)];
+                    updateSection?.('location', { venues: next } as any);
+                  };
+                  return (
+                    <div className="mx-auto mt-3 max-w-3xl border-t border-gray-100 pt-3">
+                      <div className="mb-2 text-xs font-semibold text-gray-600">📍 Ubicación</div>
+                      <div className="flex flex-wrap items-end gap-3">
+                        <label className="flex flex-1 flex-col gap-1 text-xs font-medium text-gray-600" style={{ minWidth: 160 }}>
+                          Nombre del lugar
+                          <input
+                            className="rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-800"
+                            onChange={(e) => setVenue({ name: e.target.value })}
+                            placeholder="Ej. Finca La Rosaleda"
+                            type="text"
+                            value={primary?.name ?? ''}
+                          />
+                        </label>
+                        <label className="flex flex-col gap-1 text-xs font-medium text-gray-600" style={{ flex: 2, minWidth: 200 }}>
+                          Dirección
+                          <input
+                            className="rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-800"
+                            onChange={(e) => setVenue({ address: e.target.value })}
+                            placeholder="Ej. Calle Mayor 1, Madrid"
+                            type="text"
+                            value={primary?.address ?? ''}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  );
+                })()}
+                {/* Editor de CONFIRMACIÓN (RSVP): mensaje + qué se pregunta en el formulario. */}
+                {wedding.sections?.find((x) => x.type === 'rsvp')?.enabled && (() => {
+                  const data = (wedding.sections?.find((x) => x.type === 'rsvp')?.data ?? {}) as {
+                    config?: { allowPlusOne?: boolean; askDietaryRestrictions?: boolean; askMessage?: boolean; askSongRequest?: boolean };
+                    message?: string;
+                  };
+                  const cfg = data.config ?? {};
+                  const toggles: Array<{ key: keyof typeof cfg; label: string }> = [
+                    { key: 'allowPlusOne', label: 'Acompañante (+1)' },
+                    { key: 'askDietaryRestrictions', label: 'Alergias/dieta' },
+                    { key: 'askSongRequest', label: 'Petición de canción' },
+                    { key: 'askMessage', label: 'Mensaje del invitado' },
+                  ];
+                  return (
+                    <div className="mx-auto mt-3 max-w-3xl border-t border-gray-100 pt-3">
+                      <div className="mb-2 text-xs font-semibold text-gray-600">✅ Confirmación de asistencia (RSVP)</div>
+                      <label className="flex flex-col gap-1 text-xs font-medium text-gray-600">
+                        Mensaje del formulario
+                        <input
+                          className="rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-800"
+                          onChange={(e) => updateSection?.('rsvp', { message: e.target.value } as any)}
+                          placeholder="Ej. Confírmanos tu asistencia antes del 1 de junio"
+                          type="text"
+                          value={data.message ?? ''}
+                        />
+                      </label>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <span className="text-xs font-medium text-gray-500">Preguntar:</span>
+                        {toggles.map((t) => {
+                          const on = !!cfg[t.key];
+                          return (
+                            <button
+                              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                                on ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-300 text-gray-500 hover:bg-gray-50'
+                              }`}
+                              key={t.key}
+                              onClick={() => updateSection?.('rsvp', { config: { ...cfg, [t.key]: !on } } as any)}
+                              type="button"
+                            >
+                              {on ? '✓ ' : ''}{t.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+                {/* Editor de GALERÍA (solo si la sección está activa): subir fotos + enlace + pie. */}
+                {wedding.sections?.find((x) => x.type === 'gallery')?.enabled && (() => {
+                  const data = (wedding.sections?.find((x) => x.type === 'gallery')?.data ?? {
+                    layout: 'grid',
+                    photos: [],
+                    title: 'Galería',
+                  }) as { photos?: Array<{ caption?: string; id: string; url: string }> };
+                  const photos = data.photos ?? [];
+                  const setPhotos = (next: typeof photos) => updateSection?.('gallery', { photos: next } as any);
+                  const addByUrl = () => {
+                    const url = typeof window !== 'undefined' ? window.prompt('Pega el enlace de la imagen (https://...)') : null;
+                    if (url && /^https?:\/\//i.test(url.trim())) {
+                      setPhotos([...photos, { id: `p-${Date.now()}`, url: url.trim() }]);
+                    }
+                  };
+                  return (
+                    <div className="mx-auto mt-3 max-w-3xl border-t border-gray-100 pt-3">
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-xs font-semibold text-gray-600">🖼️ Galería de fotos</span>
+                        <div className="flex items-center gap-2">
+                          {galleryUploading && <span className="text-xs text-gray-400">Subiendo…</span>}
+                          <label className={`cursor-pointer rounded border px-2 py-1 text-xs font-medium ${galleryUploading ? 'border-gray-200 text-gray-300' : 'border-blue-600 text-blue-700 hover:bg-blue-50'}`}>
+                            + Subir fotos
+                            <input
+                              accept="image/*"
+                              className="hidden"
+                              disabled={galleryUploading}
+                              multiple
+                              onChange={async (e) => {
+                                const files = e.target.files;
+                                setGalleryUploading(true);
+                                try {
+                                  const uploaded = await uploadGalleryFiles(files);
+                                  if (uploaded.length) setPhotos([...photos, ...uploaded]);
+                                } finally {
+                                  setGalleryUploading(false);
+                                  e.target.value = '';
+                                }
+                              }}
+                              type="file"
+                            />
+                          </label>
+                          {eventId && eventId !== 'dummy' && (
+                            <button
+                              className="rounded border border-blue-600 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50"
+                              onClick={() => setShowAlbumPicker(true)}
+                              type="button"
+                            >
+                              📷 Traer del álbum
+                            </button>
+                          )}
+                          <button
+                            className="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                            onClick={addByUrl}
+                            type="button"
+                          >
+                            Añadir por enlace
+                          </button>
+                        </div>
+                      </div>
+                      {photos.length === 0 ? (
+                        <span className="text-xs text-gray-400">Sin fotos aún · pulsa «+ Subir fotos» o añade por enlace</span>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                          {photos.map((ph, i) => (
+                            <div className="flex flex-col gap-1" key={ph.id}>
+                              <div className="relative">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img alt={ph.caption || `Foto ${i + 1}`} className="h-24 w-full rounded border border-gray-200 object-cover" src={ph.url} />
+                                <button
+                                  aria-label="Eliminar foto"
+                                  className="absolute right-1 top-1 rounded-full bg-black/60 px-1.5 text-xs text-white hover:bg-black/80"
+                                  onClick={() => setPhotos(photos.filter((p) => p.id !== ph.id))}
+                                  type="button"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                              <input
+                                className="rounded border border-gray-300 px-1.5 py-1 text-[11px]"
+                                onChange={(e) => setPhotos(photos.map((p) => (p.id === ph.id ? { ...p, caption: e.target.value } : p)))}
+                                placeholder="Pie de foto (opcional)"
+                                type="text"
+                                value={ph.caption ?? ''}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+                {/* Editor de INFO (solo si la sección está activa): vestimenta + alojamiento + FAQs. */}
+                {wedding.sections?.find((x) => x.type === 'info')?.enabled && (() => {
+                  const data = (wedding.sections?.find((x) => x.type === 'info')?.data ?? {}) as {
+                    accommodations?: Array<{ description?: string; id: string; name: string }>;
+                    dressCode?: { description?: string; type?: string };
+                    faqs?: Array<{ answer: string; id: string; question: string }>;
+                  };
+                  const dc = data.dressCode ?? { type: 'formal' };
+                  const faqs = data.faqs ?? [];
+                  const accs = data.accommodations ?? [];
+                  const dressOptions: Array<{ label: string; value: string }> = [
+                    { label: 'Formal', value: 'formal' },
+                    { label: 'Semi-formal', value: 'semi-formal' },
+                    { label: 'Cóctel', value: 'cocktail' },
+                    { label: 'Casual', value: 'casual' },
+                    { label: 'Playa', value: 'beach' },
+                    { label: 'Etiqueta (black-tie)', value: 'black-tie' },
+                  ];
+                  const setDress = (patch: { description?: string; type?: string }) => updateSection?.('info', { dressCode: { ...dc, ...patch } } as any);
+                  const setFaqs = (next: typeof faqs) => updateSection?.('info', { faqs: next } as any);
+                  const setAccs = (next: typeof accs) => updateSection?.('info', { accommodations: next } as any);
+                  return (
+                    <div className="mx-auto mt-3 max-w-3xl border-t border-gray-100 pt-3">
+                      <div className="mb-2 text-xs font-semibold text-gray-600">ℹ️ Información para los invitados</div>
+                      <div className="flex flex-wrap items-end gap-3">
+                        <label className="flex flex-col gap-1 text-xs font-medium text-gray-600">
+                          Código de vestimenta
+                          <select
+                            className="rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-800"
+                            onChange={(e) => setDress({ type: e.target.value })}
+                            value={dc.type ?? 'formal'}
+                          >
+                            {dressOptions.map((o) => (
+                              <option key={o.value} value={o.value}>{o.label}</option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="flex flex-1 flex-col gap-1 text-xs font-medium text-gray-600" style={{ minWidth: 200 }}>
+                          Detalle (opcional)
+                          <input
+                            className="rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-800"
+                            onChange={(e) => setDress({ description: e.target.value })}
+                            placeholder="Ej. Se ruega evitar el blanco"
+                            type="text"
+                            value={dc.description ?? ''}
+                          />
+                        </label>
+                      </div>
+                      <div className="mt-3">
+                        <div className="mb-1.5 flex items-center justify-between">
+                          <span className="text-xs font-medium text-gray-500">🏨 Alojamiento sugerido</span>
+                          <button
+                            className="rounded border border-blue-600 px-2 py-0.5 text-xs font-medium text-blue-700 hover:bg-blue-50"
+                            onClick={() => setAccs([...accs, { description: '', id: `a-${Date.now()}`, name: '' }])}
+                            type="button"
+                          >
+                            + Añadir
+                          </button>
+                        </div>
+                        {accs.length === 0 && <span className="text-xs text-gray-400">Sin alojamientos · opcional</span>}
+                        <div className="flex flex-col gap-1.5">
+                          {accs.map((a) => (
+                            <div className="flex items-center gap-2" key={a.id}>
+                              <input
+                                className="w-40 rounded border border-gray-300 px-2 py-1 text-xs"
+                                onChange={(e) => setAccs(accs.map((x) => (x.id === a.id ? { ...x, name: e.target.value } : x)))}
+                                placeholder="Hotel / lugar"
+                                type="text"
+                                value={a.name ?? ''}
+                              />
+                              <input
+                                className="flex-1 rounded border border-gray-300 px-2 py-1 text-xs"
+                                onChange={(e) => setAccs(accs.map((x) => (x.id === a.id ? { ...x, description: e.target.value } : x)))}
+                                placeholder="Nota (precio, distancia, código…)"
+                                type="text"
+                                value={a.description ?? ''}
+                              />
+                              <button aria-label="Eliminar alojamiento" className="rounded px-2 py-1 text-xs text-red-500 hover:bg-red-50" onClick={() => setAccs(accs.filter((x) => x.id !== a.id))} type="button">✕</button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <div className="mb-1.5 flex items-center justify-between">
+                          <span className="text-xs font-medium text-gray-500">❓ Preguntas frecuentes</span>
+                          <button
+                            className="rounded border border-blue-600 px-2 py-0.5 text-xs font-medium text-blue-700 hover:bg-blue-50"
+                            onClick={() => setFaqs([...faqs, { answer: '', id: `f-${Date.now()}`, question: '' }])}
+                            type="button"
+                          >
+                            + Añadir
+                          </button>
+                        </div>
+                        {faqs.length === 0 && <span className="text-xs text-gray-400">Sin preguntas · opcional</span>}
+                        <div className="flex flex-col gap-2">
+                          {faqs.map((f) => (
+                            <div className="flex items-start gap-2" key={f.id}>
+                              <div className="flex flex-1 flex-col gap-1">
+                                <input
+                                  className="rounded border border-gray-300 px-2 py-1 text-xs"
+                                  onChange={(e) => setFaqs(faqs.map((x) => (x.id === f.id ? { ...x, question: e.target.value } : x)))}
+                                  placeholder="Pregunta (ej. ¿Hay aparcamiento?)"
+                                  type="text"
+                                  value={f.question ?? ''}
+                                />
+                                <input
+                                  className="rounded border border-gray-300 px-2 py-1 text-xs"
+                                  onChange={(e) => setFaqs(faqs.map((x) => (x.id === f.id ? { ...x, answer: e.target.value } : x)))}
+                                  placeholder="Respuesta"
+                                  type="text"
+                                  value={f.answer ?? ''}
+                                />
+                              </div>
+                              <button aria-label="Eliminar pregunta" className="mt-1 rounded px-2 py-1 text-xs text-red-500 hover:bg-red-50" onClick={() => setFaqs(faqs.filter((x) => x.id !== f.id))} type="button">✕</button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
 
             {/* Preview Content */}
             <div className="flex flex-1 items-start justify-center overflow-auto p-4">
@@ -826,6 +1514,15 @@ function WeddingCreatorContent() {
             onClose={() => setShowPublishModal(false)}
             onPublish={handlePublish}
             onUnpublish={handleUnpublish}
+          />
+        </Suspense>
+      )}
+      {showAlbumPicker && eventId && eventId !== 'dummy' && (
+        <Suspense fallback={null}>
+          <AlbumPicker
+            eventId={eventId}
+            onClose={() => setShowAlbumPicker(false)}
+            onSelect={handleAddAlbumPhotos}
           />
         </Suspense>
       )}

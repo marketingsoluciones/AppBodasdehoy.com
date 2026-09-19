@@ -22,20 +22,24 @@ export const AddUserToServices: FC<props> = ({ openModal, setOpenModal, itinerar
     const handleAddUser = (values: detalle_compartidos_array) => {
         try {
             const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
-            const f2 = event.itinerarios_array[f1].viewers.findIndex(elem => elem === values.uid)
-            if (f2 > -1) {
-                event.itinerarios_array[f1].viewers.splice(f2, 1)
-            } else {
-                event.itinerarios_array[f1].viewers.push(values.uid)
-            }
-            setEvent({ ...event })
+            const currentViewers = event.itinerarios_array[f1].viewers ?? []
+            const hasUser = currentViewers.includes(values.uid)
+            const newViewers = hasUser
+                ? currentViewers.filter(uid => uid !== values.uid)
+                : [...currentViewers, values.uid]
+            setEvent((prev) => ({
+                ...prev,
+                itinerarios_array: prev.itinerarios_array.map((it, i) =>
+                    i !== f1 ? it : { ...it, viewers: newViewers }
+                ),
+            }))
             fetchApiEventos({
                 query: queries.editItinerario,
                 variables: {
                     eventID: event._id,
                     itinerarioID: itinerario?._id,
                     variable: "viewers",
-                    valor: JSON.stringify(event.itinerarios_array[f1].viewers)
+                    valor: JSON.stringify(newViewers)
                 },
                 domain: config.domain
             })

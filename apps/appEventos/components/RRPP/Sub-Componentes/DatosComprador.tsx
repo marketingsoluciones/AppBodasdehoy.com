@@ -1,4 +1,5 @@
 import { Formik, Form } from 'formik';
+import { formikValidateUx } from "../../Forms/formikValidateUx";
 import { FC, useState } from "react"
 import InputField from "../../Forms/InputField";
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -68,6 +69,7 @@ export const DatosComprador: FC<propsDatosComprador> = ({ valirButton, setValirB
   return (
     <>
       <Formik
+      {...formikValidateUx}
         initialValues={initialValues}
         validationSchema={validationSchema}
         onSubmit={handleSubmit}

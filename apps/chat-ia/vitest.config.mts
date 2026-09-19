@@ -30,12 +30,16 @@ export default defineConfig({
       '@/utils/developmentDetector': resolve(__dirname, './src/utils/developmentDetector'),
       '@/utils/checkPythonBackendConfig': resolve(__dirname, './src/utils/checkPythonBackendConfig'),
       '@/utils/performanceMonitor': resolve(__dirname, './src/utils/performanceMonitor'),
+      '@/utils/safeLocalStorage': resolve(__dirname, './src/utils/safeLocalStorage'),
       '@/utils/visitorLimit': resolve(__dirname, './src/utils/visitorLimit'),
       '@/utils/authToken': resolve(__dirname, './src/utils/authToken'),
       '@/utils/avatarInitials': resolve(__dirname, './src/utils/avatarInitials'),
       '@/utils/brandingDisplay': resolve(__dirname, './src/utils/brandingDisplay'),
       '@/const/supportKeys': resolve(__dirname, './src/const/supportKeys'),
       '@/const/agents': resolve(__dirname, './src/const/agents'),
+      '@/const/api2Endpoints': resolve(__dirname, './src/const/api2Endpoints'),
+      '@/const/mcpEndpoints': resolve(__dirname, './src/const/mcpEndpoints'),
+      '@/const/backendEndpoints': resolve(__dirname, './src/const/backendEndpoints'),
       '@/utils': resolve(__dirname, './packages/utils/src'),
       '@/types': resolve(__dirname, './packages/types/src'),
       '@/const': resolve(__dirname, './packages/const/src'),
@@ -69,6 +73,10 @@ export default defineConfig({
       '**/apps/mobile/**',
       '**/packages/**',
       '**/e2e/**',
+      // Gemelos AppleDouble (`._algo.test.ts`) que macOS crea en volúmenes no-APFS: no son
+      // código, pero el runner intentaba parsearlos y salían 6 suites "fallidas" que no
+      // existen, tapando los fallos de verdad.
+      '**/._*',
     ],
     env: {
       // Skip integration tests that require a live backend in normal test runs

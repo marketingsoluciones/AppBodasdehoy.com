@@ -1,14 +1,13 @@
 import { publicProcedure, asyncRouter as router } from '@/libs/trpc/async';
 
-import { fileRouter } from './file';
-import { imageRouter } from './image';
-import { ragEvalRouter } from './ragEval';
+// Routers eliminados (refactor runtime-only-api-ia 24-jun-2026):
+//   · fileRouter   (embeddingChunks, parseFileToChunks) → migrado a api-ia /webapi/embeddings
+//   · imageRouter  (DALL-E/BFL background)              → migrado a api-ia /api/ai/images/generate
+//   · ragEvalRouter                                     → ningún consumidor cliente
+// Todos usaban runtime SDK directo. La generación/embeddings ahora pasa por api-ia.
 
 export const asyncRouter = router({
-  file: fileRouter,
   healthcheck: publicProcedure.query(() => "i'm live!"),
-  image: imageRouter,
-  ragEval: ragEvalRouter,
 });
 
 export type AsyncRouter = typeof asyncRouter;

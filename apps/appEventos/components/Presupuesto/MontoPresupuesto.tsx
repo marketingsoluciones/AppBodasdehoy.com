@@ -6,7 +6,6 @@ import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { estimate } from "../../utils/Interfaces";
 import { InputMontoPresupuesto } from "./InputMontoPresupuesto";
 import { useAllowed } from "../../hooks/useAllowed";
-import { api } from "../../api";
 
 export const MontoPresupuesto = () => {
   const { event, setEvent } = EventContextProvider()
@@ -14,58 +13,72 @@ export const MontoPresupuesto = () => {
 
 
   useEffect(() => {
-    if (event?.presupuesto_objeto && typeof event.presupuesto_objeto.presupuesto_total !== "number" && event.presupuesto_objeto.viewEstimates && event.presupuesto_objeto.coste_estimado) {
-      event.presupuesto_objeto.presupuesto_total = event.presupuesto_objeto.coste_estimado
+    const p = event?.presupuesto_objeto
+    if (!p) return
+    if (typeof p.presupuesto_total !== "number" && p.viewEstimates && p.coste_estimado) {
       fetchApiEventos({
         query: queries.editPresupuesto,
         variables: {
           evento_id: event?._id,
-          presupuesto_total: event.presupuesto_objeto.coste_estimado
+          datos: { presupuesto_total: p.coste_estimado }
         }
       })
-      setEvent({ ...event })
+      setEvent((prev) => ({
+        ...prev,
+        presupuesto_objeto: { ...prev.presupuesto_objeto, presupuesto_total: p.coste_estimado },
+      }))
     }
   }, [event?.presupuesto_objeto]);
 
   const handleChangeViewEstimates = async (value: boolean) => {
+    // BUG-16 (informe QA 21-jun): guard contra evento_id undefined.
+    if (!event?._id) {
+      console.warn('[MontoPresupuesto] sin event._id, abortar editPresupuesto viewEstimates')
+      return
+    }
     try {
-      const result = await fetchApiEventos({
+      const result: any = await fetchApiEventos({
         query: queries.editPresupuesto,
         variables: {
-          evento_id: event?._id,
-          viewEstimates: value
+          evento_id: event._id,
+          datos: { viewEstimates: value }
         }
       })
-      event.presupuesto_objeto = result as estimate
-      setEvent({ ...event })
+      if (result?.evento?.presupuesto_objeto) {
+        setEvent((prev) => ({ ...prev, presupuesto_objeto: result.evento.presupuesto_objeto }))
+      }
     } catch (error) {
     }
   }
   const handleChangeS = (e) => {
-
-    const params = {
-      query: `mutation {
-          editCurrency(evento_id:"${event._id}", currency:"${e.target.value}"  ){
-            currency
-          }
-        }`,
-      variables: {},
-    }
-    try {
-      api.ApiApp(params).then(result => {
-        const currency = result?.data?.data?.editCurrency?.currency
-        event.presupuesto_objeto.currency = currency
-        setEvent({ ...event })
-      })
-    } catch (error) {
-    }
+    if (!event?._id || !event?.presupuesto_objeto) return
+    const moneda = e.target.value
+    fetchApiEventos({
+      query: `mutation($evento_id:ID!,$moneda:String!){
+        editCurrency(evento_id:$evento_id, moneda:$moneda){
+          success errors{ field message code }
+          evento{ _id presupuesto_objeto }
+        }
+      }`,
+      variables: { evento_id: event._id, moneda }
+    }).then((result: any) => {
+      const currency = result?.evento?.presupuesto_objeto?.currency
+      if (currency && event.presupuesto_objeto) {
+        setEvent((prev) => ({
+          ...prev,
+          presupuesto_objeto: { ...prev.presupuesto_objeto, currency },
+        }))
+      }
+    }).catch((error) => {
+      console.warn('[MontoPresupuesto] editCurrency falló:', error?.message ?? error)
+    })
   }
 
   return (
     <div className="flex flex-col w-full items-center relative">
      {/*  <Switch isOn={event?.presupuesto_objeto?.viewEstimates} onToggle={(value) => handleChangeViewEstimates(value)} /> */}
       <div className="flex flex-col w-full items-center relative">
-        {!event?.presupuesto_objeto?.viewEstimates && <div className="bg-white opacity-50 absolute w-full h-full z-30" />}
+        {!event?.presupuesto_objeto?.viewEstimates && <div className="bg-white opacity-50 absolute w-full h-full z-30 pointer-events-none" />}
         <div className="grid grid-cols-2 w-full mt-1 z-40 ">
           <div className="flex items-center justify-center">
             <CochinoIcon className="w-12 h-12 text-gray-500" />

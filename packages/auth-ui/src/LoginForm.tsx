@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 export interface LoginFormProps {
   /** Handler para login con email/contraseña */
@@ -19,6 +19,26 @@ export interface LoginFormProps {
   error?: string | null;
   /** Mensaje de sesión expirada */
   sessionExpiredMessage?: string | null;
+  /**
+   * Color primario whitelabel (afecta CTA primario + acentos del hint
+   * auto-sugerir provider). Default rosa Bodas de Hoy (#F7628C).
+   * Multimarca: cada whitelabel pasa su color desde el config.
+   */
+  primaryColor?: string;
+  /**
+   * Color secundario whitelabel = fin del gradiente del CTA primario.
+   * Default = tono oscuro de marca Bodas de Hoy (#D6497A). Multimarca: cada
+   * whitelabel pasa su secondary desde el config (p.ej. eventosorganizador azul
+   * #6096B9→#284C77). Antes el CTA tenía un gradiente rosa→MORADO hardcodeado
+   * (#ec4899→#a855f7) igual para toda marca; ahora lo pinta el color de la marca.
+   */
+  secondaryColor?: string;
+  /**
+   * Si false, oculta el hint "Detectamos cuenta Gmail" tras el email.
+   * Default true. Multimarca: whitelabels que prefieren login uniforme
+   * pueden desactivarlo.
+   */
+  enableProviderHint?: boolean;
 }
 
 // Iconos inline — sin dependencias externas
@@ -105,8 +125,8 @@ const s = {
     textAlign: 'right' as const,
     width: '100%',
   },
-  btnPrimary: (loading: boolean) => ({
-    background: loading ? '#f0f0f0' : 'linear-gradient(90deg, #ec4899, #a855f7)',
+  btnPrimary: (loading: boolean, primary = '#F7628C', secondary = '#D6497A') => ({
+    background: loading ? '#f0f0f0' : `linear-gradient(90deg, ${primary}, ${secondary})`,
     border: 'none',
     borderRadius: 8,
     color: loading ? '#8c8c8c' : 'white',
@@ -156,6 +176,25 @@ const s = {
   },
 };
 
+/**
+ * Mapping domain → provider sugerido. Heurística simple basada en el dominio
+ * mail más común para cada OAuth. Multimarca: el botón solo aparece si el
+ * whitelabel YA tiene esa opción habilitada (onGoogleLogin pasado).
+ */
+const PROVIDER_HINTS: Record<string, { provider: 'google' | 'facebook'; label: string }> = {
+  'gmail.com': { provider: 'google', label: 'Gmail' },
+  'googlemail.com': { provider: 'google', label: 'Gmail' },
+  // 'outlook.com' / 'hotmail.com' / 'live.com' → Microsoft (no implementado todavía)
+  // 'yahoo.com' → no tiene OAuth fácil, sin hint
+};
+
+function getProviderHint(email: string): { provider: 'google' | 'facebook'; label: string } | null {
+  if (!email || !email.includes('@')) return null;
+  const domain = email.split('@')[1]?.toLowerCase().trim();
+  if (!domain) return null;
+  return PROVIDER_HINTS[domain] ?? null;
+}
+
 export function LoginForm({
   onEmailLogin,
   onGoogleLogin,
@@ -166,9 +205,20 @@ export function LoginForm({
   onRegister,
   error: externalError,
   sessionExpiredMessage,
+  primaryColor = '#F7628C',
+  secondaryColor = '#D6497A',
+  enableProviderHint = true,
 }: LoginFormProps) {
+  // QA 10-ago: los inputs email/password eran CONTROLADOS (`value={state}`). Un re-render
+  // asíncrono durante el montaje (carrera con el tecleo) pisaba el estado y TRUNCABA el valor
+  // tecleado ("bodasdehoy.com@gmail.com" → "gmail.com"), provocando en chat-dev "Email o
+  // contraseña incorrectos" con credenciales correctas (reproducido con Playwright: reset
+  // one-shot, mismo nodo DOM = reset de estado controlado, no remount). Fix: inputs
+  // NO-CONTROLADOS (ref, el DOM es la fuente de verdad) → ningún re-render puede borrar lo
+  // tecleado. `email` se mantiene solo como espejo para el hint de provider (no autoritativo).
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -178,16 +228,27 @@ export function LoginForm({
   const displayError = error || externalError || null;
   const anyLoading = loading || googleLoading || facebookLoading;
 
+  // Hint multimarca: solo si está habilitado, hay providers activos en este
+  // whitelabel y el dominio matchea uno de los providers disponibles.
+  const providerHint = enableProviderHint ? getProviderHint(email) : null;
+  const hintAvailable =
+    providerHint &&
+    ((providerHint.provider === 'google' && !!onGoogleLogin) ||
+      (providerHint.provider === 'facebook' && !!onFacebookLogin));
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
+    // Fuente de verdad = DOM (inputs no-controlados), no el estado (ver nota arriba).
+    const emailVal = (emailRef.current?.value ?? '').trim();
+    const passwordVal = passwordRef.current?.value ?? '';
+    if (!emailVal || !passwordVal) {
       setError('Introduce tu email y contraseña.');
       return;
     }
     setError(null);
     setLoading(true);
     try {
-      await onEmailLogin(email, password);
+      await onEmailLogin(emailVal, passwordVal);
     } catch (err: any) {
       setError(err?.message || 'Email o contraseña incorrectos.');
     } finally {
@@ -228,9 +289,15 @@ export function LoginForm({
         <div style={s.alert('warning')}>{sessionExpiredMessage}</div>
       )}
 
-      {/* Error */}
+      {/* Error — role=alert + data-testid para E2E QA-R6 (2-jul) */}
       {displayError && (
-        <div style={s.alert('error')}>{displayError}</div>
+        <div
+          style={s.alert('error')}
+          role="alert"
+          data-testid="login-inline-error"
+        >
+          {displayError}
+        </div>
       )}
 
       {/* Botones sociales */}
@@ -289,13 +356,60 @@ export function LoginForm({
             <input
               autoComplete="email"
               disabled={anyLoading}
+              name="email"
+              // No-controlado: onChange solo espeja `email` para el hint de provider; el
+              // valor autoritativo se lee de emailRef en el submit (evita truncación).
               onChange={(e) => setEmail(e.target.value)}
               placeholder="tu@email.com"
+              ref={emailRef}
               style={s.input}
               type="email"
-              value={email}
             />
           </div>
+          {/* Hint multimarca auto-sugerir provider */}
+          {hintAvailable && providerHint && (
+            <div
+              role="region"
+              aria-label="Sugerencia de método de acceso"
+              style={{
+                alignItems: 'center',
+                background: `${primaryColor}10`,
+                border: `1px solid ${primaryColor}33`,
+                borderRadius: 6,
+                color: '#525252',
+                display: 'flex',
+                fontSize: 12,
+                gap: 8,
+                justifyContent: 'space-between',
+                marginTop: 6,
+                padding: '8px 10px',
+              }}
+            >
+              <span>
+                Detectamos cuenta {providerHint.label}. Iniciar con{' '}
+                {providerHint.provider === 'google' ? 'Google' : 'Facebook'} es
+                más rápido (1 click).
+              </span>
+              <button
+                onClick={providerHint.provider === 'google' ? handleGoogle : handleFacebook}
+                disabled={anyLoading}
+                style={{
+                  background: 'transparent',
+                  border: `1px solid ${primaryColor}`,
+                  borderRadius: 6,
+                  color: primaryColor,
+                  cursor: anyLoading ? 'not-allowed' : 'pointer',
+                  flexShrink: 0,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  padding: '4px 10px',
+                }}
+                type="button"
+              >
+                Usar {providerHint.provider === 'google' ? 'Google' : 'Facebook'}
+              </button>
+            </div>
+          )}
         </div>
 
         <div style={s.fieldWrap}>
@@ -304,11 +418,11 @@ export function LoginForm({
             <input
               autoComplete="current-password"
               disabled={anyLoading}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
               placeholder="••••••••"
+              ref={passwordRef}
               style={s.input}
               type={showPassword ? 'text' : 'password'}
-              value={password}
             />
             <button
               onClick={() => setShowPassword((v) => !v)}
@@ -322,12 +436,12 @@ export function LoginForm({
         </div>
 
         {onForgotPassword && (
-          <button onClick={onForgotPassword} style={s.forgotLink} type="button">
+          <button onClick={onForgotPassword} style={{ ...s.forgotLink, color: primaryColor }} type="button">
             ¿Olvidaste tu contraseña?
           </button>
         )}
 
-        <button disabled={anyLoading} style={s.btnPrimary(loading)} type="submit">
+        <button disabled={anyLoading} style={s.btnPrimary(loading, primaryColor, secondaryColor)} type="submit">
           {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
         </button>
       </form>
@@ -336,7 +450,7 @@ export function LoginForm({
       {onRegister && (
         <div style={s.registerRow}>
           ¿No tienes cuenta?{' '}
-          <button onClick={onRegister} style={s.registerLink} type="button">
+          <button onClick={onRegister} style={{ ...s.registerLink, color: primaryColor }} type="button">
             Crear cuenta gratis
           </button>
         </div>

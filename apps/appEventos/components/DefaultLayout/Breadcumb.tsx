@@ -43,7 +43,7 @@ const Breadcumbs = () => {
                     <div className='flex items-center space-x-3  w-full'>
                         <span className='text-black truncate' >{item.nombre}</span>
                         {item?.tipo ?
-                            <img className='rounded-full w-[40px] h-[40px]' src={imagen[item.tipo]} />
+                            <img alt={item.tipo ?? ''} className='rounded-full w-[40px] h-[40px]' src={imagen[item.tipo]} />
                             : null
                         }
                     </div>

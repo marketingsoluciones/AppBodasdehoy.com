@@ -1,6 +1,12 @@
 import { type AuthObject } from '@clerk/backend';
-import { AgentRuntimeError } from '@lobechat/model-runtime';
 import { ChatErrorType } from '@lobechat/types';
+
+// Inline factory de errores (antes vivía en @lobechat/model-runtime — package
+// completo eliminado en refactor runtime-only-api-ia 24-jun-2026, api-ia
+// centraliza modelos y proveedores). Mantenemos el mismo shape para callers.
+const AgentRuntimeError = {
+  createError: (errorType: unknown, error?: unknown) => ({ error, errorType }),
+};
 
 import { enableClerk, enableNextAuth } from '@/const/auth';
 import { getAppConfig } from '@/envs/app';

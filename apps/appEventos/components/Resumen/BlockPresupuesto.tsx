@@ -65,9 +65,23 @@ const BlockPresupuesto = () => {
           ))}
         </div>
 
-        <button onClick={() => !isAllowed("presupuesto") ? ht() : router.push("/presupuesto")} className="focus:outline-none rounded-lg border border-primary px-2 mx-auto shrink-0 font-display text-primary text-sm py-1 hover:text-white hover:bg-primary transition">
-          {t("addexpenses")}
-        </button>
+        {/* QA ROLE-03 (04-jul): botón "Añadir gastos" siempre visible + toast al
+            click era UX contradictorio (colaborador ve CTA de escritura sin
+            permiso). Ahora deshabilitado visualmente si no tiene permiso, con
+            tooltip explicativo. Owner sigue viendo el botón activo. */}
+        {isAllowed("presupuesto") ? (
+          <button onClick={() => router.push("/presupuesto")} className="focus:outline-none rounded-lg border border-primary px-2 mx-auto shrink-0 font-display text-primary text-sm py-1 hover:text-white hover:bg-primary transition">
+            {t("addexpenses")}
+          </button>
+        ) : (
+          <button
+            disabled
+            title={t("noPermission") || "No tienes permiso para editar el presupuesto"}
+            className="focus:outline-none rounded-lg border border-gray-200 px-2 mx-auto shrink-0 font-display text-gray-300 text-sm py-1 cursor-not-allowed opacity-60"
+          >
+            {t("addexpenses")}
+          </button>
+        )}
       </div>
     </div>
   );

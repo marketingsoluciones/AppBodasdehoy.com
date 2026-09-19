@@ -6,39 +6,96 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-[ -f "$ROOT_DIR/.env" ] && set -a && source "$ROOT_DIR/.env" && set +a
+if [ -f "$ROOT_DIR/.env.slack.local" ]; then
+  set -a && source "$ROOT_DIR/.env.slack.local" && set +a
+elif [ -f "$ROOT_DIR/.env.local" ]; then
+  set -a && source "$ROOT_DIR/.env.local" && set +a
+elif [ -f "$ROOT_DIR/.env" ]; then
+  set -a && source "$ROOT_DIR/.env" && set +a
+fi
 
-CHANNEL_ID="${SLACK_CHANNEL_FRONTEND:-C0AEV0GCLM7}"
+# Fallback: archivo compartido de credenciales (todos los equipos)
+if [ -z "${SLACK_BOT_TOKEN:-}" ] && [ -f "$HOME/.slack-bodasdehoy.env" ]; then
+  set -a && source "$HOME/.slack-bodasdehoy.env" && set +a
+fi
+
 BOT_TOKEN="${SLACK_BOT_TOKEN:-}"
 WEBHOOK_URL="${SLACK_WEBHOOK_FRONTEND:-${SLACK_WEBHOOK_LOBECHAT:-${SLACK_WEBHOOK_URL:-}}}"
 
-# Identidad por equipo/repo
 REPO=""
-if [ "$1" = "--copilot" ]; then
-  REPO="copilot"
-  shift
-elif [ "$1" = "--web" ]; then
-  REPO="web"
-  shift
-elif [ -n "${SLACK_REPO:-}" ]; then
+DEST=""
+
+while [[ "${1:-}" == --* ]]; do
+  case "$1" in
+    --copilot)
+      REPO="copilot"
+      shift
+      ;;
+    --web)
+      REPO="web"
+      shift
+      ;;
+    --memories)
+      REPO="memories"
+      shift
+      ;;
+    --to)
+      DEST="${2:-}"
+      shift 2
+      ;;
+    --to=*)
+      DEST="${1#--to=}"
+      shift
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+if [ -z "$REPO" ] && [ -n "${SLACK_REPO:-}" ]; then
   REPO="$SLACK_REPO"
 fi
 
+if [ -z "$DEST" ] && [ -n "${SLACK_TO:-}" ]; then
+  DEST="$SLACK_TO"
+fi
+
 if [ "$REPO" = "copilot" ]; then
-  SLACK_SENDER="Front Copilot LobeChat"
-  SLACK_DE="De: Front Copilot LobeChat"
+  SLACK_SENDER="appbodas-Copilot (chat-ia)"
+  SLACK_DE="De: appbodas-Copilot (chat-ia)"
   REPO_LINE="Repo: apps/chat-ia"
 elif [ "$REPO" = "web" ]; then
-  SLACK_SENDER="Front App Bodasdehoy"
-  SLACK_DE="De: Front App Bodasdehoy"
+  SLACK_SENDER="app-bodas (appEventos)"
+  SLACK_DE="De: app-bodas (appEventos)"
   REPO_LINE="Repo: apps/appEventos"
+elif [ "$REPO" = "memories" ]; then
+  SLACK_SENDER="memories (memories-web)"
+  SLACK_DE="De: memories (memories-web)"
+  REPO_LINE="Repo: apps/memories-web"
 else
   SLACK_SENDER="${SLACK_SENDER_NAME:-Frontend Bodasdehoy · Copilot LobeChat}"
   SLACK_DE="${SLACK_MSG_DE:-De: Frontend / Copilot LobeChat}"
   REPO_LINE=""
 fi
 
-SLACK_PARA="${SLACK_MSG_PARA:-Para: Equipo api-ia (#copilot-api-ia)}"
+DEST_LABEL="api-ia"
+DEFAULT_CHANNEL_ID="C0AEV0GCLM7"
+DEFAULT_PARA="Para: Equipo api-ia (#copilot-api-ia)"
+
+if [ "$DEST" = "mcp" ] || [ "$DEST" = "backend" ] || [ "$DEST" = "api2" ]; then
+  DEST_LABEL="mcp"
+  DEFAULT_CHANNEL_ID="C0AE8K47VNF"
+  DEFAULT_PARA="Para: Equipo MCP (#api-ia-api2-sync)"
+fi
+
+if [ -n "${SLACK_CHANNEL_FRONTEND:-}" ]; then
+  CHANNEL_ID="$SLACK_CHANNEL_FRONTEND"
+else
+  CHANNEL_ID="$DEFAULT_CHANNEL_ID"
+fi
+
+SLACK_PARA="${SLACK_MSG_PARA:-$DEFAULT_PARA}"
 PREFIX="${SLACK_DE}\n${SLACK_PARA}\n\n"
 [ -n "$REPO_LINE" ] && PREFIX="${PREFIX}${REPO_LINE}\n\n"
 

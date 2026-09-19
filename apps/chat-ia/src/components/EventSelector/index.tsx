@@ -7,7 +7,7 @@ import {
   type Evento,
   formatEventoLabel,
   getEventosByUsuario,
-} from '@/services/api2/eventos';
+} from '@/services/mcpApi/eventos';
 
 interface EventSelectorProps {
   development: string;
@@ -38,7 +38,13 @@ const EventSelector = ({
     setLoading(true);
     setError(null);
     try {
-      const result = await getEventosByUsuario(development);
+      // usuario_id ahora es OBLIGATORIO en getEventosByUsuario (schema api-mcp). Lo tomamos
+      // del contexto de sesión (email/uid en localStorage). Sin él, no hay eventos que pedir.
+      const usuarioId =
+        (typeof window !== 'undefined' &&
+          (localStorage.getItem('user_email') || localStorage.getItem('user_uid'))) ||
+        '';
+      const result = await getEventosByUsuario(development, usuarioId);
       setEventos(result);
     } catch (err: any) {
       setError(err?.message ?? 'Error al cargar eventos');

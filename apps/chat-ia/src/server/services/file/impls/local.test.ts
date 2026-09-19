@@ -352,6 +352,7 @@ describe('DesktopLocalFileImpl', () => {
       const mockResult = {
         success: true,
         metadata: {
+          hash: 'mock-sha256-hash',
           path: testKey,
           filename: 'test.jpg',
           dirname: 'desktop://images',
@@ -382,6 +383,7 @@ describe('DesktopLocalFileImpl', () => {
       const mockResult = {
         success: true,
         metadata: {
+          hash: 'mock-sha256-hash',
           path: testKey,
           filename: 'test.png',
           dirname: 'desktop://images',
@@ -411,6 +413,7 @@ describe('DesktopLocalFileImpl', () => {
       const mockResult = {
         success: false,
         metadata: {
+          hash: 'mock-sha256-hash',
           path: testKey,
           filename: 'test.jpg',
           dirname: 'desktop://images',

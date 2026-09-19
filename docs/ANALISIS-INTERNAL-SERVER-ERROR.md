@@ -79,7 +79,7 @@ Conclusión: **"Internal Server Error" dentro del iframe del Copilot = fallo en 
 
 ### Paso 4: Causas frecuentes
 
-- **Chat-test – webapi/chat:** Proxy a api-ia caído o timeout; variable de entorno (`PYTHON_BACKEND_URL`, etc.) mal configurada; error no capturado en `modelRuntime.chat()`.
+- **Chat-test – webapi/chat:** Proxy a api-ia caído o timeout; variable de entorno (`API_IA_URL`, etc.) mal configurada; error no capturado en `modelRuntime.chat()`.
 - **Chat-test – auth:** JWT inválido o expirado; error en `checkAuth` o en la lógica de sesión.
 - **Chat-test – OIDC:** Error en el flujo OIDC (provider, redirect, etc.).
 - **App-test – proxy GraphQL/Bodas:** Backend (api2, api.bodasdehoy.com, etc.) devuelve 500 o no responde; timeout de proxy.

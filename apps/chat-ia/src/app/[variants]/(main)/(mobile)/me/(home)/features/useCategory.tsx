@@ -27,7 +27,10 @@ export const useCategory = () => {
   const router = useRouter();
   const { canInstall, install } = usePWAInstall();
   const { t } = useTranslation(['common', 'setting', 'auth']);
-  const { showCloudPromotion, hideDocs } = useServerConfigStore(featureFlagsSelectors);
+  // QA 30-jun: ver Desktop/index.tsx — defensa frente a featureFlags=undefined.
+  const featureFlags = (useServerConfigStore(featureFlagsSelectors) || {}) as any;
+  const showCloudPromotion = featureFlags.showCloudPromotion === true;
+  const hideDocs = featureFlags.hideDocs === true;
   const [isLogin, isLoginWithAuth] = useUserStore((s) => [
     authSelectors.isLogin(s),
     authSelectors.isLoginWithAuth(s),

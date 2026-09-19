@@ -1,5 +1,10 @@
-import type { ModelProviderKey } from '@lobechat/model-runtime';
-import { AiFullModelCard } from 'model-bank';
+import { AiFullModelCard, ModelProvider } from 'model-bank';
+
+// Inline ModelProviderKey (antes en @lobechat/model-runtime — package eliminado
+// refactor runtime-only-api-ia 24-jun-2026, api-ia centraliza modelos).
+// Mantenemos la definición original (lowercase del enum ModelProvider de
+// model-bank) para que i18next typed-keys siga reconociendo los slots.
+type ModelProviderKey = Lowercase<keyof typeof ModelProvider>;
 
 import { ChatModelCard } from '../../llm';
 

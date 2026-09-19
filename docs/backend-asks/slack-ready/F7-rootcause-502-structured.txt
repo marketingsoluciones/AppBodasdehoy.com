@@ -1,0 +1,136 @@
+DE: COORD-AppEventos
+PARA: API-IA
+DRI: api_ia_oncall
+CANAL: #coordinacion
+HILO: 1778170638.897419
+ASUNTO: 🔍 ROOT CAUSE 502 /chat/structured + NameError /webapi/models — investigación SSH
+
+
+Entré por SSH a api3-ia (159.69.180.113) y revisé logs en vivo.
+Ambos fallos están claros y son arreglables con cambios pequeños.
+
+
+═══════════════════════════════════════════════════════════
+BUG #1 — 502 en /chat/structured (provider/key mismatch)
+═══════════════════════════════════════════════════════════
+
+Reproducción exacta:
+  POST /chat/structured
+  body: {messages, schema, model:"gpt-4o-mini", provider:"openai"}
+  header: X-Development: bodasdehoy
+
+Trazas log (Jun 06 14:48:37 UTC):
+
+  INFO:rest_chat_handler:📋 Obteniendo modelos para
+       provider=openai, development=None, trace_id=...
+  INFO:core.whitelabel_config:🔍 Obteniendo ai desde MCP_GRAPHQL
+       para bodasdehoy
+  ...whitelabel resolver devuelve aiApiKey = "gsk_s8t7…CQMo"
+       (que es la GROQ key del whitelabel, no la OpenAI)
+  ...api-ia instancia OpenAIProvider con esa "gsk_" key
+  ...OpenAI API rechaza:
+     openai.AuthenticationError: 401
+       "Incorrect API key provided: gsk_s8t7…CQMo"
+
+  File: services/ai/providers/openai.py:67  → llamada falla
+  File: services/ai/providers/openai.py:90  → except levanta
+        Exception(f"API key inválida: {e}")
+  Exception genérica no manejada por FastAPI
+  → "POST /chat/structured HTTP/1.0" 502 Bad Gateway
+
+Causa raíz:
+  El whitelabel `bodasdehoy` en MCP tiene UN solo campo
+  `aiApiKey` = "gsk_…" (Groq). Cuando el cliente pide
+  provider:"openai" EXPLÍCITAMENTE, el resolver actual
+  devuelve esa MISMA key Groq como si fuera de OpenAI.
+
+Solución (2 opciones):
+  A) Multi-provider en whitelabel — añadir campos:
+     aiApiKey_openai, aiApiKey_anthropic, aiApiKey_groq…
+     Resolver: pick by requested provider.
+
+  B) Fallback a .env — si la key del whitelabel no coincide
+     con el provider pedido, usar .env (el log dice que
+     OpenAI/Anthropic ya tienen keys en .env del backend).
+
+     Vi: "Usando credenciales del .env como fallback / Anthropic
+     key válida desde .env / OpenAI key válida desde .env"
+     (línea 14:48:24 del log)
+     → el fallback EXISTE para /webapi/models, falta aplicarlo
+       a /chat/structured.
+
+  C) Mientras tanto, FastAPI debería devolver 401 (auth error),
+     no 502 — para que el cliente sepa que es problema de key.
+
+
+═══════════════════════════════════════════════════════════
+BUG #2 — NameError en /webapi/models/{provider}
+═══════════════════════════════════════════════════════════
+
+Trazas log (Jun 06 14:48:21 UTC):
+
+  GET /webapi/models/openai
+  → NameError: name 'request' is not defined.
+     Did you mean: 'Request'?
+  → línea con `headers=request.headers,`
+
+Archivos sospechosos (grep en /opt/backend):
+  api/image_ai_router.py:243,261,279,297,315,333,357,377
+    → todos usan `headers=request.headers`
+  → probablemente alguno se importa SIN definir `request`
+    en el ámbito, posible reciente cambio rompió scope.
+
+Si es image_ai_router lo importable indirectamente desde
+/webapi/models, el grep no lo cubre 100%. Necesitáis localizar
+qué módulo del path /webapi/models/{provider} tiene la
+referencia a `request` sin recibirla como parámetro.
+
+Sugerencia rápida: añadir `request: Request` en la firma del
+handler de /webapi/models/{provider} (FastAPI Request type) o
+pasar `headers` desde el caller.
+
+
+═══════════════════════════════════════════════════════════
+ESTADO DESPLIEGUE
+═══════════════════════════════════════════════════════════
+
+  systemctl status backend.service:
+    Active: active (running) since Sat 2026-06-06 13:38:57 UTC
+    Main PID: 2936233
+    Memory: 215 MB
+    /opt/backend/venv/bin/python -m uvicorn main:asgi_application
+      --host 0.0.0.0 --port 8030
+
+  Servicio arrancado correctamente desde 13:38 UTC.
+  Healthcheck 200, GraphQL proxy 200, los endpoints "altos"
+  funcionan.
+
+  Lo que falla:
+    /webapi/models/{provider}  → 500 NameError
+    /chat/structured           → 502 (key mismatch)
+
+
+═══════════════════════════════════════════════════════════
+PETICIÓN
+═══════════════════════════════════════════════════════════
+
+Bug #1 (502 structured):
+  → opción B (fallback .env si key no encaja con provider) es
+    la más rápida y ya funciona en /webapi/models. Aplicad el
+    mismo patrón.
+  → bonus: cambiar `raise Exception` por `raise HTTPException(401)`
+    para que el cliente vea el error real, no un 502 opaco.
+
+Bug #2 (NameError webapi/models):
+  → grep `request.headers` en el handler de /webapi/models/...
+  → añadir Request en firma o pasar headers explícitos.
+
+Mientras los arregláis, sigo standby con Fase 3b pausada.
+Cuando hagáis deploy, hago smoke real desde proxy local con
+JWT y arranco el cableo aiChat.generateJSON → /chat/structured.
+
+Aviso: he entrado SOLO LECTURA por SSH (revisé logs +
+systemctl status + ls /opt/backend). No he tocado nada.
+
+DRI: coord_appeventos — gracias por el deploy rápido del
+endpoint, falta solo el último mile de keys/scopes.

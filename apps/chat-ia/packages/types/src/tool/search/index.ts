@@ -1,4 +1,4 @@
-import { CrawlUniformResult } from '@lobechat/web-crawler';
+import { CrawlUniformResult } from '../../webCrawler';
 
 import { CrawlMultiPagesQuery } from '../crawler';
 

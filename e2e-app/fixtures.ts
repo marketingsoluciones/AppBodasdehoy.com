@@ -167,7 +167,7 @@ const TODAY = new Date().toISOString().slice(0, 10).replace(/-/g, '');
 
 export const TEST_CREDENTIALS = {
   email: process.env.TEST_USER_EMAIL || 'bodasdehoy.com@gmail.com',
-  password: process.env.TEST_USER_PASSWORD || 'lorca2012M*+',
+  password: process.env.TEST_USER_PASSWORD || '',
 };
 
 export const TEST_GUEST = {
@@ -194,8 +194,13 @@ export const TEST_TABLE = {
 export const KNOWN_EVENT_IDS: string[] = [];
 
 export const TEST_CREDENTIALS_U2 = {
-  email: process.env.TEST_USER2_EMAIL || 'test-usuario2@bodasdehoy.com',
-  password: process.env.TEST_USER2_PASSWORD || 'TestBodas2024!',
+  email: process.env.TEST_USER2_EMAIL || 'jcc@marketingsoluciones.com',
+  password: process.env.TEST_USER2_PASSWORD || '',
+};
+
+export const TEST_CREDENTIALS_U3 = {
+  email: process.env.TEST_USER3_EMAIL || 'jcc@bodasdehoy.com',
+  password: process.env.TEST_USER3_PASSWORD || '',
 };
 
 export const VIVETUBODA_URLS = {
@@ -215,7 +220,7 @@ export const TEST_INVITATION_RECIPIENT = {
 
 /**
  * Familia carlos.carrillo@* — aliases de dominio, todos van al mismo inbox.
- * Password compartida: madrid2012M*+
+ * Password compartida: [definida en el entorno]
  * Inbox principal: carlos.carrillo@recargaexpress.com
  *
  * Verificado 2026-04-08 vía api2 getAllUserRelatedEventsByEmail:
@@ -229,7 +234,7 @@ export const TEST_INVITATION_RECIPIENT = {
  * en lugar de bodasdehoy.com@gmail.com (43 eventos, cuota cara).
  */
 export const TEST_CREDENTIALS_CC = {
-  password: process.env.TEST_CC_PASSWORD || 'madrid2012M*+',
+  password: process.env.TEST_CC_PASSWORD || '',
   email: 'carlos.carrillo@recargaexpress.com',
   // Eventos propios (verificados 2026-04-08)
   eventos: {

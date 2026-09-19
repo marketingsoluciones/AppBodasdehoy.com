@@ -54,7 +54,7 @@ describe('POST /api/copilot/chat', () => {
   beforeAll(() => {
     process.env.ENABLE_COPILOT_FALLBACK = '';
     process.env.OPENAI_API_KEY = '';
-    process.env.PYTHON_BACKEND_URL = process.env.PYTHON_BACKEND_URL || PYTHON_BACKEND_DEFAULT;
+    process.env.API_IA_URL = process.env.API_IA_URL || PYTHON_BACKEND_DEFAULT;
   });
 
   afterAll(() => {

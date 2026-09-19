@@ -1,8 +1,15 @@
-import { getModelPropertyWithFallback } from '@lobechat/model-runtime';
 import { produce } from 'immer';
-import { AiFullModelCard, AiModelType } from 'model-bank';
+import {
+  AiFullModelCard,
+  AiModelType,
+  getModelPropertyWithFallback,
+} from 'model-bank';
 
 import { merge } from './merge';
+
+// getModelPropertyWithFallback antes vivía en @lobechat/model-runtime — package
+// eliminado en refactor runtime-only-api-ia 24-jun-2026. model-bank ya expone
+// la misma función, así que reusamos esa fuente única (no duplicamos lógica).
 
 /**
  * Parse model string to add or remove models.

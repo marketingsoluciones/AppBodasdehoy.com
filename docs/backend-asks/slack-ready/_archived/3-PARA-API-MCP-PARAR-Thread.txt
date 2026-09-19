@@ -1,0 +1,66 @@
+DE: COORD-AppEventos
+PARA: API-MCP
+DRI: api_mcp_oncall
+ASUNTO: 🛑 URGENTE — PARAD implementación Thread, retiramos el ticket
+
+Hola, mensaje urgente porque acabamos de aclarar el caso de uso con el
+producto AppBodas y NO necesitamos el modelo Thread.
+
+Si llevabais ya las 2h aprox de implementación, parad antes de gastar las
+6-8h restantes. Lo que se modeló en el contrato (Thread + 6 resolvers) no
+se va a usar.
+
+
+CONTEXTO — por qué se retira
+----------------------------
+
+El front (chat-ia, fork LobeChat) traía Thread como feature original: una
+sub-rama colgada de un mensaje concreto dentro de un Topic, tipo
+"responder en hilo" de Slack/Discord.
+
+Producto AppBodas decidió que la UX del copilot va a ser "como Slack TODO
+INTEGRADO sin threads". El árbol de conversación queda en:
+
+  SessionGroup → Session → Topic → Message
+
+Los topics ya cubren el caso de uso real: una usuaria planificando boda
+abre un Topic "Presupuesto", otro "Florista", otro "Catering". Cada área
+o servicio del evento es un Topic. No hace falta otra dimensión Thread
+por encima.
+
+Topics YA están migrados a api-mcp en CAPA 1 (commit chat-ia 969fa493).
+
+
+ACCIÓN SOLICITADA
+-----------------
+
+1. Cancelar implementación del modelo Thread + 6 resolvers GraphQL.
+2. Marcar el ticket Fase 4 como CERRADO/DESCARTADO.
+3. NO publicar Thread en el schema GraphQL (mantenerlo limpio).
+
+Sentimos las 2h que ya hayáis invertido. La conversación previa con api-ia
+no incluyó al producto AppBodas y ahí se quedó la confusión.
+
+
+LO QUE SÍ CERRAMOS (sin cambios)
+--------------------------------
+
+[2] user_installed_plugins → NO modelado ✅ confirmado, el front ya
+    implementó opción (c): enabledPlugins[] en userConfig
+    (commit chat-ia 30799792)
+
+[3] User.createdAt YA EXISTE → ✅ api-ia puede implementar
+    getUserRegistrationDuration cuando quiera
+
+
+SIGUIENTE BLOQUEO REAL POR VUESTRA PARTE
+----------------------------------------
+
+NINGUNO de chat-ia. Sigue abierto solo lo de AppEventos:
+
+  - updateTasksOrder (Cat C) → ETA mañana 06-jun, sin urgencia
+  - Smoke E2E Cat C → COORD ejecuta hoy con JWT real
+  - Apagar droplet apiapp.bodasdehoy.com → viernes
+
+
+DRI: coord_appeventos — gracias por reaccionar rápido cuando llegue este.

@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 import Script from 'next/script';
 import { getDevelopmentConfig } from '@bodasdehoy/shared';
 
+import { MetaPixel } from '@/components/Analytics/MetaPixel';
+
 // Los IDs de GTM y Meta Pixel vienen del config del white-label, no de env vars.
 // NEXT_PUBLIC_DEVELOPMENT se configura por despliegue en Vercel (ej: bodasdehoy, champagne-events).
 const DEVELOPMENT = process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy';
@@ -17,10 +19,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {GTM_ID && (
           <noscript>
             <iframe
-              src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
               height="0"
-              width="0"
+              src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
               style={{ display: 'none', visibility: 'hidden' }}
+              width="0"
             />
           </noscript>
         )}
@@ -37,17 +39,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           `}</Script>
         )}
 
-        {/* Meta Pixel */}
-        {META_PIXEL_ID && (
-          <Script id="meta-pixel" strategy="afterInteractive">{`
-            !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-            n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-            n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-            t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
-            document,'script','https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init','${META_PIXEL_ID}');fbq('track','PageView');
-          `}</Script>
-        )}
+        {/* El Pixel decide en cliente si toca: dentro del panel de gestión no se carga.
+            Ver components/Analytics/MetaPixel.tsx para el motivo. */}
+        {META_PIXEL_ID && <MetaPixel id={META_PIXEL_ID} />}
       </body>
     </html>
   );

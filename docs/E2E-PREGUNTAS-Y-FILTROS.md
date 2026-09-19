@@ -44,7 +44,7 @@ TEST_EVENT_NAME="Nombre de tu evento" pnpm test:e2e:app:preguntas-filtros
 
 Por defecto usan **`e2e-app/fixtures.ts`**:
 - **Usuario:** `bodasdehoy.com@gmail.com` (o `TEST_USER_EMAIL`)
-- **Clave:** `lorca2012M*+` (o `TEST_USER_PASSWORD`)
+- **Clave:** `«definida en .env.e2e.dev.local — nunca en el repo»` (o `TEST_USER_PASSWORD`)
 
 Para override:
 ```bash

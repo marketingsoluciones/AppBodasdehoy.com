@@ -12,10 +12,10 @@
  *
  * Requiere: BASE_URL=https://app-test.bodasdehoy.com
  *           TEST_USER_EMAIL=bodasdehoy.com@gmail.com
- *           TEST_USER_PASSWORD=lorca2012M*.
+ *           TEST_USER_PASSWORD=«definida en .env.e2e.dev.local — nunca en el repo»
  */
 import { test, expect, BrowserContext, Page } from '@playwright/test';
-import { clearSession, waitForAppReady, loginAndSelectEvent, gotoModule } from './helpers';
+import { clearSession, waitForAppReady, loginAndSelectEvent, navigateToModule } from './helpers';
 import { TEST_CREDENTIALS, TEST_GUEST, TEST_BUDGET_ITEM, TEST_URLS, APP_READY_TIMEOUT, CRUD_DEBOUNCE } from './fixtures';
 
 const BASE_URL = TEST_URLS.app;
@@ -320,7 +320,7 @@ test.describe('Itinerario — editar tarea', () => {
   test('adjuntar archivo a tarea — input file o dropzone presente en detalle de tarea', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await navigateToModule(page, 'servicios');
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -855,7 +855,7 @@ test.describe('Servicios — CRUD', () => {
 
     await clearSession(context, page);
     await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await navigateToModule(page, 'servicios');
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 

@@ -1,20 +1,20 @@
 {
   "name": "@lobechat/e2e-tests",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "E2E tests for LobeChat using Cucumber and Playwright",
+  "description": "E2E tests for chat-ia — Playwright Test + smoke scripts (Cucumber descomisionado 2026-05-21)",
   "scripts": {
-    "test": "cucumber-js --config cucumber.config.js",
-    "test:discover": "cucumber-js --config cucumber.config.js src/features/discover/",
-    "test:headed": "HEADLESS=false cucumber-js --config cucumber.config.js",
-    "test:routes": "cucumber-js --config cucumber.config.js --tags '@routes'",
-    "test:routes:ci": "cucumber-js --config cucumber.config.js --tags '@routes and not @ci-skip'",
-    "test:smoke": "cucumber-js --config cucumber.config.js --tags '@smoke'"
+    "test": "tsx save-storage-states.ts && playwright test",
+    "test:headed": "tsx save-storage-states.ts && playwright test --headed",
+    "test:sessions": "tsx save-storage-states.ts && playwright test tests/sessions.spec.ts --project=webkit-super-admin",
+    "test:auth": "tsx save-storage-states.ts && playwright test tests/auth-flow.spec.ts --project=webkit-super-admin",
+    "test:sso": "tsx save-storage-states.ts && playwright test tests/sso-cross-app.spec.ts --project=webkit-super-admin",
+    "smoke:scripts": "tsx save-storage-states.ts && tsx smoke-with-state.ts && tsx smoke-crud-session.ts && tsx smoke-chat-message.ts && tsx smoke-memories.ts && tsx smoke-auth-state.ts && WAIT_MS=15000 tsx smoke-token-refresh.ts",
+    "smoke:save-states": "tsx save-storage-states.ts"
   },
   "dependencies": {
-    "@cucumber/cucumber": "^12.2.0",
-    "@playwright/test": "^1.56.1",
-    "playwright": "^1.56.1"
+    "@playwright/test": "1.58.2",
+    "playwright": "1.58.2"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",

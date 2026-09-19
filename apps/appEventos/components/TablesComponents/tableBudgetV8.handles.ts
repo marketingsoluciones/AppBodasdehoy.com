@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction, useState } from "react"
-import { fetchApiEventos, queries } from "../../utils/Fetching"
+import { fetchApiEventos, fetchApiBodas, queries } from "../../utils/Fetching"
 import { Event, item, expenses, estimateCategory } from "../../utils/Interfaces"
 
 interface propsHandleChange {
@@ -17,9 +17,33 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
       const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === original?.categoriaID)
       const f2 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.findIndex(elem => elem._id === original?.gastoID)
       const f3 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array[f2].items_array.findIndex(elem => elem._id === original?.itemID)
-      event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3][values.accessor] = values.value !== "" ? values.value : "nuevo item"
-      if (values.accessor === "unidad" && values.value === "xUni.") {
-        event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3].cantidad = 0
+      const newItemValue = values.value !== "" ? values.value : "nuevo item"
+      const resetCantidadToZero = values.accessor === "unidad" && values.value === "xUni."
+      // Update inmutable del item (con cantidad=0 si aplica).
+      setEvent((prev) => ({
+        ...prev,
+        presupuesto_objeto: {
+          ...prev.presupuesto_objeto,
+          categorias_array: prev.presupuesto_objeto.categorias_array.map((cat, ci) =>
+            ci !== f1 ? cat : {
+              ...cat,
+              gastos_array: cat.gastos_array.map((gasto, gi) =>
+                gi !== f2 ? gasto : {
+                  ...gasto,
+                  items_array: gasto.items_array.map((item, ii) =>
+                    ii !== f3 ? item : {
+                      ...item,
+                      [values.accessor]: newItemValue,
+                      ...(resetCantidadToZero ? { cantidad: 0 } : {}),
+                    }
+                  ),
+                }
+              ),
+            }
+          ),
+        },
+      }))
+      if (resetCantidadToZero) {
         fetchApiEventos({
           query: queries.editItemGasto,
           variables: {
@@ -32,7 +56,6 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
           }
         })
       }
-      setEvent({ ...event })
       fetchApiEventos({
         query: queries.editItemGasto,
         variables: {
@@ -46,8 +69,28 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
       }).then((result: any) => {
         /* Para actualizar los totales del item */
         if (original[values.accessor] != values.value) {
-          const totalItem = event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3].cantidad * event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3].valor_unitario
-          event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3].total = totalItem
+          const itemActual = event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3]
+          const totalItem = (itemActual?.cantidad ?? 0) * (itemActual?.valor_unitario ?? 0)
+          // Update inmutable del total del item.
+          setEvent((prev) => ({
+            ...prev,
+            presupuesto_objeto: {
+              ...prev.presupuesto_objeto,
+              categorias_array: prev.presupuesto_objeto.categorias_array.map((cat, ci) =>
+                ci !== f1 ? cat : {
+                  ...cat,
+                  gastos_array: cat.gastos_array.map((gasto, gi) =>
+                    gi !== f2 ? gasto : {
+                      ...gasto,
+                      items_array: gasto.items_array.map((item, ii) =>
+                        ii !== f3 ? item : { ...item, total: totalItem }
+                      ),
+                    }
+                  ),
+                }
+              ),
+            },
+          }))
           if (original.coste_final !== totalItem) {
             fetchApiEventos({
               query: queries.editItemGasto,
@@ -68,11 +111,23 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
                 }
                 return acumulador + (item.total || 0);
               }, 0)
-              event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].coste_final = SumaTotalItems
               const sumaTotalesGastos = original.categoriaOriginal.gastos_array.reduce((acumulador, item) => acumulador + (item.coste_final || 0), 0)
-              const nuevasCategorias = event.presupuesto_objeto.categorias_array.map((cat, idx) =>
-                idx === f1 ? { ...cat, coste_final: sumaTotalesGastos } : cat
-              );
+              // Update inmutable del coste_final del gasto Y de la categoría.
+              setEvent((prev) => ({
+                ...prev,
+                presupuesto_objeto: {
+                  ...prev.presupuesto_objeto,
+                  categorias_array: prev.presupuesto_objeto.categorias_array.map((cat, ci) =>
+                    ci !== f1 ? cat : {
+                      ...cat,
+                      coste_final: sumaTotalesGastos,
+                      gastos_array: cat.gastos_array.map((gasto, gi) =>
+                        gi !== f2 ? gasto : { ...gasto, coste_final: SumaTotalItems }
+                      ),
+                    }
+                  ),
+                },
+              }))
 
               if (original.gastoOriginal.coste_final !== SumaTotalItems) {
                 fetchApiEventos({
@@ -85,16 +140,18 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
                     valor_reemplazar: SumaTotalItems
                   }
                 }).then((result: any) => {
-                  if (event.presupuesto_objeto.categorias_array[f1].coste_final != sumaTotalesGastos) {
-                    /*  event.presupuesto_objeto.categorias_array[f1].coste_final = sumaTotalesGastos */
-                    setEvent(prev => ({
-                      ...prev,
-                      presupuesto_objeto: {
-                        ...prev.presupuesto_objeto,
-                        categorias_array: nuevasCategorias
-                      }
-                    }));
-                  }
+                  // El coste_final de la categoría ya se actualizó arriba via setEvent inmutable.
+                  // Si necesitamos re-asegurarlo tras la confirmación del backend, sólo aplica
+                  // si el valor cambió respecto al cálculo arriba (idempotente).
+                  setEvent(prev => ({
+                    ...prev,
+                    presupuesto_objeto: {
+                      ...prev.presupuesto_objeto,
+                      categorias_array: prev.presupuesto_objeto.categorias_array.map((cat, ci) =>
+                        ci !== f1 ? cat : { ...cat, coste_final: sumaTotalesGastos }
+                      ),
+                    },
+                  }));
                 })
               }
             })
@@ -111,14 +168,34 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
     if ((original.object === "gasto" && (!["categoria"].includes(values.accessor)) || (original.object === "item" && values.accessor === "gasto"))) {
       const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex(elem => elem._id === original?.categoriaID)
       const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex(elem => elem._id === original?.gastoID)
-      event.presupuesto_objeto.categorias_array[f1].gastos_array[f2][values.accessor === "gasto" ? "nombre" : values.accessor] = values.value !== "" ? values.value : "nuevo gasto"
+      const fieldKey = values.accessor === "gasto" ? "nombre" : values.accessor
+      const newGastoFieldValue = values.value !== "" ? values.value : "nuevo gasto"
       const sumaTotalesGastos = original?.categoriaOriginal?.gastos_array.reduce((acumulador, item) => acumulador + (item.coste_final || 0), 0)
-
+      // Update inmutable del gasto Y del coste_final de la categoría.
       const nuevasCategorias = event.presupuesto_objeto.categorias_array.map((cat, idx) =>
-        idx === f1 ? { ...cat, coste_final: sumaTotalesGastos } : cat
+        idx === f1 ? {
+          ...cat,
+          coste_final: sumaTotalesGastos,
+          gastos_array: cat.gastos_array.map((gasto, gi) =>
+            gi !== f2 ? gasto : { ...gasto, [fieldKey]: newGastoFieldValue }
+          ),
+        } : cat
       );
-
-      setEvent({ ...event })
+      setEvent((prev) => ({
+        ...prev,
+        presupuesto_objeto: {
+          ...prev.presupuesto_objeto,
+          categorias_array: prev.presupuesto_objeto.categorias_array.map((cat, idx) =>
+            idx === f1 ? {
+              ...cat,
+              coste_final: sumaTotalesGastos,
+              gastos_array: cat.gastos_array.map((gasto, gi) =>
+                gi !== f2 ? gasto : { ...gasto, [fieldKey]: newGastoFieldValue }
+              ),
+            } : cat
+          ),
+        },
+      }))
       fetchApiEventos({
         query: queries.editGasto,
         variables: {
@@ -146,14 +223,22 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
     }
     if (original.object === "categoria" || (original.object === "gasto" && values.accessor === "categoria") || (original.object === "item" && values.accessor === "categoria")) {
       const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === original?.categoriaID)
-      event.presupuesto_objeto.categorias_array[f1].nombre = values.value !== "" ? values.value : "nueva categoria"
-      setEvent({ ...event })
-      fetchApiEventos({
+      const newNombre = values.value !== "" ? values.value : "nueva categoria"
+      setEvent((prev) => ({
+        ...prev,
+        presupuesto_objeto: {
+          ...prev.presupuesto_objeto,
+          categorias_array: prev.presupuesto_objeto.categorias_array.map((cat, idx) =>
+            idx === f1 ? { ...cat, nombre: newNombre } : cat
+          ),
+        },
+      }))
+      fetchApiBodas({
         query: queries.editCategoria,
         variables: {
           evento_id: event?._id,
           categoria_id: original?.categoriaID,
-          nombre: values.value !== "" ? values.value : "nueva categoria"
+          updates: { nombre: values.value !== "" ? values.value : "nueva categoria" }
         }
       }).then((result: any) => {
         return
@@ -186,64 +271,111 @@ interface propsHandleDelete {
   setShowModalDelete: Dispatch<SetStateAction<any>>
 }
 
-export const handleDelete = ({ showModalDelete, event, setEvent, setLoading, setShowModalDelete }: propsHandleDelete) => {
+export const handleDelete = async ({ showModalDelete, event, setEvent, setLoading, setShowModalDelete }: propsHandleDelete) => {
+  // BUG-P-02 (informe QA 22-jun): la versión anterior con Promise wrapper no
+  // resolvía si el object no era reconocido o si fetchApiEventos lanzaba excepción
+  // (resolve nunca se llamaba → spinner infinito). Refactor a async/await + try/finally
+  // que GARANTIZA cerrar modal + reset loading en TODOS los casos.
+  const { values } = showModalDelete
+  setLoading(true)
   try {
-    const { values } = showModalDelete
-    setLoading(true)
-    new Promise(resolve => {
-      if (values?.object === "categoria") {
-        fetchApiEventos({
-          query: queries.borraCategoria,
-          variables: {
-            evento_id: event?._id,
-            categoria_id: values?._id,
-          },
-        }).then(result => {
-          const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex(elem => elem._id === values?._id)
-          event?.presupuesto_objeto?.categorias_array?.splice(f1, 1)
-          resolve(event)
+    if (values?.object === "categoria") {
+      await fetchApiEventos({
+        query: queries.borraCategoria,
+        variables: {
+          evento_id: event?._id,
+          categoria_id: values?._id,
+        },
+      })
+      // Update inmutable (no splice mutante).
+      setEvent((prev) => ({
+        ...prev,
+        presupuesto_objeto: {
+          ...prev.presupuesto_objeto,
+          categorias_array: prev.presupuesto_objeto.categorias_array.filter(cat => cat._id !== values?._id),
+        },
+      }))
+    } else if (values?.object === "gasto") {
+      await fetchApiEventos({
+        query: queries.borrarGasto,
+        variables: {
+          evento_id: event?._id,
+          categoria_id: values?.categoriaID,
+          gasto_id: values?._id,
+        },
+      })
+      // Update inmutable.
+      setEvent((prev) => ({
+        ...prev,
+        presupuesto_objeto: {
+          ...prev.presupuesto_objeto,
+          categorias_array: prev.presupuesto_objeto.categorias_array.map(cat =>
+            cat._id !== values?.categoriaID ? cat : {
+              ...cat,
+              gastos_array: cat.gastos_array.filter(g => g._id !== values?._id),
+            }
+          ),
+        },
+      }))
+    } else if (values?.object === "item") {
+      await fetchApiEventos({
+        query: queries.borrarItemsGastos,
+        variables: {
+          evento_id: event?._id,
+          categoria_id: values?.categoriaID,
+          gasto_id: values?.gastoID,
+          itemsGastos_ids: [values?._id],
+        },
+      })
+      setEvent((prev) => ({
+        ...prev,
+        presupuesto_objeto: {
+          ...prev.presupuesto_objeto,
+          categorias_array: prev.presupuesto_objeto.categorias_array.map(cat =>
+            cat._id !== values?.categoriaID ? cat : {
+              ...cat,
+              gastos_array: cat.gastos_array.map(gasto =>
+                gasto._id !== values?.gastoID ? gasto : {
+                  ...gasto,
+                  items_array: gasto.items_array.filter(item => item._id !== values._id),
+                }
+              ),
+            }
+          ),
+        },
+      }))
+    } else {
+      // BUG-CW-N06 (informe QA 23-jun): si object no fue seteado por
+      // handleCreateGasto/handleCreateItem (filas recién creadas), inferir
+      // por shape — si tiene categoriaID + gastoID + _id, es item;
+      // si tiene categoriaID + _id, es gasto; si tiene solo _id, es categoria.
+      let inferredType: string | null = null
+      if (values?.categoriaID && values?.gastoID && values?._id !== values?.gastoID) {
+        inferredType = "item"
+      } else if (values?.categoriaID && values?._id) {
+        inferredType = "gasto"
+      } else if (values?._id) {
+        inferredType = "categoria"
+      }
+      if (inferredType) {
+        console.warn('[handleDelete] object no seteado, inferido:', inferredType, '— re-llamando con object correcto')
+        return handleDelete({
+          showModalDelete: { ...showModalDelete, values: { ...values, object: inferredType } },
+          event,
+          setEvent,
+          setLoading,
+          setShowModalDelete,
         })
       }
-      if (values?.object === "gasto") {
-        fetchApiEventos({
-          query: queries.borrarGasto,
-          variables: {
-            evento_id: event?._id,
-            categoria_id: values?.categoriaID,
-            gasto_id: values?._id,
-          },
-        }).then(result => {
-          const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex(elem => elem._id === values?.categoriaID)
-          const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array?.findIndex(elem => elem._id === values?._id)
-          event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array?.splice(f2, 1)
-          resolve(event)
-        })
-      }
-      if (values?.object === "item") {
-        fetchApiEventos({
-          query: queries.borrarItemsGastos,
-          variables: {
-            evento_id: event?._id,
-            categoria_id: values?.categoriaID,
-            gasto_id: values?.gastoID,
-            itemsGastos_ids: [values?._id],
-          },
-        }).then(result => {
-          const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex(elem => elem._id === values?.categoriaID)
-          const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array?.findIndex(elem => elem._id === values?.gastoID)
-          const f3 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array?.findIndex(elem => elem._id === values._id)
-          event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array.splice(f3, 1)
-          resolve(event)
-        })
-      }
-    }).then((result) => {
-      setEvent({ ...event })
-      showModalDelete["setShowDotsOptionsMenu"] && showModalDelete?.setShowDotsOptionsMenu({ state: false })
-      setShowModalDelete({ state: false })
-      setLoading(false)
-    })
-  } catch (error) {
-    console.log(error)
+      console.warn('[handleDelete] object no reconocido y no inferible:', values, '— solo "categoria"/"gasto"/"item"')
+    }
+  } catch (error: any) {
+    console.warn('[handleDelete] falló:', error?.message ?? error)
+  } finally {
+    // SIEMPRE ejecutar: cerrar modal + reset loading aunque el API falle.
+    showModalDelete["setShowDotsOptionsMenu"] && showModalDelete?.setShowDotsOptionsMenu({ state: false })
+    setShowModalDelete({ state: false })
+    setLoading(false)
   }
 }
 
@@ -273,10 +405,32 @@ export const handleCreateItem = async ({ info, event, setEvent, setShowDotsOptio
       },
     }).then((result: item) => {
       setShowDotsOptionsMenu({ state: false })
-      const f1 = event?.presupuesto_objeto?.categorias_array.findIndex((elem) => elem._id === info?.row?.original?.categoriaID)
-      const f2 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.findIndex((elem) => elem._id == info?.row?.original?.gastoID)
-      event?.presupuesto_objeto?.categorias_array[f1].gastos_array[f2].items_array.push(result)
-      setEvent({ ...event })
+      // BUG-CW-N06: añadir meta-campos para que el "Borrar" desde la tabla
+      // funcione (handleDelete lee values.object para saber el tipo).
+      const newItem: any = {
+        ...result,
+        object: "item",
+        categoriaID: info?.row?.original?.categoriaID,
+        gastoID: info?.row?.original?.gastoID,
+      }
+      // Inmutable: añadir item a categorias→gastos→items.
+      setEvent((prev) => ({
+        ...prev,
+        presupuesto_objeto: {
+          ...prev.presupuesto_objeto,
+          categorias_array: prev.presupuesto_objeto.categorias_array.map(cat =>
+            cat._id !== info?.row?.original?.categoriaID ? cat : {
+              ...cat,
+              gastos_array: cat.gastos_array.map(gasto =>
+                gasto._id != info?.row?.original?.gastoID ? gasto : {
+                  ...gasto,
+                  items_array: [...(gasto.items_array ?? []), newItem],
+                }
+              ),
+            }
+          ),
+        },
+      }))
     })
   } catch (error) {
     console.log(220045, error);
@@ -295,9 +449,33 @@ export const handleCreateGasto = async ({ info, event, setEvent, setShowDotsOpti
       }
     }).then((result: expenses) => {
       setShowDotsOptionsMenu({ state: false })
-      const f1 = event?.presupuesto_objeto?.categorias_array.findIndex((elem) => elem._id === info?.row?.original?.categoriaID)
-      event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array?.push(result)
-      setEvent({ ...event })
+      // BUG-CW-N06 (informe QA 23-jun): el resultado del API solo trae los
+      // campos del gasto en sí (_id, nombre, etc.) pero NO los meta-campos
+      // que la tabla "Presupuesto Detallado" espera para identificar la fila:
+      //   object: "gasto"    → handleDelete necesita esto para saber el tipo
+      //   categoriaID       → para resolver el padre
+      //   gastoID           → idem
+      // Sin esto, al hacer Borrar → handleDelete cae en el else (no reconocido)
+      // → cierra modal SILENCIOSAMENTE sin borrar.
+      const newGasto: any = {
+        ...result,
+        object: "gasto",
+        categoriaID: info?.row?.original?.categoriaID,
+        gastoID: (result as any)?._id,
+      }
+      // Inmutable: añadir gasto a categorias[].gastos_array.
+      setEvent((prev) => ({
+        ...prev,
+        presupuesto_objeto: {
+          ...prev.presupuesto_objeto,
+          categorias_array: prev.presupuesto_objeto.categorias_array.map(cat =>
+            cat._id !== info?.row?.original?.categoriaID ? cat : {
+              ...cat,
+              gastos_array: [...(cat.gastos_array ?? []), newGasto],
+            }
+          ),
+        },
+      }))
     })
   } catch (error) {
     console.log(220046, error);
@@ -315,22 +493,49 @@ export const handleCreateCategoria = async ({ info, event, setEvent, setShowDots
       }
     }).then((result: estimateCategory) => {
       setShowDotsOptionsMenu({ state: false })
-      event?.presupuesto_objeto?.categorias_array.push(result)
+      // Test 34 (informe QA 22-jun): si el API devuelve null/sin _id, no podemos
+      // crear el gasto inicial (categoria_id sería null → API 400).
+      if (!result || !result._id) {
+        console.warn("[handleCreateCategoria] nuevoCategoria devolvió result null/sin _id", result)
+        return
+      }
+      // Paso 1: añadir categoría nueva (inmutable).
+      const nuevaCategoria = { ...result, gastos_array: [] as any[] }
+      setEvent((prev) => ({
+        ...prev,
+        presupuesto_objeto: {
+          ...prev.presupuesto_objeto,
+          categorias_array: [...prev.presupuesto_objeto.categorias_array, nuevaCategoria],
+        },
+      }))
+      // Paso 2: añadir gasto inicial a la categoría recién creada.
       fetchApiEventos({
         query: queries.nuevoGasto,
         variables: {
           evento_id: event?._id,
-          categoria_id: result?._id,
+          categoria_id: result._id,
           nombre: "Nueva part. de gasto",
         }
       }).then((resultGasto: expenses) => {
-        const f1 = event?.presupuesto_objeto?.categorias_array.findIndex((elem) => elem._id === result?._id)
-        event.presupuesto_objeto.categorias_array[f1].gastos_array = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array || []
-        event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array?.push(resultGasto)
-        setEvent({ ...event })
-
+        // Test 34: si el API de gasto devuelve null, NO mutar el array (antes se
+        // metía resultGasto = null en gastos_array → la categoría quedaba "rota").
+        if (!resultGasto || !(resultGasto as any)._id) {
+          console.warn("[handleCreateCategoria] nuevoGasto devolvió result null/sin _id", resultGasto)
+          return
+        }
+        setEvent((prev) => ({
+          ...prev,
+          presupuesto_objeto: {
+            ...prev.presupuesto_objeto,
+            categorias_array: prev.presupuesto_objeto.categorias_array.map(cat =>
+              cat._id !== result._id ? cat : {
+                ...cat,
+                gastos_array: [...(cat.gastos_array ?? []), resultGasto],
+              }
+            ),
+          },
+        }))
       })
-      setEvent({ ...event })
     })
   } catch (error) {
     console.log(220047, error);
@@ -356,8 +561,21 @@ export const handleChangeEstatus = async ({ event, categoriaID, gastoId, setEven
         valor_reemplazar: gastoEstatus === null ? false : !gastoEstatus
       }
     }).then((result: any) => {
-      event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].estatus = result.categorias_array[f1].gastos_array[f2].estatus
-      setEvent({ ...event })
+      const newEstatus = result.categorias_array[f1].gastos_array[f2].estatus
+      setEvent((prev) => ({
+        ...prev,
+        presupuesto_objeto: {
+          ...prev.presupuesto_objeto,
+          categorias_array: prev.presupuesto_objeto.categorias_array.map((cat, ci) =>
+            ci !== f1 ? cat : {
+              ...cat,
+              gastos_array: cat.gastos_array.map((gasto, gi) =>
+                gi !== f2 ? gasto : { ...gasto, estatus: newEstatus }
+              ),
+            }
+          ),
+        },
+      }))
     })
   } catch (error) {
     console.log(220046, error);

@@ -12,7 +12,14 @@ const FinancialSummary = ({
   onExportExcel,
   currency,
 }) => {
-  const porcentajePagado = ((totalPagado / presupuestoTotal) * 100).toFixed(1);
+  // Guard división por cero: si presupuesto=0 o valores no numéricos → 0.0%
+  // (evita "NaN% completado" reportado en QA 04-jul BUG BUD-06 Dashboard).
+  const total = parseFloat(presupuestoTotal);
+  const pagado = parseFloat(totalPagado);
+  const porcentajePagado =
+    Number.isFinite(total) && total > 0 && Number.isFinite(pagado)
+      ? ((pagado / total) * 100).toFixed(1)
+      : "0.0";
 
   return (
     <div className="mt-4 bg-white rounded-xl shadow-md p-4">
@@ -63,7 +70,8 @@ const FinancialSummary = ({
 
         <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3">
           <p className="text-xs font-medium text-gray-600 mb-1">💳 Por otros</p>
-          <p className="text-2xl font-bold ">
+          {/* BUG-CW-N27: faltaba color explícito → invisible si padre tiene text-white */}
+          <p className="text-2xl font-bold text-orange-700">
             {getCurrency(parseFloat(PagadoPorOtros), currency)}
           </p>
           <p className="text-xs text-gray-500 mt-1">Total pagado</p>

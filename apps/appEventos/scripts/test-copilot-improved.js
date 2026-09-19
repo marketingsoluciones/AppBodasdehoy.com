@@ -15,7 +15,7 @@ const { chromium } = require('playwright');
 
 const BASE = 'https://app-test.bodasdehoy.com';
 const USER_EMAIL = 'bodasdehoy.com@gmail.com';
-const USER_PASSWORD = 'lorca2012M*+';
+const USER_PASSWORD = (process.env.TEST_USER_PASSWORD || '');
 const TIMEOUT = 60000;
 
 async function screenshot(page, name) {

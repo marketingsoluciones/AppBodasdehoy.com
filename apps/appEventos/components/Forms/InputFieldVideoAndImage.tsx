@@ -142,7 +142,7 @@ const InputFieldVideoAndImage: FC<propsInputFieldMedia> = ({ label, className, d
           onClick={!hasFile ? handleClickUpload : undefined}
           className={`
             border-[1px] rounded-xl p-4 transition-all relative
-            ${isDragging ? 'border-primary bg-blue-50' : meta.touched && meta.error ? 'border-rose-300' : 'border-gray-200'}
+            ${isDragging ? 'border-primary bg-blue-50' : meta.touched && meta.error ? 'border-primary' : 'border-gray-200'}
             ${!hasFile ? 'cursor-pointer' : ''}
             ${!isAllowed() || disabled ? 'opacity-50 cursor-not-allowed bg-gray-100' : !hasFile ? 'bg-gray-50 hover:bg-gray-100' : 'bg-white'}
           `}
@@ -189,7 +189,7 @@ const InputFieldVideoAndImage: FC<propsInputFieldMedia> = ({ label, className, d
                   type="button"
                   onClick={handleClearValue}
                   disabled={!isAllowed() || disabled}
-                  className="px-3 py-1.5 text-xs bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                  className="px-3 py-1.5 text-xs bg-white hover:bg-gray-100 text-primary border border-primary rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                 >
                   <MdClose className="text-sm" />
                   {t("Remove")}

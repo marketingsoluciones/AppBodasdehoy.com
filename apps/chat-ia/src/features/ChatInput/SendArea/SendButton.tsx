@@ -19,7 +19,10 @@ const SendButton = memo(() => {
       onStop={() => handleStop()}
       placement={'topRight'}
       shape={shape}
-      trigger={['hover']}
+      // QA Bug#8: 'hover' abría el menú de modo-de-envío al acercar el ratón (un clic
+      // ligeramente desviado abría el menú en vez de enviar). 'click' = solo al pulsar
+      // la flecha del split-button (UX estándar).
+      trigger={['click']}
     />
   );
 });

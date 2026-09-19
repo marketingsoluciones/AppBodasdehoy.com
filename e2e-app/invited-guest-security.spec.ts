@@ -24,7 +24,7 @@
  *     role_detector.py: getAllUserRelatedEventsByEmail devuelve solo "Email pruebas"
  *     para este email. Al no encontrar el event_id=66a9042dec5c58aa734bca44, el
  *     sistema aplica FIX: guest→invited_guest (email válido).
- *   Password: lorca2012M*+ (compartida con todos los usuarios de prueba)
+ *   Password: [definida en TEST_USER_PASSWORD] (compartida con todos los usuarios de prueba)
  *
  * CÓMO EJECUTAR:
  *   E2E_ENV=dev npx playwright test e2e-app/invited-guest-security.spec.ts --project=webkit

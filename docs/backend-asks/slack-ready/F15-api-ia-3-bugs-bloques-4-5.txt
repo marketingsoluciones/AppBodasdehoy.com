@@ -1,0 +1,138 @@
+DE: COORD-AppEventos
+PARA: API-IA
+DRI: api_ia_oncall
+CANAL: #coordinacion
+HILO: 1778170638.897419
+ASUNTO: 🎯 Smoke 5 endpoints — 3 OK + 2 con bugs (chunks 500 + PDF NameError)
+
+
+Excelente trabajo nocturno: 3 bloques nuevos desplegados:
+  1cf6db2  bloque 2: /chat/messages/turn
+  2b4846f  bloque 3: galería /image/*
+  e96bcd8  bloque 4+5: chunks + export/pdf
+Restart 2026-06-08 05:43:40 UTC.
+
+Smoke real ahora:
+
+
+═══════════════════════════════════════════════════════════
+✅ FUNCIONAN
+═══════════════════════════════════════════════════════════
+
+  POST /chat/structured              → 200 ✅ (Bug A fix sigue OK)
+  POST /chat/messages/turn           → 422 sessionId requerido ✅ (validación)
+  GET  /image/topics                 → 200 [] ✅ (lista vacía OK)
+
+
+═══════════════════════════════════════════════════════════
+🔴 BUG #1 — /chat/export/pdf NameError
+═══════════════════════════════════════════════════════════
+
+archivo: /opt/backend/rest_chat_handler.py:6592
+trace_id: trc_a3d38029a227
+
+Código actual (líneas 6590-6592):
+```python
+import io as _io
+import re as _re
+_safe_name = _re.sub(r"[^\w\-]+", "_", title)[:60] or "conversacion"
+```
+↑ Esto debería funcionar pero el log dice:
+```
+File "/opt/backend/rest_chat_handler.py", line 6592, in chat_export_pdf_endpoint
+    import re as _re
+                 ^^
+NameError: name 're' is not defined.
+```
+
+El `import re as _re` aparenta estar dentro del flujo pero el log apunta
+ahí mismo como `NameError`. Probablemente el flujo no llega ahí (excepción
+upstream que ATRAPA pero la traza apunta donde la captura asume `re` ya
+importado). Otra opción: el `import` está después de un `return` o dentro
+de un `except` que NO entra.
+
+Sugerencia: mover el `import re` arriba del módulo (línea 1-20) junto a
+los otros imports stdlib. No usar imports anidados condicionales para
+módulos stdlib.
+
+
+═══════════════════════════════════════════════════════════
+🔴 BUG #2 — /api/lobechat-kb/files/{id}/chunks
+═══════════════════════════════════════════════════════════
+
+archivo: /opt/backend/api/lobechat_kb_endpoints.py:~285
+trace_id: trc_d955a490afe7
+
+Error:
+```
+ERROR:api.lobechat_kb_endpoints:❌ Error listando chunks de test-file-id:
+  object of type 'int' has no len()
+```
+
+Causa probable (en el iterador del get(where=...)):
+```python
+ids = res.get("ids") or []
+docs = res.get("documents") or []
+metas = res.get("metadatas") or []
+items = []
+for i, cid in enumerate(ids):
+    ...
+```
+
+Chroma a veces devuelve `ids` anidado como list-of-lists (cuando hay
+filtros): `[["id1", "id2"]]` en vez de `["id1", "id2"]`. El `len()`
+falla cuando es un int.
+
+Sugerencia: normalizar Chroma response:
+```python
+def _flatten(x):
+    if isinstance(x, list) and x and isinstance(x[0], list):
+        return x[0]
+    return x or []
+
+ids = _flatten(res.get("ids"))
+docs = _flatten(res.get("documents"))
+metas = _flatten(res.get("metadatas"))
+```
+
+(Mismo patrón aplica a otros endpoints que llaman `collection.get(...)`)
+
+
+═══════════════════════════════════════════════════════════
+🔴 BUG B sigue abierto — /chat/structured NO factura
+═══════════════════════════════════════════════════════════
+
+Recordatorio F9/F12/F13:
+  - Endpoint funciona técnicamente (200 OK)
+  - PERO no llama track_ai_usage + calculate_ai_cost
+  - Usuarios FREE pueden explotar títulos auto + clasificadores
+    + follow-up sin descontar wallet
+
+Mismo patrón aplica a /chat/messages/turn (bloque 2 nuevo).
+
+Fix: ~10 líneas. Patrón ya existe en streaming /chat:5418.
+
+
+═══════════════════════════════════════════════════════════
+ESTADO Fase 3b mi lado
+═══════════════════════════════════════════════════════════
+
+✅ aiChat.generateJSON → /chat/structured (commit ec9145b7)
+✅ aiModel.toggleEnabled + updateAiModelOrder → userConfig (commit 8792572e)
+⏸️  chunks UI cableo (espera fix bug #2)
+⏸️  /chat/export/pdf cableo (espera fix bug #1)
+⏸️  /chat/messages/turn cableo (espera billing)
+⏸️  /image/topics galería (cableo opcional, ya devuelve 200 [])
+
+
+═══════════════════════════════════════════════════════════
+PETICIÓN PRIORIZADA
+═══════════════════════════════════════════════════════════
+
+  1º Fix Bug #1 PDF (1 línea: mover import re arriba)  ~5 min
+  2º Fix Bug #2 chunks (helper _flatten)               ~10 min
+  3º Fix Bug B billing /chat/structured + /chat/messages/turn  ~20 min
+  4º Restart backend.service
+  5º Aviso aquí → smoke E2E + cableo restante
+
+DRI: coord_appeventos — gracias por el ritmo.

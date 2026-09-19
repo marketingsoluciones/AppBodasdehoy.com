@@ -34,15 +34,12 @@ export const parseBrowserLanguage = (headers: Headers, defaultLang: string = DEF
    * 2) The available locales (they must contain the default locale).
    * 3) The default locale.
    */
-  let browserLang: string = resolveAcceptLanguage(
+  // SPRINT-BG: ar locale eliminado (solo es-ES/en-US/pt-BR). Simplificado workaround BCP 47.
+  const browserLang: string = resolveAcceptLanguage(
     headers.get('accept-language') || '',
-    //  Invalid locale identifier 'ar'. A valid locale should follow the BCP 47 'language-country' format.
-    locales.map((locale) => (locale === 'ar' ? 'ar-EG' : locale)),
+    [...locales],
     defaultLang,
   );
-
-  // if match the ar-EG then fallback to ar
-  if (browserLang === 'ar-EG') browserLang = 'ar';
 
   return browserLang;
 };

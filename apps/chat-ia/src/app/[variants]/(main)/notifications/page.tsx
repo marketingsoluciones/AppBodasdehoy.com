@@ -10,7 +10,7 @@ import {
   getNotifications,
   markAllNotificationsAsRead,
   markNotificationAsRead,
-} from '@/services/api2/notifications';
+} from '@/services/mcpApi/notifications';
 
 const TYPE_LABEL: Record<string, { icon: string; label: string }> = {
   access_revoked: { icon: '🔒', label: 'Acceso revocado' },
@@ -23,14 +23,14 @@ const TYPE_LABEL: Record<string, { icon: string; label: string }> = {
 
 function getNotificationUrl(n: AppNotification): string | null {
   const focused = n.focused ?? '';
-  if (focused.startsWith('/messages') || focused.startsWith('/chat/') || focused.startsWith('/settings')) {
+  if (focused.startsWith('/bandeja') || focused.startsWith('/chat/') || focused.startsWith('/settings')) {
     return focused.split('?')[0];
   }
-  if (focused.startsWith('/tasks')) return '/messages'; // /tasks redirige a /messages
-  if (n.type === 'whatsapp_message') return '/messages';
-  if (n.type === 'task_reminder') return '/messages';
+  if (focused.startsWith('/tasks')) return '/bandeja'; // /tasks redirige a /messages
+  if (n.type === 'whatsapp_message') return '/bandeja';
+  if (n.type === 'task_reminder') return '/bandeja';
   if (n.type === 'access_revoked' || n.type === 'permission_updated') return '/settings';
-  if (focused) return '/messages';
+  if (focused) return '/bandeja';
   return null;
 }
 
@@ -183,7 +183,7 @@ export default function NotificationsPage() {
         <div className="flex items-center gap-3">
           {unreadCount > 0 && (
             <button
-              className="text-sm text-pink-600 hover:text-pink-700 font-medium"
+              className="text-sm text-brand hover:text-brand-dark font-medium"
               onClick={handleMarkAllRead}
             >
               Marcar todas como leídas
@@ -202,7 +202,7 @@ export default function NotificationsPage() {
       {/* Search */}
       <div className="mb-4">
         <input
-          className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:border-pink-400 focus:outline-none"
+          className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:border-brand focus:outline-none"
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Buscar notificaciones..."
           type="text"
@@ -216,7 +216,7 @@ export default function NotificationsPage() {
           <button
             className={`pb-2 px-1 text-sm font-medium border-b-2 transition-colors ${
               filter === f
-                ? 'border-pink-500 text-pink-600'
+                ? 'border-brand text-brand'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
             key={f}
@@ -232,7 +232,7 @@ export default function NotificationsPage() {
         <div className="mb-4 flex flex-wrap gap-1.5">
           <button
             className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-              !typeFilter ? 'bg-pink-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              !typeFilter ? 'bg-brand text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
             onClick={() => setTypeFilter(null)}
             type="button"
@@ -244,7 +244,7 @@ export default function NotificationsPage() {
             return (
               <button
                 className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-                  typeFilter === t ? 'bg-pink-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  typeFilter === t ? 'bg-brand text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
                 key={t}
                 onClick={() => setTypeFilter(typeFilter === t ? null : t)}
@@ -296,7 +296,7 @@ export default function NotificationsPage() {
                 return (
                   <div
                     className={`relative flex items-start gap-3 rounded-xl px-4 py-3 transition-colors ${
-                      n.read ? 'bg-white hover:bg-gray-50' : 'bg-pink-50 hover:bg-pink-100'
+                      n.read ? 'bg-white hover:bg-gray-50' : 'bg-brand-light hover:bg-brand-light'
                     } ${isClickable ? 'cursor-pointer' : 'cursor-default'}`}
                     key={n.id || n._id}
                   >
@@ -315,12 +315,12 @@ export default function NotificationsPage() {
                           </div>
                           <div className="flex shrink-0 flex-col items-end gap-1.5">
                             <span className="text-xs text-gray-400 whitespace-nowrap">{timeAgo(n.createdAt ?? 0)}</span>
-                            {!n.read && <span className="h-2 w-2 rounded-full bg-pink-500" />}
+                            {!n.read && <span className="h-2 w-2 rounded-full bg-brand" />}
                           </div>
                         </div>
                         {isClickable && (
                           <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-white border border-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-600">
-                            {url === '/messages' && '→ Ir a bandeja de mensajes'}
+                            {url === '/bandeja' && '→ Ir a bandeja de mensajes'}
                             {url === '/settings' && '→ Ver configuración'}
                             {url?.startsWith('/chat/') && '→ Abrir conversación'}
                             {ext && '→ Ver en la app'}

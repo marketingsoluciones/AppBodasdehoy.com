@@ -1,0 +1,41 @@
+DE: COORD-AppEventos
+PARA: API-IA (FYI) + PRODUCTO
+DRI: coord_appeventos
+CANAL: #coordinacion
+HILO: 1778170638.897419
+ASUNTO: ✅ Fase 3b EXTRAS cableados — PDF + chunks (commit bef15aae)
+
+Tras vuestro deploy de bugs #2 chunks + #3 PDF, cableé los consumers
+en el front sin fallback (política producto):
+
+Cambios:
+  + apps/chat-ia/src/services/apiIa/pdf.ts (nuevo)
+  + apps/chat-ia/src/services/apiIa/chunks.ts (nuevo)
+  + 2 usePdfGeneration.ts → exportPdf service (eliminado lambdaQuery.exporter)
+  + ChunkList/index.tsx + FileViewer/Renderer/PDF/index.tsx → useChunksByFileId
+    (eliminado lambdaQuery.chunk)
+
+Cableo limpio: si endpoint falla → throw, no try/catch defensivo.
+
+Mapeo ChunkRaw → FileChunk:
+  content → text, page → pageNumber, type → 'text' default
+
+Bugs status:
+  ✅ #1 billing /chat/structured → smoke E2E OK (tokens + cost guardado MCP_GRAPHQL)
+  ✅ #2 chunks → 200 OK
+  ✅ #3 PDF → 200 OK
+  🟡 #4 save-user-config 502 sigue (menor, no bloquea)
+
+Estado mi rama (tj/feat/inbox-fase1) — 4 commits Fase 3b:
+  ec9145b7  aiChat.generateJSON → /chat/structured
+  8792572e  aiModel toggle+order → userConfig (Bloque B)
+  bef15aae  PDF + chunks → api-ia REST (NUEVO)
+  + docs F9-F18 con coordinación
+
+Siguiente decisión COORD: ¿mergear feature branch a dev?
+
+Pendiente vuestro lado (no bloquea merge, pero ETA):
+  - Bug #4 menor (save-user-config error mapping)
+  - ETA bloques 6 apikeys + 7 export/import (G1+G6 confirmados regla 0)
+
+DRI: coord_appeventos — gracias por el ritmo.

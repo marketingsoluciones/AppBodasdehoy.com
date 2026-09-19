@@ -8,6 +8,7 @@ import { ViewItinerary } from "../../../pages/invitados";
 import { TempPastedAndDropFile } from "../../Itinerario/MicroComponente/ItineraryPanel";
 import { useToast } from "../../../hooks/useToast";
 import { useAllowed } from '../../../hooks/useAllowed';
+import { useServicePermissions } from '../../../hooks/useServicePermissions';
 // Importar funciones utilitarias
 import { sortCommentsByDate, haveCommentsChanged, } from './TaskNewUtils';
 // Importar componentes
@@ -51,19 +52,24 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   setSelectTask?: (taskId: string) => void;
   selectTask?: string;
   handleUpdate?: (field: string, value: any) => Promise<void>;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
+  gripDraggable?: boolean;
+  onGripDragStart?: (e: React.DragEvent) => void;
 }
 
-export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryButtonBox, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, setSelectTask, selectTask, handleUpdate, ...props }) => {
+export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryButtonBox, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, setSelectTask, selectTask, handleUpdate, isExpanded, onToggleExpand, gripDraggable, onGripDragStart, ...props }) => {
   const { t } = useTranslation();
   const { config, user } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
   const [isAllowed, ht] = useAllowed();
+  const { canEditTask } = useServicePermissions(itinerario?.viewers ?? [])
   const toast = useToast();
   const commentsContainerRef = useRef<HTMLDivElement>(null);
   const [previousCountComments, setPreviousCountComments] = useState(0);
   const [comments, setComments] = useState<Comment[]>([]);
 
-  const canEdit = !user?.uid ? false : isAllowed() || task.responsable?.includes(user?.uid);
+  const canEdit = !user?.uid ? false : canEditTask()
 
   const [localTask, setLocalTask] = useState<TaskFormValues>({
     _id: task?._id,
@@ -76,7 +82,7 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
     responsable: task?.responsable || [],
     tips: task?.tips || '',
     attachments: task?.attachments || [],
-    spectatorView: task?.spectatorView !== undefined ? task?.spectatorView : false,
+    spectatorView: task?.spectatorView ?? false,
     comments: task?.comments || [],
     commentsViewers: task?.commentsViewers || [],
     estatus: task?.estatus ?? false,
@@ -96,7 +102,7 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
       responsable: Array.isArray(task?.responsable) ? task?.responsable : [],
       tips: task?.tips || '',
       attachments: Array.isArray(task?.attachments) ? task.attachments : [],
-      spectatorView: task?.spectatorView ?? true,
+      spectatorView: task?.spectatorView ?? false,
       comments: Array.isArray(task?.comments) ? task?.comments : [],
       commentsViewers: Array.isArray(task?.commentsViewers) ? task.commentsViewers : [],
       estatus: task?.estatus ?? false,
@@ -212,35 +218,49 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
     }
     try {
       const fecha = new Date();
-      const response = await fetchApiEventos({
+      // Forma CANÓNICA del adapter: { evento_id, development, task:{ itinerario_id, ...TareaInput } }.
+      // (Antes usaba eventID + campos planos → mapVariables devolvía null → "adapter no pudo mapear".)
+      // TareaInput NO tiene estado/prioridad, así que no se envían (el backend los rechazaría).
+      const res: any = await fetchApiEventos({
         query: queries.createTask,
         variables: {
-          eventID: event._id,
-          itinerarioID: itinerario._id,
-          descripcion: `${localTask.descripcion} (copia)`,
-          fecha: fecha.toISOString(),
-          duracion: localTask.duracion || 30,
-          tags: JSON.stringify(localTask.tags || []),
-          responsable: JSON.stringify(localTask.responsable || []),
-          tips: localTask.tips || '',
-          estado: localTask.estado || 'pending',
-          prioridad: localTask.prioridad || 'media'
+          evento_id: event._id,
+          development: config.development || "bodasdehoy",
+          task: {
+            itinerario_id: itinerario._id,
+            descripcion: `${localTask.descripcion || ''} (copia)`,
+            fecha: fecha.toISOString(),
+            duracion: localTask.duracion || 30,
+            tags: Array.isArray(localTask.tags) ? localTask.tags.filter((x: any) => typeof x === 'string') : [],
+            responsable: Array.isArray(localTask.responsable) ? localTask.responsable.filter((x: any) => typeof x === 'string') : [],
+            tips: localTask.tips || '',
+            ...(localTask.icon ? { icon: localTask.icon } : {}),
+            ...((localTask as any).hora ? { hora: (localTask as any).hora, horaActiva: !!(localTask as any).horaActiva } : {}),
+            ...(typeof localTask.spectatorView === 'boolean' ? { spectatorView: localTask.spectatorView } : {}),
+          },
         },
         domain: config.domain
       });
-      if (response && typeof response === 'object' && '_id' in response) {
+      // El adapter devuelve { success, errors, task } (la última tarea creada).
+      const created: any = res?.task || res;
+      if (created && created._id) {
         toast('success', t('Tarea duplicada correctamente'));
         setEvent((oldEvent) => {
           const newEvent = { ...oldEvent };
           const itineraryIndex = newEvent.itinerarios_array.findIndex(it => it._id === itinerario._id);
           if (itineraryIndex !== -1) {
-            newEvent.itinerarios_array[itineraryIndex].tasks.push(response as Task);
+            newEvent.itinerarios_array[itineraryIndex] = {
+              ...newEvent.itinerarios_array[itineraryIndex],
+              tasks: [...(newEvent.itinerarios_array[itineraryIndex].tasks || []), created as Task],
+            };
           }
           return newEvent;
         });
-        if (setSelectTask && response._id && typeof response._id === 'string') {
-          setSelectTask(response._id);
+        if (setSelectTask && typeof created._id === 'string') {
+          setSelectTask(created._id);
         }
+      } else {
+        toast('error', t('Error al duplicar la tarea'));
       }
     } catch (error) {
       console.error('Error al duplicar tarea:', error);
@@ -313,6 +333,11 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
           handleUpdate={handleUpdate}
           optionsItineraryButtonBox={optionsItineraryButtonBox}
           isSelect={selectTask === task._id}
+          isExpanded={isExpanded}
+          onToggleExpand={onToggleExpand}
+          onDuplicate={handleDuplicate}
+          gripDraggable={gripDraggable}
+          onGripDragStart={onGripDragStart}
         />
         : view === "cards" || view === "kanban"
           ? <TaskFullView
@@ -328,6 +353,8 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
             tempPastedAndDropFiles={tempPastedAndDropFiles}
             setTempPastedAndDropFiles={setTempPastedAndDropFiles}
             selectTask={selectTask}
+            isExpanded={isExpanded}
+            onToggleExpand={onToggleExpand}
           />
           : null
   )

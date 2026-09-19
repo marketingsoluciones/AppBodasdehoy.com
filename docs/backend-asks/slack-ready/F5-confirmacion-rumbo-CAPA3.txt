@@ -1,0 +1,123 @@
+DE: COORD-AppEventos
+PARA: API-IA
+DRI: api_ia_oncall
+CANAL: #coordinacion
+HILO: 1778170638.897419
+ASUNTO: ✅ CAPA 3 EN PIE — desplegad /chat/structured YA + prioridades confirmadas
+
+
+Confirmo los 3 puntos en orden.
+
+
+═══════════════════════════════════════════════════════════
+1) ¿CAPA 3 sigue en pie?
+═══════════════════════════════════════════════════════════
+  → SÍ. EN PIE. Sin cambios de alcance ni prioridad.
+
+  Producto reafirmó hoy la regla 0:
+    "Eliminar drizzle/pglite/tRPC del bundle PRESERVANDO 100%
+     de las funcionalidades."
+
+  El objetivo (reducir 40k → ~15k módulos, build 10min → 3-4min)
+  SIGUE en pie. Lo único que descartamos hoy fue el atajo
+  "borrar features que no aplican". Lo correcto es:
+
+    ✅ CAMBIAR backend de tRPC/pglite a REST (CAPA 3 sigue)
+    ❌ Borrar funcionalidad porque hoy use tRPC (descartado)
+
+  Vuestra construcción (structured + turn + galería + chunks +
+  PDF + apikey + export/import) ES exactamente lo que necesitamos
+  para apagar pglite del navegador SIN perder UI.
+
+
+═══════════════════════════════════════════════════════════
+2) ¿Desplegar /chat/structured a prod YA?
+═══════════════════════════════════════════════════════════
+  → SÍ. Desplegad YA. No esperéis.
+
+  Razones:
+    a) Es bloqueante para títulos auto de topic, follow-up
+       suggestions, clasificadores y traducción. SIN esto la
+       UI degrada notablemente.
+    b) Es independiente del resto (puede ir solo a prod).
+    c) Cuanto antes esté LIVE antes arranco Fase 3b en el front
+       (cableo aiChat.outputJSON sin tocar UI).
+    d) Vuestro commit 301eff6 con 8/8 tests verde es
+       suficiente. Si algo falla en prod, rollback fácil.
+
+  Una vez en prod, hago smoke con curl + JWT real y reporto.
+
+
+═══════════════════════════════════════════════════════════
+3) Prioridad confirmada
+═══════════════════════════════════════════════════════════
+  → SÍ. Mantenemos:
+
+    1º POST /chat/structured                    (outputJSON)
+       ↳ ya hecho, desplegad
+       ↳ desbloquea: títulos topic, follow-up, clasificadores,
+                     traducción
+
+    2º POST /chat/messages/turn                 (atómico)
+       ↳ desbloquea: chat funcional 100% sin tRPC
+
+    3º POST/GET/PATCH/DELETE /image/topics
+       GET /image/topics/{id}/generations
+       DELETE /image/generations/{id}
+       ↳ desbloquea: galería usuario (UX core sector)
+
+    4º GET /api/lobechat-kb/files/{file_id}/chunks
+       ↳ desbloquea: UI RAG citas con fuente
+
+    5º POST /chat/export/pdf
+       ↳ desbloquea: compartir conversación
+
+    6º GET/POST/PATCH/DELETE /api/apikeys
+       ↳ desbloquea: UI Settings > API Keys
+
+    7º POST /chat/export + POST /chat/import
+       ↳ GDPR obligatorio + restore backup
+
+  Notas:
+  - aiModel (G2) lo migro yo via userConfig (B). No tocáis nada.
+  - memory CRUD (G4) → ticket separado, sin ETA esta sprint.
+  - market/discover → mantened endpoint que devuelva [] vacío
+    (graceful empty state). No invertir en construir el catálogo
+    real todavía.
+
+
+═══════════════════════════════════════════════════════════
+QUÉ HARÉ EN FRONT mientras vais construyendo
+═══════════════════════════════════════════════════════════
+
+  FASE 3b (en cuanto deploy /chat/structured):
+    → cableo aiChat.outputJSON al nuevo endpoint
+    → smoke real títulos topic + follow-up
+    → REPORTAR
+
+  Paralelo (sin esperar deploy):
+    → userConfig patrón (c) para B: toggleModelEnabled,
+      updateAiModelOrder, agent.pinned
+    → stubs CON LOG CLARO en routers que esperan endpoint
+      nuevo (no NO-OP silencioso)
+    → NO toco ninguna UI. Si endpoint aún no LIVE → graceful
+      degradation.
+
+
+═══════════════════════════════════════════════════════════
+PETICIÓN
+═══════════════════════════════════════════════════════════
+
+  A) Avisad cuando /chat/structured esté en prod (con health
+     check + ejemplo curl) y arranco Fase 3b.
+
+  B) ETA aproximada para los bloques 2º (turn) y 3º (galería).
+     No las necesito EXACTAS, solo orden de magnitud (esta
+     semana / próxima / 2 semanas).
+
+  C) Si en construcción detectáis algún caso donde "userConfig
+     es más adecuado que endpoint nuevo" → avisad y lo movemos
+     yo (no perdemos tiempo).
+
+
+DRI: coord_appeventos — gracias por confirmar antes de seguir.

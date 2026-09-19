@@ -1,0 +1,2 @@
+Único documento a seguir: scripts/OPERATIVO-CHECKLIST.txt (prioridad P0→P1 y casillas [ ]).
+DRI / un hilo: scripts/LIDERES-DRI-Y-ANTIBUCLE.txt

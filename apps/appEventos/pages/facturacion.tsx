@@ -3,19 +3,22 @@ import { AuthContextProvider } from "../context"
 import { motion } from "framer-motion"
 import { fetchApiBodas, queries } from "../utils/Fetching"
 import { MetodosDePago, InformacionFacturacion, HistorialFacturacion } from "../components/Facturacion"
+import FacturacionStudio from "../components/Facturacion/FacturacionStudio"
+import { useSearchParams } from "next/navigation"
 import { countries_eur } from "../utils/Currencies"
 import VistaSinCookie from "./vista-sin-cookie"
 import { usePlanLimits } from "../hooks/usePlanLimits"
 import { humanizeQuota, TIER_COLORS } from "@bodasdehoy/shared/plans"
+import { resolveApiBodasGraphqlUrl } from "../utils/apiEndpoints"
 
-const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql'
+const API_MCP_URL = resolveApiBodasGraphqlUrl()
 const DEVELOPMENT = process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy'
 
 async function handleSubscribePlan(planId: string, billingPeriod: 'monthly' | 'yearly') {
     const { authBridge } = await import('@bodasdehoy/shared')
     const authState = authBridge.getSharedAuthState()
     if (!authState.idToken) { window.location.href = '/login'; return }
-    const res = await fetch(API2_URL, {
+    const res = await fetch(API_MCP_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authState.idToken}`, 'X-Development': DEVELOPMENT },
         body: JSON.stringify({
@@ -66,7 +69,7 @@ const PlanesAPI2 = () => {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-[300px]">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-500" />
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
             </div>
         )
     }
@@ -96,7 +99,7 @@ const PlanesAPI2 = () => {
                         Mensual
                     </button>
                     <button onClick={() => setBillingPeriod('yearly')} className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${billingPeriod === 'yearly' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500'}`}>
-                        Anual <span className="text-xs text-pink-500 font-bold ml-1">-20%</span>
+                        Anual <span className="text-xs text-primary font-bold ml-1">-20%</span>
                     </button>
                 </div>
             </div>
@@ -119,12 +122,12 @@ const PlanesAPI2 = () => {
                             key={plan.plan_id}
                             className={`relative rounded-2xl p-5 border flex flex-col transition ${
                                 isPro
-                                    ? 'border-[#7c3aed] shadow-lg shadow-purple-100 ring-2 ring-[#7c3aed]/30'
+                                    ? 'border-primary shadow-lg ring-2 ring-primary/30'
                                     : isCurrent
-                                        ? 'border-pink-300 shadow-md ring-2 ring-pink-100'
+                                        ? 'border-primary shadow-md ring-2 ring-primary/20'
                                         : 'bg-white border-gray-100 shadow-sm hover:shadow-md'
                             }`}
-                            style={isPro ? { background: 'linear-gradient(135deg,#7c3aed,#5b21b6)', color: 'white' } : { background: 'white' }}
+                            style={isPro ? { background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))', color: 'white' } : { background: 'white' }}
                         >
                             {isPro && (
                                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#eff6ff] text-[#1d4ed8] text-[11px] font-semibold px-3 py-0.5 rounded-full whitespace-nowrap border border-blue-200">
@@ -132,7 +135,7 @@ const PlanesAPI2 = () => {
                                 </div>
                             )}
                             {isCurrent && !isPro && (
-                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-pink-100 text-pink-600 text-[11px] font-semibold px-3 py-0.5 rounded-full whitespace-nowrap">
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-base border border-primary text-primary text-[11px] font-semibold px-3 py-0.5 rounded-full whitespace-nowrap">
                                     Plan actual
                                 </div>
                             )}
@@ -146,12 +149,12 @@ const PlanesAPI2 = () => {
                                 <span className={`text-3xl font-extrabold tracking-tight ${isPro ? 'text-white' : 'text-gray-900'}`}>
                                     {isFree ? 'Gratis' : `${price % 1 === 0 ? price.toFixed(0) : price.toFixed(2)}\u20AC`}
                                 </span>
-                                {!isFree && <span className={`text-sm mb-1 ${isPro ? 'text-purple-200' : 'text-gray-400'}`}>/mes</span>}
+                                {!isFree && <span className={`text-sm mb-1 ${isPro ? 'text-white/80' : 'text-gray-400'}`}>/mes</span>}
                             </div>
                             {!isFree && billingPeriod === 'yearly' && (
-                                <p className={`text-[11px] mb-3 ${isPro ? 'text-purple-200' : 'text-gray-400'}`}>Facturado anualmente</p>
+                                <p className={`text-[11px] mb-3 ${isPro ? 'text-white/80' : 'text-gray-400'}`}>Facturado anualmente</p>
                             )}
-                            {isFree && <p className={`text-[11px] mb-3 ${isPro ? 'text-purple-200' : 'text-gray-400'}`}>Siempre gratis</p>}
+                            {isFree && <p className={`text-[11px] mb-3 ${isPro ? 'text-white/80' : 'text-gray-400'}`}>Siempre gratis</p>}
                             {!isFree && billingPeriod === 'monthly' && <div className="mb-3" />}
 
                             {/* CTA */}
@@ -164,7 +167,7 @@ const PlanesAPI2 = () => {
                                     onClick={() => handleChoose(plan.plan_id)}
                                     disabled={subscribing === plan.plan_id}
                                     className={`w-full py-2 rounded-xl font-semibold text-sm transition mb-4 disabled:opacity-50 ${
-                                        isPro ? 'bg-white text-[#7c3aed] hover:bg-purple-50' : 'bg-pink-500 text-white hover:bg-pink-600'
+                                        isPro ? 'bg-white text-primary hover:bg-base' : 'bg-primary text-white hover:opacity-80'
                                     }`}
                                 >
                                     {subscribing === plan.plan_id ? 'Procesando...' : isFree ? 'Empezar gratis' : `Probar 14 días gratis`}
@@ -174,12 +177,12 @@ const PlanesAPI2 = () => {
                             {/* Cuotas de uso */}
                             {quotas.length > 0 && (
                                 <>
-                                    <p className={`text-[10px] font-bold uppercase tracking-wider mb-1.5 ${isPro ? 'text-purple-200' : 'text-gray-400'}`}>Incluye</p>
+                                    <p className={`text-[10px] font-bold uppercase tracking-wider mb-1.5 ${isPro ? 'text-white/80' : 'text-gray-400'}`}>Incluye</p>
                                     <ul className="space-y-1.5 mb-3">
                                         {quotas.map((l: any) => (
-                                            <li key={l.sku} className={`flex items-center justify-between text-xs ${isPro ? 'text-purple-100' : 'text-gray-600'}`}>
+                                            <li key={l.sku} className={`flex items-center justify-between text-xs ${isPro ? 'text-white/90' : 'text-gray-600'}`}>
                                                 <span className="flex items-center gap-1">
-                                                    <span className={isPro ? 'text-white' : 'text-pink-500'}>✓</span>
+                                                    <span className={isPro ? 'text-white' : 'text-primary'}>✓</span>
                                                     {l.service_name}
                                                 </span>
                                                 <span className={`font-semibold ${isPro ? 'text-white' : 'text-gray-900'}`}>{humanizeQuota(l.sku, l.free_quota)}</span>
@@ -190,11 +193,11 @@ const PlanesAPI2 = () => {
                             )}
 
                             {/* Feature flags */}
-                            <p className={`text-[10px] font-bold uppercase tracking-wider mb-1.5 ${isPro ? 'text-purple-200' : 'text-gray-400'}`}>Funcionalidades</p>
+                            <p className={`text-[10px] font-bold uppercase tracking-wider mb-1.5 ${isPro ? 'text-white/80' : 'text-gray-400'}`}>Funcionalidades</p>
                             <ul className="space-y-1.5">
                                 {flags.map((f) => (
-                                    <li key={f.label} className={`flex items-center gap-1.5 text-xs ${isPro ? 'text-purple-100' : f.included ? 'text-gray-600' : 'text-gray-300'}`}>
-                                        <span className={`flex-shrink-0 ${isPro ? 'text-white' : f.included ? 'text-pink-500' : 'text-gray-300'}`}>
+                                    <li key={f.label} className={`flex items-center gap-1.5 text-xs ${isPro ? 'text-white/90' : f.included ? 'text-gray-600' : 'text-gray-300'}`}>
+                                        <span className={`flex-shrink-0 ${isPro ? 'text-white' : f.included ? 'text-primary' : 'text-gray-300'}`}>
                                             {f.included ? '✓' : '✗'}
                                         </span>
                                         {f.label}
@@ -257,6 +260,8 @@ const PlanesAPI2 = () => {
 
 const Facturacion = () => {
     const { forCms, user, config, geoInfo, verificationDone } = AuthContextProvider()
+    const searchParams = useSearchParams()
+    const studio = searchParams?.get("studio") !== "legacy"
     const [dataFetch, setDataFetch] = useState<any>({})
     const [data, setData] = useState([])
     const [optionSelect, setOptionSelect] = useState(0)
@@ -277,16 +282,21 @@ const Facturacion = () => {
     }, [])
 
     useEffect(() => {
-        const data = dataFetch?.results?.map(elem => {
-            const price = elem?.prices?.find(el => data?.currency
-                ? el?.currency === data.currency
+        // FIX crash Facturación (QA EV-07): el `.find` referenciaba `data` DENTRO de la propia
+        // definición de `const data` → TDZ ("Cannot access 'data' before initialization") que
+        // tumbaba la página entera. La moneda a comparar es la que devuelve la API (dataFetch.currency),
+        // no el array que se está construyendo. Renombro el local para eliminar el shadow del state.
+        const mapped = dataFetch?.results?.map(elem => {
+            const price = elem?.prices?.find(el => dataFetch?.currency
+                ? el?.currency === dataFetch.currency
                 : el?.currency === currency)
             return { ...elem, prices: [price] }
         })
-        const dataSort = data?.sort((a, b) => {
+        const dataSort = mapped?.sort((a, b) => {
             if (a.usage !== b.usage) {
                 return b.usage - a.usage
             }
+            return 0
         })
         setData(dataSort)
     }, [user, dataFetch, currency])
@@ -314,6 +324,13 @@ const Facturacion = () => {
         if (!user) {
             return (
                 <VistaSinCookie />
+            )
+        }
+        if (studio) {
+            return (
+                <section className={forCms ? " w-[calc(100vw-40px)] " : "bg-base w-full"}>
+                    <FacturacionStudio />
+                </section>
             )
         }
         return (

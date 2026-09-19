@@ -1,4 +1,5 @@
 import { Form, Formik, useFormikContext } from "formik";
+import { formikValidateUx } from "../Forms/formikValidateUx";
 import { FC, useEffect, useState, useRef, useMemo } from 'react';
 import { AuthContextProvider } from '../../context/AuthContext';
 import { EventContextProvider } from '../../context/EventContext';
@@ -218,6 +219,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, variabl
                 {/* Columna del Editor */}
                 <div className="w-full h-full md:max-h-screen md:w-[55%] px-4 md:px-10 pt-3 pb-8 rounded-xl shadow-lg overflow-y-auto">
                     <Formik
+      {...formikValidateUx}
                         initialValues={initialValues}
                         onSubmit={handleSubmit}
                         validationSchema={validationSchema}

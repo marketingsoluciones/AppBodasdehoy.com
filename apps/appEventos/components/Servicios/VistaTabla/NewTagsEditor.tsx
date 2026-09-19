@@ -24,7 +24,7 @@ const TAG_COLORS = [
   { name: 'Verde', value: 'bg-green-500', text: 'text-green', bg: 'bg-green-100' },
   { name: 'Rojo', value: 'bg-red-500', text: 'text-red-700', bg: 'bg-red-100' },
   { name: 'Amarillo', value: 'bg-yellow-500', text: 'text-yellow-700', bg: 'bg-yellow-100' },
-  { name: 'Púrpura', value: 'bg-purple-500', text: 'text-purple-700', bg: 'bg-purple-100' },
+  { name: 'Púrpura', value: 'bg-secondary', text: 'text-secondary', bg: 'bg-secondary/10' },
   { name: 'Azul', value: 'bg-blue-500', text: 'text-blue-700', bg: 'bg-blue-100' },
   { name: 'Índigo', value: 'bg-indigo-500', text: 'text-indigo-700', bg: 'bg-indigo-100' },
   { name: 'Gris', value: 'bg-gray-500', text: 'text-gray-700', bg: 'bg-gray-100' },

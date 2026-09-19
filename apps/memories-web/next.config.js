@@ -13,7 +13,11 @@ const nextConfig = {
       { protocol: 'https', hostname: '*.r2.cloudflarestorage.com' },
       { protocol: 'https', hostname: 'storage.googleapis.com' },
       { protocol: 'https', hostname: 'api.qrserver.com' },
-      { protocol: 'https', hostname: 'picsum.photos' },
+      // Host de imágenes de relleno: solo fuera de producción. Estaba autorizado
+      // en el mismo allowlist que R2 y GCS, ampliando la superficie sin motivo.
+      ...(process.env.NODE_ENV === 'production'
+        ? []
+        : [{ protocol: 'https', hostname: 'picsum.photos' }]),
     ],
     formats: ['image/avif', 'image/webp'],
   },
@@ -36,7 +40,7 @@ const nextConfig = {
   rewrites: async () => [
     {
       source: '/api/graphql',
-      destination: process.env.API2_GRAPHQL_URL || 'https://api2.eventosorganizador.com/graphql',
+      destination: process.env.API_MCP_URL || 'https://api-mcp.eventosorganizador.com',
     },
     {
       source: '/api/memories/:path*',
@@ -55,7 +59,10 @@ const nextConfig = {
   },
 };
 
+// Sentry — solo activo cuando NEXT_PUBLIC_SENTRY_DSN está definido.
+// En dev se deshabilita el webpack plugin para evitar overhead de compilación.
 const { withSentryConfig } = require('@sentry/nextjs');
+const isProdBuild = process.env.NODE_ENV === 'production';
 
 module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
   ? withSentryConfig(nextConfig, {
@@ -64,6 +71,8 @@ module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
       project: 'memories-web',
       widenClientFileUpload: true,
       hideSourceMaps: true,
-      disableLogger: true,
+      webpack: { treeshake: { removeDebugLogging: true } },
+      disableClientWebpackPlugin: !isProdBuild,
+      disableServerWebpackPlugin: !isProdBuild,
     })
   : nextConfig;

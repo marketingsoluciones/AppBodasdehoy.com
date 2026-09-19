@@ -1,4 +1,4 @@
-import { ModelProvider } from 'model-bank';
+import { ModelProvider } from '@lobechat/types';
 
 import * as ProviderCards from '@/config/modelProviders';
 import { getLLMConfig } from '@/envs/llm';

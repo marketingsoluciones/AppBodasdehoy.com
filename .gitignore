@@ -9,6 +9,9 @@ dist/
 build/
 out/
 
+# Node.js V8 module compile cache (cwd del proceso; no versionar)
+node-compile-cache/
+
 # Lock files (pnpm generates these)
 # pnpm-lock.yaml is tracked
 
@@ -20,14 +23,18 @@ out/
 
 # OS
 .DS_Store
+._*
 Thumbs.db
 
 # Environment files
 .env
 .env.local
+.env.slack.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.e2e.*
+.env.e2e.*.local
 
 # Debug logs
 npm-debug.log*
@@ -59,6 +66,9 @@ coverage/
 *.tmp
 ERRORES_CONSOLA.json
 
+# SSH local config
+scripts/ssh/*.local
+
 # Test results / battery output files
 resultados-bateria-*.json
 resultados-bateria-api2-*.json
@@ -73,3 +83,18 @@ resultados-bateria-api2-*.json
 
 # GitHub Actions (managed separately)
 .github/
+test-results/
+.agent-browser/
+node_modules
+
+# Análisis local (no versionar)
+analisis/
+
+# Credenciales fuera del repo (auditoría 15-09): estos volcados llevaban
+# DATABASE_URL, KEY_VAULTS_SECRET, claves S3, GOOGLE_OAUTH_CLIENT_SECRET y
+# VERCEL_OIDC_TOKEN en un repositorio público. Solo pueden estar rastreados los
+# .env*.example y los que contengan exclusivamente NEXT_PUBLIC_*.
+.env.test
+.env.desktop
+.env.vercel
+.env.vercel.*

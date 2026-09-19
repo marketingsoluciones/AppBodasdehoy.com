@@ -2,7 +2,6 @@
 import { parseDefaultThemeFromCountry } from '@lobechat/utils/server';
 import debug from 'debug';
 import { NextRequest, NextResponse } from 'next/server';
-import { UAParser } from 'ua-parser-js';
 import urlJoin from 'url-join';
 
 import { OAUTH_AUTHORIZED } from '@/const/auth';
@@ -10,7 +9,6 @@ import { LOBE_LOCALE_COOKIE } from '@/const/locale';
 import { LOBE_THEME_APPEARANCE } from '@/const/theme';
 import { appEnv } from '@/envs/app';
 import { authEnv } from '@/envs/auth';
-import NextAuth from '@/libs/next-auth';
 import { Locales } from '@/locales/resources';
 
 import { oidcEnv } from './envs/oidc';
@@ -48,6 +46,9 @@ export const config = {
     '/',
     '/discover',
     '/discover(.*)',
+    '/asistente',
+    '/asistente(.*)',
+    // R1 rename: /chat sigue en el matcher SOLO para redirigir a /asistente.
     '/chat',
     '/chat(.*)',
     '/changelog(.*)',
@@ -74,37 +75,84 @@ export const config = {
     '/signup(.*)',
     '/dev-login(.*)',
     '/next-auth/(.*)',
-    '/oauth(.*)',
-    '/oidc(.*)',
     '/onboard(.*)', // ✅ Agregado para manejar redirección
     '/tasks',
     '/tasks(.*)',
     '/notifications',
     '/notifications(.*)',
+    '/bandeja',
+    '/bandeja(.*)',
+    // R1 rename: /messages sigue en el matcher SOLO para redirigir a /bandeja.
     '/messages',
     '/messages(.*)',
     '/memories',
     '/memories(.*)',
+    // BUG QA 30-jul: estas rutas existían en (main) pero NO estaban en el matcher →
+    // el middleware no las procesaba (sin rewrite de variante) → Next no resolvía la
+    // ruta con variante y rebotaban a /asistente. Añadidas: agentes (feed SSE), labs,
+    // pendientes ("Pendientes para ti") y wedding.
+    '/agentes',
+    '/agentes(.*)',
+    '/labs',
+    '/labs(.*)',
+    '/pendientes',
+    '/pendientes(.*)',
+    '/wedding',
+    '/wedding(.*)',
     // ↓ cloud ↓
   ],
 };
 
-const backendApiEndpoints = ['/api', '/trpc', '/webapi', '/oidc'];
+const backendApiEndpoints = ['/api', '/trpc', '/webapi'];
 
-const DEFAULT_VARIANT_PATH = 'en-US__0__light';
+// BUG QA 17-jul: nuevos usuarios veían chat en INGLÉS ("I am your personal
+// intelligent assistant...") aunque welcome.json/es-ES está traducido correcto.
+// Causa: middleware rewrite forzaba en-US__0__light por default. Bodas de Hoy
+// es app en español para hablantes ES → default debe ser es-ES. Usuarios de
+// otros locales (ver: wildliberty) seguirán funcionando: al cambiar idioma en
+// settings/common la cookie de variant pisa este default.
+const DEFAULT_VARIANT_PATH = 'es-ES__0__light';
 
 const defaultMiddleware = (request: NextRequest) => {
   const url = new URL(request.url);
-  const pathname = url.pathname || '/';
+  let pathname = url.pathname || '/';
+  const originalPathname = pathname;
 
-  // ✅ FIX 404 chat-test: Redirigir "/" de inmediato a la variante por defecto.
-  // Así el app router solo recibe rutas con variante y nunca "/" sin segmento.
   if (pathname === '/' || pathname === '') {
-    const redirectUrl = new URL(request.url);
-    redirectUrl.pathname = `/${DEFAULT_VARIANT_PATH}`;
-    redirectUrl.search = url.search;
-    logDefault('Root path: redirecting to %s', redirectUrl.pathname);
-    return NextResponse.redirect(redirectUrl, 307);
+    const host = (request.headers.get('host') || '').toLowerCase();
+    const isLocalhost = host.startsWith('localhost:') || host.startsWith('127.0.0.1:');
+    const isNonBrowserRequest = !request.headers.has('sec-fetch-dest');
+    if (isLocalhost && isNonBrowserRequest) return NextResponse.json({ ok: true }, { status: 200 });
+  }
+
+  if (pathname === '/' || pathname === '') {
+    pathname = '/asistente';
+    url.pathname = '/asistente';
+    logDefault('Root path: treating as /asistente');
+  }
+
+  // R1 (rename de ruta): /messages → /bandeja. La ruta canónica ahora es
+  // /bandeja; redirect permanente (308) para enlaces/marcadores antiguos.
+  // Preserva sub-rutas (/messages/whatsapp/...) y query (?tab=inbox).
+  if (pathname === '/messages' || pathname.startsWith('/messages/')) {
+    url.pathname = pathname.replace(/^\/messages/, '/bandeja');
+    logDefault('Redirect R1 /messages → %s', url.pathname);
+    return NextResponse.redirect(url, { status: 308 });
+  }
+
+  // R1 (rename de ruta): /chat → /asistente. Redirect 308 para enlaces/embed
+  // antiguos. Cubre /chat directo y la variante con slug de desarrollador
+  // (/bodasdehoy/chat, /eventosorganizador/chat) que usaba el iframe Copilot.
+  // NO afecta rutas API (van bajo /api/* y se saltan más abajo).
+  {
+    const chatRouteMatch = pathname.match(
+      /^(\/(?:bodasdehoy|eventosorganizador))?\/chat(\/.*)?$/,
+    );
+    if (chatRouteMatch) {
+      url.pathname = (chatRouteMatch[1] || '') + '/asistente' + (chatRouteMatch[2] || '');
+      logDefault('Redirect R1 /chat → %s', url.pathname);
+      return NextResponse.redirect(url, { status: 308 });
+    }
   }
 
   try {
@@ -126,7 +174,7 @@ const defaultMiddleware = (request: NextRequest) => {
     // ✅ FIX: Redirigir /onboard a /chat (onboarding deshabilitado)
     if (url.pathname === '/onboard' || url.pathname.startsWith('/onboard/')) {
       logDefault('Redirecting /onboard to /chat');
-      const chatUrl = new URL('/chat', request.url);
+      const chatUrl = new URL('/asistente', request.url);
       // Preservar parámetros de búsqueda
       chatUrl.search = url.search;
       return NextResponse.redirect(chatUrl, { status: 307 });
@@ -181,7 +229,7 @@ const defaultMiddleware = (request: NextRequest) => {
       console.warn('⚠️ Error parsing theme, using default:', themeError);
       theme = 'light'; // ✅ Tema por defecto: 'light'
     }
-    
+
     // ✅ Asegurar que theme sea válido
     if (theme !== 'light' && theme !== 'dark') {
       theme = 'light';
@@ -196,45 +244,41 @@ const defaultMiddleware = (request: NextRequest) => {
     const explicitlyLocale = (url.searchParams.get('hl') || undefined) as Locales | undefined;
 
     // if it's a new user, there's no cookie, So we need to use the fallback language parsed by accept-language
+    // BUG QA 17-jul: bots (Playwright) y usuarios sin Accept-Language claro caían
+    // a 'en-US' → app en inglés aunque Bodas de Hoy es ES. Fallback cambiado a 'es-ES'.
     let browserLanguage: string;
     try {
       browserLanguage = parseBrowserLanguage(request.headers);
     } catch (langError) {
       console.warn('⚠️ Error parsing browser language, using default:', langError);
-      browserLanguage = 'en-US';
+      browserLanguage = 'es-ES';
     }
 
     const locale =
       explicitlyLocale ||
       ((request.cookies.get(LOBE_LOCALE_COOKIE)?.value || browserLanguage) as Locales);
 
-    const ua = request.headers.get('user-agent');
-
-    let device: { type?: string };
-    try {
-      device = new UAParser(ua || '').getDevice();
-    } catch (uaError) {
-      console.warn('⚠️ Error parsing user agent, using default:', uaError);
-      device = { type: undefined };
-    }
+    const ua = request.headers.get('user-agent') || '';
+    const isMobile = /mobi|android|iphone|ipad/i.test(ua);
 
     logDefault('User preferences: %O', {
       browserLanguage,
-      deviceType: device.type,
       hasCookies: {
         locale: !!request.cookies.get(LOBE_LOCALE_COOKIE)?.value,
         theme: !!request.cookies.get(LOBE_THEME_APPEARANCE)?.value,
       },
+      isMobile,
       locale,
       theme,
     });
 
     // 2. Create normalized preference values
+    // BUG QA 17-jul: fallbacks 'en-US' → 'es-ES' (app Bodas de Hoy es ES).
     let route: string;
     try {
       route = RouteVariants.serializeVariants({
-        isMobile: device.type === 'mobile',
-        locale: locale || 'en-US',
+        isMobile,
+        locale: locale || 'es-ES',
         theme: (theme as any) || 'light',
       });
     } catch (routeError) {
@@ -242,7 +286,7 @@ const defaultMiddleware = (request: NextRequest) => {
       // Fallback a ruta por defecto
       route = RouteVariants.serializeVariants({
         isMobile: false,
-        locale: 'en-US',
+        locale: 'es-ES',
         theme: 'light',
       });
     }
@@ -282,15 +326,22 @@ const defaultMiddleware = (request: NextRequest) => {
     return NextResponse.rewrite(url, { status: 200 });
   } catch (error) {
     console.error('❌ Error in defaultMiddleware:', error);
-    // ✅ FIX chat-test 404: Si la ruta es "/" y falló el middleware, reescribir a variante por defecto
-    // en lugar de next() que deja "/" sin página y devuelve 404
-    if (pathname === '/' || pathname === '') {
-      const rewriteUrl = new URL(request.url);
-      rewriteUrl.pathname = `/${DEFAULT_VARIANT_PATH}`;
-      logDefault('Fallback rewrite to %s after middleware error', rewriteUrl.pathname);
-      return NextResponse.rewrite(rewriteUrl, { status: 200 });
+    const bypassPrefixes = ['/api', '/trpc', '/webapi', '/next-auth', '/_next'];
+    const shouldBypass = bypassPrefixes.some((p) => originalPathname.startsWith(p));
+    if (shouldBypass) return NextResponse.next();
+
+    let pathnameForRewrite = originalPathname || '/';
+    const developerSlugMatch = pathnameForRewrite.match(/^\/(bodasdehoy|eventosorganizador)(\/|$)/);
+    if (developerSlugMatch) {
+      const slug = developerSlugMatch[1];
+      const rest = pathnameForRewrite.slice(slug.length + 2);
+      pathnameForRewrite = rest ? `/${rest}` : '/';
     }
-    return NextResponse.next();
+
+    const rewriteUrl = new URL(request.url);
+    rewriteUrl.pathname = `/${DEFAULT_VARIANT_PATH}` + (pathnameForRewrite === '/' ? '' : pathnameForRewrite);
+    logDefault('Fallback rewrite to %s after middleware error', rewriteUrl.pathname);
+    return NextResponse.rewrite(rewriteUrl, { status: 200 });
   }
 };
 
@@ -310,9 +361,6 @@ const PUBLIC_ROUTE_PATTERNS = [
   '/signup',
   // dev login (página de desarrollo)
   '/dev-login(.*)',
-  // oauth
-  '/oidc/handoff',
-  '/oidc/token',
   // ✅ DESPROTEGER: Gestor de archivos (no requiere auth)
   '/files(.*)',
   // ✅ Panel admin (playground, tests, etc.) accesible sin auth para desarrollo
@@ -323,7 +371,6 @@ const PROTECTED_ROUTE_PATTERNS = [
   '/settings(.*)',
   // '/files(.*)',  // ✅ MOVIDO A isPublicRoute - no requiere autenticación
   '/onboard(.*)',
-  '/oauth(.*)',
   // ↓ cloud ↓
 ];
 
@@ -340,84 +387,24 @@ const simpleRouteMatcher = (patterns: string[]) => {
 let isPublicRoute: ReturnType<typeof simpleRouteMatcher>;
 let isProtectedRoute: ReturnType<typeof simpleRouteMatcher>;
 
-// Initialize route matchers (use Clerk's if available, otherwise fallback)
-const initRouteMatchers = async () => {
-  if (authEnv.NEXT_PUBLIC_ENABLE_CLERK_AUTH || authEnv.NEXT_PUBLIC_ENABLE_NEXT_AUTH) {
-    await loadClerk();
-    if (createRouteMatcher) {
-      isPublicRoute = createRouteMatcher(PUBLIC_ROUTE_PATTERNS);
-      isProtectedRoute = createRouteMatcher(PROTECTED_ROUTE_PATTERNS);
-      return;
-    }
+// Default matchers (always available). Clerk can override these with createRouteMatcher.
+isPublicRoute = simpleRouteMatcher(PUBLIC_ROUTE_PATTERNS);
+isProtectedRoute = simpleRouteMatcher(PROTECTED_ROUTE_PATTERNS);
+
+const initClerkRouteMatchers = async () => {
+  await loadClerk();
+  if (createRouteMatcher) {
+    isPublicRoute = createRouteMatcher(PUBLIC_ROUTE_PATTERNS);
+    isProtectedRoute = createRouteMatcher(PROTECTED_ROUTE_PATTERNS);
   }
-  // Fallback to simple matcher
-  isPublicRoute = simpleRouteMatcher(PUBLIC_ROUTE_PATTERNS);
-  isProtectedRoute = simpleRouteMatcher(PROTECTED_ROUTE_PATTERNS);
 };
 
-// Initialize matchers immediately for non-Clerk/non-NextAuth scenarios
-if (!authEnv.NEXT_PUBLIC_ENABLE_CLERK_AUTH && !authEnv.NEXT_PUBLIC_ENABLE_NEXT_AUTH) {
-  isPublicRoute = simpleRouteMatcher(PUBLIC_ROUTE_PATTERNS);
-  isProtectedRoute = simpleRouteMatcher(PROTECTED_ROUTE_PATTERNS);
-}
-
-// Initialize an Edge compatible NextAuth middleware
-const nextAuthMiddleware = NextAuth.auth((req) => {
-  logNextAuth('NextAuth middleware processing request: %s %s', req.method, req.url);
-
-  const pathname = req.nextUrl.pathname || '/';
-  if (pathname === '/' || pathname === '') {
-    const url = req.nextUrl.clone();
-    url.pathname = `/${DEFAULT_VARIANT_PATH}`;
-    return NextResponse.redirect(url, 307);
-  }
-
-  const response = defaultMiddleware(req);
-  if (response.status >= 301 && response.status <= 308) return response;
-
-  // when enable auth protection, only public route is not protected, others are all protected
-  const isProtected = appEnv.ENABLE_AUTH_PROTECTION ? !isPublicRoute(req) : isProtectedRoute(req);
-
-  logNextAuth('Route protection status: %s, %s', req.url, isProtected ? 'protected' : 'public');
-
-  // Just check if session exists
-  const session = req.auth;
-
-  // Check if next-auth throws errors
-  // refs: https://github.com/lobehub/lobe-chat/pull/1323
-  const isLoggedIn = !!session?.expires;
-
-  logNextAuth('NextAuth session status: %O', {
-    expires: session?.expires,
-    isLoggedIn,
-    userId: session?.user?.id,
-  });
-
-  // Remove & amend OAuth authorized header
-  response.headers.delete(OAUTH_AUTHORIZED);
-  if (isLoggedIn) {
-    logNextAuth('Setting auth header: %s = %s', OAUTH_AUTHORIZED, 'true');
-    response.headers.set(OAUTH_AUTHORIZED, 'true');
-
-    // If OIDC is enabled and user is logged in, add OIDC session pre-sync header
-    if (oidcEnv.ENABLE_OIDC && session?.user?.id) {
-      logNextAuth('OIDC session pre-sync: Setting %s = %s', OIDC_SESSION_HEADER, session.user.id);
-      response.headers.set(OIDC_SESSION_HEADER, session.user.id);
-    }
-  } else {
-    // If request a protected route, redirect to sign-in page
-    // ref: https://authjs.dev/getting-started/session-management/protecting
-    if (isProtected) {
-      logNextAuth('Request a protected route, redirecting to sign-in page');
-      const nextLoginUrl = new URL('/next-auth/signin', req.nextUrl.origin);
-      nextLoginUrl.searchParams.set('callbackUrl', req.nextUrl.href);
-      return Response.redirect(nextLoginUrl);
-    }
-    logNextAuth('Request a free route but not login, allow visit without auth header');
-  }
-
-  return response;
-});
+// SPRINT-P 2026-05-19 — migración Clerk-out + NextAuth-out:
+// Eliminado bloque getNextAuthMiddleware completo. @/libs/next-auth no existe
+// (Clerk + NextAuth eliminados). bodasdehoy usa Firebase via api-ia.
+const nextAuthMiddlewareWrapper = async (req: NextRequest) => {
+  return defaultMiddleware(req);
+};
 
 // Clerk middleware factory - creates the middleware only when needed
 let _clerkAuthMiddleware: ReturnType<typeof clerkMiddleware> | null = null;
@@ -425,7 +412,7 @@ let _clerkAuthMiddleware: ReturnType<typeof clerkMiddleware> | null = null;
 const getClerkAuthMiddleware = async () => {
   if (!_clerkAuthMiddleware) {
     await loadClerk();
-    await initRouteMatchers();
+    await initClerkRouteMatchers();
     _clerkAuthMiddleware = clerkMiddleware(
       async (auth: any, req: any) => {
         logClerk('Clerk middleware processing request: %s %s', req.method, req.url);
@@ -493,5 +480,5 @@ logDefault('Middleware configuration: %O', {
 export default authEnv.NEXT_PUBLIC_ENABLE_CLERK_AUTH
   ? clerkAuthMiddlewareWrapper
   : authEnv.NEXT_PUBLIC_ENABLE_NEXT_AUTH
-    ? nextAuthMiddleware
+    ? nextAuthMiddlewareWrapper
     : defaultMiddleware;

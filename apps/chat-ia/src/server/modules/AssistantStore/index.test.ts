@@ -61,7 +61,7 @@ describe('AssistantStore', () => {
 
   it('should return the agent URL for a supported language', () => {
     const agentMarket = new AssistantStore();
-    const url = agentMarket.getAgentUrl('agent-123', 'zh-CN');
+    const url = agentMarket.getAgentUrl('agent-123', 'es-ES');
     expect(url).toBe(`${baseURL}/agent-123.zh-CN.json`);
   });
 
@@ -178,7 +178,7 @@ describe('AssistantStore', () => {
     EdgeConfig.isEnabled.mockReturnValue(false);
 
     const store = new AssistantStore();
-    const result = await store.getAgentIndex('zh-CN');
+    const result = await store.getAgentIndex('es-ES');
     expect(result).toEqual([
       { identifier: 'agent1', meta: {}, author: '', createAt: '', createdAt: '', homepage: '' },
     ]);

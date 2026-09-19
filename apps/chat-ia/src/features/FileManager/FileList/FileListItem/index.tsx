@@ -9,7 +9,6 @@ import { rgba } from 'polished';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Center, Flexbox } from 'react-layout-kit';
-import { useSearchParams } from 'react-router-dom';
 
 import FileIcon from '@/components/FileIcon';
 import { fileManagerSelectors, useFileStore } from '@/store/file';
@@ -79,6 +78,11 @@ const useStyles = createStyles(({ css, token, cx, isDarkMode }) => {
 interface FileRenderItemProps extends FileListItem {
   index: number;
   knowledgeBaseId?: string;
+  /** G-01 #418: abrir archivo por callback router-agnóstico (igual que el Masonry).
+   *  Antes se usaba useSearchParams de react-router-dom, que crashea en /files
+   *  (App Router de Next, SIN <Router>). Tanto /files como /knowledge pasan este
+   *  callback (onOpenFile=setFileModalId). */
+  onOpenFile: (id: string) => void;
   onSelectedChange: (id: string, selected: boolean, shiftKey: boolean, index: number) => void;
   selected?: boolean;
 }
@@ -99,12 +103,12 @@ const FileRenderItem = memo<FileRenderItemProps>(
     selected,
     chunkingStatus,
     onSelectedChange,
+    onOpenFile,
     knowledgeBaseId,
     index,
   }) => {
     const { t } = useTranslation('components');
     const { styles, cx } = useStyles();
-    const [, setSearchParams] = useSearchParams();
     const [isCreatingFileParseTask, parseFiles] = useFileStore((s) => [
       fileManagerSelectors.isCreatingFileParseTask(id)(s),
       s.parseFilesToChunks,
@@ -132,14 +136,7 @@ const FileRenderItem = memo<FileRenderItemProps>(
           flex={1}
           horizontal
           onClick={() => {
-            setSearchParams(
-              (prev) => {
-                const newParams = new URLSearchParams(prev);
-                newParams.set('file', id);
-                return newParams;
-              },
-              { replace: true },
-            );
+            onOpenFile(id);
           }}
         >
           <Flexbox align={'center'} horizontal>

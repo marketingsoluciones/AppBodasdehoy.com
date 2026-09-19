@@ -29,7 +29,7 @@ OPCIÓN 1: Setup Rápido - 30 Segundos ⭐ RECOMENDADO
 OPCIÓN 2: Completar Login en Firefox - 1 Minuto
 
     → Ve a la ventana de Firefox que se abrió
-    → Completa el login: bodasdehoy.com@gmail.com / lorca2012M*+
+    → Completa el login: bodasdehoy.com@gmail.com / «en .env.e2e.dev.local, nunca en el repo»
     → Espera "✅ Cookies guardadas"
 
 ----------------------------------------------------------------------

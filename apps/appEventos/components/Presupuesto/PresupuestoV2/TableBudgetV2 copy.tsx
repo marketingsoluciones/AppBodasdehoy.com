@@ -594,17 +594,29 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
   }, [showFloatOptionsMenu, showDotsOptionsMenu])
 
   const handleChangeColumnVisible = (props?: VisibleColumn) => {
-    if (props) {
-      const f1 = event.presupuesto_objeto.visibleColumns.findIndex(elem => elem.accessor === props.accessor)
-      if (f1 > -1) {
-        event.presupuesto_objeto.visibleColumns[f1].show = props.show
+    setEvent((prev) => {
+      const currentVisibleColumns = prev.presupuesto_objeto.visibleColumns ?? []
+      let newVisibleColumns: VisibleColumn[]
+      if (!props) {
+        newVisibleColumns = []
       } else {
-        event.presupuesto_objeto.visibleColumns.push({ accessor: props.accessor, show: props.show })
+        const f1 = currentVisibleColumns.findIndex(elem => elem.accessor === props.accessor)
+        if (f1 > -1) {
+          newVisibleColumns = currentVisibleColumns.map((c, i) =>
+            i === f1 ? { ...c, show: props.show } : c
+          )
+        } else {
+          newVisibleColumns = [...currentVisibleColumns, { accessor: props.accessor, show: props.show }]
+        }
       }
-    } else {
-      event.presupuesto_objeto.visibleColumns = []
-    }
-    setEvent({ ...event })
+      return {
+        ...prev,
+        presupuesto_objeto: {
+          ...prev.presupuesto_objeto,
+          visibleColumns: newVisibleColumns,
+        },
+      }
+    })
   }
 
   const getTotalEstimado = () => {

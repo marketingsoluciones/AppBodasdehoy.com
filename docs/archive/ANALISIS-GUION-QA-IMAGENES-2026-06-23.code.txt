@@ -1,0 +1,137 @@
+═══════════════════════════════════════════════════════════════════════════════
+ANÁLISIS GUION QA IMÁGENES + RESPUESTA PARA EL COWORK
+APP: app-dev.bodasdehoy.com  BUILD: AkCArhJco_d-W0Isl2DFT (recién desplegado)
+═══════════════════════════════════════════════════════════════════════════════
+
+Code paths verificados ANTES de que el QA ejecute la matriz. Detalle por caso:
+
+═══════════════════════════════════════════════════════════════════════════════
+✅ CASO 1 — Boda Isabel & Raúl (imgEvento null → placeholder)
+═══════════════════════════════════════════════════════════════════════════════
+
+CODE PATH VERIFICADO (PASS):
+  · /resumen-evento renderiza la portada vía BlockPrincipal.tsx:52-56
+    Estructura: src condicional + onError → defaultImagenes[tipo]
+       src={imgEvento?.i640
+            ? '/api/proxy-image?url=…/imgs/...'
+            : defaultImagenes[tipo]}
+       onError={→ defaultImagenes[tipo] || defaultImagenes['otro']}
+  · Si imgEvento es null, ya pinta defaultImagenes[tipo] directamente
+    en el primer paint (sin esperar a onError).
+  · Si imgEvento existe pero el binario está perdido (404),
+    onError cambia el src a defaultImagenes[tipo].
+
+  RESULTADO ESPERADO: SIEMPRE placeholder cuando imgEvento.null o roto. ✅
+
+ATENCIÓN SOBRE imgInvitacion:
+  · /resumen-evento NO renderiza imgInvitacion como <img> en ningún
+    componente del repo (verificado en BlockInvitaciones, BlockSobreMiEvento,
+    BlockPrincipal). Solo se usa para preview de email en /invitaciones
+    (VistaPrevia.tsx, dentro de iframe srcDoc — formato email distinto).
+  · Por tanto el binario perdido de imgInvitacion en /resumen-evento NO
+    debería romper nada — porque no se intenta renderizar.
+  · Si QA detecta una <img> rota en /resumen-evento que dice "invitación",
+    pegadme screenshot + DevTools Elements del nodo → debe ser otro
+    componente que no he visto.
+
+═══════════════════════════════════════════════════════════════════════════════
+✅ CASO 2 — Post legacy con binario presente (200)
+═══════════════════════════════════════════════════════════════════════════════
+
+URL externa pública:
+  https://media-apiapp.eventosorganizador.com/deceb3/preparada-para-casarse-i640.webp
+
+No es código nuestro — solo verifica que media-apiapp sirve binarios.
+El frontend interpola con resolveImagesOrigin() → media-apiapp (verificado
+en commit ac1dae26 hoy).
+
+  RESULTADO ESPERADO: 200, imagen visible ✅
+
+═══════════════════════════════════════════════════════════════════════════════
+✅ CASO 3 — Subir imagen nueva (R2 singleUpload)
+═══════════════════════════════════════════════════════════════════════════════
+
+Flujo:
+  · Usuario pulsa "Cambiar portada" desde /resumen-evento o /perfil.
+  · ModuloSubida abre selector → File → mutation singleUpload.
+  · Backend api-mcp sube a R2, devuelve URL absoluta.
+  · Front la guarda en event.imgEvento (URL completa, NO slug relativo).
+  · `<img src={url}>` se renderiza tal cual.
+
+CODE PATH VERIFICADO:
+  · apps/appEventos/components/Invitaciones/ModuloSubida.tsx:156
+    valida que es imagen, llama singleUpload, recibe URL R2.
+  · La URL R2 es absoluta (https://…r2.bodasdehoy.com/…),
+    NO pasa por resolveImagesOrigin() y NO se concatena con media-apiapp.
+  · Por tanto no depende del legacy.
+
+  RESULTADO ESPERADO: 200, imagen visible inmediatamente tras subir ✅
+
+═══════════════════════════════════════════════════════════════════════════════
+✅ CASO 4 — Memories / álbum
+═══════════════════════════════════════════════════════════════════════════════
+
+Ruta: /momentos (apps/appEventos/pages/momentos.tsx)
+Componente: usa @bodasdehoy/memories store + getAlbumMedia query.
+URLs de fotos: vienen completas desde R2.
+
+CODE PATH VERIFICADO:
+  · MemoriesProvider proporciona useMemoriesStore.
+  · getAlbumMedia retorna array de URLs R2 absolutas.
+  · Renderizado en grid de cards con <img src={url}>.
+
+  RESULTADO ESPERADO: 200, fotos cargan ✅
+
+═══════════════════════════════════════════════════════════════════════════════
+❌ CASO 5 — Vista pública sin login (/compartido/<eventId>)
+═══════════════════════════════════════════════════════════════════════════════
+
+PROBLEMA: la ruta `/compartido/<id>` NO EXISTE en el repo actual.
+
+Verificado:
+  · No hay pages/compartido*.tsx
+  · No hay pages/compartido/[id].tsx
+  · No hay redirect en next.config.js
+
+Rutas públicas reales del repo:
+  · /vista-sin-cookie (info-only, no muestra evento)
+  · /public-card/<slug> (tarjetas RRPP, no es vista del evento)
+  · /public-itinerary/<slug> (itinerario público)
+
+PROPUESTA al cowork QA:
+  · Si la URL real de vista pública es OTRA, indicádmela.
+  · Si lo que QA espera es una vista de evento sin login, esa ruta NO está
+    construida; sería FEATURE NUEVO, no un fix.
+  · Si lo que QA espera es testar /public-itinerary o /public-card, usad
+    esas URLs reales.
+
+  RESULTADO ESPERADO: depende de la URL real. Confirmadme cuál.
+
+═══════════════════════════════════════════════════════════════════════════════
+🔧 MEJORA APLICADA HOY (extra, no estaba pedida)
+═══════════════════════════════════════════════════════════════════════════════
+
+apps/appEventos/components/Resumen/BlockSobreMiEvento.tsx:553
+  <img src={tarta}> NO tenía onError. Si el binario está perdido (404
+  legacy), mostraba el icono de imagen rota. Fix: onError → display:none
+  (la tarta es opcional, ocultar es mejor que un placeholder genérico).
+
+  Desplegado en BUILD AkCArhJco_d-W0Isl2DFT.
+
+═══════════════════════════════════════════════════════════════════════════════
+📋 RESUMEN PARA EL COWORK QA
+═══════════════════════════════════════════════════════════════════════════════
+
+  Caso              │ Code path  │ Estado       │ Acción QA
+  ─────────────────┼────────────┼──────────────┼──────────────────────
+  1 evento test     │ ✅ OK      │ Listo testear │ Verificar placeholder en /resumen-evento
+  2 post legacy     │ N/A        │ Externo       │ Solo cargar URL en navegador
+  3 imagen nueva R2 │ ✅ OK      │ Listo testear │ Subir desde /perfil o /resumen-evento
+  4 memories        │ ✅ OK      │ Listo testear │ Visitar /momentos
+  5 público         │ ❌ Ruta?   │ BLOQUEADO    │ Confirmar URL real
+
+  BUILD app-dev a usar:  AkCArhJco_d-W0Isl2DFT (publicado 23-jun ~20:35)
+  Verificación BUILD_ID:
+    curl -s https://app-dev.bodasdehoy.com/ | grep -oE 'buildId":"[^"]+"'
+
+═══════════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,53 @@
+DE: COORD-AppEventos (FRONT-AppEventos)
+PARA: API-IA
+DRI: api-ia backend_oncall
+ASUNTO: RAG verificado 3/3 ✅ + bloqueo en batch-embed (Opción A inviable tal cual) → necesitamos esto
+
+Gracias equipo api-ia. RE-SMOKE verificado por COORD (Qdrant), 3/3 verde:
+ • /embed → success, embedding_id, dims 1024, "almacenado correctamente" ✅
+ • /query-embedding → vector real ✅
+ • /search → recupera el doc recién guardado (score 0.74, texto correcto) ✅  ← ciclo guardar→buscar OK
+(doc de prueba limpiado de Qdrant).
+
+Para EMBED individual + SEARCH ya migramos sin problema. PERO batch-embed tiene un bloqueo de fondo:
+
+────────────────────────────────────
+batch-embed — la Opción A (front manda chunks con texto) NO es aplicable tal cual
+────────────────────────────────────
+Motivo, con evidencia del código nativo (server/services/chunk/index.ts):
+
+El flujo nativo de LobeChat tiene DOS fases SEPARADAS, ambas en el SERVIDOR:
+  1) asyncParseFileToChunks(fileId) → parsea el archivo y lo TROCEA en chunks (se guardan en BD)
+  2) asyncEmbeddingFileChunks(fileId) → toma esos chunks YA troceados y los vectoriza
+
+El FRONT solo dispara por fileId (store/file/.../action.ts:62 y :159 → ragService.createEmbeddingChunksTask(id)).
+El front NUNCA tuvo los textos de los chunks — los crea y guarda el ChunkService del servidor.
+
+Por tanto, si batch-embed exige [{text,user_id,file_id}], el front tendría que:
+  (a) leer el archivo, (b) parsearlo, (c) trocearlo con la MISMA estrategia (tamaño/overlap) que el RAG espera.
+Eso es lógica de servidor (parsing + chunking), no de cliente. Moverla al front = duplicar/arriesgar
+inconsistencia de chunking + perder funcionalidad de la fase parse.
+
+────────────────────────────────────
+LO QUE NECESITAMOS DE API-IA (para no perder funcionalidad)
+────────────────────────────────────
+Preferencia COORD = Opción B, una de estas dos formas:
+
+ OPCIÓN B1 (ideal): batch-embed acepta {file_id, user_id} y api-ia internamente:
+    lee el archivo (ya lo tenéis vía /files/*) → lo parsea (ya tenéis /webapi/files/parse)
+    → lo trocea → vectoriza cada chunk. El front solo dispara por file_id (= comportamiento nativo).
+
+ OPCIÓN B2 (si preferís que el front trocee): exponed un endpoint que devuelva los CHUNKS con texto
+    de un file_id (p.ej. GET /api/files/{file_id}/chunks o que /webapi/files/parse devuelva los chunks),
+    y entonces el front arma el array [{text,user_id,file_id}] y lo manda a batch-embed.
+    (Más viaje de red, pero viable si el chunking debe vivir en api-ia y exponerse.)
+
+PREGUNTA CONCRETA: ¿podéis hacer B1 (batch-embed por file_id, troceáis vosotros)?
+Si NO, ¿exponéis los chunks (B2) para que el front arme el array?
+
+Mientras tanto: migramos embed individual + search (funcionan). batch-embed queda pendiente de
+vuestra respuesta — NO tocamos el batch nativo hasta acordar, para no perder el parse+chunk.
+
+Contrato/evidencia: docs/backend-asks/REPORTE-BUGS-RAG-API-IA.md
+
+DRI: api-ia → responder B1 o B2 + fecha en este hilo.

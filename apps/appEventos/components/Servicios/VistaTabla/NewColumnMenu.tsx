@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   MoreHorizontal,
   ArrowUp,
@@ -255,8 +256,12 @@ export const ColumnConfigModal: React.FC<{
 }> = ({ columns, hiddenColumns, onToggleColumn, onClose }) => {
   const { t } = useTranslation();
   
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  // Portal a body: un ancestro con transform/width (p. ej. la tabla expandida) hace que
+  // `position:fixed` se ancle a ÉL en vez de al viewport y el modal salga descentrado.
+  // Renderizándolo en body se centra siempre respecto a la pantalla.
+  if (typeof document === "undefined") return null;
+  return createPortal(
+    <div style={{ background: "rgba(43,43,48,.4)" }} className="fixed inset-0 flex items-center justify-center z-[200]">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-800">
@@ -271,7 +276,8 @@ export const ColumnConfigModal: React.FC<{
         </div>
 
         <div className="p-4">
-          <div className="space-y-2 max-h-64 overflow-y-auto">
+          <div className="space-y-2 max-h-64 overflow-y-auto cc-hidescroll">
+          <style>{`.cc-hidescroll::-webkit-scrollbar{display:none;width:0;height:0}.cc-hidescroll{scrollbar-width:none;-ms-overflow-style:none}`}</style>
             {columns.filter(col => col.id !== 'actions').map((column) => (
               <label
                 key={column.id}
@@ -283,7 +289,7 @@ export const ColumnConfigModal: React.FC<{
                   onChange={() => onToggleColumn(column.id)}
                   className="rounded border-gray-300 text-primary focus:ring-primary"
                 />
-                <span className="flex-1 text-sm text-gray-700">
+                <span className="flex-1 text-sm text-gray-700 first-letter:uppercase">
                   {column.Header}
                 </span>
                 <div className="flex items-center text-xs text-gray-400">
@@ -305,5 +311,5 @@ export const ColumnConfigModal: React.FC<{
         </div>
       </div>
     </div>
-  );
+    , document.body);
 };

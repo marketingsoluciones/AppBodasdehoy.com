@@ -99,7 +99,7 @@ export const useShare = ({
     ) as any;
     return qs.stringifyUrl({
       query,
-      url: 'https://api.whatsapp.com/send',
+      url: 'https://wa.me/',
     });
   };
 

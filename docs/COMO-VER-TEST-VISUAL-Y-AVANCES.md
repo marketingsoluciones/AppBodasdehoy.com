@@ -12,7 +12,7 @@ Para **ver** la ventana del navegador (login, preguntas, respuestas), a veces ha
   - Terminal 1: `pnpm dev:levantar`
   - Terminal 2: `./scripts/iniciar-tunnel.sh`
 - **Navegador Playwright:** `pnpm exec playwright install webkit` (una vez).
-- **Cuenta con evento:** El test usa por defecto **U1** (`bodasdehoy.com@gmail.com` / `lorca2012M*+`). Esa cuenta debe tener **al menos un evento** en app-test. Si no, crea uno entrando en https://app-test.bodasdehoy.com o usa **U2** más adelante: `TEST_USER_EMAIL=test-usuario2@bodasdehoy.com TEST_USER_PASSWORD='TestBodas2024!'` (las dos cuentas están en `docs/E2E-USUARIO-Y-TESTS-QUE-FUNCIONAN.md`).
+- **Cuenta con evento:** El test usa por defecto **U1** (`bodasdehoy.com@gmail.com` / `«definida en .env.e2e.dev.local — nunca en el repo»`). Esa cuenta debe tener **al menos un evento** en app-test. Si no, crea uno entrando en https://app-test.bodasdehoy.com o usa **U2** más adelante: `TEST_USER_EMAIL=test-usuario2@bodasdehoy.com TEST_USER_PASSWORD='TestBodas2024!'` (las dos cuentas están en `docs/E2E-USUARIO-Y-TESTS-QUE-FUNCIONAN.md`).
 
 ---
 

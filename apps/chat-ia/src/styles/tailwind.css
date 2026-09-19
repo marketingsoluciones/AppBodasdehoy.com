@@ -1,1 +1,176 @@
+/* El respaldo de --color-primary era #7C3AED, el morado del prototipo "Bandeja".
+   Si la variable no está puesta todavía —primer paint, antes de que corra el efecto
+   de AppTheme— chat pintaba MORADO donde appEventos pinta rosa. Ahora el respaldo es
+   el primario real de bodasdehoy, así que el peor caso se parece a la marca en vez de
+   a una maqueta. Lo vigila jwtRole/colorMarca: ver apps/chat-ia/src/styles/*.test.ts */
 @import "tailwindcss";
+
+/* ════════════════════════════════════════════════════════════════════
+   Design tokens — FASE B v2.0 Bandeja (Diseño 25-jun-2026)
+   Mapea tokens.json del handoff a CSS variables Tailwind v4.
+   Uso: className="bg-brand text-ia-teal border-rsvp-conf rounded-card"
+   ════════════════════════════════════════════════════════════════════ */
+@theme {
+  /* ── Colores brand / evento / IA ────────────────────────────────── */
+  /* Unificación whitelabel 15-09: el "brand" era un morado fijo del handoff de diseño,
+     así que la bandeja salía morada en TODAS las marcas mientras app-dev ya pintaba con
+     el color del tenant. Ahora deriva de --color-primary, la misma variable que publica
+     appEventos (_app.tsx) y que alimenta su tailwind.config. El morado queda solo como
+     respaldo si no hay tenant resuelto. */
+  --color-brand: var(--color-primary, #EF5B94);
+  --color-brand-light: color-mix(in srgb, var(--color-primary, #EF5B94) 8%, white);
+  --color-brand-border: color-mix(in srgb, var(--color-primary, #EF5B94) 35%, white);
+  /* Para los hover. Las clases de Tailwind usaban un par -500/-600: el hover era un
+     tono MÁS OSCURO. Al barrer, los dos extremos cayeron en `bg-brand` y el hover se
+     quedó sin efecto en 5 sitios — el botón dejaba de responder al ratón. Un 15% de
+     negro reproduce el salto de -500 a -600 sin fijar un hex. */
+  --color-brand-dark: color-mix(in srgb, var(--color-primary, #EF5B94) 85%, black);
+  /*
+   * El rosa de marca es CLARO: blanco encima da 3.2:1 y el mínimo legible es 4.5:1. Así que
+   * un botón sólido de marca con texto blanco no se lee — y con el barrido de color del 18-09
+   * esos botones se multiplicaron. Estos dos tonos existen para eso, medidos:
+   *   brand-solid  → fondo sólido que admite blanco encima      (5.3:1)
+   *   brand-text   → texto y glifos de marca sobre fondo claro  (6.6:1 sobre blanco)
+   * `--color-brand` se queda tal cual para superficies grandes y adornos, donde el contraste
+   * no decide si algo se lee.
+   */
+  --color-brand-solid: color-mix(in srgb, var(--color-primary, #EF5B94) 75%, black);
+  --color-brand-text: color-mix(in srgb, var(--color-primary, #EF5B94) 65%, black);
+  --color-event-rosa: #E11D48;
+  --color-event-light: #FFF6F7;
+  --color-event-border: #FBD0D7;
+  --color-ia-teal: #0D9488;
+  --color-ia-teal-light: #F0FDFA;
+  --color-ia-teal-border: #5EEAD4;
+  --color-ia-teal-soft: #CCFBF1;
+  --color-ia-cyan: #0891B2;
+  --color-ia-cyan-soft: #CFFAFE;
+
+  /* ── RSVP (Diseño P12) ──────────────────────────────────────────── */
+  --color-rsvp-conf: #22C55E;
+  --color-rsvp-conf-bg: #DCFCE7;
+  --color-rsvp-pend: #F59E0B;
+  --color-rsvp-pend-bg: #FEF3C7;
+  --color-rsvp-decl: #F43F5E;
+  --color-rsvp-decl-bg: #FFE4E6;
+
+  /* ── Note pinned ────────────────────────────────────────────────── */
+  --color-note-pin: #F59E0B;
+  --color-note-pin-bg: #FFFBEB;
+  --color-note-pin-border: #FDE68A;
+
+  /* ── Canales ────────────────────────────────────────────────────── */
+  --color-ch-wa: #25D366;
+  --color-ch-sms: #334155;
+  --color-ch-ig: #E1306C;
+  --color-ch-web: #EF5B94;
+  --color-ch-tg: #0088CC;
+  --color-ch-fb: #1877F2;
+
+  /* ── Superficies ────────────────────────────────────────────────── */
+  --color-surface-rail: color-mix(in srgb, var(--color-primary, #EF5B94) 6%, white);
+  --color-surface-panel: #ffffff;
+  --color-surface-chat: #FAFAFC;
+  --color-border-light: #EFEFF3;
+  --color-border-panel: #EDEBF3;
+
+  /* ── Texto ──────────────────────────────────────────────────────── */
+  --color-text-primary: #2A2536;
+  --color-text-body: #1F2430;
+  --color-text-muted: #8B8698;
+  --color-text-faint: #A8A3B5;
+  --color-badge-urgent: #FF3B5C;
+
+  /* ── Border radius ──────────────────────────────────────────────── */
+  --radius-chat-outer: 4px;
+  --radius-avatar-team: 7px;
+  --radius-btn-secondary: 8px;
+  --radius-pill-filter: 9px;
+  --radius-scope-pill: 10px;
+  --radius-card: 13px;
+
+  /* ── Box shadow ─────────────────────────────────────────────────── */
+  --shadow-panel: 0 12px 50px rgba(30, 25, 60, 0.13);
+  --shadow-dropdown: 0 12px 30px rgba(30, 25, 60, 0.15);
+  --shadow-ia-draft: 0 4px 16px rgba(13, 148, 136, 0.12);
+
+  /* ── Tipografía Hanken Grotesk ──────────────────────────────────── */
+  --font-sans: 'Hanken Grotesk', system-ui, sans-serif;
+
+  /* Tamaños (alias mantienen los default Tailwind además) */
+  --text-badge: 9px;
+  --text-sub: 10px;
+  --text-chip: 11px;
+  --text-btn: 12px;
+  --text-body: 13px;
+  --text-head: 14px;
+}
+
+/* ─── Paleta semántica de la bandeja ────────────────────────────────────────────
+ * La bandeja tenía 365 colores escritos a mano y 98 distintos, 30 de ellos usados UNA sola
+ * vez: no era una paleta, era acumulación —cada quien escribió el gris que le pareció—. Con
+ * el color escrito dentro de cada componente, el modo oscuro no se puede hacer: habría que
+ * editarlos uno a uno.
+ *
+ * Aquí se nombran por FUNCIÓN, no por color: en oscuro un "gris medio" deja de ser gris
+ * medio, pero sigue siendo "texto secundario". Así el tema oscuro se define una vez, aquí, y
+ * no en 28 ficheros.
+ *
+ * Los colores de ESTADO (verde WhatsApp, ámbar de aviso, rojo de error) y los de CANAL no
+ * entran: significan lo mismo en claro y en oscuro, y cambiarlos los rompería.
+ * ------------------------------------------------------------------------------ */
+:root {
+  --b-text-1: #1C1C22;   /* titulares y nombres */
+  --b-text-2: #6B6B76;   /* texto secundario, etiquetas */
+  /* Era #9A9AA6 y daba 2.8:1 sobre blanco, cuando el mínimo legible para texto normal es
+     4.5:1 (WCAG AA). Ese gris lo lleva la hora de cada conversación y los contadores: se
+     "veía" pero no se leía a pleno sol ni con la vista cansada. Medido, no ajustado a ojo:
+     #6C6C76 da 5.2:1 sobre blanco y 4.6:1 sobre el fondo alterno. */
+  --b-text-3: #6C6C76;   /* apoyo: horas, contadores, marcas de agua */
+  --b-surface: #FFFFFF;  /* fondo de fila y de panel */
+  --b-surface-2: #F2F1F6;/* fondo alterno: avatar, fila seleccionada, chip apagado */
+  --b-border: #EDEDF0;   /* separadores */
+}
+
+/* `prefers-color-scheme` cubre el modo automático, que es el de fábrica y el que sigue al
+   teléfono. Los selectores de después cubren el caso de que el usuario fuerce oscuro desde
+   los ajustes de la aplicación: cada librería lo marca a su manera, así que se contemplan las
+   tres formas habituales en vez de adivinar una. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --b-text-1: #F2F1F6;
+    --b-text-2: #A8A6B3;
+    --b-text-3: #9A9AA6; /* 6.2:1 y 5.4:1; con #84848F se quedaba en 4.1 sobre el alterno */
+    --b-surface: #1A1A1F;
+    --b-surface-2: #26262D;
+    --b-border: #32323A;
+  }
+}
+
+/* La fuente de verdad: el tema REAL de la aplicación, que la bandeja marca en su contenedor
+   (`data-b-theme`). La consulta de medios de arriba es solo el respaldo del primer pintado,
+   antes de que React hidrate; en cuanto lo hace, manda esto. Se mantienen también los dos
+   selectores habituales de las librerías por si algún día el tema se marca más arriba. */
+[data-b-theme='dark'],
+[data-theme='dark'],
+html.dark,
+[data-prefers-color-scheme='dark'] {
+  --b-text-1: #F2F1F6;
+  --b-text-2: #A8A6B3;
+  --b-text-3: #9A9AA6;
+  --b-surface: #1A1A1F;
+  --b-surface-2: #26262D;
+  --b-border: #32323A;
+}
+
+/* Claro EXPLÍCITO gana a la preferencia del sistema: teléfono en oscuro + app forzada en
+   claro debe verse claro. Sin esto, la consulta de medios de arriba dejaría la bandeja
+   oscura dentro de una aplicación clara. */
+[data-b-theme='light'] {
+  --b-text-1: #1C1C22;
+  --b-text-2: #6B6B76;
+  --b-text-3: #6C6C76;
+  --b-surface: #FFFFFF;
+  --b-surface-2: #F2F1F6;
+  --b-border: #EDEDF0;
+}

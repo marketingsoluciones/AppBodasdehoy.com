@@ -21,6 +21,10 @@ import { fetchApiEventosServer } from '../../../utils/Fetching';
  */
 
 const MEMORIES_API_BASE =
+  process.env.API_IA_URL ||
+  process.env.NEXT_PUBLIC_API_IA_URL ||
+  process.env.API_IA_URL ||
+  process.env.NEXT_PUBLIC_API_IA_URL ||
   process.env.NEXT_PUBLIC_MEMORIES_API_URL ||
   process.env.MEMORIES_API_URL ||
   'https://api-ia.bodasdehoy.com';
@@ -28,10 +32,9 @@ const MEMORIES_API_BASE =
 const GET_GUEST_QUERY = `
   query($p: String) {
     getPGuestEvent(p: $p) {
-      invitados_array {
-        _id
+      invitados {
+        id
         nombre
-        father
       }
     }
   }
@@ -63,13 +66,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           query: GET_GUEST_QUERY,
           variables: { p: pGuestToken },
         });
-        const guests: any[] = result?.getPGuestEvent?.invitados_array ?? [];
-        const mainGuest = guests.find((g) => g.father === null) ?? guests[0];
+        const guests: any[] = result?.getPGuestEvent?.invitados ?? [];
+        const mainGuest = guests[0];
 
-        if (!mainGuest?._id) {
+        if (!mainGuest?.id) {
           return res.status(401).json({ success: false, error: 'Token de invitado no válido' });
         }
-        userId = `guest_${mainGuest._id}`;
+        userId = `guest_${mainGuest.id}`;
         caption = mainGuest.nombre ?? 'Invitado';
       } catch {
         return res.status(401).json({ success: false, error: 'No se pudo validar el token de invitado' });

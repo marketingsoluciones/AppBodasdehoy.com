@@ -12,18 +12,18 @@
  *   pnpm test:e2e:app:completo -- --grep="invitado-y-link"
  *   o directamente:
  *   PLAYWRIGHT_BROWSER=webkit BASE_URL=https://app-test.bodasdehoy.com \
- *     TEST_USER_EMAIL=bodasdehoy.com@gmail.com TEST_USER_PASSWORD='lorca2012M*+' \
+ *     TEST_USER_EMAIL=bodasdehoy.com@gmail.com TEST_USER_PASSWORD=(process.env.TEST_USER_PASSWORD || '') \
  *     npx playwright test e2e-app/invitado-y-link.spec.ts --headed
  */
 import { test, expect } from '@playwright/test';
-import { clearSession, waitForAppReady, loginAndSelectEvent } from './helpers';
+import { clearSession, waitForAppReady, loginAndSelectEvent, navigateToModule } from './helpers';
 
 const BASE_URL = process.env.BASE_URL || 'https://app-test.bodasdehoy.com';
 const isAppTest =
   BASE_URL.includes('app-test.bodasdehoy.com') || BASE_URL.includes('app.bodasdehoy.com');
 
 const TEST_EMAIL = process.env.TEST_USER_EMAIL || 'bodasdehoy.com@gmail.com';
-const TEST_PASSWORD = process.env.TEST_USER_PASSWORD || 'lorca2012M*+';
+const TEST_PASSWORD = process.env.TEST_USER_PASSWORD || (process.env.TEST_USER_PASSWORD || '');
 const hasCredentials = Boolean(TEST_EMAIL && TEST_PASSWORD);
 
 const RUN_ID = Date.now().toString().slice(-6);
@@ -107,10 +107,7 @@ test.describe('Invitado — crear y verificar link', () => {
 
     // Navegar a invitados
     const navStart = Date.now();
-    await page.goto(`${BASE_URL}/invitados`, {
-      waitUntil: 'domcontentloaded',
-      timeout: 40_000,
-    });
+    await navigateToModule(page, 'invitados');
     await waitForAppReady(page, 20_000);
     const navTime = Date.now() - navStart;
     console.log(`⏱️ Carga /invitados: ${navTime}ms`);

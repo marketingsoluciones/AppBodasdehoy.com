@@ -3,7 +3,7 @@
  *
  * Tests E2E de mensajería entre dos usuarios reales simultáneos.
  *
- * Usuario 1 (organizador):  bodasdehoy.com@gmail.com   / lorca2012M*.
+ * Usuario 1 (organizador):  bodasdehoy.com@gmail.com   / «definida en .env.e2e.dev.local — nunca en el repo»
  * Usuario 2 (proveedor/colega): test-usuario2@bodasdehoy.com / TestBodas2024!
  *
  * Cada test abre DOS contextos de navegador independientes (dos sesiones
@@ -25,7 +25,7 @@
  *   BASE_URL=https://app-test.bodasdehoy.com
  *   CHAT_URL=https://chat-test.bodasdehoy.com
  *   TEST_USER_EMAIL=bodasdehoy.com@gmail.com
- *   TEST_USER_PASSWORD=lorca2012M*.
+ *   TEST_USER_PASSWORD=«definida en .env.e2e.dev.local — nunca en el repo»
  *   TEST_USER2_EMAIL=test-usuario2@bodasdehoy.com
  *   TEST_USER2_PASSWORD=TestBodas2024!
  */
@@ -40,7 +40,7 @@ const APP_URL  = BASE_URL;
 
 // ── Credenciales de los dos usuarios ──────────────────────────────────────────
 const U1_EMAIL    = process.env.TEST_USER_EMAIL     || TEST_CREDENTIALS.email     || 'bodasdehoy.com@gmail.com';
-const U1_PASSWORD = process.env.TEST_USER_PASSWORD  || TEST_CREDENTIALS.password  || 'lorca2012M*.';
+const U1_PASSWORD = process.env.TEST_USER_PASSWORD  || TEST_CREDENTIALS.password  || '«definida en .env.e2e.dev.local — nunca en el repo»';
 const U2_EMAIL    = process.env.TEST_USER2_EMAIL    || 'test-usuario2@bodasdehoy.com';
 const U2_PASSWORD = process.env.TEST_USER2_PASSWORD || 'TestBodas2024!';
 

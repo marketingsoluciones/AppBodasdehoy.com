@@ -5,7 +5,7 @@ import { createStyles } from 'antd-style';
 import { Check, X } from 'lucide-react';
 import { memo } from 'react';
 
-import type { SubscriptionPlan } from '@/services/api2/subscriptions';
+import type { SubscriptionPlan } from '@/services/mcpApi/subscriptions';
 import { humanizeQuota } from '@bodasdehoy/shared/plans';
 
 const useStyles = createStyles(({ css, token }) => ({
@@ -42,7 +42,7 @@ const QUOTA_ROWS: { key: string; label: string; skuMatch: (sku: string) => boole
 ];
 
 function getQuotaValue(plan: SubscriptionPlan, skuMatch: (s: string) => boolean): string {
-  const limit = plan.product_limits.find((l) => skuMatch(l.sku.toLowerCase()));
+  const limit = plan.product_limits?.find?.((l) => skuMatch(l.sku.toLowerCase()));
   if (!limit) return '—';
   if (limit.free_quota <= 0) return '—';
   return humanizeQuota(limit.sku, limit.free_quota);
@@ -72,7 +72,7 @@ const PriceComparison = memo<Props>(({ plans }) => {
       key: p.tier,
       onHeaderCell: () => ({ style: { color: PLAN_COLORS[p.tier] ?? '#374151', fontWeight: 700 } }),
       render: (v: string | boolean) =>
-        typeof v === 'boolean' ? renderBool(v) : <span style={{ textAlign: 'center', display: 'block' }}>{v}</span>,
+        typeof v === 'boolean' ? renderBool(v) : <span style={{ display: 'block', textAlign: 'center' }}>{v}</span>,
       title: p.name,
       width: 110,
     })),

@@ -22,7 +22,7 @@ export const generateMetadata = async (props: DynamicLayoutProps) => {
 const Page = async (props: DynamicLayoutProps) => {
   const isMobile = await RouteVariants.getIsMobile(props);
 
-  if (!isMobile) return redirect('/chat');
+  if (!isMobile) return redirect('/asistente');
 
   return (
     <>

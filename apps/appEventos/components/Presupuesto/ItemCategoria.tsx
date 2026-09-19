@@ -8,7 +8,7 @@ import { estimateCategory, ModalInterface } from "../../utils/Interfaces";
 import { SimpleDeleteConfirmation } from "../Utils/SimpleDeleteConfirmation";
 import { handleDelete } from "../TablesComponents/tableBudgetV8.handles";
 import { EditableLabelWithInput } from "../Forms/EditableLabelWithInput";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 
 interface props {
@@ -28,19 +28,29 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
 
   const handleOnBlur = ({ value, id }) => {
     try {
-      fetchApiEventos({
+      fetchApiBodas({
         query: queries.editCategoria,
         variables: {
           evento_id: event?._id,
           categoria_id: item._id,
-          nombre: value !== "" ? value : "nueva categoria"
+          updates: { nombre: value !== "" ? value : "nueva categoria" }
         }
       }).then(() => {
         setEvent(old => {
-          const index = old?.presupuesto_objeto?.categorias_array?.findIndex(item => item._id == id)
-          
-          old.presupuesto_objeto.categorias_array[index].nombre = value !== "" ? value : "nueva categoria"
-          return { ...old }
+          const cats = old?.presupuesto_objeto?.categorias_array
+          if (!Array.isArray(cats)) return old
+          const index = cats.findIndex(item => item?._id == id)
+          if (index < 0) return old
+          const newNombre = value !== "" ? value : "nueva categoria"
+          return {
+            ...old,
+            presupuesto_objeto: {
+              ...old.presupuesto_objeto,
+              categorias_array: cats.map((cat, i) =>
+                i !== index ? cat : { ...cat, nombre: newNombre }
+              ),
+            },
+          }
         });
         toast("success", t("suscess"))
       })
@@ -55,14 +65,9 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
         <SimpleDeleteConfirmation
           loading={loading}
           setModal={setShowModalDelete}
+          title={showModalDelete.title}
           handleDelete={() => handleDelete({ showModalDelete, event, setEvent, setLoading, setShowModalDelete })}
-          message={
-            <p className="text-azulCorporativo mx-8 text-center" >
-              {`Estas seguro de borrar Categoria: `}
-              <span className='font-semibold capitalize'>
-                {showModalDelete.title}
-              </span>
-            </p>}
+          message={t('warningdeletecategory')}
         />}
       <li
         onClick={() => {

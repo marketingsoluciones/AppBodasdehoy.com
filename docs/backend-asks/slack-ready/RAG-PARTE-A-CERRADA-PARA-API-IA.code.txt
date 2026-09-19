@@ -1,0 +1,71 @@
+DE: COORD-AppEventos (FRONT chat-ia/appbodas)
+PARA: API-IA
+DRI: api-ia backend_oncall
+ASUNTO: PARTE A (chat-ia RAG) CERRADA ✅ — batch-embed-file cableado + smoke verde. Fase 2 file_id puro: specs abajo.
+
+# ============================================================
+# PARTE A — chat-ia / appbodas — ESTADO: CABLEADO Y VERIFICADO
+# ============================================================
+# B1 aceptado. El front YA NO trocea. api-ia descarga+parsea+trocea+vectoriza.
+
+## 1) Verificación independiente COORD (curl real, prod, Qdrant)
+
+# embed individual
+$ curl -X POST https://api-ia.bodasdehoy.com/api/lobechat-kb/embed \
+    -H "Content-Type: application/json" -H "X-Development: bodasdehoy" \
+    -d '{"text":"El catering para la boda incluye menu de 3 platos","user_id":"smoke-coord","file_id":"smoke-coord-f1"}'
+=> {"success":true,"embedding_id":"lobechat_smoke-coord_smoke-coord-f1","dimensions":1024,"message":"Embedding generado y almacenado correctamente"}
+
+# batch-embed-file (B1 — api-ia trocea)
+$ curl -X POST https://api-ia.bodasdehoy.com/api/lobechat-kb/batch-embed-file \
+    -H "Content-Type: application/json" -H "X-Development: bodasdehoy" \
+    -d '{"file_id":"smoke-bef-1","user_id":"smoke-coord","text":"La boda incluye catering, flores y musica en vivo para 100 invitados."}'
+=> {"success":true,"file_id":"smoke-bef-1","total_chunks":1,"succeeded":1,"failed":0}
+
+# search (RAG real)
+$ curl -X POST https://api-ia.bodasdehoy.com/api/lobechat-kb/search \
+    -H "Content-Type: application/json" -H "X-Development: bodasdehoy" \
+    -d '{"query":"catering boda","user_id":"smoke-coord","limit":5}'
+=> {"success":true,"results":[{"score":0.7414,"text_content":"El catering...","metadata":{...}}]}
+# (docs de prueba LIMPIADOS de Qdrant tras el smoke)
+
+## 2) Cableado en el front (commit en tj/refactor/adelgazar-chat-ia)
+
+# apps/chat-ia/src/services/rag.ts
+createEmbeddingChunksTask = async (id: string) => {
+  const { userId } = getCtx();
+  if (!userId) throw new Error('createEmbeddingChunksTask requires userId');
+  return apiPost('/api/lobechat-kb/batch-embed-file', { file_id: id, user_id: userId });
+};
+# El front manda SOLO {file_id, user_id}. Encaja con EmbedFileRequest (file_id*, user_id* requeridos).
+
+## 3) FASE 2 — file_id puro (sin file_url ni text): lo que api-ia pidió
+
+# api-ia dijo: "file_id 100% puro = fase 2; pasadnos un file_id de prueba y lo cerramos."
+# El front en producción llama batch-embed-file con SOLO {file_id, user_id} (sin file_url ni text).
+# => api-ia debe resolver el file_url INTERNAMENTE a partir del file_id (vía /files/* o R2).
+#
+# PREGUNTA CONCRETA api-ia: ¿con SOLO {file_id, user_id}, api-ia ya resuelve la URL en R2?
+#   - Probamos arriba con "text" (funciona). Falta probar con file_id puro de un archivo real subido.
+#   - Para darte un file_id real necesito: ¿qué storage/colección consulta api-ia para mapear file_id->url?
+#     (¿/api/files/{file_id}? ¿/api/storage/...?) Confirma el lookup y os paso un file_id de prueba real.
+
+# CONTRATO EmbedFileRequest (verificado en vuestro OpenAPI):
+{
+  "file_id":  "string  (REQUERIDO)",
+  "user_id":  "string  (REQUERIDO)",
+  "file_url": "string? (R2 — si se omite, api-ia debe resolverlo por file_id en fase 2)",
+  "text":     "string? (alternativa: texto ya extraído; api-ia lo trocea)",
+  "filename": "string? (extension para elegir parser pdf/docx/txt)",
+  "metadata": "object?"
+}
+
+# ============================================================
+# PARTE B (Suite-CRM Pro / AppEventos) — NO ES DE ESTE FRONT
+# ============================================================
+# Los 3 bugs de auth de /crm/knowledge-base (development con .com, x-user-role hardcoded,
+# proxy /api/python/kb sin reenviar headers) son del repo Suite-CRM Pro, OTRO equipo.
+# NOTA cruzada: chat-ia/appbodas YA manda X-Development sin .com (normaliza vía developmentDetector).
+# No los tocamos nosotros.
+
+DRI: api-ia → confirmar lookup file_id->R2 (fase 2) + dar OK a PARTE A cerrada en este hilo.

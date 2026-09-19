@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-import { api2Client } from '@/services/api2/client';
+import { mcpClient } from '@/services/mcpApi/client';
 
 const GET_WHITELABEL_NOTIFICATIONS = `
   query GetWhitelabelNotifications {
@@ -69,7 +69,7 @@ export default function NotificationSettingsPage() {
   const [development, setDevelopment] = useState<string>('');
 
   useEffect(() => {
-    api2Client
+    mcpClient
       .query<{ getWhitelabels: any }>(GET_WHITELABEL_NOTIFICATIONS)
       .then((data) => {
         const wl = data.getWhitelabels?.whitelabels?.[0];
@@ -93,7 +93,7 @@ export default function NotificationSettingsPage() {
     setError(null);
     setSaved(false);
     try {
-      const data = await api2Client.query<{ updateWhitelabel: any }>(UPDATE_NOTIFICATION_SCHEDULE, {
+      const data = await mcpClient.query<{ updateWhitelabel: any }>(UPDATE_NOTIFICATION_SCHEDULE, {
         development,
         input: {
           notifications: {
@@ -164,7 +164,7 @@ export default function NotificationSettingsPage() {
               Hora de envío (por defecto)
             </label>
             <select
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
               onChange={(e) => setSchedule((s) => ({ ...s, digest_hour: Number(e.target.value) }))}
               value={schedule.digest_hour}
             >
@@ -178,7 +178,7 @@ export default function NotificationSettingsPage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Frecuencia</label>
             <select
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
               onChange={(e) =>
                 setSchedule((s) => ({ ...s, digest_frequency: e.target.value as 'daily' | 'never' }))
               }
@@ -203,7 +203,7 @@ export default function NotificationSettingsPage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Hora de envío</label>
             <select
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
               disabled={!schedule.task_reminder_enabled}
               onChange={(e) =>
                 setSchedule((s) => ({ ...s, task_reminder_hour: Number(e.target.value) }))
@@ -251,7 +251,7 @@ export default function NotificationSettingsPage() {
       </section>
 
       <button
-        className="rounded-lg bg-pink-500 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-pink-600 disabled:opacity-50 transition-colors"
+        className="rounded-lg bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-dark disabled:opacity-50 transition-colors"
         disabled={saving}
         onClick={handleSave}
         type="button"

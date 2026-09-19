@@ -14,7 +14,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { WeddingWebData } from '@bodasdehoy/wedding-creator';
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://127.0.0.1:8030';
+const BACKEND_URL = process.env.API_IA_URL || 'http://127.0.0.1:8030';
 
 /**
  * GET /api/wedding?id=xxx - Get wedding by ID

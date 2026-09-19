@@ -7,7 +7,7 @@ const URLS = {
 
 const CREDENTIALS = {
   email: 'bodasdehoy.com@gmail.com',
-  password: 'lorca2012M*+',
+  password: (process.env.TEST_USER_PASSWORD || ''),
 };
 
 async function delay(ms: number) {

@@ -1,0 +1,100 @@
+═══════════════════════════════════════════════════════════════════
+ PENDIENTES POR EQUIPO — 14/06/2026 (verificado en vivo curl prod 13:28)
+ Front al día y desplegado: build chat-dev MQuDtqoFd6o3H_7cdrDHY (13 fixes)
+═══════════════════════════════════════════════════════════════════
+
+
+───────────────────────────────────────────────────────────────────
+🔴 PARA: API-IA (api_ia_oncall)  ·  BLOQUEADOR PRINCIPAL
+───────────────────────────────────────────────────────────────────
+
+ASUNTO: Completar la resolucion de `development` en TODOS los endpoints (cero muletas en el front)
+
+OBJETIVO (decision producto): el front NO debe mandar ?development= en ninguna llamada.
+api-ia debe resolver el whitelabel SIEMPRE del JWT claim -> Origin/Referer. Mientras un
+endpoint exija el query param, el front lleva una muleta que hay que eliminar.
+
+ESTADO (verificado en vivo 14-jun 13:28, con Origin chat-dev SIN ?development=):
+  [OK] /api/auth/get-user-config  -> dev=bodasdehoy   (RESUELTO, commit b5aedba, gracias)
+  [OK] /api/providers/{dev}       -> dev=bodasdehoy
+  [FALTA] /api/messages/conversations/{id}/messages -> con Origin solo devuelve 0 msgs;
+          con ?development= devuelve 6 msgs  (NO resuelve el dev del Origin)
+  [FALTA] POST /api/messages/send -> sin ?development= devuelve 400 development_required
+  [DUDA]  /chat/sessions, /chat/topics, /api/files/list -> no determinable (usuario sin datos):
+          confirmad si resuelven el dev del Origin/JWT o tambien exigen el query param.
+
+PETICION:
+  1. Aplicar el MISMO middleware de resolucion de development (JWT claim -> Origin/Referer) a la
+     ruta /api/messages/* (leer hilo + send), y confirmar chat/sessions, chat/topics, files/list.
+  2. Cuando TODOS resuelvan sin query param, avisad -> el front retira las muletas ?development=
+     y queda limpio.
+
+ETA para extenderlo a /api/messages/* y resto?
+DRI: api_ia_oncall
+
+
+───────────────────────────────────────────────────────────────────
+🟡 PARA: API-MCP (api_mcp_oncall)  ·  MENORES, sin prisa
+───────────────────────────────────────────────────────────────────
+
+ASUNTO: 2 pendientes menores (no bloquean)
+
+1. conversationId fragmentado: el numero +34622440213 aparece en 3 conversaciones con IDs en
+   formatos distintos (conv_177... x2 + bodasdehoy:34...@s.whatsapp.net) -> duplicado del mismo
+   contacto en el inbox. Normalizar el mapeo de conversationId.
+
+2. cluster0.dhikg: ANTES de apagarlo, auditar que servicios siguen conectados (directorio /
+   api.bodasdehoy). Apagar un backend NO es neutro: que eventos ya use saqnro0 no implica que
+   dhikg sea apagable. La decision de apagar es del usuario, informada con esa auditoria.
+
+DRI: api_mcp_oncall
+
+
+───────────────────────────────────────────────────────────────────
+🟢 PARA: QA / AUDITOR  ·  re-probar el build NUEVO
+───────────────────────────────────────────────────────────────────
+
+ASUNTO: Re-probar sobre el build con fixes (el informe anterior probo un build viejo)
+
+IMPORTANTE: chat-dev sirvio hasta hoy un build ESTATICO del 12-jun (sin los fixes). YA esta
+rebuildeado: BUILD_ID nuevo = MQuDtqoFd6o3H_7cdrDHY (14-jun 11:53). Hacer HARD REFRESH
+(Cmd+Shift+R) o incognito antes de probar.
+
+DEBERIAN ESTAR RESUELTOS (re-verificar):
+  - B2 carga infinita del chat (esqueletos)        -> fix sessionId vacio
+  - B5/B6 WhatsApp enviar/leer                       -> el front ya manda development
+  - B7 borrado accidental de sesion (Cmd+A+Supr)     -> el hotkey ya no se dispara en el input
+  - B8 /messages redirige a login estando autenticado-> ventana de gracia
+  - B11 botones Conectar Facebook/Instagram          -> ahora abren el popup OAuth de Meta
+  - B13 favicon https://https -> 503                 -> saneado
+
+SIGUE ABIERTO (de api-ia, no del front):
+  - B1 whitelabel: get-user-config YA resuelve; falta que /api/messages/* lo haga (en curso).
+
+PENDIENTE FRONT (cuando aplique): B10 KB selector de evento.
+NO PROBADO: app-dev (SSO 2 usuarios) -> requiere habilitar app-dev.bodasdehoy.com en la extension.
+
+
+───────────────────────────────────────────────────────────────────
+⚪ PARA: OWNER (tu)  ·  desbloqueo de infraestructura
+───────────────────────────────────────────────────────────────────
+
+Habilitar app-dev.bodasdehoy.com (o *.bodasdehoy.com) en:
+  claude.ai -> Settings -> Admin -> Capabilities (acceso a la red)
+para poder auditar el SSO entre app-dev<->chat-dev y el realtime entre 2 usuarios
+(campana / socket). Hoy esta bloqueado por politica de la organizacion.
+
+
+═══════════════════════════════════════════════════════════════════
+ RESUMEN — quien bloquea que
+═══════════════════════════════════════════════════════════════════
+  development en /api/messages/* (completar B1)  -> API-IA   -> BLOQUEA codigo perfecto (retirar muletas)
+  conversationId fragmentado                     -> API-MCP  -> no bloquea
+  auditar dhikg antes de apagar                  -> API-MCP  -> no bloquea
+  re-probar build nuevo                          -> QA       -> validacion
+  habilitar app-dev en extension                 -> OWNER    -> bloquea auditar SSO/realtime
+  B10 KB selector de evento                      -> FRONT    -> no bloquea (cuando KB completo)
+
+  FRONT: cerrado y desplegado. El unico pendiente que mantiene "muletas" en el codigo es de
+  API-IA (completar development en mensajeria). En cuanto lo entreguen, el front queda perfecto.
+═══════════════════════════════════════════════════════════════════

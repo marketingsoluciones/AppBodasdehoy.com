@@ -547,7 +547,7 @@ describe('mcpStore actions', () => {
     });
 
     it('should include locale and parameters in SWR key', async () => {
-      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('zh-CN');
+      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('es-ES');
       vi.spyOn(discoverService, 'getMCPPluginList').mockResolvedValue({
         items: [],
         categories: [],

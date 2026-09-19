@@ -58,9 +58,9 @@ describe('getLocale', () => {
   });
 
   it('should return the provided locale if hl is specified', async () => {
-    const result = await getLocale('fr-FR');
-    expect(result).toBe('fr-FR');
-    expect(normalizeLocale).toHaveBeenCalledWith('fr-FR');
+    const result = await getLocale('es-ES');
+    expect(result).toBe('es-ES');
+    expect(normalizeLocale).toHaveBeenCalledWith('es-ES');
   });
 
   it('should return DEFAULT_LANG if no cookie is set', async () => {

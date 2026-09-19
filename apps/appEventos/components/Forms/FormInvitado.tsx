@@ -1,11 +1,12 @@
 import { Form, Formik, FormikValues, useField } from "formik";
+import { formikValidateUx } from "./formikValidateUx";
 import { Dispatch, FC, HtmlHTMLAttributes, SetStateAction, useEffect, useState } from "react";
 import { AuthContextProvider, EventContextProvider } from "../../context";
 import { WarningIcon } from "../icons";
 import InputField from "./InputField";
 import SelectField from "./SelectField";
 import * as yup from "yup";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { ImageProfile } from "../../utils/Funciones";
 import useHover from "../../hooks/useHover";
@@ -105,15 +106,29 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
         values.telefono = `+${phoneUtil.getCountryCodeForRegion(geoInfo.ipcountry)}${values?.telefono.slice(1, values?.telefono.length)}`
       }
       if (values.nombre_menu === "sin menú") values.nombre_menu = undefined
-      const result: any = await fetchApiEventos({
+      const result: any = await fetchApiBodas({
         query: queries.createGuests,
         variables: {
           eventID: event._id,
-          invitados_array: values,
+          // $invitados_array es [JSON!]! (array). Enviar [values], no el objeto suelto
+          // (antes dependía de coerción implícita single→list).
+          invitados_array: [values],
         },
       });
 
-      setEvent((old) => ({ ...old, invitados_array: result?.invitados_array }));
+      // fetchApiBodas devuelve null en errores GraphQL (NO lanza) y la mutación trae
+      // success/errors. Confirmar éxito REAL antes de dar feedback y refrescar la lista:
+      // así el toast de éxito y la aparición en la lista van juntos (evita "éxito pero no aparece").
+      if (!result?.success || (result?.errors?.length ?? 0) > 0) {
+        const backendMsg = result?.errors?.[0]?.message;
+        toast("error", `${t("Ha ocurrido un error")}${backendMsg ? `: ${backendMsg}` : ""}`);
+        return;
+      }
+
+      const updated = result?.evento?.invitados_array;
+      if (Array.isArray(updated)) {
+        setEvent((old) => ({ ...old, invitados_array: updated }));
+      }
       toast("success", t("Invitado creado con exito"))
     } catch (error) {
       toast("error", `${t("Ha ocurrido un error")} ${error}`)
@@ -129,6 +144,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
 
   return (
     <Formik
+      {...formikValidateUx}
       initialValues={initialValues}
       onSubmit={handleSubmit}
       validationSchema={validationSchema}

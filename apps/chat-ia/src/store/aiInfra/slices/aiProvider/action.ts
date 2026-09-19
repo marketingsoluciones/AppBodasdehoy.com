@@ -1,11 +1,11 @@
 import { isDeprecatedEdition, isDesktop, isUsePgliteDB } from '@lobechat/const';
-import { getModelPropertyWithFallback } from '@lobechat/model-runtime';
 import { uniqBy } from 'lodash-es';
 import {
   AIImageModelCard,
   EnabledAiModel,
   LobeDefaultAiModelListItem,
   ModelAbilities,
+  getModelPropertyWithFallback,
 } from 'model-bank';
 import { SWRResponse, mutate } from 'swr';
 import { StateCreator } from 'zustand/vanilla';

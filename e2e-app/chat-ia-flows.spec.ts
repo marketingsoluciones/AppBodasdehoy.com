@@ -54,8 +54,8 @@ async function loginChat(page: Page): Promise<boolean> {
   await page.goto(`${CHAT_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 45_000 * LOAD_MULTIPLIER });
   await page.waitForTimeout(1200 * LOAD_MULTIPLIER);
 
-  // Ya autenticado → redirige al chat
-  if (page.url().includes('/chat')) return true;
+  // Ya autenticado: comprobar solo el pathname. El host chat-dev también contiene `/chat`.
+  if (new URL(page.url()).pathname.startsWith('/chat')) return true;
 
   // Llenar el formulario de login (email + password)
   // Ant Design envuelve inputs en wrappers; usar click + keyboard.type para mayor fiabilidad
@@ -82,9 +82,9 @@ async function loginChat(page: Page): Promise<boolean> {
     const jwt = localStorage.getItem('api2_jwt_token') || localStorage.getItem('jwt_token');
     if (!jwt) return { ok: false, reason: 'no-jwt-in-localStorage' };
     document.cookie = `api2_jwt=${encodeURIComponent(jwt)}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
-    return { ok: true, tokenSlice: jwt.slice(0, 20) };
+    return { ok: true };
   });
-  console.log('[E2E] JWT cookie set:', JSON.stringify(cookieResult));
+  console.log('[E2E] JWT cookie configured:', JSON.stringify(cookieResult));
 
   const loggedIn = !page.url().includes('/login');
   if (!loggedIn) {
@@ -99,43 +99,39 @@ async function loginChat(page: Page): Promise<boolean> {
  * Devuelve el texto acumulado de todos los mensajes visibles.
  */
 async function chat(page: Page, text: string, waitMs = 60_000): Promise<string> {
-  // LobeChat usa un editor Lexical (div[contenteditable]), no un <textarea> nativo
+  // Esperar a que el historial termine de hidratar. El chat virtualiza el DOM, por lo que
+  // un contador tomado antes del envío no es un corte estable: puede empezar en cero y
+  // poblar mensajes antiguos después. Localizamos siempre la última aparición del prompt.
+  await page.waitForTimeout(1500);
+  const msgSelector = 'article';
+
   const ta = page.locator('div[contenteditable="true"]').last();
   await ta.waitFor({ state: 'visible', timeout: 20_000 });
   await ta.click();
-  // Seleccionar todo y borrar antes de escribir
   await page.keyboard.press('Meta+A');
   await page.keyboard.press('Backspace');
-  // keyboard.type() dispara los eventos de Lexical correctamente (fill() no los dispara)
   await page.keyboard.type(text, { delay: 25 });
   await page.keyboard.press('Enter');
 
-  // Esperar a que aparezca la respuesta del asistente (polling en vez de timeout fijo)
   const deadline = Date.now() + waitMs;
-  // LobeChat renderiza mensajes como <div data-index={n}> (NO <article>).
-  // Filtramos los [data-index] que NO sean el mensaje que acabamos de enviar.
-  const msgSelector = '[data-index]';
   let lastText = '';
-  // Esperar al menos 5s antes de empezar a buscar
+  let stableMatches = 0;
   await page.waitForTimeout(5_000);
   while (Date.now() < deadline) {
     const articles = await page.locator(msgSelector).allTextContents();
-    // Filtrar el mensaje que acabamos de enviar (puede ser parcial)
-    const assistantMsgs = articles.filter(t => {
-      const trimmed = t.trim();
-      if (trimmed.length <= 5) return false;
-      // Filtrar mensajes del propio usuario (bidireccional, case-insensitive)
-      const userPrefix = text.trim().slice(0, 40).toLowerCase();
-      const artPrefix = trimmed.slice(0, 40).toLowerCase();
-      if (artPrefix.startsWith(userPrefix.slice(0, 25))) return false;
-      if (userPrefix.startsWith(artPrefix.slice(0, 25))) return false;
-      return true;
-    });
-    const joined = assistantMsgs.join('\n').trim();
-    if (joined.length > 10 && joined === lastText) {
-      // Respuesta estable (no sigue streaming)
-      return joined;
+    let userIndex = -1;
+    for (let index = articles.length - 1; index >= 0; index -= 1) {
+      if (articles[index].trim().includes(text.trim())) {
+        userIndex = index;
+        break;
+      }
     }
+    const assistantMsgs = userIndex >= 0
+      ? articles.slice(userIndex + 1).map((value) => value.trim()).filter((value) => value.length > 5)
+      : [];
+    const joined = assistantMsgs.join('\\n').trim();
+    stableMatches = joined.length > 10 && joined === lastText ? stableMatches + 1 : 0;
+    if (stableMatches >= 2) return joined;
     lastText = joined;
     await page.waitForTimeout(2_000);
   }
@@ -207,8 +203,9 @@ test.describe('2. Consultas al chat IA — datos reales del evento', () => {
   });
 
   test('[CF03] pregunta cuántos invitados tiene el evento', async ({ page }) => {
-    await chatValidated(page, '¿Cuántos invitados tengo confirmados en mi boda? Dame el número exacto.', {
-      expectedCategory: ['tool_executed', 'data_response', 'tool_failed'],
+    await chatValidated(page, 'En el evento "Boda de Isabel & Raúl", ¿cuántos invitados confirmados tengo? Dame el número exacto.', {
+      expectedCategory: ['tool_executed', 'data_response'],
+      requiredKeywords: ['invitad'],
       forbiddenPatterns: ['How can I assist'],
       description: 'Consulta invitados debe ejecutar tools y dar número',
     }, 25_000);

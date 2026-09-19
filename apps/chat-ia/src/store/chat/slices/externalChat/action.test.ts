@@ -6,7 +6,7 @@
  * - Usuario no configurado intenta cargar chats → error
  * - Usuario UUID intenta cargar chats → se omite (no tiene external chats)
  * - Visitante intenta cargar chats → se omite
- * - Admin carga chats paginados desde API2
+ * - Admin carga chats paginados desde MCP
  * - Admin ve chats con source whatsapp/api/chat según session_type
  * - Usuario carga eventos por email vs teléfono
  * - Acciones internas de estado (loading, error, chats)
@@ -64,6 +64,12 @@ beforeEach(() => {
 
   // Clear jsdom localStorage
   localStorage.clear();
+
+  // Seed token so MCP auth guard passes in unit tests
+  localStorage.setItem(
+    'mcp_jwt_token',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjQxMDI0NDQ4MDB9.sig',
+  );
 });
 
 afterEach(() => {

@@ -1,12 +1,14 @@
 import { Button, Icon } from '@lobehub/ui';
 import { createStyles } from 'antd-style';
 import { CpuIcon, LibraryBig, ShieldCheck } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Center, Flexbox } from 'react-layout-kit';
 
-import DataStyleModal from '@/components/DataStyleModal';
 import { useGlobalStore } from '@/store/global';
+
+const DataStyleModal = dynamic(() => import('@/components/DataStyleModal'), { ssr: false });
 import { useServerConfigStore } from '@/store/serverConfig';
 
 import PGliteIcon from './PGliteIcon';

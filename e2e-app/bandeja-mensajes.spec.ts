@@ -4,9 +4,7 @@
  * Tests E2E de la Bandeja / tab Messages en chat-ia (chat-test):
  *   - /messages carga sin crash
  *   - ChannelSidebar muestra "Mensajes" + filtros de canal
- *   - TAREAS PENDIENTES aparece cuando hay sesión con eventos
- *   - Clic en tarea navega a workspace de detalle (ev-*-task/taskId)
- *   - TaskDetailWorkspace muestra tarjeta de tarea (sin crash)
+ *   - A1: NO muestra secciones internas ("Tareas pendientes" / "Canales")
  *   - /messages/whatsapp muestra WhatsApp setup
  *   - /messages/ev-*-task muestra empty state "selecciona una tarea"
  *   - Conversaciones externas (wa-*) muestran lista de conversaciones
@@ -170,23 +168,21 @@ test.describe('ChannelSidebar — estructura y secciones', () => {
     }
   });
 
-  test('con sesión: muestra sección Tareas pendientes si hay eventos', async ({ page }) => {
+  test('con sesión: NO muestra secciones internas (A1)', async ({ page }) => {
     if (!isAppTest || !hasCredentials) {
       test.skip();
       return;
     }
-    await loginChat(page);
+    const loggedIn = await loginChat(page);
+    expect(loggedIn).toBe(true);
     await goChatRoute(page, '/messages');
 
     const text = await page.locator('body').textContent().catch(() => null) ?? '';
     if (text === null) return;
     expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
 
-    const hasTareas = /Tareas pendientes|tareas|tarea/i.test(text);
-    const hasNoEvents = /sin eventos|no hay eventos|crear.{0,20}evento/i.test(text);
-    if (!hasTareas && !hasNoEvents) {
-      console.log(`ℹ️ Tareas: contenido inesperado (puede estar cargando). Texto: ${text.slice(0, 200)}`);
-    }
+    await expect(page.locator('text=Tareas pendientes')).toHaveCount(0);
+    await expect(page.locator('text=Canales')).toHaveCount(0);
   });
 });
 
@@ -400,9 +396,7 @@ test.describe('Task detail workspace', () => {
     }
   });
 
-  test('con sesión y evento real: muestra workspace con sidebar y tarjeta', async ({
-    page,
-  }) => {
+  test('con sesión: rutas legacy ev-*-task siguen accesibles por URL', async ({ page }) => {
     if (!isAppTest || !hasCredentials) {
       test.skip();
       return;
@@ -413,44 +407,10 @@ test.describe('Task detail workspace', () => {
       return;
     }
 
-    // Navegar a /messages y verificar que el sidebar cargue tareas
-    await goChatRoute(page, '/messages');
-    await page.waitForTimeout(3000);
-
+    await goChatRoute(page, '/messages/ev-test123-task/task-id-que-no-existe');
     const text = (await page.locator('body').textContent()) ?? '';
     expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
-
-    // Si hay tareas en el sidebar, clic en la primera
-    const taskRow = page
-      .locator('button')
-      .filter({ hasText: /.{3,}/ }) // botones con texto
-      .first();
-
-    // Buscar la sección de tareas en el sidebar
-    const tareasPendientes = page.locator('aside').getByText(/Tareas pendientes/i).first();
-    if (await tareasPendientes.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      // Hacer clic en la primera tarea del sidebar
-      const primeraTarea = page
-        .locator('aside button')
-        .filter({ hasText: /.{5,}/ })
-        .first();
-      if (await primeraTarea.isVisible({ timeout: 3_000 }).catch(() => false)) {
-        await primeraTarea.click();
-        await page.waitForTimeout(2000);
-
-        const afterText = (await page.locator('body').textContent()) ?? '';
-        expect(afterText).not.toMatch(/Error Capturado por ErrorBoundary/);
-        // Workspace debe mostrar algo relacionado a la tarea
-        const hasWorkspace = /Pendiente|Completada|itinerario|ev-.+-task/i.test(
-          page.url() + afterText,
-        );
-        expect(hasWorkspace).toBe(true);
-      }
-    } else {
-      // Sin tareas — al menos no debe haber crash
-      console.log('ℹ️ No hay tareas pendientes en el sidebar para este usuario/evento');
-      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
-    }
+    expect(/no encontrada|Cargando|Mensajes|Iniciar sesión/i.test(text)).toBe(true);
   });
 });
 

@@ -58,7 +58,7 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
   };
 
   return (
-    <div className={`flex flex-col w-full px-2 py-1 border-t-[1px] hover:bg-gray-100 relative`} {...props}>
+    <div className={`flex flex-col w-full px-2 py-1 border-t-[1px] border-[#f0f0f2] hover:bg-gray-100 relative`} {...props}>
       <div className='flex flex-1 items-start w-full'>
         <div className="w-8 h-8">
           {!identifierDisabled

@@ -38,16 +38,16 @@ Abre `.env` y añade **solo en tu máquina** (no subas este archivo):
 # Obtener en: https://api.slack.com/apps → tu app → OAuth & Permissions
 
 # Token de usuario (xoxp-...) - permisos del usuario que instaló la app
-SLACK_USER_OAUTH_TOKEN=xoxp-tu-token-aqui-nuevo
+SLACK_USER_OAUTH_TOKEN=«token rotado — usar SLACK_BOT_TOKEN del entorno»
 
 # Token del bot (xoxb-...) - para leer/escribir como bot (recomendado para lectura)
-SLACK_BOT_OAUTH_TOKEN=xoxb-tu-token-aqui-nuevo
+SLACK_BOT_OAUTH_TOKEN=«token rotado — usar SLACK_BOT_TOKEN del entorno»
 ```
 
 - **User OAuth Token** suele empezar por `xoxp-`.
 - **Bot User OAuth Token** suele empezar por `xoxb-`.
 
-Pega los **tokens nuevos** (después de revocar los viejos) en el lugar de `xoxp-tu-token-aqui-nuevo` y `xoxb-tu-token-aqui-nuevo`. Guarda el archivo.
+Pega los **tokens nuevos** (después de revocar los viejos) en el lugar de `«token rotado — usar SLACK_BOT_TOKEN del entorno»` y `«token rotado — usar SLACK_BOT_TOKEN del entorno»`. Guarda el archivo.
 
 ### Paso 3: Comprobar que .env no se sube a git
 

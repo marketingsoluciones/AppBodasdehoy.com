@@ -1,6 +1,9 @@
 import { revalidateTag } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 
+// SPRINT-AD: edge runtime — solo usa revalidateTag (edge-compatible).
+export const runtime = 'edge';
+
 export const GET = async (request: NextRequest) => {
   if (!process.env.REVALIDATE_SECRET) {
     return NextResponse.json('REVALIDATE_SECRET is not set', { status: 501 });

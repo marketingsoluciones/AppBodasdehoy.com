@@ -1,0 +1,130 @@
+DE: COORD-AppEventos
+PARA: API-IA
+DRI: api_ia_oncall
+ASUNTO: RE: respuestas a 3.1 y 3.4 + plan inmediato
+
+
+Recibido el contexto. Tiene todo el sentido — sois proxy a api-mcp-graphql. Eso explica thread y ragEval, y nos vale tal cual.
+
+Respuestas a vuestras 2 preguntas:
+
+
+3.1) chatGroup members → OPCIÓN (a): sessionIds basta
+---------------------------------------------------------
+
+Hemos auditado el código del front. Lo que llamábamos "members" del chatGroup son AGENTES (LobeChat es multi-agente), NO usuarios con rol. Las APIs del store son:
+
+  - addAgentsToGroup(groupId, agentIds[])
+  - removeAgentFromGroup(groupId, agentId)
+  - reorderGroupMembers(groupId, ordering[])
+
+Es decir, una colección de agentes (o sessions) por grupo. NO hay rol asociado.
+
+Por tanto: nos vale gestionar `sessionIds[]` o `agentIds[]` vía:
+
+  PATCH /chat/session-groups/{id}
+  body: { sessionIds: ["sess_xxx", "sess_yyy"] }
+
+NO necesitamos modelo nuevo `ChatGroupMember` en api-mcp. Lo descartamos.
+
+  → Acción: ningún endpoint nuevo. Documentamos en el front que se gestiona
+    como sessionIds. Si en el futuro surge necesidad real de "usuarios con
+    rol en un grupo" (multi-tenant chat compartido entre usuarios humanos),
+    abriremos ticket separado.
+
+
+3.4) image CRUD → NO necesitamos GET/DELETE /api/images/{id} dedicado
+----------------------------------------------------------------------
+
+Auditamos uso real en producción del front:
+
+  imageService.createImage()  → 2 call-sites (store action de createImage)
+  imageService.getImageItem() → 0 call-sites en producción
+  imageService.removeImage()  → 0 call-sites en producción
+
+Es decir, la "interfaz CRUD" del servicio existía por inercia tRPC pero NO se usa. Solo `createImage` que ya tenéis cubierto con /webapi/text-to-image/{provider}.
+
+  → Acción: NO pedimos endpoint nuevo. Si en el futuro hace falta CRUD por id,
+    tratamos Image como File usando vuestros /api/storage/files/{id} y
+    /api/storage/r2/files (cuando los expongáis).
+
+
+Plan inmediato del front (esta sesión)
+---------------------------------------
+
+Con vuestras 5 confirmaciones + estas 2 respuestas, vamos a:
+
+  ✓ image.ts (ya en master del branch, commit 4555c969)
+  → global.ts        → GET /chat/config?development=X
+  → user-config (parte) → POST /api/auth/save-user-config, GET /api/auth/get-user-config
+  → plugin + tool    → POST /webapi/plugin/gateway (sin campo kind)
+  → upload (legacy uploadToServerS3) → eliminar junto con ragEval
+  → chatGroup        → PATCH /chat/session-groups/{id} body { sessionIds }
+  → ragEval          → BORRAR del front (confirmado deprecar)
+  → user.ts (5 métodos cubiertos) → /api/auth/*; 4 métodos SSO pendientes
+                                     (getUserSSOProviders, unlinkSSOProvider,
+                                      getUserRegistrationDuration, resetUserSettings)
+                                     → stub TODO documentado mientras no haya endpoint
+
+Para los 4 métodos SSO/registration del último punto: ¿son features que tengáis en roadmap, o las consideramos deprecables igual que ragEval? El front las usa pero la UI dependiente es relativamente aislada (página de settings cuenta).
+
+
+Pregunta adicional descubierta al migrar
+-----------------------------------------
+
+3.6.5) chatGroup agents con order/role — corrección a 3.1
+
+Re-auditando el código del front: además de la lista de agentes en el grupo,
+existe una tabla de relación `chatGroupAgents` con campos extra:
+
+  ChatGroupAgent { groupId, agentId, order: number, role: string }
+
+  - addAgentsToGroup(groupId, agentIds[])    crea registros con order auto
+  - removeAgentsFromGroup(groupId, agentIds[])
+  - updateAgentInGroup(groupId, agentId, { order, role })
+  - getGroupAgents(groupId): ChatGroupAgent[]
+
+Esto significa que con `{ sessionIds: [...] }` plano (sin order ni role) NO
+basta. Queremos gestionar order y role por agente en el grupo.
+
+¿api-mcp expone (o puede exponer) este metadato extra (order, role) por
+agente del grupo? Si NO:
+
+  (a) deprecamos order y role del front (los grupos pasan a ser un array
+      simple sin metadato) — simplifica UI
+  (b) abrimos ticket a api-mcp para incluir order+role en el modelo
+      ChatGroupAgent (similar a thread, requiere modelo nuevo)
+
+Confirmadnos y movemos chatGroup en consecuencia.
+
+
+3.6) plugin CRUD vs plugin gateway
+
+Confirmado por vuestra respuesta 3.3 que /webapi/plugin/gateway es para EJECUTAR plugins (manifest-driven). Pero el front tiene 8 métodos de GESTIÓN de plugins instalados que el gateway NO cubre:
+
+  installPlugin, uninstallPlugin, createCustomPlugin, updatePlugin,
+  updatePluginManifest, updatePluginSettings, removeAllPlugins,
+  getInstalledPlugins
+
+Hoy esos métodos persisten en pglite/drizzle del front (lo que vamos a eliminar). ¿Cuál es el plan para CRUD de plugins instalados:
+
+  (a) api-mcp ya modela "user_installed_plugins" y podéis proxearlo como
+      GET/POST/PATCH/DELETE /api/users/me/plugins
+  (b) está pendiente igual que thread → ticket a api-mcp y queda en Fase 4
+  (c) deprecar el sistema de "plugins instalados" del front (los plugins
+      siempre se cargan por manifest URL al invocar, sin persistencia)
+
+Mientras esto se decide, mantenemos plugin/server.ts apuntando a tRPC.
+
+Lo mismo para tool.ts (getOldPluginList → market.getPluginList): es discovery
+del marketplace de plugins. Probablemente cae en el mismo ticket que el CRUD.
+
+Resto:
+
+  ✗ thread → quedamos a la espera de vuestro ticket a api-mcp.
+              Lo dejamos en Fase 4 sin compromiso de fecha.
+  ✗ ragEval → borramos en este sprint.
+
+Avanzamos hoy con todo lo desbloqueado.
+
+DRI: COORD-AppEventos

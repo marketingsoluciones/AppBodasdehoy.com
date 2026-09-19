@@ -2,7 +2,7 @@ import isEqual from 'fast-deep-equal';
 import { useEffect } from 'react';
 import { useHotkeysContext } from 'react-hotkeys-hook';
 
-import { useSend } from '@/app/[variants]/(main)/chat/(workspace)/@conversation/features/ChatInput/useSend';
+import { useSend } from '@/app/[variants]/(main)/asistente/(workspace)/@conversation/features/ChatInput/useSend';
 import { useClearCurrentMessages } from '@/features/ChatInput/ActionBar/Clear';
 import { useOpenChatSettings } from '@/hooks/useInterceptingRoutes';
 import { useActionSWR } from '@/libs/swr';
@@ -124,8 +124,13 @@ export const useAddUserMessageHotkey = () => {
 
 export const useClearCurrentMessagesHotkey = () => {
   const clearCurrentMessages = useClearCurrentMessages();
+  // B7 (informe 14-jun): Alt+Shift+Backspace borra TODA la sesión ("no se podrán
+  // recuperar"). Es destructivo → NO debe dispararse mientras el usuario edita el
+  // input de mensaje. Desactivamos su activación en form tags / contentEditable para
+  // evitar borrados accidentales al limpiar el campo (Cmd+A + Borrar y combos).
   return useHotkeyById(HotkeyEnum.ClearCurrentMessages, () => clearCurrentMessages(), {
-    enableOnContentEditable: true,
+    enableOnContentEditable: false,
+    enableOnFormTags: false,
   });
 };
 

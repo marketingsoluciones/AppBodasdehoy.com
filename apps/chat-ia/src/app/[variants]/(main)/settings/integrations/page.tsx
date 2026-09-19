@@ -5,22 +5,31 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { EventosAutoAuth } from '@/features/EventosAutoAuth';
+import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
 import {
   disconnectSocialAccount,
   getSocialAccounts,
   initSocialConnect,
   type SMMSocialAccount,
-} from '@/services/api2/smm';
+} from '@/services/mcpApi/smm';
 import {
   createWhatsAppChannel,
   deleteWhatsAppChannel,
   getWhatsAppChannels,
   type WhatsAppChannel,
-} from '@/services/api2/whatsapp';
+} from '@/services/mcpApi/whatsapp';
 import { useChatStore } from '@/store/chat';
-import { useWhatsAppSession } from '../../messages/hooks/useWhatsAppSession';
+import { useWhatsAppSession } from '../../bandeja/hooks/useWhatsAppSession';
+import { useCanManageMessaging } from '@/hooks/useCanManageMessaging';
+
+import { ChannelMembersPanel } from './ChannelMembersPanel';
 
 const { Title, Text, Paragraph } = Typography;
+
+// Normaliza el prefijo "+" de un teléfono (QA 15-ago: algunos números ya venían con
+// "+" del backend y la UI anteponía otro → "++34…"). Un solo "+" siempre.
+const withPlus = (n?: string | number | null): string =>
+  n === undefined || n === null || n === '' ? '' : `+${String(n).replace(/^\++/, '')}`;
 
 // ─── QR Modal (antd) ──────────────────────────────────────────────────────────
 
@@ -33,9 +42,12 @@ function QRModal({
   development: string;
   onClose: () => void;
 }) {
-  const sessionKey = channel?.id ?? development;
+  // F1 estabilización (informe técnico 13-ago): el alta del QR nuevo devolvía 400. El backend
+  // keyea la sesión de WhatsApp por el SLUG del development —igual que WhatsAppDirectSession,
+  // que SÍ funciona— NO por el ObjectId del canal. Pasar `channel.id` mandaba un sessionKey
+  // inválido (un ObjectId opaco) → 400 → modal "congelado" sin QR.
   const { connectedAt, disconnectSession, error, loading, phoneNumber, qrCode, requestPairingCode, startSession, status } =
-    useWhatsAppSession(sessionKey);
+    useWhatsAppSession(development);
 
   const [mode, setMode] = useState<'qr' | 'code'>('qr');
   const [pairingPhone, setPairingPhone] = useState('');
@@ -80,12 +92,39 @@ function QRModal({
         </div>
       )}
 
-      {!loading && status === 'connected' && (
+      {/* QA 15-ago (caso 5): el backend keyea la sesión de WhatsApp por SLUG del development
+          → hay UNA sola sesión por espacio. Si el usuario pulsa "Conectar" en un canal
+          DESCONECTADO mientras OTRO número ya está conectado en el espacio, antes salía el
+          bloque "✅ Conectado +34…" bajo el título "Conectar: <este canal>" → confuso (parecía
+          que ESTE canal estaba conectado a ese número). Ahora se explica la restricción real
+          en vez de mostrar ambiguo. (No se parchea la API: es límite del backend, se comunica.) */}
+      {!loading && status === 'connected' && channel && channel.status !== 'ACTIVE' && (
+        <Space direction="vertical" size="middle" style={{ textAlign: 'center', width: '100%' }}>
+          <div style={{ fontSize: 40 }}>⚠️</div>
+          <div>
+            <Text strong>Ya hay un WhatsApp conectado en este espacio</Text>
+            {phoneNumber && <div><Text type="secondary">{withPlus(phoneNumber)}</Text></div>}
+          </div>
+          <Alert
+            message={`WhatsApp QR permite un número por espacio. Para vincular «${channel.name}», primero desconecta el número actual. (La conexión por Meta Business API va aparte y no tiene este límite.)`}
+            showIcon
+            type="warning"
+          />
+          <Space>
+            <Button onClick={onClose}>Cancelar</Button>
+            <Button danger onClick={async () => { await disconnectSession(); onClose(); }}>
+              Desconectar el actual
+            </Button>
+          </Space>
+        </Space>
+      )}
+
+      {!loading && status === 'connected' && (!channel || channel.status === 'ACTIVE') && (
         <Space direction="vertical" size="middle" style={{ textAlign: 'center', width: '100%' }}>
           <div style={{ fontSize: 48 }}>✅</div>
           <div>
             <Text strong>WhatsApp Conectado</Text>
-            {phoneNumber && <div><Text type="secondary">+{phoneNumber}</Text></div>}
+            {phoneNumber && <div><Text type="secondary">{withPlus(phoneNumber)}</Text></div>}
             {connectedAt && (
               <div><Text style={{ fontSize: 12 }} type="secondary">Desde {new Date(connectedAt).toLocaleString('es-ES')}</Text></div>
             )}
@@ -220,6 +259,7 @@ function ChannelCard({
   onConnect: () => void;
   onDelete: () => void;
 }) {
+  const canManage = useCanManageMessaging();
   const cfg = STATUS_CONFIG[channel.status] ?? STATUS_CONFIG.DISCONNECTED;
 
   return (
@@ -235,18 +275,28 @@ function ChannelCard({
               <Badge status={cfg.status} text={cfg.label} />
               <Text style={{ fontSize: 12, marginLeft: 8 }} type="secondary">{TYPE_LABELS[channel.type] ?? channel.type}</Text>
             </div>
-            {channel.phoneNumber && <div><Text style={{ fontSize: 12 }} type="secondary">+{channel.phoneNumber}</Text></div>}
+            {channel.phoneNumber && <div><Text style={{ fontSize: 12 }} type="secondary">{withPlus(channel.phoneNumber)}</Text></div>}
           </div>
         </Space>
-        <Space>
-          {channel.type !== 'WAB' && (
-            <Button onClick={onConnect} size="small" style={{ borderColor: '#52c41a', color: '#52c41a' }}>
-              {channel.status === 'ACTIVE' ? 'Gestionar' : 'Conectar'}
-            </Button>
-          )}
-          <Button danger onClick={onDelete} size="small">Eliminar</Button>
-        </Space>
+        {/* Gate N27/N29 (QA 14-09): gestion de canales solo para roles que
+            gestionan mensajeria. Defensa en profundidad; la autorizacion
+            real es server-side. */}
+        {canManage && (
+          <Space>
+            {channel.type !== 'WAB' && (
+              <Button onClick={onConnect} size="small" style={{ borderColor: '#52c41a', color: '#52c41a' }}>
+                {channel.status === 'ACTIVE' ? 'Gestionar' : 'Conectar'}
+              </Button>
+            )}
+            <Button danger onClick={onDelete} size="small">Eliminar</Button>
+          </Space>
+        )}
       </div>
+      {/* Reparto del número entre el equipo (16-09). Las cuatro operaciones existían en
+          api-mcp y el front solo llamaba a una, además con los tipos de variable mal, así
+          que ni funcionaba. Solo para quien gestiona: dar acceso a un número es una acción
+          de administración. */}
+      {canManage && <ChannelMembersPanel channelId={channel.id} development={_development} />}
     </Card>
   );
 }
@@ -270,12 +320,14 @@ function CreateChannelModal({
       setLoading(true);
       setError(null);
       const ch = await createWhatsAppChannel(name.trim(), 'QR_USER');
-      if (ch) {
-        onCreate(ch);
-        onClose();
-      } else {
-        setError('No se pudo crear el canal. Inténtalo de nuevo.');
-      }
+      // FAIL-UX (informe 14-ago): el modal se quedaba abierto con "No se pudo crear" PESE al
+      // éxito. Raíz: el backend acepta el alta y a veces devuelve `success` SIN el objeto
+      // `channel` ("solo loguea") → createWhatsAppChannel retornaba null y caíamos al error.
+      // Los errores REALES (schema no soportado, red) sí LANZAN y los coge el catch de abajo,
+      // así que "no lanzó" = alta aceptada → cerrar el modal y limpiar el formulario.
+      if (ch) onCreate(ch);
+      form.resetFields();
+      onClose();
     } catch (err: any) {
       if (err?.errorFields) return; // validation error, handled by form
       setError(err?.message ?? 'Error al crear canal');
@@ -370,7 +422,7 @@ function SocialChannelCard({
           </Button>
         )}
         {comingSoon && !onConnect && (
-          <Link href={`/messages/${channelId}`} style={{ display: 'block' }}>
+          <Link href={`/bandeja/${channelId}`} style={{ display: 'block' }}>
             <Button block size="small" style={{ fontSize: 12 }}>
               Configurar →
             </Button>
@@ -394,7 +446,7 @@ function WhatsAppDirectSession({ development }: { development: string }) {
       <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between' }}>
         <Space>
           <Badge status="success" text="Conectado" />
-          {phoneNumber && <Text type="secondary">+{phoneNumber}</Text>}
+          {phoneNumber && <Text type="secondary">{withPlus(phoneNumber)}</Text>}
           {connectedAt && (
             <Text style={{ fontSize: 12 }} type="secondary">
               desde {new Date(connectedAt).toLocaleDateString('es-ES')}
@@ -436,13 +488,29 @@ function WhatsAppDirectSession({ development }: { development: string }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 function IntegrationsPageInner() {
-  const currentUserId = useChatStore((s) => s.currentUserId);
+  const canManage = useCanManageMessaging();
   const development = useChatStore((s) => s.development) || 'bodasdehoy';
-  const isAuthenticated = !!(currentUserId && currentUserId !== 'visitante@guest.local');
+  // P0 "verdad doble" (informe unificado 14-ago): antes isAuthenticated era SOLO por
+  // currentUserId → /integraciones mostraba "Sin conectar / Iniciar sesión" aunque hubiera
+  // JWT y canales reales (el DOM los tenía). Los canales se piden con el JWT (buildHeaders),
+  // no con currentUserId; si el SSO aún no pobló currentUserId pero hay JWT, estás
+  // autenticado y hay que cargarlos. Usamos la detección canónica JWT-aware (la misma que
+  // sidebar/bandeja/files) → deja de mostrar el shell de visitante con datos autenticados.
+  const isAuthenticated = !useDomainGuestUser();
 
   const [channels, setChannels] = useState<WhatsAppChannel[]>([]);
   const [loadingChannels, setLoadingChannels] = useState(true);
   const [apiError, setApiError] = useState(false);
+  // P0 verdad-doble (QA 14-ago): useDomainGuestUser resuelve el JWT post-mount (~1 frame),
+  // así que había una ventana en la que isAuthenticated=false y se pintaba "Inicia sesión"
+  // pese a haber sesión (shell de invitado con canales reales detrás). Durante esa ventana
+  // mostramos un loader; el prompt de login solo tras la gracia = visitante real. Mismo
+  // criterio que el gate de /files (que por eso NO flashea).
+  const [sessionResolving, setSessionResolving] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setSessionResolving(false), 1500);
+    return () => clearTimeout(t);
+  }, []);
 
   const [qrTarget, setQrTarget] = useState<WhatsAppChannel | undefined>(undefined);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -467,14 +535,14 @@ function IntegrationsPageInner() {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    getSocialAccounts(development).then(setSocialAccounts).catch(() => {});
+    getSocialAccounts(development).then(setSocialAccounts).catch((e) => console.warn('[integrations] getSocialAccounts falló:', e?.message));
   }, [development, isAuthenticated]);
 
   const handleSmmConnect = async (platform: 'INSTAGRAM' | 'FACEBOOK') => {
     setConnectingPlatform(platform);
-    // The OAuth callback is handled by api2 directly — it completes token exchange
+    // The OAuth callback is handled by MCP directly — it completes token exchange
     // and sends postMessage back to this window before closing the popup.
-    const API2_OAUTH_CALLBACK = 'https://api2.eventosorganizador.com/api/smm/oauth/callback';
+    const API2_OAUTH_CALLBACK = 'https://api-mcp.eventosorganizador.com/api/smm/oauth/callback';
 
     try {
       const result = await initSocialConnect(platform, development, API2_OAUTH_CALLBACK);
@@ -505,7 +573,7 @@ function IntegrationsPageInner() {
           popup?.close();
           setSmmAlert({ message: `✅ ${plt ?? platform} conectado: @${username}`, type: 'success' });
           // Reload social accounts to reflect new connection
-          getSocialAccounts(development).then(setSocialAccounts).catch(() => {});
+          getSocialAccounts(development).then(setSocialAccounts).catch((e) => console.warn('[integrations] getSocialAccounts falló:', e?.message));
           setConnectingPlatform(null);
         } else if (type === 'SMM_OAUTH_ERROR') {
           window.removeEventListener('message', onMessage);
@@ -558,7 +626,7 @@ function IntegrationsPageInner() {
     <div style={{ margin: '0 auto', maxWidth: 768, padding: '24px 16px' }}>
       {/* Móvil: breadcrumb */}
       <div className="md:hidden" style={{ marginBottom: 20 }}>
-        <Link href="/messages">
+        <Link href="/bandeja">
           <Button size="small" style={{ paddingLeft: 0 }} type="link">← Mensajes</Button>
         </Link>
         <Text type="secondary"> / Integraciones</Text>
@@ -572,8 +640,12 @@ function IntegrationsPageInner() {
         </Paragraph>
       </div>
 
-      {/* Sesión requerida */}
-      {!isAuthenticated && (
+      {/* Sesión resolviéndose (JWT post-mount) → loader, NO el prompt de invitado. */}
+      {!isAuthenticated && sessionResolving && (
+        <Skeleton active paragraph={{ rows: 1 }} style={{ marginBottom: 24 }} title={false} />
+      )}
+      {/* Sesión requerida — solo tras la gracia = visitante real. */}
+      {!isAuthenticated && !sessionResolving && (
         <Alert
           action={
             <Link href="/login">
@@ -626,7 +698,7 @@ function IntegrationsPageInner() {
                   </div>
                 </div>
               </div>
-              {isAuthenticated && (
+              {isAuthenticated && canManage && (
                 <Button
                   block
                   onClick={() => setShowCreateModal(true)}
@@ -672,7 +744,9 @@ function IntegrationsPageInner() {
       </section>
 
       {/* ── Gestión detallada de canales WhatsApp ── */}
-      {isAuthenticated && (
+      {/* Gate N27/N29 (QA 14-09): la gestión detallada solo para roles que
+          gestionan mensajería */}
+      {isAuthenticated && canManage && (
         <section>
           <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
             <Text strong>Canales WhatsApp</Text>

@@ -292,7 +292,12 @@ export class DatabaseManager {
     if (this.isLocalDBSchemaSynced && skipMultiRun) return this.db;
 
     let hash: string | undefined;
-    if (typeof localStorage !== 'undefined') {
+    const hasLocalStorage =
+      typeof localStorage !== 'undefined' &&
+      typeof (localStorage as any)?.getItem === 'function' &&
+      typeof (localStorage as any)?.setItem === 'function';
+
+    if (hasLocalStorage) {
       const cacheHash = localStorage.getItem(pgliteSchemaHashCache);
       hash = Md5.hashStr(JSON.stringify(migrations));
       // if hash is the same, no need to migrate
@@ -329,7 +334,7 @@ export class DatabaseManager {
         // @ts-expect-error
         await this.db.dialect.migrate(migrations, this.db.session, {});
 
-        if (typeof localStorage !== 'undefined' && hash) {
+        if (hasLocalStorage && hash) {
           localStorage.setItem(pgliteSchemaHashCache, hash);
         }
 

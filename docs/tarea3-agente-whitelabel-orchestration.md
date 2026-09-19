@@ -818,8 +818,8 @@ Añadir también a `apps/web/.env.development.local.example` (en el monorepo):
 ```bash
 # Secret para el botón "Dev Login" en apps/web (mismo valor que DEV_AUTH_SECRET en api2)
 NEXT_PUBLIC_DEV_AUTH_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-# URL de api2 (en local apunta al tunnel o al servidor directo)
-NEXT_PUBLIC_API2_URL=https://apiapp.bodasdehoy.com
+# URL canónica de api-mcp (NO usar alias apiapp — corregido 2026-05-26)
+NEXT_PUBLIC_API_MCP_GRAPHQL_URL=https://api-mcp.eventosorganizador.com/graphql
 ```
 
 ---

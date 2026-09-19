@@ -1,0 +1,151 @@
+DE: COORD-AppEventos
+PARA: PRODUCTO / JCP
+DRI: producto_oncall
+CANAL: #coordinacion
+HILO: 1778170638.897419
+ASUNTO: ✅ Decisiones cerradas P11/P12/P13 + regla billing universal
+
+
+Hoy producto confirmó 3 decisiones + 1 regla universal.
+Resumo aquí para que el resto del equipo (api-ia, api-mcp,
+front) se alinee.
+
+
+═══════════════════════════════════════════════════════════
+[P11] MEMORIA CONVERSACIONAL PERSISTENTE → SÍ Q3
+═══════════════════════════════════════════════════════════
+
+Decisión:
+  SÍ — abrir ticket en Q3 (jul-sep 2026).
+
+Justificación:
+  Tendencia 2026 (ChatGPT/Claude lanzaron memoria persistente
+  meses atrás). Diferenciador competitivo en sector boda.
+  Casos típicos donde evita repetición:
+    • Fecha boda, presupuesto, número invitados, estilo
+    • Decisiones tomadas en conversaciones previas
+
+Condiciones (CRÍTICAS):
+  1. UNIDAD DE COBRO definida en 3 momentos:
+     a) EXTRACT — tokens LLM al cerrar conversación y extraer
+        hechos del usuario
+     b) RECALL — 1 embedding call + búsqueda vectorial por
+        consulta
+     c) STORAGE — coste mensual por GB-mes de memorias activas
+  2. TOPES POR PLAN:
+     FREE        →   0 memorias
+     BASIC 9.99  →  50 memorias activas máx
+     PRO   29.99 → 500 memorias activas máx
+     MAX   79.99 → 5000 memorias activas máx
+     ENTERPRISE → ilimitado
+  3. UI Settings > Memoria con "ver / borrar / exportar"
+     (control usuario + GDPR obligatorio)
+  4. Integración wallet api-ia existente (track_ai_usage)
+
+ETA:
+  Q3 (jul-sep 2026). Ticket api-ia separado, no entra en
+  CAPA 3 actual.
+
+Pendiente decisión posterior (no urge):
+  - Validar topes 50/500/5000 contra coste real embeddings
+  - Si el precio del plan absorbe coste o hay que ajustar
+
+
+═══════════════════════════════════════════════════════════
+[P12] MARKETPLACE PLUGINS/MCPS → HÍBRIDO
+═══════════════════════════════════════════════════════════
+
+Decisión:
+  HÍBRIDO = catálogo LobeHub (lectura) + filtro/curación
+  administrada por nosotros (whitelist por whitelabel).
+
+Implementación:
+  • Endpoint /api/marketplace/* lee catálogo público LobeHub
+  • Filtro server-side aplica whitelist por X-Development
+  • Para bodasdehoy: solo plugins/MCPs útiles boda (Pinterest,
+    Notion, Calendar, catering, fotografía...)
+  • Para otros whitelabel (CRM, etc.) → otro filtro
+
+Justificación:
+  - LobeHub mantiene catálogo (no construimos uno propio)
+  - Control de marca (no aparecen cosas raras al usuario)
+  - Mejor UX con esfuerzo backend mínimo
+
+Acción api-ia:
+  Implementar federación + filtro whitelabel al construir
+  endpoints marketplace (puesto 8º en prioridad CAPA 3).
+
+
+═══════════════════════════════════════════════════════════
+[P13] apiapp.bodasdehoy.com → DEPRECADO
+═══════════════════════════════════════════════════════════
+
+Estado actual:
+  • Front YA no llama a apiapp (commit NEXT_PUBLIC_BASE_URL
+    borrado de .env.local y .env.production.local)
+  • Imágenes legacy via proxy media-apiapp.eventosorganizador.com
+    (droplet distinto, sigue vivo)
+  • Cuando código actual del front llegue a prod → apiapp es
+    historia
+
+Reglas operativas:
+  • api-ia / api-mcp: NO mantener compatibilidad con apiapp
+  • Front: NO revivirlo en stubs, env o fallbacks
+  • Docs: marcar deprecado
+  • JCP apaga droplet apiapp cuando confirme prod estable
+    (~5 min, ahorra €/mes)
+
+
+═══════════════════════════════════════════════════════════
+🛡️ REGLA UNIVERSAL — BILLING OBLIGATORIO TODA FEATURE IA
+═══════════════════════════════════════════════════════════
+
+Producto reafirmó: cobramos por uso. Cada feature IA que
+añadimos consume recursos externos (LLM tokens, embeddings,
+generación imagen, storage vectorial) y debe descontarse del
+plan del usuario.
+
+Por tanto, sentamos como REGLA UNIVERSAL del proyecto:
+
+  Toda feature IA nueva exige billing-hook ANTES de salir
+  a prod. Checklist por feature:
+    ☐ Unidad de cobro definida (token / call / GB-mes / imagen)
+    ☐ Endpoint api-ia integra track_ai_usage + calculate_ai_cost
+    ☐ Front muestra coste estimado antes de la acción (UX
+      transparente)
+    ☐ Modal "saldo insuficiente" si plan no cubre
+      (InsufficientBalanceModal ya existe)
+    ☐ Test smoke E2E: feature consume X → balance baja X
+    ☐ Tope por plan documentado
+
+  Sin hook al wallet = feature NO sale a producción.
+
+Aplica retroactivamente a:
+  - /chat/structured (bug detectado HOY: no factura, ya
+    reportado a api-ia en F9)
+  - Todo endpoint nuevo CAPA 3 (turn, galería, chunks,
+    PDF, apikey, export/import)
+  - Memoria persistente Q3 (P11)
+  - Marketplace híbrido (P12) si install consume créditos
+
+
+═══════════════════════════════════════════════════════════
+RESUMEN — qué cambia AHORA
+═══════════════════════════════════════════════════════════
+
+  api-ia recibe (F9 enviado): pidiendo que /chat/structured
+  integre billing + arregle routing Groq.
+
+  api-mcp recibe (F10 enviado): 2 gaps menores schema.
+
+  Front (yo): NO toco código hasta que api-ia despliegue
+  los 2 fixes. Política sin fallback.
+
+  Producto (JCP): pendiente
+    - Validar topes plan memoria (P11, no urge)
+    - Decidir Q3 cuándo en julio empezar ticket memoria
+    - Cuando código actual del front llegue a prod → apagar
+      droplet apiapp
+
+
+DRI: coord_appeventos — cualquier matiz me decís.

@@ -99,7 +99,7 @@ cd /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/web/scripts
 
 1. Ve a la ventana de Firefox que se abrió
 2. Ingresa: `bodasdehoy.com@gmail.com`
-3. Ingresa password: `lorca2012M*+`
+3. Ingresa password: `«definida en .env.e2e.dev.local — nunca en el repo»`
 4. Click "Continuar"
 5. Espera "✅ Cookies guardadas"
 

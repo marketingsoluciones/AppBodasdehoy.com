@@ -6,7 +6,7 @@ import { AuthContextProvider } from "../../context";
 import { FC } from "react";
 import { guests, menu } from "../../utils/Interfaces";
 import { useRouter, useSearchParams } from "next/navigation";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { useTranslation } from 'react-i18next';
 
 interface props {
@@ -82,7 +82,7 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                 sendValues.push(item)
             }
         }
-        fetchApiEventos({
+        fetchApiBodas({
             query: queries.createGuests,
             variables: {
                 eventID: eventID,

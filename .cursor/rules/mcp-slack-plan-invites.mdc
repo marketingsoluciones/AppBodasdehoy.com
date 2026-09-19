@@ -1,0 +1,42 @@
+---
+description: MCP como fuente de verdad de plan, Slack del repo, límites de invitados y coordinación entre agentes
+alwaysApply: true
+---
+
+# MCP, Slack, invitados y planes (monorepo AppBodasdehoy)
+
+## MCP — suscripción y límites (UI)
+
+- **Fuente de verdad de datos de plan** para la app de eventos: **MCP (GraphQL)** (`API_MCP_GRAPHQL_URL` / `NEXT_PUBLIC_API_MCP_GRAPHQL_URL`, por defecto `https://api3-mcp-graphql.eventosorganizador.com/graphql`). El repo también lee variables antiguas (`API2_*`, `API3_*`, etc.) como compatibilidad legacy.
+- **Código:** `apps/appEventos/hooks/usePlanLimits.ts`, `apps/appEventos/pages/facturacion.tsx`, tipos en `packages/shared/plans` (SKU invitados: `guests-per-event` vía `PLAN_SKU_GUESTS_PER_EVENT` en `apps/appEventos/utils/planLimitsCoordination.ts`).
+- **Persistencia de invitados** sigue siendo la **API app** (`fetchApiEventos` en `utils/Fetching.ts`, mutation `creaInvitado` en queries). El servidor debe **aplicar la misma cuota** que refleja MCP; si no, hay desfase UI vs guardado.
+
+## Errores al guardar invitados
+
+- `utils/planLimitFromApiError.ts`: detecta límite/cuota (GraphQL top-level `errors`, HTTP 402, o payload con `success: false` + `errors[].code` / mensajes). `fetchApiEventos` lanza si `success === false` con `errors[]`.
+- `notifyGuestMutationPlanOrGenericError` + modal `setActionModals` en formularios de invitados. Tests: `apps/appEventos/utils/__tests__/planLimitFromApiError.test.ts`.
+- Contrato y códigos: `planLimitsCoordination.ts` (documentado para backend).
+
+## Slack (coordinación con humanos / api-ia)
+
+- **Enlace con backend MCP:** quien en el equipo tenga el **canal de comunicación directo con MCP** (la misma persona que ya coordináis) debe recibir escaladas: timeouts GraphQL (`getEventsByID`), **404 / sin servicio en Socket.IO**, desajustes de enum (`SubscriptionStatus`, etc.) o cuotas. El agente en Cursor **no sustituye** ese contacto: puede **redactar el mensaje técnico**, proponer `slack-send.sh` y juntar **evidencia** (URL, entorno, timestamp, status HTTP, fragmento JSON de error, captura).
+- **Canal:** `#copilot-api-ia` (ID por defecto `C0AEV0GCLM7`).
+- **Scripts (raíz repo):** `scripts/slack-send.sh [--web|--copilot] "mensaje"` (envío), `scripts/slack-read.sh [N]` (lectura). Cargan **`.env` en la raíz** (`SLACK_BOT_TOKEN` y/o webhook).
+- **Nunca** pegar tokens, webhooks ni contenido de `.env` / `.env.local` en el chat. Rotar si se filtran. `.env` está en `.gitignore`.
+
+## Límites del agente (Cursor)
+
+- **No hay SSH** ni acceso a servidores: solo el **workspace** del repo.
+- Para “revisar MCP” en profundidad hace falta **código en el repo**, **respuestas reales** (JSON) o acceso del usuario al entorno.
+
+## E2E y operador JCC (multi-marca)
+
+- **Este equipo:** validación habitual solo en **DEV** (`localhost`, `*-dev` / VPN a máquina local). Regla operativa: **`.cursor/rules/dev-subdomains-webkit-only.mdc`**. WebKit y E2E: **`.cursor/rules/app-test-chat-test.mdc`**.
+- Credenciales y flujo técnico: **`AGENTS.md`** (raíz) y la misma regla anterior.
+- Misma persona **JCC** en varias marcas y coherencia JWT: **`.cursor/rules/e2e-user-jcc-multi-brand.mdc`**.
+
+## Regla también a nivel usuario (otros proyectos / sin abrir este repo)
+
+Cursor guarda las **User rules** en ajustes locales (no hay ruta pública fiable). Para el mismo texto en **todos** los workspaces: **Cursor → Settings → Rules** (pestaña de reglas de usuario) y pega el contenido de **`scripts/cursor-global-rule-mcp-slack.txt`** en la raíz de este monorepo.
+
+- **Cada vez que ese `.txt` cambie en git** (p. ej. tras `pull`), vuelve a pegarlo en Rules para no quedar con texto viejo. Recordatorio arriba del fichero y checklist en **`scripts/PENDIENTES-NOSOTROS-VS-ELLOS.txt`** (primera tarea).

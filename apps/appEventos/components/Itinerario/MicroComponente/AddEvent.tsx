@@ -4,6 +4,7 @@ import { fetchApiEventos, queries } from "../../../utils/Fetching"
 import { useTranslation } from 'react-i18next';
 import { Task } from "../../../utils/Interfaces";
 import { useAllowed } from "../../../hooks/useAllowed";
+import { eventDateAtHourZ } from "../../../utils/FormatTime";
 
 export const AddEvent = ({ itinerario, tasks, setSelectTask }) => {
     const { t } = useTranslation();
@@ -13,32 +14,40 @@ export const AddEvent = ({ itinerario, tasks, setSelectTask }) => {
 
     const addTask = async () => {
         try {
-            const f = new Date(parseInt(event.fecha))
-            const fy = f.getUTCFullYear()
-            const fm = f.getUTCMonth()
-            const fd = f.getUTCDate()
-            let newEpoch = new Date(fy, fm + 1, fd).getTime() + 7 * 60 * 60 * 1000
+            let fecha = eventDateAtHourZ(event?.fecha, 6, 0)
             if (tasks?.length) {
                 const item = tasks[tasks?.length - 1]
-                const epoch = new Date(item.fecha).getTime()
-                newEpoch = epoch + item.duracion * 60 * 1000
+                const epoch = item?.fecha ? new Date(item.fecha).getTime() : NaN
+                if (!isNaN(epoch)) {
+                    fecha = new Date(epoch + (item.duracion || 0) * 60 * 1000)
+                }
             }
-            const fecha = new Date(newEpoch)
             const addNewTask = await fetchApiEventos({
                 query: queries.createTask,
                 variables: {
-                    eventID: event._id,
-                    itinerarioID: itinerario._id,
-                    descripcion: itinerario.tipo === "itinerario" ? "Tarea nueva" : "Servicio nuevo",
-                    ...(itinerario.tipo === "itinerario" && { fecha: fecha }),
-                    ...(itinerario.tipo === "itinerario" && { duracion: 30 })
+                    evento_id: event._id,
+                    development: config.development || "bodasdehoy",
+                    task: {
+                        itinerario_id: itinerario._id,
+                        descripcion: itinerario.tipo === "itinerario" ? "Tarea nueva" : "Servicio nuevo",
+                        ...(itinerario.tipo === "itinerario" && {
+                            fecha: fecha.toISOString(),
+                            horaActiva: true,
+                            duracion: 30,
+                            ...(!tasks?.length ? { hora: "06:00" } : {}),
+                        }),
+                    }
                 },
                 domain: config.domain
             })
-            const task = addNewTask as Task
+            const task = ((addNewTask as any)?.task || addNewTask) as Task
             const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
-            event.itinerarios_array[f1].tasks.push(task as Task)
-            setEvent({ ...event })
+            setEvent((prev) => ({
+                ...prev,
+                itinerarios_array: prev.itinerarios_array.map((it, i) =>
+                    i !== f1 ? it : { ...it, tasks: [...it.tasks, task] }
+                ),
+            }))
             setSelectTask(task._id)
         } catch (error) {
         }

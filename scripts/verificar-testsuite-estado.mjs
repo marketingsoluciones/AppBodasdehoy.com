@@ -39,7 +39,10 @@ function getBackendUrl() {
   if (fs.existsSync(envFile)) {
     try {
       const content = fs.readFileSync(envFile, 'utf-8');
-      const match = content.match(/^PYTHON_BACKEND_URL=(.+)$/m);
+      const match =
+        content.match(/^API_IA_URL=(.+)$/m) ||
+        content.match(/^PYTHON_BACKEND_URL=(.+)$/m) ||
+        content.match(/^BACKEND_URL=(.+)$/m);
       if (match) {
         backendUrl = match[1].trim().replace(/['"]/g, '');
       }

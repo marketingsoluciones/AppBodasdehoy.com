@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
+import { resolveMcpOrigin } from '@/const/mcpEndpoints';
 
 export const runtime = 'nodejs';
-
-const getApiIaUrl = (): string =>
-  process.env.PYTHON_BACKEND_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  'https://api-ia.bodasdehoy.com';
-
-const getApi2Url = (): string =>
-  process.env.API2_URL || 'https://api2.eventosorganizador.com';
+const API_IA_ORIGIN = resolveServerBackendOrigin();
+const MCP_ORIGIN = resolveMcpOrigin();
 
 /**
  * Proxy catch-all: /api/messages/[...path]
@@ -16,7 +12,7 @@ const getApi2Url = (): string =>
  * Arquitectura objetivo: TODO pasa por api-ia (orquestador).
  *
  * TEMPORAL (hasta que api-ia implemente GAP 1 del RFC 2026-03-05):
- *   /api/messages/whatsapp/* → api2 /api/whatsapp/*  (Baileys QR personal)
+ *   /api/messages/whatsapp/* → MCP /api/whatsapp/*  (Baileys QR personal)
  *
  * Definitivo:
  *   todo lo demás → api-ia /api/messages/*
@@ -28,30 +24,76 @@ const getApi2Url = (): string =>
  *   /api/messages/web/*        → api-ia (Widget embebible + SSE)
  *
  * TODO: Cuando api-ia implemente /api/messages/conversations con datos Baileys
- *       y /api/messages/whatsapp/session/:dev, eliminar el bloque whatsapp→api2.
+ *       y /api/messages/whatsapp/session/:dev, eliminar el bloque whatsapp→MCP.
  */
+/**
+ * looksLikeSessionJwt — validación ESTRUCTURAL del token del gate (auditoría 15-09).
+ *
+ * NO verifica la firma (la clave vive en api-ia/api-mcp): eso sigue siendo
+ * responsabilidad del backend. Lo que sí corta es el bypass trivial que tenía
+ * el gate de N32: bastaba `?token=x` o cualquier header Authorization para que
+ * el proxy reenviara la petición igual que antes del fix. Ahora exige un JWT
+ * con 3 segmentos, payload decodificable y `exp` vigente.
+ */
+function looksLikeSessionJwt(token: string): boolean {
+  const parts = token.replace(/^Bearer\s+/i, '').split('.');
+  if (parts.length !== 3 || !parts[0] || !parts[1] || !parts[2]) return false;
+  try {
+    const seg = parts[1];
+    const padded = seg.padEnd(seg.length + ((4 - (seg.length % 4)) % 4), '=');
+    const payload = JSON.parse(
+      Buffer.from(padded.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf-8'),
+    );
+    if (!payload || typeof payload !== 'object') return false;
+    // exp en segundos (JWT estándar). Sin exp no podemos decidir: se deja pasar
+    // y el backend decide — pero un token caducado NO se reenvía.
+    if (typeof payload.exp === 'number' && payload.exp * 1000 <= Date.now()) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function proxyRequest(request: NextRequest, path: string[]): Promise<NextResponse> {
   const subpath = path.join('/');
   const reqUrl = new URL(request.url);
   const { search } = reqUrl;
 
+  // ── GATE DE AUTENTICACIÓN (auditoría QA 2026-09-14, hallazgo N32) ──────────
+  // api-ia/api-mcp aún no exigen JWT en todas las subrutas (p. ej.
+  // /conversations/{id}/draft* respondían 200 sin token). Hasta que el backend
+  // añada middleware de auth, el proxy no reenvía nada sin credenciales.
+  // El widget de invitados NO pasa por aquí: usa /api/widget-chat (ruta propia).
+  // EventSource no puede enviar headers custom → admitir token como query param.
+  const tokenFromQuery = reqUrl.searchParams.get('token');
+  const authHeader = request.headers.get('authorization');
+  const credential = authHeader || tokenFromQuery;
+  if (!credential || !looksLikeSessionJwt(credential)) {
+    return NextResponse.json({ detail: 'No autenticado' }, { status: 401 });
+  }
+
   let targetUrl: string;
   if (subpath.startsWith('whatsapp/')) {
-    // TEMPORAL: WhatsApp Baileys va directo a api2 hasta que api-ia lo orqueste
-    const api2Path = subpath.replace(/^whatsapp\//, '');
-    targetUrl = `${getApi2Url()}/api/whatsapp/${api2Path}${search}`;
+    const waPath = subpath.replace(/^whatsapp\//, '');
+    // MIGRACIÓN (QA 26-ago): los endpoints de MENSAJES (messages/send, messages/template)
+    // migraron a api-ia — MCP ya NO expone /api/whatsapp/messages/* (404 "Cannot POST").
+    // La SESIÓN/QR (Baileys, session/*) SIGUE en MCP. Enrutamos cada uno a su backend:
+    //   whatsapp/messages/* → api-ia   ·   whatsapp/session/* (y resto) → MCP
+    if (waPath.startsWith('messages/')) {
+      targetUrl = `${API_IA_ORIGIN}/api/whatsapp/${waPath}${search}`;
+    } else {
+      targetUrl = `${MCP_ORIGIN}/api/whatsapp/${waPath}${search}`;
+    }
   } else {
     // api-ia expone conversations/{id} sin el sufijo /messages — normalizar el path
     const normalizedSubpath = subpath.replace(/^(conversations\/[^/]+)\/messages$/, '$1');
-    targetUrl = `${getApiIaUrl()}/api/messages/${normalizedSubpath}${search}`;
+    targetUrl = `${API_IA_ORIGIN}/api/messages/${normalizedSubpath}${search}`;
   }
 
   // Propagar headers de autenticación y contexto completos
   const headers: Record<string, string> = {};
 
-  // EventSource no puede enviar headers custom → admitir token como query param
-  const tokenFromQuery = reqUrl.searchParams.get('token');
-  const auth = request.headers.get('authorization') || (tokenFromQuery ? `Bearer ${tokenFromQuery}` : null);
+  const auth = authHeader || (tokenFromQuery ? `Bearer ${tokenFromQuery}` : null);
   if (auth) headers['Authorization'] = auth;
 
   const xDev = request.headers.get('x-development') || reqUrl.searchParams.get('development');

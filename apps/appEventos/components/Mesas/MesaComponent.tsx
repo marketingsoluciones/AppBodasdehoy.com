@@ -39,6 +39,10 @@ type schemaType = {
 
 const MesaComponent: FC<propsMesaComponent> = ({ posicionRedonda, table, invitados, setDisableWrapper, setShowFormEditar, disableDrag }) => {
   const { planSpaceActive } = EventContextProvider()
+  // Fallback de spaceChairs: si el plano no lo trae (planos creados sin el campo), el cálculo
+  // de las mesas daba NaN → la mesa colapsaba a un círculo diminuto con el número. 120 es el
+  // valor por defecto de los planos existentes.
+  const safeSpaceChairs = (planSpaceActive?.spaceChairs && planSpaceActive.spaceChairs > 0) ? planSpaceActive.spaceChairs : 120;
   const { numberChair } = table;
   const [nSillas, setNSillas] = useState([]);
 
@@ -61,32 +65,32 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicionRedonda, table, invitad
   const schemaGeneral: schemaType = {
     redonda: {
       position: posicionRedonda,
-      component: <MesaRedonda table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />,
+      component: <MesaRedonda table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={safeSpaceChairs} />,
       type: "radio",
     },
     cuadrada: {
       position: [0, 90, 180, 270],
-      component: <MesaCuadrada table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />,
+      component: <MesaCuadrada table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={safeSpaceChairs} />,
       type: "radio",
     },
     podio: {
       position: ArraySillas(),
-      component: <MesaPodio table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />,
+      component: <MesaPodio table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={safeSpaceChairs} />,
       type: "relative",
     },
     bancos: {
       position: ArraySillas(),
-      component: <MesaBancos table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />,
+      component: <MesaBancos table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={safeSpaceChairs} />,
       type: "relative",
     },
     banco: {
       position: ArraySillas(),
-      component: <Banco table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />,
+      component: <Banco table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={safeSpaceChairs} />,
       type: "relative",
     },
     militar: {
       position: ArraySillas(),
-      component: <Banco table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />,
+      component: <Banco table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={safeSpaceChairs} />,
       type: "relative",
     },
   };
@@ -99,46 +103,56 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicionRedonda, table, invitad
   if (["imperial"].includes(table.tipo)) {
     return (
       <>
-        <MesaImperial table={table} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />
+        <MesaImperial table={table} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={safeSpaceChairs} />
       </>
     )
   }
   if (["cuadrada"].includes(table.tipo)) {
     return (
       <>
-        <MesaCuadradaNew table={table} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />
+        <MesaCuadradaNew table={table} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={safeSpaceChairs} />
       </>
     )
   }
   if (["podio"].includes(table.tipo)) {
     return (
       <>
-        <MesaPodioNew table={table} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />
+        <MesaPodioNew table={table} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={safeSpaceChairs} />
       </>
     )
   }
   if (["militar"].includes(table.tipo)) {
     return (
       <>
-        <MesaMilitar table={table} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />
+        <MesaMilitar table={table} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={safeSpaceChairs} />
       </>
     )
   }
   if (["bancos"].includes(table.tipo)) {
     return (
       <>
-        <Bancos table={table} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />
+        <Bancos table={table} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={safeSpaceChairs} />
       </>
     )
   }
   if (["redonda"].includes(table.tipo)) {
     return (
       <>
-        <MesaRedondaNew table={table} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />
+        <MesaRedondaNew table={table} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={safeSpaceChairs} />
       </>
     )
   }
-  return cloneElement(schemaGeneral[table.tipo].component, {
+  // BUG-M-01 (informe QA 22-jun): si table.tipo no existe en schemaGeneral
+  // (mesa recién creada con tipo desconocido, tipo en mayúsculas, null o vacío),
+  // schemaGeneral[table.tipo] devuelve undefined y .component crashea con
+  // "Cannot read properties of undefined". Guard + fallback a 'redonda' (el
+  // tipo más común).
+  const schemaEntry = schemaGeneral[table?.tipo] || schemaGeneral['redonda']
+  if (!schemaEntry?.component) {
+    console.warn('[MesaComponent] table.tipo desconocido:', table?.tipo, '— sin schema, render vacío')
+    return null
+  }
+  return cloneElement(schemaEntry.component, {
     cantidad_sillas: numberChair,
     children: nSillas?.map((elem, idx) => {
       const invitado = invitados.filter(element => element.chair == idx.toString())[0]
@@ -149,7 +163,7 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicionRedonda, table, invitad
             index={idx}
             position={elem}
             radio={45}
-            className={schemaGeneral[table.tipo].type}>
+            className={schemaEntry.type}>
             {invitado && <SentadoItem
               posicion={elem}
               invitado={invitado}
@@ -178,12 +192,11 @@ export interface propsTableType {
 }
 
 const MesaRedonda: FC<propsTableType> = ({ children, table, setShowFormEditar, disableDrag, spaceChairs }) => {
-  function getTanDeg(deg: number) {
-    var rad = (deg * Math.PI) / 180;
-    return Math.tan(rad);
-  }
-  const anguloOpuesto = 360 / table.numberChair / 2
-  const adyacente = (spaceChairs / 2) / getTanDeg(anguloOpuesto)
+  // Diámetro por defecto 1 m (ajustable con table.diameter) con radio mínimo para que las
+  // sillas no se solapen (más sillas = un poco más grande).
+  const baseR = (((table as any)?.diameter && (table as any).diameter > 0 ? (table as any).diameter : 1) * 100) / 2
+  const nChR = table?.numberChair || 0
+  const adyacente = Math.max(baseR, nChR > 2 ? (34 / 2) / Math.tan(Math.PI / nChR) : baseR)
   return (
     <>
       <div style={{ width: adyacente * 2, height: adyacente * 2 }} className="rounded-full transform bg-white shadow border border-gray-500 relative flex items-center justify-center">
@@ -195,7 +208,8 @@ const MesaRedonda: FC<propsTableType> = ({ children, table, setShowFormEditar, d
 };
 
 const MesaCuadrada: FC<propsTableType> = ({ children, table, setShowFormEditar, disableDrag, spaceChairs }) => {
-  const size = Math.ceil(table.numberChair / 4) * spaceChairs
+  // Lado por defecto 1 m (ajustable con table.side) con lado mínimo para que las sillas quepan.
+  const size = Math.max(((table as any)?.side && (table as any).side > 0 ? (table as any).side : 1) * 100, Math.ceil((table?.numberChair || 0) / 4) * 34)
   return (
     <>
       <div style={{ width: size, height: size }} className="shadow border border-gray-500 relative bg-white flex items-center justify-center" >

@@ -73,7 +73,7 @@ describe('MCPAction', () => {
       };
 
       vi.spyOn(discoverService, 'getMcpList').mockResolvedValue(mockList as any);
-      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('zh-CN');
+      vi.spyOn(globalHelpers, 'getCurrentLanguage').mockReturnValue('es-ES');
 
       const params = { page: 2, pageSize: 10, category: 'data-analysis' } as any;
       const { result } = renderHook(() => useStore.getState().useFetchMcpList(params));

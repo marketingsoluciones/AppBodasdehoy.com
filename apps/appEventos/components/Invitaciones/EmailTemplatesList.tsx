@@ -12,11 +12,11 @@ export const EmailTemplatesList = ({ setEmailEditorModal, EmailEditorModal }) =>
                     <TempaltesList />
                 </div>
                 <div className="flex justify-end gap-4 col-span-1 relative bg-blue pr-2">
-                    <img src="/ejemplocard5.webp" className=" h-[220px] rounded-lg absolute right-32 z-40 " />
-                    <img src="/ejemplocard3.webp" className=" h-[220px] rounded-lg absolute right-24 z-30 " />
-                    <img src="/ejemplocard4.webp" className=" h-[220px] rounded-lg absolute right-16 z-20 " />
-                    <img src="/ejemplocard1.webp" className=" h-[220px] rounded-lg absolute right-10 z-10" />
-                    <img src="/ejemplocard2.jpg" className=" h-[220px] rounded-lg" />
+                    <img alt="" aria-hidden="true" src="/ejemplocard5.webp" className=" h-[220px] rounded-lg absolute right-32 z-40 " />
+                    <img alt="" aria-hidden="true" src="/ejemplocard3.webp" className=" h-[220px] rounded-lg absolute right-24 z-30 " />
+                    <img alt="" aria-hidden="true" src="/ejemplocard4.webp" className=" h-[220px] rounded-lg absolute right-16 z-20 " />
+                    <img alt="" aria-hidden="true" src="/ejemplocard1.webp" className=" h-[220px] rounded-lg absolute right-10 z-10" />
+                    <img alt="" aria-hidden="true" src="/ejemplocard2.jpg" className=" h-[220px] rounded-lg" />
 
                 <div onClick={() => setEmailEditorModal(!EmailEditorModal)} className="absolute bg-primary w-28 h-28 rounded-full z-40 -bottom-3 right-0 cursor-pointer hover:scale-110 transition-all ">
                     <div className="flex justify-center items-center h-full text-xs text-white ">

@@ -52,7 +52,7 @@ const Redirect = memo<RedirectProps>(({ setLoadingStage }) => {
         '/settings',
         '/login',
         '/onboard',
-        '/chat', // ✅ También evitar redirigir si ya estamos en /chat
+        '/asistente', // ✅ También evitar redirigir si ya estamos en /chat
       ];
 
       // Si estamos en una de estas rutas, NO redirigir
@@ -63,7 +63,7 @@ const Redirect = memo<RedirectProps>(({ setLoadingStage }) => {
       }
     }
 
-    doRedirect('/chat');
+    doRedirect('/asistente');
   };
 
   // ✅ OPTIMIZACIÓN CRÍTICA: Timeout de emergencia MUY corto - 100ms
@@ -93,7 +93,7 @@ const Redirect = memo<RedirectProps>(({ setLoadingStage }) => {
         '/settings',
         '/login',
         '/onboard',
-        '/chat',
+        '/asistente',
       ];
 
       // Si ya estamos en una de estas rutas, marcar como redirigido y salir
@@ -112,7 +112,7 @@ const Redirect = memo<RedirectProps>(({ setLoadingStage }) => {
 
     // user is not logged in - ir directo al chat
     if (!isLogin) {
-      doRedirect('/chat');
+      doRedirect('/asistente');
       return;
     }
 
@@ -130,7 +130,7 @@ const Redirect = memo<RedirectProps>(({ setLoadingStage }) => {
     // }
 
     // finally go to chat
-    doRedirect('/chat');
+    doRedirect('/asistente');
   }, [isUserStateInit, isLoaded, isOnboard, isLogin]);
 
   return null;

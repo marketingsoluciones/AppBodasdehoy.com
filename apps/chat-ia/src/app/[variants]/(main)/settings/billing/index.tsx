@@ -25,8 +25,8 @@ import dayjs from 'dayjs';
 
 import { useBilling } from '@/hooks/useBilling';
 import { useWallet } from '@/hooks/useWallet';
-import { INVOICE_STATUS_LABELS } from '@/services/api2/invoices';
-import { walletService, SERVICE_SKUS, StoredPaymentMethod } from '@/services/api2/wallet';
+import { INVOICE_STATUS_LABELS } from '@/services/mcpApi/invoices';
+import { walletService, SERVICE_SKUS, StoredPaymentMethod } from '@/services/mcpApi/wallet';
 import { useChatStore } from '@/store/chat';
 import { useUserStore } from '@/store/user';
 import { userProfileSelectors } from '@/store/user/selectors';
@@ -38,7 +38,7 @@ import RechargeModal from '@/components/Wallet/RechargeModal';
 
 const useStyles = createStyles(({ css, token }) => ({
   actionButton: css`
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #F7628C 0%, #D6497A 100%);
     border: none;
     border-radius: 8px;
     color: white;
@@ -66,7 +66,7 @@ const useStyles = createStyles(({ css, token }) => ({
     padding: 20px;
   `,
   cardHighlight: css`
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #F7628C 0%, #D6497A 100%);
     border-radius: 12px;
     color: white;
     padding: 24px;
@@ -116,18 +116,37 @@ const BillingPage = memo(() => {
 
   // Mientras EventosAutoAuth hidrata el store desde cookie/localStorage, mostrar skeleton
   // en lugar de la pantalla de bloqueo (evita el flash de "Área exclusiva")
-  const [isCheckingAuth, setIsCheckingAuth] = useState(() => {
-    if (typeof window === 'undefined') return false;
+  // BUG-04 hydration (27-jun): useState initializer leyendo localStorage/cookie
+  // produce mismatch SSR (false) / CSR (true según storage). Inicial false +
+  // hidratar en effect post-mount.
+  const [isCheckingAuth, setIsCheckingAuth] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
     try {
       const hasSSOCookie = document.cookie.includes('idTokenV0.1.0');
       const hasUserUid = !!localStorage.getItem('user_uid');
       const hasJwt = !!localStorage.getItem('jwt_token');
       const hasEmail = !!localStorage.getItem('user_email');
-      return !!(hasSSOCookie || hasUserUid || (hasJwt && hasEmail));
+      const checking = !!(hasSSOCookie || hasUserUid || (hasJwt && hasEmail));
+      if (checking) setIsCheckingAuth(true);
     } catch {
-      return false;
+      /* ignore */
     }
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // BUG QA 14-jul #C: al volver de Stripe con ?recharge=success|cancelled el
+  // query param no se limpiaba en algunos flujos. useWallet ya tiene su propio
+  // useEffect para eso pero puede no llegar a montar si billing entra en la
+  // rama de skeleton por checking-auth. Limpieza defensiva en el page.tsx,
+  // que sí monta siempre. El refetch de saldo lo sigue haciendo useWallet.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const rechargeStatus = searchParams?.get('recharge');
+    if (rechargeStatus === 'success' || rechargeStatus === 'cancelled') {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -247,7 +266,7 @@ const BillingPage = memo(() => {
   // Mientras EventosAutoAuth hidrata el store, mostrar skeleton (no bloqueo)
   if (!isAuthenticated && isCheckingAuth) {
     return (
-      <Flexbox gap={24} style={{ maxWidth: 1024, padding: 24, width: '100%' }}>
+      <Flexbox gap={24} style={{ maxWidth: 1024, padding: 24, paddingBottom: 88, width: '100%' }}>
         <Skeleton active paragraph={{ rows: 1 }} title={{ width: 200 }} />
         <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
           <Skeleton active paragraph={{ rows: 4 }} />
@@ -280,7 +299,7 @@ const BillingPage = memo(() => {
           <button
             onClick={() => router.push('/')}
             style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #F7628C 0%, #D6497A 100%)',
               border: 'none',
               borderRadius: 8,
               color: 'white',
@@ -298,7 +317,7 @@ const BillingPage = memo(() => {
   }
 
   return (
-    <Flexbox gap={24} style={{ maxWidth: 1024, padding: 24, width: '100%' }}>
+    <Flexbox gap={24} style={{ maxWidth: 1024, padding: 24, paddingBottom: 88, width: '100%' }}>
       {showUpgradedBanner && (
         <Alert
           afterClose={() => {
@@ -407,7 +426,7 @@ const BillingPage = memo(() => {
             <button
               className={styles.actionButton}
               onClick={() => setShowRechargeModal(true)}
-              style={{ background: 'white', color: '#667eea', marginTop: 4 }}
+              style={{ background: 'white', color: '#F7628C', marginTop: 4 }}
             >
               <Flexbox align="center" gap={6} horizontal>
                 <CreditCard size={15} />

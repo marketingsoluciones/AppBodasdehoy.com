@@ -17,7 +17,6 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { useToast } from '../../hooks/useToast';
 import { useVisualViewportKeyboardInset } from '../../hooks/useVisualViewportKeyboardInset';
-import { MessageList, CopilotChatInput } from '@bodasdehoy/copilot-shared';
 import type { MessageItem } from '@bodasdehoy/copilot-shared';
 import {
   sendChatMessage,
@@ -33,6 +32,13 @@ import {
   type CodeOutputEvent,
 } from '../../services/copilotChat';
 import { EventsGroupContextProvider } from '../../context';
+import { developments } from '@bodasdehoy/shared/types';
+
+/** Hosts conocidos de todos los tenants — para interceptar links internos */
+const KNOWN_APP_HOSTS = developments.flatMap((d) => {
+  const root = d.domain.replace(/^\./, '');
+  return [`app.${root}`, `app-test.${root}`, `app-dev.${root}`, `organizador.${root}`];
+});
 
 /** Mapeo de path → entity para filtros del Copilot */
 const PATH_TO_ENTITY: Record<string, string> = {
@@ -134,6 +140,10 @@ export interface CopilotEmbedProps {
   isGuest?: boolean;
   loginPath?: string;
   onFirstMessage?: (firstMsg: string) => void;
+  // Mensaje a enviar automáticamente al montar (p. ej. "Generar con IA" del presupuesto).
+  // Se envía UNA sola vez cuando el chat está listo; onAutoSent avisa para limpiarlo.
+  autoSendMessage?: string;
+  onAutoSent?: () => void;
 }
 
 // ── Tool result card ─────────────────────────────────────────────────────────
@@ -541,15 +551,71 @@ function lsLoadMsgs(sessionId: string): MessageItem[] | null {
     }
     return messages.map((m: any) => ({
       ...m,
-      avatar: m.role === 'user' ? { title: 'Tú' } : { title: 'Copilot', backgroundColor: '#FF1493' },
+      avatar: m.role === 'user' ? { title: 'Tú', avatar: '👤', backgroundColor: '#f3f4f6' } : { title: 'Copilot', avatar: '✨', backgroundColor: '#FF1493' },
       loading: false,
-      // JSON serializa Date → string; restaurar como Date para que MessageList llame .getTime()
+      // JSON serializa Date → string; restaurar como Date para que el orden por fecha funcione
       createdAt: m.createdAt ? new Date(m.createdAt) : undefined,
     }));
   } catch { return null; }
 }
 
 // ── Componente principal ─────────────────────────────────────────────────────
+
+/* ── Piezas del diseño Chat_Widget_v2.dc.html ──────────────────────────────────
+   Los mensajes ya no son burbujas simétricas: los propios llevan fondo rosa claro
+   y un «Enviado» debajo; los del asistente NO llevan burbuja — van con avatar a la
+   izquierda, el texto en plano y una fila de acciones. */
+
+/** Icono de la sugerencia, elegido por lo que pregunta. Trazos del diseño v2. */
+const iconoSugerencia = (texto: string) => {
+  const t = texto.toLowerCase();
+  const paths =
+    t.includes('invitad') || t.includes('confirmad')
+      ? ['M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', 'M4 21c0-3.9 3.6-6 8-6s8 2.1 8 6']
+      : t.includes('presupuesto') || t.includes('gast') || t.includes('pago')
+        ? ['M3 6h18v12H3z', 'M3 10h18']
+        : t.includes('tarea') || t.includes('pendiente')
+          ? ['M9 11l3 3 8-8', 'M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9']
+          : ['M12 3a9 9 0 1 0 9 9', 'M12 7v5l3 2', 'M17 3h5v5'];
+  return (
+    <span style={{ color: '#EF5B94', display: 'flex', flex: 'none' }}>
+      <svg fill="none" height="14" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="14">
+        {paths.map(d => <path d={d} key={d} />)}
+      </svg>
+    </span>
+  );
+};
+
+const ChispaAvatar = () => (
+  <span
+    style={{
+      alignItems: 'center', background: '#FCE7F0', borderRadius: '50%',
+      display: 'flex', flex: 'none', height: 26, justifyContent: 'center', width: 26,
+    }}
+  >
+    <svg fill="#EF5B94" height="12" stroke="#EF5B94" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24" width="12">
+      <path d="M11.5 3.5C12 8 13.8 9.8 18.2 10.2 13.8 10.7 12 12.5 11.5 17 11 12.5 9.2 10.7 4.8 10.2 9.2 9.8 11 8 11.5 3.5z" />
+    </svg>
+  </span>
+);
+
+const BotonAccion = ({ children, onClick, title }: { children: React.ReactNode; onClick?: () => void; title: string }) => (
+  <button
+    onClick={onClick}
+    onMouseEnter={e => { e.currentTarget.style.background = '#faf9fb'; e.currentTarget.style.color = '#6b6b72'; }}
+    onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#b8b8be'; }}
+    style={{
+      alignItems: 'center', background: 'none', border: 'none', borderRadius: 8,
+      color: '#b8b8be', cursor: 'pointer', display: 'flex', height: 26,
+      justifyContent: 'center', width: 26,
+    }}
+    title={title}
+    type="button"
+  >
+    {children}
+  </button>
+);
+
 
 export const CopilotEmbed = ({
   userId,
@@ -562,6 +628,8 @@ export const CopilotEmbed = ({
   isGuest,
   loginPath,
   onFirstMessage,
+  autoSendMessage,
+  onAutoSent,
 }: CopilotEmbedProps) => {
   const router = useRouter();
   const toast = useToast();
@@ -571,6 +639,7 @@ export const CopilotEmbed = ({
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [draft, setDraft] = useState('');   // texto del campo (diseño Chat_Widget.dc.html)
   const abortControllerRef = useRef<AbortController | null>(null);
   const firstMessageSentRef = useRef(false);
   const messagesRef = useRef<MessageItem[]>([]);
@@ -618,8 +687,8 @@ export const CopilotEmbed = ({
           message: msg.content,
           avatar:
             msg.role === 'user'
-              ? { title: 'Tú' }
-              : { title: 'Copilot', backgroundColor: '#FF1493' },
+              ? { title: 'Tú', avatar: '👤', backgroundColor: '#f3f4f6' }
+              : { title: 'Copilot', avatar: '✨', backgroundColor: '#FF1493' },
           createdAt: msg.createdAt,
           loading: false,
           error: msg.error ? { message: msg.error } : undefined,
@@ -837,7 +906,7 @@ export const CopilotEmbed = ({
         id: userMessageId,
         role: 'user',
         message: content,
-        avatar: { title: 'Tú' },
+        avatar: { title: 'Tú', avatar: '👤', backgroundColor: '#f3f4f6' },
         createdAt: new Date(),
       };
       setMessages(prev => [...prev, userMessage]);
@@ -850,7 +919,7 @@ export const CopilotEmbed = ({
         id: assistantMessageId,
         role: 'assistant',
         message: '',
-        avatar: { title: 'Copilot', backgroundColor: '#FF1493' },
+        avatar: { title: 'Copilot', avatar: '✨', backgroundColor: '#FF1493' },
         createdAt: new Date(),
         loading: true,
       };
@@ -941,6 +1010,25 @@ export const CopilotEmbed = ({
     handleSend(retryContent);
   }, [retryContent, loading, handleSend]);
 
+  // Auto-envío del prompt pendiente (p. ej. "Generar con IA" del presupuesto): al montar el
+  // copilot con un autoSendMessage, se envía UNA sola vez tras un respiro para que la sesión
+  // esté lista. Los invitados no auto-generan. onAutoSent limpia el pendiente en el contexto.
+  // IMPORTANTE: handleSend va por REF (no en deps) — cambia de identidad al cargar el historial
+  // y, si estuviera en deps, el cleanup cancelaba el timer antes de enviar → no se enviaba.
+  const autoSentRef = useRef(false);
+  const handleSendRef = useRef(handleSend);
+  useEffect(() => { handleSendRef.current = handleSend; }, [handleSend]);
+  useEffect(() => {
+    if (!autoSendMessage || autoSentRef.current || isGuest) return;
+    const timer = setTimeout(() => {
+      if (autoSentRef.current) return;
+      autoSentRef.current = true;
+      try { handleSendRef.current(autoSendMessage); } catch { /* noop */ }
+      onAutoSent?.();
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [autoSendMessage, isGuest, onAutoSent]);
+
   // Interceptar clicks en links markdown internos
   const messageListRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -968,7 +1056,7 @@ export const CopilotEmbed = ({
       }
       try {
         const url = new URL(href, window.location.origin);
-        const knownHosts = ['app.bodasdehoy.com', 'app-test.bodasdehoy.com', 'app-dev.bodasdehoy.com', 'organizador.bodasdehoy.com'];
+        const knownHosts = KNOWN_APP_HOSTS;
         if (url.origin === window.location.origin || knownHosts.some(h => url.hostname === h)) {
           e.preventDefault();
           router.push(url.pathname + url.search + url.hash);
@@ -985,80 +1073,68 @@ export const CopilotEmbed = ({
   const emptyState = useMemo(() => (
     <div
       style={{
-        flex: 1,
-        minHeight: 0,
-        width: '100%',
-        maxWidth: 440,
-        margin: '0 auto',
-        padding: '20px 12px 24px',
-        overflowY: 'auto',
+        // Vive DENTRO del contenedor con scroll de la lista, así que aquí no hace
+        // falta ni flex ni overflow: solo centrarse y no pasarse de ancho.
+        animation: 'copilot-fadein .3s ease',
         boxSizing: 'border-box',
+        margin: '0 auto',
+        maxWidth: 440,
+        width: '100%',
       }}
     >
       <div
-        style={{
-          textAlign: 'center',
-          padding: '28px 20px 22px',
-          borderRadius: 16,
-          background: 'linear-gradient(145deg, #fff5f9 0%, #ffffff 45%, #fdf2f8 100%)',
-          border: '1px solid #fce7f3',
-          boxShadow: '0 1px 3px rgba(236, 72, 153, 0.08), 0 8px 24px rgba(17, 24, 39, 0.06)',
-        }}
-      >
-        <div
           style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 52,
-            height: 52,
-            marginBottom: 14,
-            borderRadius: 14,
-            background: 'linear-gradient(135deg, #fce7f3, #fff)',
-            border: '1px solid #fbcfe8',
-            fontSize: 26,
-            lineHeight: 1,
-          }}
-          aria-hidden
-        >
-          ✨
-        </div>
-        <h3
-          style={{
-            margin: '0 0 6px',
-            fontSize: 18,
-            fontWeight: 700,
-            letterSpacing: '-0.02em',
-            color: '#111827',
-            lineHeight: 1.25,
+            // Diseño Chat_Widget.dc.html: el estado vacío va sobre el blanco del
+            // widget, sin tarjeta, sin borde y sin sombra.
+            padding: '26px 8px 8px',
+            textAlign: 'center',
           }}
         >
-          Copilot IA
-        </h3>
-        <p style={{ margin: '0 0 6px', fontSize: 14, fontWeight: 500, color: '#4b5563', lineHeight: 1.45 }}>
-          {eventName ? `Evento: ${eventName}` : 'Tu asistente de bodas inteligente'}
-        </p>
-        <p style={{ margin: '0 0 18px', fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
-          Pregunta por invitados, presupuesto, mesas o servicios. También puedes escribir abajo.
-        </p>
-        <p
-          style={{
-            margin: '0 0 10px',
-            fontSize: 11,
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            color: '#9ca3af',
-          }}
-        >
-          Prueba con
-        </p>
+          <span
+            aria-hidden
+            style={{
+              alignItems: 'center',
+              background: 'linear-gradient(135deg,#FDF0F6,#FCE7F0)',
+              border: '1px solid #F8CFE2',
+              borderRadius: 16,
+              display: 'inline-flex',
+              height: 52,
+              justifyContent: 'center',
+              marginBottom: 14,
+              width: 52,
+            }}
+          >
+            <svg height="26" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.2" viewBox="0 0 24 24" width="26">
+              <defs>
+                <linearGradient id="cpg-vacio" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0" stopColor="#F8A8C8" />
+                  <stop offset="1" stopColor="#D83E7C" />
+                </linearGradient>
+              </defs>
+              <path d="M11.5 3.5C12 8 13.8 9.8 18.2 10.2 13.8 10.7 12 12.5 11.5 17 11 12.5 9.2 10.7 4.8 10.2 9.2 9.8 11 8 11.5 3.5z" fill="url(#cpg-vacio)" stroke="url(#cpg-vacio)" />
+              <path d="M18.5 14.5C18.8 17 19.8 18 22.2 18.2 19.8 18.5 18.8 19.5 18.5 22 18.2 19.5 17.2 18.5 14.8 18.2 17.2 18 18.2 17 18.5 14.5z" fill="url(#cpg-vacio)" stroke="url(#cpg-vacio)" />
+            </svg>
+          </span>
+          <div style={{ color: '#3A3A42', font: '700 17px Poppins, sans-serif' }}>Copilot IA</div>
+          <p style={{ color: '#3A3A42', font: '600 13px Poppins, sans-serif', margin: '6px 0 0' }}>
+            {eventName ? `Evento: ${eventName}` : 'Tu asistente de bodas inteligente'}
+          </p>
+          <p style={{ color: '#8a8a90', font: '500 12px/1.6 Poppins, sans-serif', margin: '8px auto 0', maxWidth: 290 }}>
+            Pregunta por invitados, presupuesto, mesas o servicios. También puedes escribir abajo.
+          </p>
+        {/* BUG-15 (informe QA 21-jun): "PRUEBA CON" sin chips proactivos quedaba huérfano
+            (label sin lista). Movemos el label DENTRO del bloque de chips para que solo
+            aparezca cuando hay algo que mostrar. */}
         {/* Chips proactivos */}
         {(() => {
           const chips = getProactiveChips(pageContext);
           if (chips.length === 0) return null;
           const chipColors = { danger: { bg: '#fef2f2', border: '#fca5a5', text: '#dc2626' }, warning: { bg: '#fffbeb', border: '#fcd34d', text: '#d97706' }, info: { bg: '#eff6ff', border: '#93c5fd', text: '#2563eb' } };
           return (
+            <>
+            <p style={{ margin: '0 0 10px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9ca3af' }}>
+              Atención
+            </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
               {chips.map(chip => {
                 const c = chipColors[chip.severity];
@@ -1073,46 +1149,65 @@ export const CopilotEmbed = ({
                 );
               })}
             </div>
+            </>
           );
         })()}
-        <p style={{ margin: '0 0 10px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9ca3af' }}>
-          Prueba con
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'stretch' }}>
-          {getSuggestedQuestions(router?.pathname || '').map(q => (
-            <button
-              key={q}
-              type="button"
-              onClick={() => handleSend(q)}
-              style={{
-                background: '#ffffff',
-                border: '1px solid #e5e7eb',
-                borderRadius: 10,
-                padding: '10px 14px',
-                fontSize: 13,
-                fontWeight: 500,
-                color: '#1f2937',
-                cursor: 'pointer',
-                textAlign: 'left',
-                lineHeight: 1.4,
-                transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = '#fdf2f8';
-                e.currentTarget.style.borderColor = '#f472b6';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(236, 72, 153, 0.12)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = '#ffffff';
-                e.currentTarget.style.borderColor = '#e5e7eb';
-                e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04)';
-              }}
-            >
-              {q}
-            </button>
-          ))}
-        </div>
+        {/* BUG-15: ocultar "Prueba con" si no hay sugerencias. */}
+        {(() => {
+          const suggestions = getSuggestedQuestions(router?.pathname || '');
+          if (!suggestions || suggestions.length === 0) return null;
+          return (
+            <>
+              <p
+                style={{
+                  color: '#a0a0a8',
+                  font: '700 10px Poppins, sans-serif',
+                  letterSpacing: '.1em',
+                  margin: '0 0 8px',
+                  padding: '0 2px',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Prueba con
+              </p>
+              <div style={{ alignItems: 'stretch', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {suggestions.map(q => (
+                  <button
+                    key={q}
+                    onClick={() => handleSend(q)}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = '#FDF3F7';
+                      e.currentTarget.style.borderColor = '#f0aecb';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = '#faf9fb';
+                      e.currentTarget.style.borderColor = '#ececef';
+                    }}
+                    style={{
+                      alignItems: 'center',
+                      background: '#faf9fb',
+                      border: '1px solid #ececef',
+                      borderRadius: 13,
+                      color: '#3A3A42',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      font: '500 12px Poppins, sans-serif',
+                      gap: 10,
+                      padding: '11px 14px',
+                      textAlign: 'left',
+                      transition: 'background .15s, border-color .15s',
+                      width: '100%',
+                    }}
+                    type="button"
+                  >
+                    {iconoSugerencia(q)}
+                    {q}
+                  </button>
+                ))}
+              </div>
+            </>
+          );
+        })()}
       </div>
     </div>
   ), [eventName, handleSend, pageContext, router?.pathname]);
@@ -1137,14 +1232,95 @@ export const CopilotEmbed = ({
 
       {/* Banner eliminado — el historial es accesible desde el icono reloj del header */}
 
-      {/* Lista de mensajes */}
-      <div ref={messageListRef} style={{ flex: 1, overflow: 'hidden' }}>
-        <MessageList
-          messages={messagesWithActions}
-          autoScroll
-          loading={loadingHistory}
-          emptyState={emptyState}
-        />
+      {/* Lista de mensajes — diseño Chat_Widget_v2.dc.html.
+          Ya no se usa MessageList: la v2 no son burbujas simétricas. Los mensajes
+          propios llevan fondo rosa claro con «Enviado» debajo; los del asistente van
+          SIN burbuja, con avatar a la izquierda y una fila de acciones. */}
+      <div
+        className="copilot-no-scrollbar"
+        ref={messageListRef}
+        style={{
+          display: 'flex', flex: 1, flexDirection: 'column', gap: 12,
+          minHeight: 0, overflowY: 'auto', padding: '18px 16px',
+        }}
+      >
+        {messagesWithActions.length === 0 && !loading ? emptyState : null}
+
+        {messagesWithActions.map(msg => {
+          const esPropio = msg.role === 'user';
+          const texto = (msg.message as string) || '';
+          if (esPropio) {
+            return (
+              <div key={msg.id} style={{ alignItems: 'flex-end', animation: 'copilot-fadein .25s ease', display: 'flex', flexDirection: 'column' }}>
+                <div
+                  style={{
+                    background: '#FCE7F0', borderRadius: '16px 16px 4px 16px', color: '#3A3A42',
+                    font: '500 12.5px/1.6 Poppins, sans-serif', maxWidth: '85%',
+                    padding: '10px 15px', whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                  }}
+                >
+                  {texto}
+                </div>
+                <span style={{ alignItems: 'center', color: '#b8b8be', display: 'inline-flex', font: '500 10px Poppins, sans-serif', gap: 4, marginTop: 4 }}>
+                  <svg fill="none" height="9" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.6" viewBox="0 0 24 24" width="9">
+                    <path d="M20 6L9 17l-5-5" />
+                  </svg>
+                  Enviado
+                </span>
+              </div>
+            );
+          }
+          return (
+            <div key={msg.id} style={{ animation: 'copilot-fadein .25s ease', display: 'flex', gap: 9 }}>
+              <span style={{ marginTop: 2 }}><ChispaAvatar /></span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                {msg.aboveMessage}
+                <div style={{ color: '#3A3A42', font: '500 12.5px/1.7 Poppins, sans-serif', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                  {texto}
+                </div>
+                {msg.belowMessage}
+                {!msg.loading && texto ? (
+                  <div style={{ display: 'flex', gap: 2, marginTop: 7 }}>
+                    <BotonAccion onClick={() => navigator.clipboard?.writeText(texto)} title="Copiar">
+                      <svg fill="none" height="12" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="12">
+                        <rect height="11" rx="2" width="11" x="9" y="9" />
+                        <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+                      </svg>
+                    </BotonAccion>
+                    <BotonAccion title="Me gusta">
+                      <svg fill="none" height="12" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="12">
+                        <path d="M7 10v12M15 5.9L14 10h5.8a2 2 0 0 1 1.9 2.6l-2.2 7A2 2 0 0 1 17.6 21H7V10l4.4-7.2a2 2 0 0 1 3.6 3.1z" />
+                      </svg>
+                    </BotonAccion>
+                    <BotonAccion title="Regenerar">
+                      <svg fill="none" height="12" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="12">
+                        <path d="M21 12a9 9 0 1 1-2.6-6.4" />
+                        <path d="M21 3v6h-6" />
+                      </svg>
+                    </BotonAccion>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          );
+        })}
+
+        {loading ? (
+          <div style={{ display: 'flex', gap: 9 }}>
+            <ChispaAvatar />
+            <div style={{ alignItems: 'center', display: 'flex', gap: 5 }}>
+              {[0, 0.2, 0.4].map(d => (
+                <span
+                  key={d}
+                  style={{
+                    animation: `copilot-blink 1.2s ${d}s infinite`, background: '#EF5B94',
+                    borderRadius: '50%', height: 6, width: 6,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {/* Confirmación pendiente */}
@@ -1217,38 +1393,139 @@ export const CopilotEmbed = ({
         </div>
       )}
 
-      {/* Input area — full LobeChat editor (CopilotChatInput); padding extra con teclado virtual móvil */}
+      {/* Campo de escritura del diseño; padding extra con teclado virtual móvil */}
       <div
         style={{
-          borderTop: '1px solid #e8e8e8',
           background: '#fff',
+          borderTop: '1px solid #f0f0f2',
           flexShrink: 0,
-          paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + ${keyboardInsetBottom}px)`,
+          padding: '12px 14px 14px',
+          paddingBottom: `calc(14px + env(safe-area-inset-bottom, 0px) + ${keyboardInsetBottom}px)`,
         }}
       >
-        <CopilotChatInput
-          generating={loading}
-          chatKey={sessionId}
-          onSend={({ clearContent, getMarkdownContent }) => {
-            const content = getMarkdownContent();
-            if (content.trim()) {
-              handleSend(content);
-              clearContent();
-            }
+        {/* Campo de escritura EXACTO del diseño Chat_Widget.dc.html.
+            Sustituye al editor de LobeChat por decisión de JCP tras ver la versión
+            intermedia. Se pierden markdown, comandos y el editor enriquecido; el botón
+            de parar sigue accesible porque mientras genera el mismo botón detiene. */}
+        <div
+          onBlur={e => { e.currentTarget.style.borderColor = '#ececef'; }}
+          onFocus={e => { e.currentTarget.style.borderColor = '#EF5B94'; }}
+          style={{
+            alignItems: 'center',
+            background: '#fff',
+            border: '1.5px solid #ececef',
+            borderRadius: 999,
+            boxShadow: '0 4px 16px rgba(58,58,66,.06)',
+            display: 'flex',
+            gap: 6,
+            padding: '6px 10px 6px 8px',
+            transition: 'border-color .15s',
           }}
-          sendButtonProps={{
-            generating: loading,
-            onStop: ({ editor }) => handleStop(),
+        >
+          <button
+            onMouseEnter={e => { e.currentTarget.style.background = '#faf9fb'; e.currentTarget.style.color = '#3A3A42'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#8a8a90'; }}
+            style={{
+              alignItems: 'center', background: 'none', border: 'none', borderRadius: '50%',
+              color: '#8a8a90', cursor: 'pointer', display: 'flex', flex: 'none',
+              height: 32, justifyContent: 'center', width: 32,
+            }}
+            title="Adjuntar"
+            type="button"
+          >
+            <svg fill="none" height="16" stroke="currentColor" strokeLinecap="round" strokeWidth="2" viewBox="0 0 24 24" width="16">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
+
+          <input
+            onChange={e => setDraft(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const texto = draft.trim();
+                if (texto && !loading) { handleSend(texto); setDraft(''); }
+              }
+            }}
+            placeholder="Pregunta a Copilot"
+            style={{
+              background: 'none', border: 'none', color: '#3A3A42',
+              flex: 1, font: '500 12.5px Poppins, sans-serif', minWidth: 0,
+              outline: 'none', padding: '8px 0',
+            }}
+            value={draft}
+          />
+
+          <button
+            onMouseEnter={e => { e.currentTarget.style.background = '#faf9fb'; e.currentTarget.style.color = '#3A3A42'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#6b6b72'; }}
+            style={{
+              alignItems: 'center', background: 'none', border: 'none', borderRadius: 8,
+              color: '#6b6b72', cursor: 'pointer', display: 'inline-flex', flex: 'none',
+              font: '600 11.5px Poppins, sans-serif', gap: 4, padding: '6px 8px',
+            }}
+            title="Modo Auto"
+            type="button"
+          >
+            Auto
+            <svg fill="none" height="10" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.4" viewBox="0 0 24 24" width="10">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
+
+          {draft.trim().length === 0 && !loading ? (
+            <button
+              onMouseEnter={e => { e.currentTarget.style.background = '#faf9fb'; e.currentTarget.style.color = '#3A3A42'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#8a8a90'; }}
+              style={{
+                alignItems: 'center', background: 'none', border: 'none', borderRadius: '50%',
+                color: '#8a8a90', cursor: 'pointer', display: 'flex', flex: 'none',
+                height: 32, justifyContent: 'center', width: 32,
+              }}
+              title="Dictar"
+              type="button"
+            >
+              <svg fill="none" height="15" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="15">
+                <rect height="12" rx="3" width="6" x="9" y="2" />
+                <path d="M5 10v1a7 7 0 0 0 14 0v-1M12 18v4" />
+              </svg>
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                if (loading) { handleStop(); return; }
+                const texto = draft.trim();
+                if (texto) { handleSend(texto); setDraft(''); }
+              }}
+              style={{
+                alignItems: 'center',
+                background: draft.trim().length > 0 && !loading ? '#EF5B94' : '#f2c9d9',
+                border: 'none', borderRadius: '50%',
+                boxShadow: '0 5px 14px rgba(239,91,148,.3)',
+                color: '#fff', cursor: loading ? 'pointer' : 'pointer',
+                display: 'flex', flex: 'none', height: 34, justifyContent: 'center', width: 34,
+              }}
+              title={loading ? 'Detener' : 'Enviar'}
+              type="button"
+            >
+              <svg fill="none" height="15" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" viewBox="0 0 24 24" width="15">
+                {loading ? <rect height="10" rx="1.5" width="10" x="7" y="7" /> : <><path d="M22 2L11 13" /><path d="M22 2l-7 20-4-9-9-4z" /></>}
+              </svg>
+            </button>
+          )}
+        </div>
+        {/* Aviso del diseño Chat_Widget.dc.html */}
+        <div
+          style={{
+            color: '#c8c8ce',
+            font: '500 9.5px Poppins, sans-serif',
+            marginTop: 8,
+            paddingBottom: 6,
+            textAlign: 'center',
           }}
-          onClear={() => {
-            setMessages([]);
-            clearCopilotFilter();
-          }}
-          onSearchToggle={(enabled) => {
-            // TODO: wire to pageContext search flag
-          }}
-          fileUploadEnabled={false}
-        />
+        >
+          Copilot puede cometer errores · Verifica los datos importantes
+        </div>
       </div>
     </div>
   );

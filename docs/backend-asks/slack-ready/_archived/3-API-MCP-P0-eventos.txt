@@ -1,0 +1,121 @@
+DE: COORD-AppEventos
+PARA: API-MCP
+DRI: api_mcp_oncall
+ASUNTO: 🚨 P0 — Conexión MONGODB_DBEVENT_URI flapping (estado al 04-jun)
+
+
+SÍNTOMA
+-------
+
+La conexión MONGODB_DBEVENT_URI → DB prueba1 → colección `eventos` en api-mcp flapea (sube y baja). Verificado live:
+
+  2026-05-27       OK     getEventosByUsuario → 158, getEventos → 228, estable
+  2026-05-28 03:37 FAIL   8/8 queries → MongoNotConnectedError
+  logs SSH         256 errores "MongoNotConnectedError: Client must be connected"
+
+Afecta TODO eventos (reads + mutations) de forma intermitente. No es auth (el token válido pasa resolveDualAuth). Es gestión de conexión Mongoose que no reconecta cuando se cae el socket.
+
+
+IMPACTO
+-------
+
+1. E2E inestables — un test pasa, 30s después falla "DB no conectada".
+2. UX usuario — carga /mis-eventos y a veces ve lista vacía (query devuelve error que front trata como []).
+3. Bloqueador Cat C — añadir nuevoPago/editPago heredarían el mismo problema. En mutations puede perder writes.
+4. No podemos declarar Sprint 3 "100% migrado" mientras esto fluctúa.
+
+
+BUGS DERIVADOS (probablemente del mismo síntoma)
+------------------------------------------------
+
+RESUELTO 2026-06-03/04: agregarInvitadosBatch (smoke COORD con JWT real OK)
+funciona:                removerInvitadosBatch, borraMesa, borraMenu, borraPago, borraPlanSpace
+pendiente:               removerInvitado no-op
+                         Fix 1 línea en evento-mutations.resolver.ts:707 — filtra por .id en vez de ._id.
+                         Slack ts 1779920471.
+pendiente:               agregarInvitado sin _id cliente → doc orphan
+
+
+DIAGNÓSTICO SOLICITADO
+----------------------
+
+A) Estado actual
+
+   SSH a api-mcp y:
+     pm2 logs api-mcp | grep -E "MongoNotConnected|disconnected|reconnect" | tail -100
+
+   ¿Cuántos errores en últimas 24h?
+   ¿Cuándo fue el último?
+
+B) Config Mongoose
+
+   Esperado en código:
+     mongoose.connect(uri, {
+       serverSelectionTimeoutMS: 5000,
+       socketTimeoutMS: 45000,
+       heartbeatFrequencyMS: 10000,
+       maxPoolSize: 50,
+       minPoolSize: 5,
+       retryWrites: true,
+     });
+
+     mongoose.connection.on('disconnected', () => { /* log + reconnect */ });
+
+   Confirmad configuración actual.
+
+C) Healthcheck real
+
+   ¿/health verifica conexión Mongo de verdad (ping al admin db) o solo responde 200 sin tocar la BD?
+
+   Ejemplo robusto:
+     app.get('/health', async (req, res) => {
+       try {
+         await mongoose.connection.db.admin().ping();
+         res.json({ ok: true, mongo: 'connected' });
+       } catch (err) {
+         res.status(503).json({ ok: false, error: err.message });
+       }
+     });
+
+
+MITIGACIÓN PROPUESTA (mientras se arregla)
+------------------------------------------
+
+(a) Middleware que verifique mongoose.connection.readyState === 1 antes de queries.
+    Si !==1, intentar mongoose.connect() antes de continuar.
+
+(b) PM2 health_check_grace_period apuntando a /health real. Si conexión muere,
+    PM2 reinicia proceso (workaround, no fix).
+
+(c) Alerta Slack si en 5min hay > 10 MongoNotConnectedError.
+
+
+PLAN VERIFICACIÓN TRAS FIX
+---------------------------
+
+1. Backend aplica fix + redeploy.
+
+2. Smoke desde COORD (10x getEventosByUsuario con pausa 30s, esperar 10/10 OK):
+
+   curl -X POST https://api-mcp.eventosorganizador.com/graphql \
+     -H "Authorization: Bearer $JWT" \
+     -H "X-Development: bodasdehoy" \
+     -H "Content-Type: application/json" \
+     -d '{"query":"query{ getEventosByUsuario(uid:\"upSETrmXc7ZnsIhrjDjbHd7u2up1\", pag:{page:1,limit:10}, dev:\"bodasdehoy\"){ total results{ _id nombre } } }"}'
+
+3. Batería Playwright E2E con datos reales. Esperar 0 MongoNotConnectedError durante el run.
+
+4. Monitoreo 24h con alerta Slack. 0 incidentes en 24h → declarar P0 cerrado.
+
+
+RESPUESTA QUE NECESITAMOS
+-------------------------
+
+1. Estado actualizado a 04-jun (último estado conocido es 2026-05-28).
+2. ¿Fix aplicado? ¿Qué hace exactamente?
+3. ¿Logs nuevos muestran reducción?
+4. ¿Cuándo podemos esperar "conexión estable 24h"?
+
+Mientras esto siga abierto, NO podemos avanzar Cat C y NO podemos certificar migración Sprint 1+2+3 como funcional.
+
+DRI: api_mcp → reporte estado en hilo Slack 1779939514 (escalación original).

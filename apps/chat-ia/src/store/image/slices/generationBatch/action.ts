@@ -4,8 +4,16 @@ import { SWRResponse, mutate } from 'swr';
 import { StateCreator } from 'zustand';
 
 import { useClientDataSWR } from '@/libs/swr';
-import { GetGenerationStatusResult } from '@/server/routers/lambda/generation';
 import { generationService } from '@/services/generation';
+import { AsyncTaskStatus as _AsyncTaskStatus } from '@/types/asyncTask';
+
+// Type local — antes vivía en server/routers/lambda/generation.ts (eliminado en
+// refactor runtime-only-api-ia 2026-06-24). El servicio devuelve este shape.
+type GetGenerationStatusResult = {
+  error: any;
+  generation: any;
+  status: _AsyncTaskStatus;
+};
 import { generationBatchService } from '@/services/generationBatch';
 import { AsyncTaskStatus } from '@/types/asyncTask';
 import { GenerationBatch } from '@/types/generation';
@@ -113,8 +121,8 @@ export const createGenerationBatchSlice: StateCreator<
       'internal_deleteGeneration',
     );
 
-    // 2. 调用后端服务删除generation
-    await generationService.deleteGeneration(generationId);
+    // 2. 调用后端服务删除generation (api-ia DELETE /image/generations/{id}?topic_id=)
+    await generationService.deleteGeneration(generationId, activeGenerationTopicId);
 
     // 3. 刷新数据确保一致性
     await refreshGenerationBatches();
@@ -212,7 +220,7 @@ export const createGenerationBatchSlice: StateCreator<
       enable && generationId && !generationId.startsWith('temp-') && asyncTaskId
         ? [SWR_USE_CHECK_GENERATION_STATUS, generationId, asyncTaskId]
         : null,
-      async ([, generationId, asyncTaskId]: [string, string, string]) => {
+      async ([, generationId, asyncTaskId]: readonly [string, string, string]) => {
         // 增加请求计数
         requestCountRef.current += 1;
         return generationService.getGenerationStatus(generationId, asyncTaskId);

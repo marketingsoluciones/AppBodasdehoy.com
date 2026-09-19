@@ -90,12 +90,12 @@ function NameModal({ onConfirm, onClose }: { onConfirm: (name: string) => void; 
             onChange={(e) => setName(e.target.value)}
             placeholder="Tu nombre"
             maxLength={50}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-base focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-300 bg-gray-50"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-gray-50"
           />
           <button
             type="submit"
             disabled={name.trim().length < 2}
-            className="w-full bg-rose-500 disabled:bg-gray-200 disabled:text-gray-400 text-white font-semibold py-3 rounded-xl transition active:scale-95"
+            className="w-full bg-primary disabled:bg-gray-200 disabled:text-gray-400 text-white font-semibold py-3 rounded-xl transition active:scale-95"
           >
             Subir foto →
           </button>
@@ -326,7 +326,7 @@ const MomentGallery: NextPage = () => {
     return (
       <main className="absolute z-[50] w-full min-h-[100vh] top-0 bg-white flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-rose-200 border-t-rose-500 rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 border-primary border-t-secondary rounded-full animate-spin" />
           <p className="text-gray-400 text-sm">Cargando fotos…</p>
         </div>
       </main>
@@ -376,7 +376,7 @@ const MomentGallery: NextPage = () => {
                     ? 'bg-gray-100 text-gray-400 pointer-events-none'
                     : uploadSuccess
                       ? 'bg-green-100 text-green-600'
-                      : 'bg-rose-500 text-white active:scale-95'
+                      : 'bg-primary text-white active:scale-95'
                 }`}
               >
                 {uploading ? (
@@ -397,8 +397,8 @@ const MomentGallery: NextPage = () => {
         {/* ── Banner de identidad ── */}
         {session && (
           <div className="mx-4 mt-3 mb-1 flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0">
-              <span className="text-rose-500 text-[10px] font-bold">{session.guestName.charAt(0).toUpperCase()}</span>
+            <div className="w-5 h-5 rounded-full bg-base flex items-center justify-center flex-shrink-0">
+              <span className="text-primary text-[10px] font-bold">{session.guestName.charAt(0).toUpperCase()}</span>
             </div>
             <span className="text-xs text-gray-500">{session.guestName}</span>
             {session.level === 2 && (
@@ -425,7 +425,7 @@ const MomentGallery: NextPage = () => {
             <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
               <span className="text-4xl">😕</span>
               <p className="text-gray-600 font-medium">No se pudieron cargar las fotos</p>
-              <button onClick={() => router.reload()} className="text-rose-500 text-sm underline">Reintentar</button>
+              <button onClick={() => router.reload()} className="text-primary text-sm underline">Reintentar</button>
             </div>
           ) : (
             <div className="columns-2 sm:columns-3 gap-2 space-y-2">

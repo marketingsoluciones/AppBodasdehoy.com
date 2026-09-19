@@ -148,6 +148,9 @@ const Item = memo<ChatListItemProps>(
         <Flexbox
           className={cx(styles.message, className, isMessageLoading && styles.loading)}
           data-index={index}
+          data-loading={isMessageLoading ? 'true' : 'false'}
+          data-role={item?.role || 'unknown'}
+          data-testid="chat-message"
           onContextMenu={onContextMenu}
           ref={containerRef}
         >

@@ -41,7 +41,10 @@ export async function extractMemoriesFromSummary(
   try {
     const response = await fetch(`${BACKEND_URL}/api/memory/extract`, {
       body: JSON.stringify({ summary, userId }),
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(process.env.INTERNAL_SECRET ? { 'X-Internal-Secret': process.env.INTERNAL_SECRET } : {}),
+      },
       method: 'POST',
       signal: AbortSignal.timeout(15_000),
     });
@@ -67,9 +70,12 @@ export async function extractMemoriesFromSummary(
  */
 async function generateEmbedding(text: string): Promise<number[] | null> {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/lobechat-kb/query-embedding`, {
+    const response = await fetch(`${BACKEND_URL}/api/knowledge-base/query-embedding`, {
       body: JSON.stringify({ dimensions: 1024, query: text }),
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(process.env.INTERNAL_SECRET ? { 'X-Internal-Secret': process.env.INTERNAL_SECRET } : {}),
+      },
       method: 'POST',
       signal: AbortSignal.timeout(5000),
     });

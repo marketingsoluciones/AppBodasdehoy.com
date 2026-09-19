@@ -56,7 +56,7 @@ Según lo que nos dijo api-ia: el historial **no** se pide a api-ia; se lee desd
 
 **Pregunta para api-ia**: ¿Podéis confirmar la forma exacta de la respuesta de `getChatMessages` (o pasarnos a quién preguntar en API2)? Necesitamos saber si siempre vienen `id`, `role`, `content`, `createdAt` y si `createdAt` es ISO string.
 
-**Pregunta opcional (arquitectura):** Hoy el front usa **dos URLs**: api-ia para chat y API2 para historial. ¿Preferís que el front **solo** apunte a api-ia? En ese caso, si api-ia expusiera un endpoint “dame historial” (p. ej. `GET /webapi/chat/history?sessionId=...`) que internamente llame a API2, nosotros solo necesitaríamos `PYTHON_BACKEND_URL` y dejaríamos de llamar a API2 desde el front.
+**Pregunta opcional (arquitectura):** Hoy el front usa **dos URLs**: api-ia para chat y API2 para historial. ¿Preferís que el front **solo** apunte a api-ia? En ese caso, si api-ia expusiera un endpoint “dame historial” (p. ej. `GET /webapi/chat/history?sessionId=...`) que internamente llame a API2, nosotros solo necesitaríamos `API_IA_URL` y dejaríamos de llamar a API2 desde el front.
 
 ---
 

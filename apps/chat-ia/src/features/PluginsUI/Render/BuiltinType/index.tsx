@@ -30,7 +30,19 @@ const BuiltinType = memo<BuiltinTypeProps>(
 
     const Render = BuiltinToolsRenders[identifier || ''];
 
-    if (!Render) return;
+    // BUG-CW-N12: si la IA invoca una tool cuyo identifier no está registrado en
+    // BuiltinToolsRenders, antes devolvíamos undefined sin más. Eso enmascaraba
+    // bugs reales (identifier mal en api-ia, o tool nueva sin registrar aquí).
+    // En dev avisamos por consola con el identifier + apiName para diagnosticar.
+    if (!Render) {
+      if (process.env.NODE_ENV !== 'production' && identifier) {
+        console.warn(
+          `[BuiltinType] No render registered for identifier="${identifier}" (apiName="${apiName}"). ` +
+          `Check src/tools/renders.ts and src/tools/index.ts.`
+        );
+      }
+      return;
+    }
 
     const args = safeParseJSON(argumentsStr);
 

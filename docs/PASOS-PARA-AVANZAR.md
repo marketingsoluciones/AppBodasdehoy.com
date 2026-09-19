@@ -47,7 +47,7 @@ Detalle: [docs/SOLUCIONES-CHAT-APP-TEST-API-IA.md](SOLUCIONES-CHAT-APP-TEST-API-
 2. En `test-results/` se generan `pruebas-reales-completo-*.json` y `*.md`.
 3. Enviar a api-ia el **.md** (resumen) y el **.json** (o el fragmento del request/response que falle).
 
-Detalle: [docs/PRUEBAS-REALES-API-IA-API2.md](PRUEBAS-REALES-API-IA-API2.md).
+Detalle: [docs/PRUEBAS-REALES-IA-MCP.md](PRUEBAS-REALES-IA-MCP.md).
 
 ---
 
@@ -66,7 +66,7 @@ Guía paso a paso para quien tenga acceso al servidor o al despliegue:
 | [COMO-DEJAR-FUNCIONANDO-APP-TEST-CHAT-TEST.md](COMO-DEJAR-FUNCIONANDO-APP-TEST-CHAT-TEST.md) | Pasos concretos para que app-test y chat-test respondan 200 |
 | [SOLUCIONES-CHAT-APP-TEST-API-IA.md](SOLUCIONES-CHAT-APP-TEST-API-IA.md) | Soluciones por problema (app-test 502, chat-test 500, api-ia 503) |
 | [DIAGNOSTICO-CHAT-APP-TEST-NO-CARGAN.md](DIAGNOSTICO-CHAT-APP-TEST-NO-CARGAN.md) | Qué significa 502 vs 500 y qué revisar |
-| [PRUEBAS-REALES-API-IA-API2.md](PRUEBAS-REALES-API-IA-API2.md) | Cómo generar y enviar evidencia a api-ia/api2 |
+| [PRUEBAS-REALES-IA-MCP.md](PRUEBAS-REALES-IA-MCP.md) | Cómo generar y enviar evidencia a IA/MCP |
 
 ---
 

@@ -4,7 +4,7 @@ import { withSWR } from '~test-utils';
 
 import { DEFAULT_PREFERENCE } from '@/const/user';
 import { userService } from '@/services/user';
-import { ClientService } from '@/services/user/_deprecated';
+import { ApiIaUserService } from '@/services/user/apiIa';
 import { useUserStore } from '@/store/user';
 import { preferenceSelectors } from '@/store/user/selectors';
 import { GlobalServerConfig } from '@/types/serverConfig';
@@ -32,7 +32,7 @@ describe('createCommonSlice', () => {
 
       const spyOn = vi.spyOn(result.current, 'refreshUserState');
       const updateAvatarSpy = vi
-        .spyOn(ClientService.prototype, 'updateAvatar')
+        .spyOn(ApiIaUserService.prototype, 'updateAvatar')
         .mockResolvedValue(undefined);
 
       await act(async () => {

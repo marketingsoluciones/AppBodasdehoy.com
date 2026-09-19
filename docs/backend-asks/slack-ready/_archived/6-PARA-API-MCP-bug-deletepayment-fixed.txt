@@ -1,0 +1,114 @@
+DE: COORD-AppEventos
+PARA: API-MCP
+DRI: api_mcp_oncall
+CANAL: #coordinacion · workspace eventosorganizador.slack.com
+HILO: 1778170638.897419 (hilo único AppBodas)
+ASUNTO: ✅ Smoke Cat C 10/10 + bug producción borraPago FIXED (info)
+
+
+Acabamos de certificar las 10 ops Cat C contra api-mcp producción.
+Resultado: 10/10 schemas OK. Cat C lista para apagar apiapp tras
+updateTasksOrder + Playwright E2E.
+
+Durante el smoke detectamos un bug ANTIGUO de producción en el front
+que ya fixeamos. Os lo cuento por si os toca algún ajuste vuestro
+lado, aunque NO bloquea nada.
+
+
+═══════════════════════════════════════════════════════════
+🐛 BUG ENCONTRADO — borraPago shape mismatch (FIXED en front)
+═══════════════════════════════════════════════════════════
+
+queries.deletepayment en apps/appEventos/utils/Fetching.ts:356 tenía
+shape LEGACY apiapp:
+
+  ANTES:
+    mutation($evento_id: String, $categoria_id: String,
+             $gasto_id: String, $pago_id: String) {
+      borraPago(evento_id, categoria_id, gasto_id, pago_id) {
+        pagado
+        categorias_array { pagado gastos_array { pagado } }
+      }
+    }
+
+api-mcp canonical actual (smoke + introspect):
+
+  AHORA:
+    mutation($evento_id: ID!, $gasto_id: ID!, $pago_id: ID!) {
+      borraPago(evento_id, gasto_id, pago_id) {
+        success
+        errors { field message code }
+        evento { _id presupuesto_objeto }
+      }
+    }
+
+Diferencias:
+  - NO acepta categoria_id (el front lo enviaba)
+  - Types ID! en vez de String
+  - Returns EventoResponse, no PresupuestoResponse con pagado/categorias_array
+
+
+═══════════════════════════════════════════════════════════
+💥 CONSECUENCIA EN PRODUCCIÓN — silent failure
+═══════════════════════════════════════════════════════════
+
+3 call-sites en components/Presupuesto/* ejecutaban la mutation.
+api-mcp respondía siempre:
+
+    {"errors":[{"message":"Unknown argument categoria_id"...,
+                "code":"GRAPHQL_VALIDATION_FAILED"}]}
+
+PERO los call-sites tienen try/catch silencioso + actualizan estado
+local en finally:
+
+    try { updatedPresupuesto = await fetchApiBodas(...) }
+    catch {}
+    finally { setEvent(old => ...) }   // actualiza UI local
+
+Resultado UX: usuario borra un pago, la UI lo quita, refresca la
+página, el pago sigue ahí. Probable que esté en backlog de reports
+sin diagnosticar.
+
+
+═══════════════════════════════════════════════════════════
+🔧 FIX APLICADO (commit chat-ia 8880632b)
+═══════════════════════════════════════════════════════════
+
+  - Fetching.ts:356 → shape canonical (sin categoria_id, ID!,
+    EventoResponse)
+  - Los 3 call-sites NO requieren cambio:
+    * GraphQL ignora la variable categoria_id no declarada
+    * Los call-sites no leen la respuesta, usan estado local
+  - El front ya invoca el shape correcto en próximo deploy
+
+Smoke smoke-cat-c.sh quedó como herramienta para futuras Cat C:
+  bash scripts/smoke-cat-c.sh
+  → 10/10 schemas OK (sin JWT, valida solo schema)
+
+
+═══════════════════════════════════════════════════════════
+📋 PREGUNTA OPCIONAL para vosotros
+═══════════════════════════════════════════════════════════
+
+¿borraPago debería aceptar categoria_id para coherencia con
+actualizarGastoPresupuesto (que sí lo requiere)?
+
+  - Si SÍ → el front sigue funcionando (passthrough). Os toca
+    añadir el arg opcional al schema y resolver el gasto/pago
+    filtrando por la categoría.
+  - Si NO → ya está perfecto, el front quedó alineado.
+
+Sin urgencia. Solo coherencia interna del schema.
+
+
+═══════════════════════════════════════════════════════════
+📊 ESTADO Cat C / apagar apiapp
+═══════════════════════════════════════════════════════════
+
+  ✅ 10/10 ops verificadas en api-mcp (smoke today)
+  ⏳ updateTasksOrder (vuestra ETA 06-jun)
+  ⏳ Playwright E2E en local — pendiente
+  🎯 Apagar droplet apiapp.bodasdehoy.com → viernes objetivo
+
+
+DRI: coord_appeventos

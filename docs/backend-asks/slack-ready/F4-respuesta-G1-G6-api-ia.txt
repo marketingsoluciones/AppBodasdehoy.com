@@ -1,0 +1,172 @@
+DE: COORD-AppEventos
+PARA: API-IA
+DRI: api_ia_oncall
+CANAL: #coordinacion
+HILO: 1778170638.897419
+ASUNTO: ✅ Respuesta directa G1–G6 + clarificación tras F3
+
+
+Cierro el loop de las 6 gates que me preguntasteis. Respuestas
+alineadas con la regla 0 del proyecto (NO perder funcionalidad).
+
+
+═══════════════════════════════════════════════════════════
+G1) ¿Pantalla "Settings > API Keys" del usuario?
+═══════════════════════════════════════════════════════════
+  → SÍ. Construir módulo apiKey REST completo.
+
+  Razón: ChatGPT, Claude y Trae TODOS tienen UI de API keys del
+  usuario. Es estándar del sector. UI activa en /profile/apikey/
+  (restaurada hoy). Las keys cifradas (como ya hacéis en
+  userConfig.api_keys, perfecto).
+
+  Endpoints pedidos:
+    GET    /api/apikeys
+    POST   /api/apikeys              (devuelve full key UNA vez)
+    PATCH  /api/apikeys/{id}
+    DELETE /api/apikeys/{id}
+
+
+═══════════════════════════════════════════════════════════
+G2) ¿Modelos custom por-usuario o whitelabel?
+═══════════════════════════════════════════════════════════
+  → AMBAS. Por-usuario (con userConfig opción B) + whitelabel
+    ya resuelto.
+
+  Justificación: ChatGPT permite Custom GPTs/Projects por usuario,
+  Claude tiene Projects. Es tendencia 2026. Pero el caso 80% es
+  whitelabel → /webapi/models/{provider} cubre el READ.
+
+  Para el 20% que es por-usuario (custom models, ordenar, on/off):
+    userConfig.aiModels[] con {id, providerId, order, disabled}
+    (patrón B opción c, hasta decenas)
+
+  → Ni endpoint nuevo ni userConfig fields > 5KB.
+
+
+═══════════════════════════════════════════════════════════
+G3) ¿Galería historial + generación vídeo/imagen async (polling)?
+═══════════════════════════════════════════════════════════
+  → SÍ a galería. Vídeo async opcional, no urgente.
+
+  Razón: ChatGPT muestra galería de DALL-E generations,
+  es UX estándar. AppBodas SÍ se beneficia (renders venue,
+  inspiración boda) — feature ya en uso.
+
+  Endpoints pedidos:
+    POST   /image/topics
+    GET    /image/topics                  → list usuario
+    PATCH  /image/topics/{id}
+    DELETE /image/topics/{id}
+    GET    /image/topics/{id}/generations → galería
+    DELETE /image/generations/{id}        → borra metadata + R2
+
+  Polling async (GET /image/generations/{id}/status):
+  útil PERO no urgente. Generación síncrona basta para
+  caso 90% (imagen ~30s). Si añadís vídeo/Sora/Veo → añadís
+  polling después. NO BLOQUEANTE para CAPA 3.
+
+
+═══════════════════════════════════════════════════════════
+G4) ¿UI memoria conversacional / persona activa?
+═══════════════════════════════════════════════════════════
+  → SÍ — proyecto aparte, NO bloqueante CAPA 3.
+
+  Razón: ChatGPT y Claude lanzaron memoria persistente en
+  últimos meses. Es tendencia 2026, AppBodas la quiere a medio
+  plazo (recordar preferencias usuario entre conversaciones:
+  estilo de boda, presupuesto, fechas).
+
+  Recall puro ya cableado server-side ✅. El resto (extract +
+  CRUD + persona) → ticket separado cuando producto lo
+  priorice (no esta semana).
+
+  Hoy: NO BORRAR routers memory/* del front. Mantener stubs
+  con log claro hasta que tengáis los endpoints REST.
+
+
+═══════════════════════════════════════════════════════════
+G5) ¿Vista CHUNKS / fuentes de cita?
+═══════════════════════════════════════════════════════════
+  → SÍ. GET chunks útil para UI RAG.
+
+  Endpoint pedido:
+    GET /api/lobechat-kb/files/{file_id}/chunks
+        → [{id, content, page, similarity?}]
+
+  Caso real: cuando el usuario sube PDF y la IA cita
+  "según presupuesto.pdf p.3", queremos mostrar el chunk.
+
+
+═══════════════════════════════════════════════════════════
+G6) ¿Botones EXPORTAR / IMPORTAR + COMPARTIR-PDF conversación?
+═══════════════════════════════════════════════════════════
+  → SÍ a todo. EXPORTAR es OBLIGATORIO GDPR (no opcional).
+
+  Razón: derecho legal usuario UE exportar sus datos. ChatGPT
+  y Claude tienen botón ZIP de export. NO lo podemos quitar.
+
+  Endpoints pedidos:
+    POST  /chat/export        → genera ZIP + URL (o stream)
+    POST  /chat/import        → recibe ZIP + integra
+                                  sessions/topics/messages user
+    POST  /chat/export/pdf    → markdown + título → PDF
+                                  body: {content, title, sessionId}
+                                  return: {pdfUrl}
+
+
+═══════════════════════════════════════════════════════════
+RESUMEN
+═══════════════════════════════════════════════════════════
+
+  G1 apiKey         → SÍ construir
+  G2 aiModel custom → SÍ por-usuario via userConfig (B) +
+                       whitelabel ya resuelto
+  G3 galería        → SÍ endpoints. Polling async → futuro
+  G4 memoria        → SÍ proyecto aparte (mantened stub)
+  G5 chunks         → SÍ
+  G6 export/import/PDF → SÍ los 3 (GDPR obligatorio export)
+
+  Plugin/discover/market → reconsiderado: MANTENER UI con
+  endpoint que devuelva [] vacío (graceful empty state) hasta
+  que decidamos si federamos con LobeHub. NO borrar UI.
+
+
+═══════════════════════════════════════════════════════════
+QUÉ MIGRO YO HOY (sin esperar deploys vuestros)
+═══════════════════════════════════════════════════════════
+
+A) Cableo de lo YA resuelto:
+   - memory.recallForQuery → /api/lobechat-kb/query-embedding
+     (verificado server-side, ya cableado ✅)
+   - agent.createAgent/getConfig/updateConfig → /sessions +
+     PATCH genérico
+
+B) userConfig patrón (c) donde tiene sentido:
+   - toggleModelEnabled → userConfig.aiModels.disabled[]
+   - updateAiModelOrder → userConfig.aiModels.order{}
+   - agent.pinned       → metadata sesión
+
+C) Stubs CON LOG CLARO (no NO-OP silencioso) para los
+   servicios que esperan endpoint nuevo:
+   apiKey.*, generation*, aiChat.outputJSON, chunks,
+   export/import/PDF, memory CRUD
+
+D) NO toco NINGUNA UI. Todo se mantiene visible al usuario.
+   Si una llamada falla → log + graceful degradation, no
+   se rompe la UI.
+
+
+═══════════════════════════════════════════════════════════
+ETA pedida
+═══════════════════════════════════════════════════════════
+
+A) ¿Cuándo despliega outputJSON/structured (1ª prioridad)?
+B) ETA para /chat/messages/turn (2ª prioridad)?
+C) ETA para apikeys + chunks + export/import/PDF + galería?
+D) memoria CRUD → ticket separado, sin ETA esta sprint OK.
+
+Con eso planifico el orden de migración del front sin tener
+que romper UI ni hacer cambios en cascada.
+
+DRI: coord_appeventos

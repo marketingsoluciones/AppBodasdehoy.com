@@ -1,0 +1,140 @@
+DE: COORD-AppEventos
+PARA: API-MCP
+DRI: api_mcp_oncall
+CANAL: #coordinacion · workspace eventosorganizador.slack.com
+HILO: 1778170638.897419 (hilo único AppBodas)
+ASUNTO: ✅ Thread CONFIRMADO — 4 ajustes al contrato antes de mergear
+
+
+Gracias por arrancar el modelo Thread con ETA 6-8h. SEGUIMOS adelante con
+la implementación — Thread es feature core que SÍ usaremos (chat-ia es
+multi-tenant: bodas + otros proyectos de desarrollo + más apps).
+
+Pequeña aclaración interna del lado del producto: hubo un malentendido
+puntual sobre si AppBodas la iba a usar. Confirmado: SÍ, en TODOS los
+tenants chat-ia. Sub-conversaciones tipo Slack-thread (Reply in thread)
+son funcionalidad core que NO podemos perder.
+
+Antes de que cerréis el merge, 4 AJUSTES al contrato para que encaje
+con lo que el front ya tiene desplegado:
+
+
+═══════════════════════════════════════════════════════════
+4 AJUSTES SOLICITADOS AL CONTRATO GraphQL Thread
+═══════════════════════════════════════════════════════════
+
+[1] enum type — usar el del front, NO el que propusisteis
+
+  Vuestro contrato:    type: String! = "branch"|"followup"|"clarification"|"summary"
+  Front actual:        type: ThreadType = "continuation"|"standalone"
+  Schema drizzle:      packages/database/src/schemas/topic.ts (existe desde origen LobeChat)
+
+  Motivo: el front ya tiene store/UI/i18n/tests sobre estos 2 valores. Los
+  4 que propusisteis son taxonomía de "tipo de pregunta" que el usuario
+  no elige conscientemente — son metadatos sin UX.
+
+  SOLICITUD:
+    enum ThreadType {
+      Continuation   # thread continúa la línea del topic principal
+      Standalone     # thread arranca tema aparte colgando del message
+    }
+    type Thread { ... type: ThreadType! ... }
+
+
+[2] enum status — `'deprecated'` en vez de `'closed'`
+
+  Vuestro contrato:  status: String! = "active"|"archived"|"closed"
+  Front actual:      ThreadStatus = "active"|"archived"|"deprecated"
+
+  Motivo: el front ya tiene este enum en schema drizzle desde origen.
+  Cambiar a 'closed' rompe migraciones y selectors.
+
+  SOLICITUD:
+    enum ThreadStatus { Active Archived Deprecated }
+    type Thread { ... status: ThreadStatus! ... }
+
+
+[3] createThreadWithMessage — usar el SendMessageInput existente
+
+  Vuestro contrato:  message: MessageInput! (sin definir cuál)
+  Lo que ya usamos:  sendMessage(sessionId: String!, input: SendMessageInput!)
+                     en graphql_proxy.py:692 y rest_chat_handler.py:6155/6412
+
+  Motivo: si MessageInput es un type nuevo, duplica validación y diverge
+  del flujo sendMessage. Mejor reusar el contrato existente — solo
+  añadimos topicId/threadId en el contexto.
+
+  SOLICITUD:
+    input CreateThreadWithMessageInput {
+      title: String
+      type: ThreadType!
+      sourceMessageId: ID
+      parentThreadId: ID
+      message: SendMessageInput!     ← reusar el de sendMessage
+    }
+
+
+[4] type Thread.type como ENUM tipado, NO String!
+
+  Vuestro contrato:  type: String!
+  Mejor:             type: ThreadType! (enum GraphQL nativo)
+
+  Motivo: con String! el schema GraphQL no valida valores → permite enviar
+  basura desde cualquier cliente. Un enum tipado da validación gratis +
+  introspección + autocomplete en clients generados (codegen).
+
+  Aplica también a status (= ThreadStatus! en vez de String!).
+
+
+═══════════════════════════════════════════════════════════
+LO QUE SÍ DEJAMOS COMO PROPUSISTEIS (correcto)
+═══════════════════════════════════════════════════════════
+
+  ✅ topicId/sessionId/userId      — relaciones correctas con Chat
+  ✅ sourceMessageId/parentThreadId — árbol de threads
+  ✅ messageCount/lastMessageAt     — útil para UI sin extra round-trip
+  ✅ Soft delete con deleted_at     — coherente con resto del schema
+  ✅ Transaccional createThreadWithMessage usando sesión MongoDB
+  ✅ Cascada deleteThread(removeChildren=true)
+  ✅ Índices (topicId+userId), (sessionId+status), (parentThreadId)
+  ✅ 6 operaciones (getThreads + 5 mutations)
+
+
+═══════════════════════════════════════════════════════════
+RESTO DE PENDIENTES — sin cambio
+═══════════════════════════════════════════════════════════
+
+[2] user_installed_plugins → NO modelado ✅
+    Confirmado. El front ya implementó opción (c): enabledPlugins[] en
+    userConfig (commit chat-ia 30799792).
+
+[3] User.createdAt YA EXISTE ✅
+    api-ia puede implementar getUserRegistrationDuration cuando quiera.
+
+[Cat C apiapp] → 12/13 ops en producción, falta updateTasksOrder
+    - ETA api-mcp 06-jun (vuestra)
+    - COORD ejecuta smoke E2E con JWT real esta semana
+    - Viernes: apagar droplet apiapp.bodasdehoy.com
+    - 2 ops Cat C NO necesarias: generatePdf, getGeoInfo (ya resueltos
+      en front como endpoints locales Next.js)
+
+[P0 conexión MongoDB eventos] → ✅ ESTABLE
+    Confirmado live: /health 5/5 en 5 calls con pausa. 0 errores en 72h.
+
+
+═══════════════════════════════════════════════════════════
+SIGUIENTES PASOS
+═══════════════════════════════════════════════════════════
+
+api-mcp:
+  1. Confirmar los 4 ajustes del contrato (o proponer alternativa).
+  2. Completar implementación Thread con el contrato ajustado.
+  3. Avisar cuando esté en dev → api-ia prepara proxy REST (~1 día).
+
+COORD-AppEventos:
+  - Smoke E2E Cat C hoy/mañana.
+  - Sin tocar nada del front sobre Thread hasta que api-ia confirme
+    endpoints REST listos (mantenemos los stubs actuales).
+
+
+DRI: coord_appeventos — atento a vuestra respuesta sobre los 4 ajustes.

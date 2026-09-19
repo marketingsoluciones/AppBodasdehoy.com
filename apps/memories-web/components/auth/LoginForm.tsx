@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
-const API_BASE = process.env.NEXT_PUBLIC_MEMORIES_API_URL || 'https://api-ia.bodasdehoy.com';
+import { resolvePublicApiIaOrigin } from '../../utils/endpoints';
+
+const API_BASE = resolvePublicApiIaOrigin();
 const DEVELOPMENT = (process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy').trim();
 export const MEMORIES_TOKEN_KEY = 'memories_access_token';
 

@@ -30,12 +30,19 @@ interface FilterViewParams {
   query?: string;
 }
 
+interface ShowEventSectionParams {
+  eventoId: string;
+  section: string;
+}
+
 /**
  * 代理行为接口
  */
 export interface BuiltinToolAction {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   filter_view: (params: FilterViewParams) => FilterViewParams;
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  show_event_section: (params: ShowEventSectionParams) => ShowEventSectionParams;
   text2image: (params: Text2ImageParams) => DallEImageItem[];
   toggleBuiltinToolLoading: (key: string, value: boolean) => void;
   transformApiArgumentsToAiState: (key: string, params: any) => Promise<string | undefined>;
@@ -51,6 +58,9 @@ export const createBuiltinToolSlice: StateCreator<
 > = (set, get) => ({
   // eslint-disable-next-line @typescript-eslint/naming-convention
 filter_view: ({ entity, ids, query }) => ({ entity, ids, query }),
+
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  show_event_section: ({ section, eventoId }) => ({ eventoId, section }),
 
   
   

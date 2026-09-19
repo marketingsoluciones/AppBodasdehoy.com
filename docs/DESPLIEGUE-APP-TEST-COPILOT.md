@@ -8,7 +8,7 @@ Pasos concretos para desplegar `apps/web` (app-test) con el Copilot embed funcio
 
 | Variable | Obligatoria | Valor típico |
 |----------|-------------|--------------|
-| `PYTHON_BACKEND_URL` | Sí | URL del backend api-ia (ej. `https://api-ia.bodasdehoy.com`) |
+| `API_IA_URL` | Sí | URL del backend api-ia (ej. `https://api-ia.bodasdehoy.com`) |
 | `API_IA_CHAT_HISTORY_URL` | No** | Si api-ia expone historial (ver docs/INFORME-BACKEND-API-IA-IMPLEMENTAR.md), ej. `https://api-ia.bodasdehoy.com/webapi/chat/history`. Si está definida, el front no llama a API2 para historial. |
 | `API2_GRAPHQL_URL` | No* | URL GraphQL de API2; solo se usa para historial si `API_IA_CHAT_HISTORY_URL` no está definida. |
 | `SKIP_WHITELABEL_VIA_API2` | No | Si `true`, el front no llama a API2 para whitelabel cuando api-ia falla (respuesta 503). Ver informe backend. |
@@ -41,7 +41,7 @@ Pasos concretos para desplegar `apps/web` (app-test) con el Copilot embed funcio
 
 ## 4. Si algo falla
 
-- **"Servicio IA no disponible"**: comprobar `PYTHON_BACKEND_URL`, que api-ia esté en marcha y que acepte requests desde el origen de app-test (CORS, firewall).
+- **"Servicio IA no disponible"**: comprobar `API_IA_URL`, que api-ia esté en marcha y que acepte requests desde el origen de app-test (CORS, firewall).
 - **Historial vacío**: comprobar que api-ia esté guardando en API2 (`event: done`) y que la app pueda llamar a API2 (o a `API2_GRAPHQL_URL`) con el JWT del usuario. Ver `docs/PLAN-COPILOT-MONOREPO.md` → sección 10 (Resolución de problemas).
 
 ---

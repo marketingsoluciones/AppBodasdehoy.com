@@ -404,9 +404,11 @@ export async function chatWithValidation(
 
   // ── Esperar respuesta (polling) ──
   const deadline = Date.now() + waitMs;
-  // LobeChat renderiza mensajes como <div data-index={n}> (NO <article>)
-  const msgSelector = '[data-index]';
+  // Cada contenido de mensaje se renderiza como article. Los contenedores data-index
+  // incluyen grupos completos y duplicaban todo el historial en la validación.
+  const msgSelector = 'article';
   let lastText = '';
+  let stableMatches = 0;
 
   await page.waitForTimeout(5_000);
 
@@ -420,20 +422,22 @@ export async function chatWithValidation(
 
   while (Date.now() < deadline) {
     const articles = await page.locator(msgSelector).allTextContents();
-    const assistantMsgs = articles.filter((t) => {
-      const trimmed = t.trim();
-      if (trimmed.length <= 5) return false;
-      // Filtrar mensajes del propio usuario (bidireccional, case-insensitive)
-      const userPrefix = text.trim().slice(0, 40).toLowerCase();
-      const artPrefix = trimmed.slice(0, 40).toLowerCase();
-      if (artPrefix.startsWith(userPrefix.slice(0, 25))) return false;
-      if (userPrefix.startsWith(artPrefix.slice(0, 25))) return false;
-      // Filtrar welcome message de LobeChat (no es respuesta real)
-      if (WELCOME_PATTERNS.some((p) => p.test(trimmed)) && trimmed.length < 250) return false;
-      return true;
-    });
+    let userIndex = -1;
+    for (let index = articles.length - 1; index >= 0; index -= 1) {
+      if (articles[index].trim().includes(text.trim())) {
+        userIndex = index;
+        break;
+      }
+    }
+    const assistantMsgs = userIndex >= 0
+      ? articles.slice(userIndex + 1).filter((value) => {
+          const trimmed = value.trim();
+          return trimmed.length > 5 && !WELCOME_PATTERNS.some((pattern) => pattern.test(trimmed));
+        })
+      : [];
     const joined = assistantMsgs.join('\n').trim();
-    if (joined.length > 10 && joined === lastText) {
+    stableMatches = joined.length > 10 && joined === lastText ? stableMatches + 1 : 0;
+    if (stableMatches >= 2) {
       break; // Respuesta estable
     }
     lastText = joined;
@@ -442,8 +446,8 @@ export async function chatWithValidation(
 
   // Si no captamos nada después de filtrar welcome, ampliar la búsqueda
   if (lastText.length <= 10) {
-    // 1. Intentar con todos los [data-index] incluyendo bienvenida de Bodas de Hoy
-    const allArticles = await page.locator('[data-index]').allTextContents();
+    // 1. Intentar con todos los artículos incluyendo bienvenida de Bodas de Hoy
+    const allArticles = await page.locator('article').allTextContents();
     const VISITOR_WELCOME = /bienvenido|bodas de hoy|mensajes de prueba|asistente.*limit/i;
     const hasWelcome = allArticles.some((t) => WELCOME_PATTERNS.some((p) => p.test(t)) || VISITOR_WELCOME.test(t));
     if (hasWelcome || allArticles.length > 0) {

@@ -18,6 +18,7 @@ import { Center, Flexbox } from 'react-layout-kit';
 import { Input, Select, Button, Segmented, Tooltip, message, Alert } from 'antd';
 import Balancer from 'react-wrap-balancer';
 
+import EventSelector from '@/components/EventSelector';
 import Loading from '@/components/Loading/CircleLoading';
 import { useWallet } from '@/hooks/useWallet';
 import { listEventFiles, getCurrentEventId, type StorageFile, deleteFile } from '@/services/storage-r2';
@@ -44,7 +45,39 @@ const StorageFileList = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [refreshing, setRefreshing] = useState(false);
 
-  const eventId = useMemo(() => getCurrentEventId(), []);
+  // #9 (QA 5-ago): antes era useMemo(..., []) → se leía UNA vez y /files no
+  // reaccionaba al evento activo elegido en el header (ActiveEventChip) ni al
+  // contexto standalone (#266). Ahora es estado reactivo y se re-sincroniza con
+  // `chatia:activeEventChanged` (mismo canal que usa todo lo demás) y con `storage`.
+  const [eventId, setEventId] = useState<string | null>(() => getCurrentEventId());
+  useEffect(() => {
+    const sync = () => setEventId(getCurrentEventId());
+    window.addEventListener('chatia:activeEventChanged', sync);
+    window.addEventListener('storage', sync);
+    return () => {
+      window.removeEventListener('chatia:activeEventChanged', sync);
+      window.removeEventListener('storage', sync);
+    };
+  }, []);
+
+  // #9: tenant activo para el selector de eventos (mismo criterio que el resto de la app).
+  const development =
+    (typeof window !== 'undefined' && localStorage.getItem('current_development')) || 'bodasdehoy';
+
+  // #9: al elegir evento en /files persistimos el key canónico + disparamos el evento
+  // global (idéntico a ActiveEventChip) para que el resto de la app quede en sync.
+  const handleSelectEvent = useCallback((id: string, evento: any) => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('current_event_id', id);
+    const name = evento?.nombre || evento?.name;
+    if (name) localStorage.setItem('current_event_name', name);
+    window.dispatchEvent(
+      new CustomEvent('chatia:activeEventChanged', {
+        detail: { eventId: id, source: 'files-picker' },
+      }),
+    );
+    setEventId(id);
+  }, []);
 
   const loadFiles = useCallback(async (eventIdToUse: string, showLoading = true) => {
     if (showLoading) {
@@ -193,6 +226,16 @@ const StorageFileList = () => {
             Selecciona un evento para ver sus archivos
           </Text>
         </Balancer>
+        {/* #9 (QA 5-ago): antes NO había forma de elegir evento en /files. Ahora el
+            usuario que entra directo puede seleccionarlo aquí mismo. */}
+        <div style={{ marginTop: 8, minWidth: 260 }}>
+          <EventSelector
+            development={development}
+            onChange={handleSelectEvent}
+            placeholder="Selecciona un evento"
+            value={eventId ?? undefined}
+          />
+        </div>
       </Center>
     );
   }

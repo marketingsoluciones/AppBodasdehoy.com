@@ -18,7 +18,24 @@
     "badgePhotos": "{{count}} fotos nuevas",
     "badgeTime": "hace 2 minutos",
     "badgeNoApp": "Sin instalar nada",
-    "badgeQR": "Solo escanea el QR"
+    "badgeQR": "Solo escanea el QR",
+    "album": {
+      "title": "Boda de Laura & Marcos",
+      "liveLabel": "En directo",
+      "liveCount": "247 fotos",
+      "uploadNoticeTitle": "María subió 4 fotos",
+      "uploadNoticeTime": "hace unos segundos",
+      "qrTitle": "Escanea el QR",
+      "qrSubtitle": "para subir tus fotos",
+      "momentCouple": "Ceremonia",
+      "momentToast": "Brindis",
+      "momentJustMarried": "Recién casados",
+      "momentCake": "Tarta",
+      "momentDetails": "Detalles",
+      "momentParty": "Fiesta",
+      "fresh": "recién subida",
+      "progressLabel": "Subiendo 4 fotos nuevas…"
+    }
   },
   "stats": {
     "events": "+5.000",

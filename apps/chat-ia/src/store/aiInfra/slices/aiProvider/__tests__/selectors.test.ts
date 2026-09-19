@@ -32,7 +32,7 @@ describe('aiProviderSelectors', () => {
       },
       provider2: {
         keyVaults: {
-          baseURL: 'https://api2.example.com',
+          baseURL: 'https://mcp.example.com',
         },
         settings: {},
       },

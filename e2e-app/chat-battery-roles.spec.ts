@@ -245,7 +245,7 @@ test.describe('A3 — chat-ia · Invitado/colaborador', () => {
 
   test.beforeEach(async ({ context, page }) => {
     await clearSession(context, page);
-    const ok = await loginChat(page, 'jcc@recargaexpress.com', 'lorca2012M*+');
+    const ok = await loginChat(page, 'jcc@recargaexpress.com', (process.env.TEST_USER_PASSWORD || ''));
     if (!ok) { test.skip(); return; }
     await page.goto(`${CHAT_URL}/chat`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForLoadState('networkidle', { timeout: 12_000 }).catch(() => {});

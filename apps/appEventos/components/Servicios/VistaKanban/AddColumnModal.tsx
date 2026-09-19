@@ -37,15 +37,15 @@ const COLUMN_COLORS = [
     name: 'Gris' 
   },
   { 
-    bg: 'bg-pink-50', 
-    border: 'border-pink-300', 
-    text: 'text-primary',
-    name: 'Azul' 
+    bg: 'bg-blue-50', 
+    border: 'border-blue-300', 
+    text: 'text-blue-700',
+    name: 'Azul'
   },
   { 
-    bg: 'bg-[#eeffee]', 
-    border: 'border-[#7bff7b]', 
-    text: 'text-green',
+    bg: 'bg-emerald-50', 
+    border: 'border-emerald-300', 
+    text: 'text-emerald-700',
     name: 'Verde' 
   },
   { 
@@ -55,22 +55,22 @@ const COLUMN_COLORS = [
     name: 'Amarillo' 
   },
   { 
-    bg: 'bg-[#fff0f0]', 
-    border: 'border-[#ffa7a7]', 
-    text: 'text-red',
+    bg: 'bg-red-50', 
+    border: 'border-red-300', 
+    text: 'text-red-700',
     name: 'Rojo' 
   },
   { 
-    bg: 'bg-purple-50', 
-    border: 'border-purple-300', 
-    text: 'text-purple-700',
+    bg: 'bg-secondary/10', 
+    border: 'border-secondary', 
+    text: 'text-secondary',
     name: 'Púrpura' 
   },
   { 
-    bg: 'bg-pink-50', 
-    border: 'border-pink-300', 
-    text: 'text-pink-700',
-    name: 'Rosa' 
+    bg: 'bg-base', 
+    border: 'border-primary', 
+    text: 'text-primary',
+    name: 'Marca' 
   },
   { 
     bg: 'bg-indigo-50', 
@@ -211,7 +211,7 @@ export const AddColumnModal: React.FC<AddColumnModalProps> = ({
               onClick={() => setShowIconPicker(!showIconPicker)}
               className={`
                 w-full p-3 border-2 rounded-lg flex items-center justify-between transition-all
-                ${showIconPicker ? 'border-primary ring-2 ring-pink-200' : 'border-gray-300 hover:border-gray-400'}
+                ${showIconPicker ? 'border-primary ring-2 ring-primary ring-opacity-20' : 'border-gray-300 hover:border-gray-400'}
               `}
             >
               <div className="flex items-center space-x-3">
@@ -236,7 +236,7 @@ export const AddColumnModal: React.FC<AddColumnModalProps> = ({
                       className={`
                         p-3 rounded-lg flex flex-col items-center justify-center space-y-1 transition-all
                         ${selectedIcon === iconOption 
-                          ? 'bg-pink-100 text-primary ring-2 ring-primary' 
+                          ? 'bg-base text-primary ring-2 ring-primary' 
                           : 'hover:bg-gray-100 text-gray-600'
                         }
                       `}

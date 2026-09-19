@@ -1,4 +1,4 @@
-import { AiModelSourceEnum } from 'model-bank';
+import { AiModelSourceEnum } from '@lobechat/types';
 
 import { AIProviderStoreState } from '@/store/aiInfra/initialState';
 import { ModelSearchImplement } from '@/types/search';

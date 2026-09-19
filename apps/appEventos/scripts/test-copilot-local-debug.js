@@ -13,7 +13,7 @@ const { chromium } = require('playwright');
 
 const BASE = 'http://127.0.0.1:8080';
 const USER_EMAIL = 'bodasdehoy.com@gmail.com';
-const USER_PASSWORD = 'lorca2012M*+';
+const USER_PASSWORD = (process.env.TEST_USER_PASSWORD || '');
 
 async function main() {
   console.log('='.repeat(70));

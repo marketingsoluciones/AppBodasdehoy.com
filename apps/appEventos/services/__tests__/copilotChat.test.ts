@@ -472,40 +472,27 @@ describe('copilotChat service', () => {
       expect(result[1].createdAt).toBeInstanceOf(Date);
     });
 
-    it('si chat-history no responde ok usa fallback /api/chat/messages', async () => {
-      const fallbackMessages = [
-        { id: 'f1', role: 'user', content: 'Fallback', createdAt: new Date().toISOString() },
-      ];
-      const mockFetch = jest
-        .fn()
-        .mockResolvedValueOnce({ ok: false })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve({ messages: fallbackMessages }),
-        });
-
+    it('si el historial canónico no responde ok devuelve vacío sin consultar un almacén local', async () => {
+      const mockFetch = jest.fn().mockResolvedValueOnce({ ok: false });
       globalThis.fetch = mockFetch as typeof fetch;
 
       const result = await getChatHistory('session-456');
 
-      expect(mockFetch).toHaveBeenCalledTimes(2);
-      expect(mockFetch).toHaveBeenNthCalledWith(1, expect.stringContaining('/api/copilot/chat-history'), expect.any(Object));
-      expect(mockFetch).toHaveBeenNthCalledWith(2, expect.stringContaining('/api/chat/messages'));
-      expect(result).toHaveLength(1);
-      expect(result[0].content).toBe('Fallback');
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/copilot/chat-history'),
+        expect.any(Object),
+      );
+      expect(result).toEqual([]);
     });
 
-    it('si chat-history falla y fallback también, devuelve array vacío', async () => {
-      const mockFetch = jest
-        .fn()
-        .mockRejectedValueOnce(new Error('Network error'))
-        .mockResolvedValueOnce({ ok: false });
-
+    it('si el historial canónico falla devuelve array vacío', async () => {
+      const mockFetch = jest.fn().mockRejectedValueOnce(new Error('Network error'));
       globalThis.fetch = mockFetch as typeof fetch;
 
       const result = await getChatHistory('session-789');
 
-      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(result).toEqual([]);
     });
   });

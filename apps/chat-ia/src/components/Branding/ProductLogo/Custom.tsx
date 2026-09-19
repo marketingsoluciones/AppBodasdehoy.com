@@ -1,5 +1,6 @@
 import type { IconType } from '@lobehub/icons';
-import type { LobeChatProps } from '@lobehub/ui/brand';
+// SPRINT-AS: sub-path directo — evita barrel @lobehub/ui/brand (arrastra LogoSpline 3.7MB).
+import type { LobeChatProps } from '@lobehub/ui/es/brand/LobeChat';
 import { createStyles, useTheme } from 'antd-style';
 import Image, { ImageProps } from 'next/image';
 import { ReactNode, forwardRef, memo } from 'react';

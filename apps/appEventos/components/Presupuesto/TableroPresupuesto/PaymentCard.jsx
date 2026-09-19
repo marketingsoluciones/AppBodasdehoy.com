@@ -12,20 +12,37 @@ const PaymentCard = ({
 }) => {
   const [importeCompleto, setImporteCompleto] = useState(true);
 
-  const categoria = categorias.find(
+  // BUG QA 10-jul: crash "Cannot read properties of undefined (reading
+  // 'delete_url' | 'gastos_array' | 'coste_final')" en /presupuesto pestaña
+  // "Pagos Pendientes". Si el pago referencia una categoría o gasto que ya
+  // no existe (borrado, migración, o categorias aún sin cargar en 1er
+  // render), estos .find() devuelven undefined y los accesos a
+  // .gastos_array / .coste_final rompen el árbol de React → ErrorBoundary
+  // fuerza remount → aparece "Comprobando sesión y conexión…" y el user
+  // percibe pérdida de sesión falsa. Guards defensivos + fallback UI.
+  const categoria = (categorias ?? []).find(
     (categoria) => categoria._id === payment.idCategoria
   );
-  const gasto = categoria.gastos_array.find(
+  const gasto = categoria?.gastos_array?.find(
     (gasto) => gasto._id === payment.idGasto
   );
+  const costeFinal = gasto?.coste_final ?? 0;
 
   useEffect(() => {
-    if (payment.importe < gasto.coste_final) {
+    if (payment.importe < costeFinal) {
       setImporteCompleto(false);
     } else {
       setImporteCompleto(true);
     }
-  }, [payment.importe, gasto.coste_final]);
+  }, [payment.importe, costeFinal]);
+
+  if (!categoria || !gasto) {
+    return (
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs text-gray-500">
+        Pago sin categoría o gasto asociado (id gasto: {payment?.idGasto ?? "—"}).
+      </div>
+    );
+  }
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -83,16 +100,16 @@ const PaymentCard = ({
           </p>
           <span
             className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full font-medium ${
-              payment.importe < gasto.coste_final
+              payment.importe < costeFinal
                 ? "bg-blue-100 text-blue-700"
                 : "bg-green-100 text-green-700"
             }`}
           >
-            {payment.importe < gasto.coste_final
+            {payment.importe < costeFinal
               ? getStatusIcon("parcial")
               : getStatusIcon("pagado")}
           </span>
-          { payment.soporte.delete_url !== null && (
+          {payment.soporte && payment.soporte.delete_url !== null && (
             <div className="mt-1 space-x-1">
               <button
                 onClick={() => onViewDetails && onViewDetails(payment)}

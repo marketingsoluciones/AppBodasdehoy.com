@@ -57,7 +57,7 @@ const PanelContent = memo<{ closePopover: () => void }>(({ closePopover }) => {
                    userProfile?.nombre ||
                    (currentUserId && currentUserId.includes('@') ? currentUserId.split('@')[0] : null);
 
-  const { isNegativeBalance, isCreditExhausted, balance, bonusBalance, creditLimit, totalBalance } = useWallet();
+  const { isNegativeBalance, isCreditExhausted, balance, balanceLoaded, bonusBalance, creditLimit, totalBalance } = useWallet();
 
   return (
     <Flexbox gap={2} style={{ minWidth: 300 }}>
@@ -72,7 +72,7 @@ const PanelContent = memo<{ closePopover: () => void }>(({ closePopover }) => {
               paddingBlock={12}
               paddingInline={16}
               style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #F7628C 0%, #D6497A 100%)',
                 borderRadius: '8px',
                 color: 'white',
                 marginBottom: 8,
@@ -98,7 +98,7 @@ const PanelContent = memo<{ closePopover: () => void }>(({ closePopover }) => {
                 paddingBlock={12}
                 paddingInline={16}
                 style={{
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  background: 'linear-gradient(135deg, #F7628C 0%, #D6497A 100%)',
                   borderRadius: '8px',
                   color: 'white',
                   cursor: 'pointer',
@@ -154,7 +154,9 @@ const PanelContent = memo<{ closePopover: () => void }>(({ closePopover }) => {
                     fontSize: 13,
                     fontWeight: 600,
                   }}>
-                    {typeof balance === 'number'
+                    {/* €0-falso (QA UX-01): mostrar "—" mientras el saldo no se haya leído con
+                        éxito (fallo api-mcp), no "€0.00" (que contradice Facturación). */}
+                    {balanceLoaded
                       ? `€${(balance + bonusBalance).toFixed(2)}`
                       : '—'}
                   </span>

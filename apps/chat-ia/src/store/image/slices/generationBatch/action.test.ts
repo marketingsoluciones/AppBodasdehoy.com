@@ -259,7 +259,7 @@ describe('GenerationBatchAction', () => {
         { type: 'deleteGenerationInBatch', batchId, generationId },
         'internal_deleteGeneration',
       );
-      expect(generationService.deleteGeneration).toHaveBeenCalledWith(generationId);
+      expect(generationService.deleteGeneration).toHaveBeenCalledWith(generationId, topicId);
       expect(refreshSpy).toHaveBeenCalled();
     });
 

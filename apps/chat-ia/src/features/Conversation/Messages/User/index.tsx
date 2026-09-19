@@ -178,7 +178,14 @@ const UserMessage = memo<UserMessageProps>((props) => {
             </Flexbox>
           )}
         </Flexbox>
-        <UserBelowMessage content={content} id={id} ragQuery={ragQuery} />
+        {/* BUG-6 QA: si el mensaje falló (p. ej. 500 al guardar), mostrar 'error' en
+            vez del optimista 'synced'. Sin error → default honesto 'sent' (ver BelowMessage). */}
+        <UserBelowMessage
+          content={content}
+          deliveryStatus={error ? 'error' : undefined}
+          id={id}
+          ragQuery={ragQuery}
+        />
       </Flexbox>
       {mobile && variant === 'bubble' && <BorderSpacing borderSpacing={32} />}
     </Flexbox>

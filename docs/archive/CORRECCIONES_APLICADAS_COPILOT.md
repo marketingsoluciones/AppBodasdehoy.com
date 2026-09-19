@@ -95,7 +95,7 @@ async rewrites() {
    - Ir a: http://127.0.0.1:8080/login
    - Iniciar sesión con:
      - Email: `bodasdehoy.com@gmail.com`
-     - Password: `lorca2012M*+`
+     - Password: `«definida en .env.e2e.dev.local — nunca en el repo»`
    - Esto creará:
      - Cookie `sessionBodas`
      - Usuario Firebase en localStorage

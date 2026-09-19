@@ -22,7 +22,7 @@
 |-----|----------------|
 | **api-ia implemente** | Historial: `GET /webapi/chat/history`. Whitelabel: `GET /webapi/config/whitelabel`. Ver docs/INFORME-API-IA-RESUMEN-NECESIDADES.md. |
 | **Verificación en local** | `pnpm install` (+ `--no-frozen-lockfile` si pide) → `pnpm test:web`. Sin navegador: docs/PROBAR-SIN-NAVEGADOR.md. |
-| **Despliegue app-test** | Variables: `PYTHON_BACKEND_URL`, y cuando api-ia esté listo: `API_IA_CHAT_HISTORY_URL`, `API_IA_WHITELABEL_URL`. Checklist: docs/DESPLIEGUE-APP-TEST-COPILOT.md. |
+| **Despliegue app-test** | Variables: `API_IA_URL`, y cuando api-ia esté listo: `API_IA_CHAT_HISTORY_URL`, `API_IA_WHITELABEL_URL`. Checklist: docs/DESPLIEGUE-APP-TEST-COPILOT.md. |
 | **Copilot/LobeChat** | Alcance (auth, billing, wallet) pendiente de respuesta backend; ver Fase 2 en docs/INFORME-BACKEND-API-IA-IMPLEMENTAR.md. |
 
 ---

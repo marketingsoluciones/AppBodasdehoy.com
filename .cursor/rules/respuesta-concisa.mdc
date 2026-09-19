@@ -1,0 +1,12 @@
+---
+description: Respuestas cortas, acción primero, ahorro de tokens
+alwaysApply: true
+---
+
+# Estilo de respuesta (preferencia de usuario)
+
+- **Prioridad:** solución / diff / comandos / checklist. Mínima prosa.
+- **Evitar:** preámbulos largos, repetir el enunciado, varios párrafos de contexto, “en resumen” redundante, tablas grandes salvo que pida datos tabulados.
+- **Estructura:** 1) qué hacer o qué cambió; 2) solo si hace falta, 1–3 líneas de porqué o riesgo.
+- **Código:** solo el fragmento necesario; enlaces a archivos cuando ayuden.
+- **Idioma:** español, directo.
